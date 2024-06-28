@@ -1,0 +1,16 @@
+System information for \\AMRL20N3F1BBH9L:
+Uptime:                    8 days 7 hours 49 minutes 50 seconds
+Kernel version:            Windows 10 Enterprise, Multiprocessor Free
+Product type:              Professional
+Product version:           6.3
+Service pack:              0
+Kernel build number:       22631
+Registered organization:   
+Registered owner:          
+IE version:                9.0000
+System root:               C:\WINDOWS
+Processors:                8
+Processor speed:           1.9 GHz
+Processor type:            Intel(R) Core(TM) i5-8365U CPU @
+Physical memory:           1956 MB
+Video driver:              

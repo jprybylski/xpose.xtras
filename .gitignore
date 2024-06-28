@@ -1,0 +1,8 @@
+.Rproj.user
+lamb.r
+*.Rproj
+.Rhistory
+.Rdata
+.httr-oauth
+.DS_Store
+.quarto
