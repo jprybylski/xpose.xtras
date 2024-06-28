@@ -6,3 +6,4 @@ lamb.r
 .httr-oauth
 .DS_Store
 .quarto
+_*.txt

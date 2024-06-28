@@ -1,3 +1,4 @@
 ^xpose\.xtras\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
+^_\.*\\.txt$
