@@ -6,38 +6,22 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of xpose.xtras is to …
+The goal of xpose.xtras is to add some at-present missing functionality
+(to-be-deprecated as they are added to xpose), or functions unlikely to
+be added to the base xpose package.
 
-## Installation
+# Todo
 
-You can install the development version of xpose.xtras from
-[GitHub](https://github.com/) with:
-
-``` r
-# install.packages("devtools")
-devtools::install_github("pfizer-rd/xpose.xtras")
-```
-
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-#library(xpose.xtras)
-## basic example code
-```
-
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
-
-``` r
-#summary(cars)
-```
-
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
-
-You can also embed plots, for example:
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+- [ ] Extend xpose_data class or add a new class with additional
+  structures.
+  - [ ] Add support for defining catcov levels
+- [ ] Add support to grab xpose_plot objects
+- [ ] Built-in support for contcov and catcov plots
+- [ ] Built-in implementation of GGally::ggpairs
+- [ ] Visualize colinearity
+- [ ] table of covariates (demographics)
+  - [ ] Basic tibble
+  - [ ] Nice output version (similar to nice output for prm_table)
+- [ ] Nice param table, incorporate pmxcv
+  - [ ] Need way to reference etas to fixed effects and state
+    transformation
