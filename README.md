@@ -15,9 +15,14 @@ be added to the base xpose package.
 - [ ] Extend xpose_data class or add a new class with additional
   structures.
   - [ ] Add support for defining catcov levels
+- [x] set_var_type changes
+  - [x] accept vector for continuous and categorical variables (*already
+    present*)
+  - [x] set_var_type to accept tidyselect syntax
 - [ ] Add support to grab xpose_plot objects
 - [ ] Built-in support for contcov and catcov plots
 - [ ] Built-in implementation of GGally::ggpairs
+- [ ] Correct filter() (filter on xpdb_data breaks some columns, eg ETA)
 - [ ] Visualize colinearity
 - [ ] table of covariates (demographics)
   - [ ] Basic tibble
@@ -25,3 +30,7 @@ be added to the base xpose package.
 - [ ] Nice param table, incorporate pmxcv
   - [ ] Need way to reference etas to fixed effects and state
     transformation
+- [ ] unit tests for all functions
+- [ ] vignette
+- [ ] examples
+- [ ] pkgdown
