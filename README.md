@@ -15,10 +15,18 @@ be added to the base xpose package.
 - [ ] Extend xpose_data class or add a new class with additional
   structures.
   - [ ] Add support for defining catcov levels
+- [ ] Add new class for set of xpdb objects
+  - [ ] Read from directory
+  - [ ] diff() method
+  - [ ] Ability to add child-parent relationships
+  - [ ] tabulate dofv (and related)
+  - [ ] model comparison functions from xpose4
+  - [ ] model averaging VPC
 - [x] set_var_type changes
   - [x] accept vector for continuous and categorical variables (*already
     present*)
   - [x] set_var_type to accept tidyselect syntax
+- [ ] import irepl fix
 - [ ] Add support to grab xpose_plot objects
 - [ ] Built-in support for contcov and catcov plots
 - [ ] Built-in implementation of GGally::ggpairs
