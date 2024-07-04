@@ -14,7 +14,8 @@ be added to the base xpose package.
 
 - [ ] Extend xpose_data class or add a new class with additional
   structures.
-  - [ ] Add support for defining catcov levels
+  - [ ] Add support for defining catcov, dvid, occ and dv levels
+  - [ ] Add support for categorical dv (and corresponding diagnostics)
 - [ ] Add new class for set of xpdb objects
   - [ ] Read from directory
   - [ ] diff() method
@@ -31,6 +32,8 @@ be added to the base xpose package.
 - [ ] Built-in support for contcov and catcov plots
 - [ ] Built-in implementation of GGally::ggpairs
 - [ ] Correct filter() (filter on xpdb_data breaks some columns, eg ETA)
+- [ ] Beef up DVID support (check for it when doing dv_vs and ind plots
+  since it would impact interpretation)
 - [ ] Visualize colinearity
 - [ ] table of covariates (demographics)
   - [ ] Basic tibble
@@ -39,6 +42,8 @@ be added to the base xpose package.
   - [ ] Need way to reference etas to fixed effects and state
     transformation
 - [ ] unit tests for all functions
+- [ ] tidyvpc support?
+  - [ ] Want vpc_tte ported over (even though this is not in xpose atm)
 - [ ] vignette
 - [ ] examples
 - [ ] pkgdown
