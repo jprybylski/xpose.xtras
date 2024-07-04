@@ -15,7 +15,12 @@
 #' @export
 #'
 #' @examples
-#' @name covars
+#' data("xpdb_ex_pk", package = "xpose")
+#'
+#' # Change variable type
+#' xpdb_2 <- set_var_types_x(xpdb_ex_pk, .problem = 1, idv = TAD, catcov = starts_with("MED"), contcov = c(CLCR,AGE))
+#' 
+#' @name set_var_types
 set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quiet) {
   # xpose.xtras :: Same beginning to the existing function, as that is necessary
   
@@ -63,4 +68,41 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
                !!!.coltypes, 
                auto_factor = auto_factor, 
                quiet = quiet))
+}
+
+
+#' Add simulation counter
+#' 
+#' Bugfix for \code{\link[xpose]{irep}}.
+#'
+#' @description Add a column containing a simulation counter (irep). A new simulation is counted everytime
+#' a value in x is different than its previous value and is a duplicate.
+#'
+#' This version of the function does not require IDs be ascending, but does not work for
+#' datasets where IDs are repeated (not in sequence). Both cases are read as separate
+#' individuals for NONMEM, but NONMEM does not need to detect repition of ID sequences (for NONMEM,
+#' \code{1,1,2,2,3,3,1,1,2,2,3,3} is 6 individuals, regardless of being 2 repeats of 3 individuals).
+#' Given the vast majority of datasets use 1 individual per ID, (which cannot be said about IDs 
+#' always being ascending), only one of these corrections is implemented.
+#' 
+#' @param x The column to be used for computing simulation number, usually the ID column.
+#' @param quiet Logical, if \code{FALSE} messages are printed to the console.
+#'
+#' @examples
+#' data("xpdb_ex_pk", package = "xpose")
+#' 
+#' xpdb_ex_pk_2 <- xpdb_ex_pk %>% 
+#'  mutate(sim_id = irep(ID), .problem = 2)
+#' 
+#' @export
+irep <- function(x, quiet = FALSE) {
+  if (missing(x)) stop('argument "x" is missing, with no default', call. = FALSE)
+  if (is.factor(x)) x <- as.numeric(as.character(x))
+  lagcheck <- dplyr::lag(x, default = x[1]) != x
+  dupcheck <- duplicated(x)
+  check <- dplyr::if_else(lagcheck & dupcheck, 1, 0, missing = 0)
+  ilen <- dplyr::first(which(check==1), default = length(x) + 1) - 1
+  x <- rep(1:(length(x)/ilen), each=ilen)
+  xpose::msg(c('irep: ', max(x), ' simulations found.'), quiet)
+  x
 }

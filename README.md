@@ -27,7 +27,7 @@ be added to the base xpose package.
   - [x] accept vector for continuous and categorical variables (*already
     present*)
   - [x] set_var_type to accept tidyselect syntax
-- [ ] import irepl fix
+- [x] import irepl fix
 - [ ] Add support to grab xpose_plot objects
 - [ ] Built-in support for contcov and catcov plots
 - [ ] Built-in implementation of GGally::ggpairs
@@ -44,6 +44,9 @@ be added to the base xpose package.
 - [ ] unit tests for all functions
 - [ ] tidyvpc support?
   - [ ] Want vpc_tte ported over (even though this is not in xpose atm)
+- [ ] options-defined default set of diagnostics
+- [ ] template-based reporting?
+- [ ] patchwork integration?
 - [ ] vignette
 - [ ] examples
 - [ ] pkgdown
