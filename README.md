@@ -28,10 +28,14 @@ be added to the base xpose package.
     present*)
   - [x] set_var_type to accept tidyselect syntax
 - [x] import irepl fix
+- [ ] When joining firstonly, rows are getting duplicated
+- [ ] Option to set 0s to NA for select columns
 - [ ] Add support to grab xpose_plot objects
 - [ ] Built-in support for contcov and catcov plots
 - [ ] Built-in implementation of GGally::ggpairs
 - [ ] Correct filter() (filter on xpdb_data breaks some columns, eg ETA)
+  - [ ] Happens if ETAs are only in firstonly join, which adds them as
+    NA in the main data object
 - [ ] Beef up DVID support (check for it when doing dv_vs and ind plots
   since it would impact interpretation)
 - [ ] Visualize colinearity
