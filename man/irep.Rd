@@ -23,7 +23,7 @@ Given the vast majority of datasets use 1 individual per ID, (which cannot be sa
 always being ascending), only one of these corrections is implemented.
 }
 \details{
-(Bugfix for \code{\link[xpose]{irep}})
+Bugfix for \code{\link[xpose]{irep}}.
 }
 \examples{
 data("xpdb_ex_pk", package = "xpose")
