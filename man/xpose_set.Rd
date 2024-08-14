@@ -4,12 +4,14 @@
 \alias{xpose_set}
 \title{Generate a set of \code{xpdb} objects}
 \usage{
-xpose_set(..., .relationships = NULL)
+xpose_set(..., .relationships = NULL, .as_ordered = FALSE)
 }
 \arguments{
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> \verb{xpdb1, xpdb2, ...} A set of \code{xpdb} objects to be combined into a set.}
 
 \item{.relationships}{<\code{\link{list}}> A list of relationships between the \code{xpdb} objects. (see Details)}
+
+\item{.as_ordered}{<\code{\link{logical}}> Alternative to \code{.relationships}, should the set of \code{xpdb} objects provided be considered a lineage (\verb{grandparent, parent, child, ...})?}
 }
 \value{
 A list of class \code{xpose_set}
@@ -21,8 +23,10 @@ can be used to define relationships between models. The
 \details{
 Beyond just a list of \code{xpdb} objects, an \code{xpose_set} adds hierarchical information.
 
-When using \code{relationships}, the list should be named based on the either the variables passed as
-\code{xpdb} objects or the arguments used to pass the
+When using \code{.relationships}, these should be expressed as tilde formulas, where the left-hand side is
+children and the right and side is parents. In the simplest case, this would be \code{child ~ parent}, but a child can have multiple parents. This
+syntax expects that the names for models is either declared as argument names in the call, or that the
+variable names are directly used (i.e., not spliced or passed as an unnamed list).
 }
 \examples{
 data("xpdb_ex_pk", package = "xpose")
@@ -35,21 +39,26 @@ set1 <- xpose_set(xpdb_ex_pk, xpdb_ex_pk2)
 
 # With predefined relationships
 set2 <- xpose_set(xpdb_ex_pk, xpdb_ex_pk2,
-  .relationships = list(xpdb_ex_pk2 = list(parent = xpdb_ex_pk))
+  .relationships = list(xpdb_ex_pk2 ~ xpdb_ex_pk)
+  )
+
+# Alternative predefined relationships
+set2b <- xpose_set(xpdb_ex_pk, xpdb_ex_pk2,
+  .as_ordered = TRUE
   )
 
 # With custom labels
 set3 <- xpose_set(mod1 = xpdb_ex_pk, mod2 = xpdb_ex_pk2,
-  .relationships = list(mod2 = list(parent = mod1))
+  .relationships = list(mod2 ~ mod1)
   )
 
-# Alternative set3 using [rlang::dyn-dots]
+# Alternative set3 using dyanmic dots
 mod_list <- list(
   mod1 = xpdb_ex_pk,
   mod2 = xpdb_ex_pk2
 )
 mod_rels <- list(
-  mod2 = list(parent = mod1)
+  mod2 ~ mod1
 )
 set3b = xpose_set(!!!mod_list, .relationships = mod_rels)
 

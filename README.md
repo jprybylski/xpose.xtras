@@ -21,6 +21,7 @@ be added to the base xpose package.
   - [ ] diff() method
   - [ ] Ability to add child-parent relationships
   - [ ] tabulate dofv (and related)
+  - [ ] apply transformations to one or multiple xpdbs in a set
   - [ ] model comparison functions from xpose4
   - [ ] model averaging VPC
 - [x] set_var_type changes
@@ -28,6 +29,7 @@ be added to the base xpose package.
     present*)
   - [x] set_var_type to accept tidyselect syntax
 - [x] import irepl fix
+- [ ] Getter and setter for description (“descr”) in xpose_data
 - [ ] When joining firstonly, rows are getting duplicated
 - [ ] Option to set 0s to NA for select columns
 - [ ] Add support to grab xpose_plot objects
