@@ -9,10 +9,10 @@ add_relationship(xpdb_s, ...)
 \arguments{
 \item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
 
-\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> One or more formulas that define relationships between models. One list can also be used, but a warning is generated.}
+\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> One or more formulas that define relationships between models. One list of formulas can also be used, but a warning is generated.}
 }
 \value{
-An xpose_set object with relationships added
+An \code{xpose_set} object with relationships added
 }
 \description{
 Add relationship(s) to an xpose_set

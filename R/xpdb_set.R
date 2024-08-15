@@ -111,8 +111,8 @@ xpose_set <- function(..., .relationships = NULL, .as_ordered = FALSE) {
     ~ {
       rlang::list2(
         xpdb = .x,
-        parent = NULL,
-        label = .y,
+        label = .y, # fixed
+        parent = NA, # vector of parents
         # Implement getter and setter for xpdb object directly
         #descr = xpose::get_summary(xpdb_ex_pk) %>% dplyr::filter(label=="descr") %>% dplyr::pull(value),
         base = FALSE, # should changes be considered relative to this model?
@@ -157,6 +157,9 @@ unfocus_xpdb <- function(xpdb_s) {
 set_parent <- function( xpdb_c, ...) {
   # Assign one or more parents to an xpose object and return an xpose_set
   # (wrapper for xpose_set with .relationships)
+
+  # Maybe define as
+  UseMethod("set_parent") # so for focused set, can define parent
 }
 
 #' Add relationship(s) to an xpose_set
@@ -202,10 +205,194 @@ check_relationships <- function(rel_list, xpdb_s) {
   ## ensure that rel_list is a list of formulas, and that the formulas associate models within the set
 }
 
+#' Expose a property of xpdb objects in an xpose_set
+#'
+#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more properties to expose, or passed to `get_*()` function.
+#' @param .get_fn <[`function`]> Function in the get_*() family (with a single return value) to use for extraction.
+#'
+#' @return An `xpose_set` object with the properties exposed
+#'
+#' @details
+#'
+#' The property returned will be top-level, and to avoid conflicting names will be preprended by an underscore.
+#'
+#' @export
+#'
+#' @examples
+#' data("xpdb_ex_pk", package = "xpose")
+#' set <- xpose_set(xpdb_ex_pk, xpdb_ex_pk2 = xpdb_ex_pk)
+#'
+#' set <- expose_property(set, descr)
+#' set$xpdb_ex_pk$_descr
+#'
+#' set <- expose_property(set, .get_fun = get_shk)
+#' set$xpdb_ex_pk$_etashk
+#'
+#' set <- expose_property(set, wh="eps" .get_fun = get_shk)
+#' set$xpdb_ex_pk$_epsshk
+#'
+expose_property <- function(xpdb_s, ..., .get_fn = NULL) {
+
+}
+
+#' Convenience wrapper for tidyselect
+#'
+#' @description
+#'
+#' This is intended for use as an internal function to select a subset of xpdb objects from an xpose_set.
+#'
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more tidyselect selectors
+#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#'
+#' @return <[`numeric`]> vector of indices for selected xpdb objects
+#'
+#' @keywords internal
+#'
+#' @examples
+#'
+#' data("xpdb_ex_pk", package = "xpose")
+#'
+#' # Arbitrary copies
+#' xpdb_ex_pk2 <- xpdb_ex_pk3 <- xpdb_ex_pk4 <- xpdb_ex_pk
+#'
+#' set <- xpose_set(mod1=xpdb_ex_pk, mod2=xpdb_ex_pk2, fix1 = xpdb_ex_pk3, fix2 = xpdb_ex_pk4)
+#'
+#' xpose.xtras:::select_subset(mod2, xpdb_s=set)
+#'
+#' xpose.xtras:::select_subset(dplyr::starts_with("fix"), xpdb_s=set)
+#'
+#'
+select_subset <- function(xpdb_s, ...) {
+  tidyselect::eval_select(rlang::expr(c(...)),  data = xpdb_s,
+                          strict=TRUE,
+                          allow_rename = FALSE,
+                          allow_empty = TRUE,
+                          allow_predicates = TRUE # TODO: Add predicate behavior for where()
+                      )
+}
+
+#' Alternative to where() for `xpose_set`
+#'
+#' @description
+#'
+#' For use when <[tidyselect::where]> might be useful.
+#'
+#' @inheritParams tidyselect::where
+#'
+#' @export
+#' @examples
+#'
+#' data("xpdb_ex_pk", package = "xpose")
+#'
+#' # Arbitrary copies
+#' xpdb_ex_pk2 <- xpdb_ex_pk3 <- xpdb_ex_pk4 <- xpdb_ex_pk
+#'
+#' set <- xpose_set(mod1=xpdb_ex_pk, mod2=xpdb_ex_pk2, fix1 = xpdb_ex_pk3, fix2 = xpdb_ex_pk4,
+#'         .as_ordered = TRUE)
+#'
+#' xpose.xtras:::select_subset(where.xp(~"fix1" %in% parent), xpdb_s=set)
+where_xp <- function(fn) {
+  predicate <- rlang::as_function(fn)
+  call <- rlang::current_call()
+  function(x, ...) {
+    # Want to apply this function over columns of xpdb_set list elements (x)
+    out_xpdb
+    tidyselect:::check_predicate_output(out, call = call)
+    out
+  }
+}
+
+
+##### Methods
+
 # Need methods for:
-# c() = xpose_set alias or combine two sets,
+# c() = xpose_set alias or combine two sets. Allow relationships between mods if combining two sets. Should xpose_set have methods?
 # diff() = dOFV for lineage(s), if present,
 # print() = summary of models (n models, parameters, )
 # duplicated() = using identical(), determine which xpdbs are duplicates
 # Any methods defined for xpose_data so it can be passed through in focus_xpdb, or
 #  so when unfocused, the methods can be applied to all xpdbs in the set
+# mutate() = add characteristic to list elements (top-level, like "parent", not to xpdb objects themselves)
+#     For passthrough to xpdb objects, use focus_xpdb, or across() inside mutate.
+
+#' @exportS3Method base::print
+print.xpose_set <- function(xpdb_s, ...) {
+  # Print summary of xpose_set
+  # (number of models, parameters, etc.)
+  print(length(xpdb_s))
+}
+
+
+#' @rdname reshape_set
+#' @order 1
+#'
+#' @title Convert xpose_set to a nested list.
+#'
+#' @description
+#'
+#' This amounts to a convenience function for tidy manupulations.
+#'
+#' @param x <[`xpose_set`]> An xpose_set object
+#' @param y <[`tibble`][`tibble::tibble`]> A nested table from an xpose_set
+#'
+#' @return <[`tibble`][`tibble::tibble`]> Nested list, or <[`xpose_set`]>
+#' @export
+#'
+#' @examples
+#'
+#' data("xpdb_ex_pk", package = "xpose")
+#'
+#' # Arbitrary copies
+#' xpdb_ex_pk2 <- xpdb_ex_pk3 <- xpdb_ex_pk4 <- xpdb_ex_pk
+#'
+#' set <- xpose_set(mod1=xpdb_ex_pk, mod2=xpdb_ex_pk2, fix1 = xpdb_ex_pk3, fix2 = xpdb_ex_pk4)
+#'
+#' rset <- reshape_set(set)
+#' # Properties (exposed and top-level) can be seen. xpdb objects are nested in the xpdb column.
+#' rset %>% dplyr::select(-xpdb) %>% dplyr::glimpse()
+#'
+#' unreshape_set(rset)
+#'
+reshape_set <- function(x) {
+  xpdbs <- purrr:::map(x, ~.x$xpdb) %>%
+    dplyr::tibble(xpdb = .)
+  other_elems <- purrr:::map_dfr(x, ~.x[names(.x) != "xpdb"])
+  dplyr::bind_cols(other_elems, xpdbs) %>%
+    dplyr::select(!!!names(x[[1]]))
+}
+
+#' @rdname reshape_set
+#' @order 2
+#'
+unreshape_set <- function(y) {
+  # Validation
+  if (!tibble::is_tibble(y)) rlang::abort("Input must be a tibble, ideally from reshape_set().")
+  if (nrow(y)!=length(unique(y$label))) rlang::abort("Input must have unique labels.")
+
+  # Process
+  out <- y %>%
+    # Index in current order
+    mutate(grp_key = forcats::as_factor(label)) %>%
+    # Split
+    dplyr::group_split(grp_key,.keep = TRUE) %>%
+    # Cleanup
+    purrr:::map(~{
+      ll <- as.list(.x)
+      ll$grp_key <- NULL
+      ll$xpdb <- ll$xpdb[[1]]
+
+      ll
+    }) %>%
+    rlang::set_names(purrr::map_chr(., ~.x$label))
+  class(out) <- c("xpose_set", class(out))
+
+  out
+}
+
+#' @exportS3Method dplyr::mutate
+mutate.xpose_set <- function(xpdb_s, ...) {
+  reshape_set(xpdb_s) %>%
+    dplyr::mutate(...) %>%
+    unreshape_set()
+}

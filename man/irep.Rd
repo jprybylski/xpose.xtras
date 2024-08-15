@@ -28,7 +28,7 @@ Bugfix for \code{\link[xpose]{irep}}.
 \examples{
 data("xpdb_ex_pk", package = "xpose")
 
-xpdb_ex_pk_2 <- xpdb_ex_pk \%>\% 
+xpdb_ex_pk_2 <- xpdb_ex_pk \%>\%
  mutate(sim_id = irep(ID), .problem = 2)
 
 }
