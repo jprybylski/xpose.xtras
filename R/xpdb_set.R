@@ -325,8 +325,8 @@ expose_property <- function(xpdb_s, ...) {
       ~ {
         prop <- .x
         function(xpdp) {
-          if (prop == "etashk") return(get_shk(xpdp, wh="eta"))
-          if (prop == "epsshk") return(get_shk(xpdp, wh="eps"))
+          if (prop == "etashk") return(list(get_shk(xpdp, wh="eta")))
+          if (prop == "epsshk") return(list(get_shk(xpdp, wh="eps")))
           if (prop %in% nonprob_props) return(get_prop(xpdp, prop))
           if (!is.na(as.numeric(get_prop(xpdp, prop)))) return(as.numeric(get_prop(xpdp, prop)))
 
