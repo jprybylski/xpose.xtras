@@ -23,12 +23,38 @@
 #'
 #'
 get_shk <- function(xpdb, wh = "eta", .problem = NULL) {
-  xpose::get_summary(xpdb) %>%
-    dplyr::filter(label==stringr::str_c(wh, "shk")) %>%
-    dplyr::filter(problem == dplyr::coalesce(.env$.problem[1],xpose::default_plot_problem(xpdb))) %>%
-    dplyr::pull(value) %>%
+  get_prop(
+      xpdb = xpdb,
+      prop = stringr::str_c(wh, "shk"),
+      .problem = .problem
+    ) %>%
     stringr::str_split(" \\[\\d+\\],? ?") %>%
     purrr::list_c() %>%
     readr::parse_double() %>%
     purrr::discard(is.na)
+}
+
+
+#' Generic function to extract a property from a model summary
+#'
+#' @param xpdb <`xpose_data`[xpose::xpose_data]> object
+#' @param prop <`character`> Property to extract
+#' @param .problem <`numeric`> Problem number to use. Uses the xpose default if not provided.
+#'
+#' @return Exact value for the property
+#' @export
+#'
+#' @examples
+#'
+#' data("xpdb_ex_pk", package = "xpose")
+#'
+#' get_prop(xpdb_ex_pk, "descr")
+get_prop <- function(xpdb, prop, .problem = NULL) {
+  use_problem <- dplyr::coalesce(.problem[1],xpose::default_plot_problem(xpdb))
+
+  xpose::get_summary(xpdb) %>%
+    dplyr::filter(label==prop) %>%
+    # Include 0 for non-problem values
+    dplyr::filter(problem %in% c(0,use_problem)) %>%
+    dplyr::pull(value)
 }

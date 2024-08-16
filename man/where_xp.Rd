@@ -15,13 +15,5 @@ For use when <\link[tidyselect:where]{tidyselect::where}> might be useful.
 }
 \examples{
 
-data("xpdb_ex_pk", package = "xpose")
-
-# Arbitrary copies
-xpdb_ex_pk2 <- xpdb_ex_pk3 <- xpdb_ex_pk4 <- xpdb_ex_pk
-
-set <- xpose_set(mod1=xpdb_ex_pk, mod2=xpdb_ex_pk2, fix1 = xpdb_ex_pk3, fix2 = xpdb_ex_pk4,
-        .as_ordered = TRUE)
-
-xpose.xtras:::select_subset(where.xp(~"fix1" \%in\% parent), xpdb_s=set)
+xpose.xtras:::select_subset(where.xp(~"fix1" \%in\% parent), xpdb_s=xpdb_set)
 }

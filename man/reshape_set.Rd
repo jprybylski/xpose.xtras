@@ -22,17 +22,13 @@ This amounts to a convenience function for tidy manupulations.
 }
 \examples{
 
-data("xpdb_ex_pk", package = "xpose")
-
-# Arbitrary copies
-xpdb_ex_pk2 <- xpdb_ex_pk3 <- xpdb_ex_pk4 <- xpdb_ex_pk
-
-set <- xpose_set(mod1=xpdb_ex_pk, mod2=xpdb_ex_pk2, fix1 = xpdb_ex_pk3, fix2 = xpdb_ex_pk4)
-
-rset <- reshape_set(set)
+rset <- reshape_set(xpdb_set)
 # Properties (exposed and top-level) can be seen. xpdb objects are nested in the xpdb column.
 rset \%>\% dplyr::select(-xpdb) \%>\% dplyr::glimpse()
 
 unreshape_set(rset)
+
+# The reversibility of reshaping can be confirmed:
+identical(xpdb_set,reshape_set(xpdb_set) \%>\% unreshape_set())
 
 }

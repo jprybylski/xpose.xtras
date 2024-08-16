@@ -4,14 +4,12 @@
 \alias{expose_property}
 \title{Expose a property of xpdb objects in an xpose_set}
 \usage{
-expose_property(xpdb_s, ..., .get_fn = NULL)
+expose_property(xpdb_s, ...)
 }
 \arguments{
 \item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
 
-\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> One or more properties to expose, or passed to \verb{get_*()} function.}
-
-\item{.get_fn}{<\code{\link{function}}> Function in the get_*() family (with a single return value) to use for extraction.}
+\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> One or more properties to expose}
 }
 \value{
 An \code{xpose_set} object with the properties exposed
@@ -20,19 +18,23 @@ An \code{xpose_set} object with the properties exposed
 Expose a property of xpdb objects in an xpose_set
 }
 \details{
-The property returned will be top-level, and to avoid conflicting names will be preprended by an underscore.
+The property returned will be top-level, and to avoid conflicting
+names will be preprended by \code{..} (e.g., \code{..descr}).
+
+For some properties, transformations are applied automatically to
+make them more useful. This includes:
+\itemize{
+\item \code{etashk} and \code{epsshk}: transformed to numeric vectors as in <\code{\link{get_shk}}>
+\item \code{ofv} and other per-problem properties: transformed as
+needed and pulls from each \code{xpdb} default problem.
+}
 }
 \examples{
-data("xpdb_ex_pk", package = "xpose")
-set <- xpose_set(xpdb_ex_pk, xpdb_ex_pk2 = xpdb_ex_pk)
 
-set <- expose_property(set, descr)
-set$xpdb_ex_pk$_descr
+xpdb_set <- expose_property(xpdb_set, descr)
+xpdb_set$mod1$..descr
 
-set <- expose_property(set, .get_fun = get_shk)
-set$xpdb_ex_pk$_etashk
-
-set <- expose_property(set, wh="eps" .get_fun = get_shk)
-set$xpdb_ex_pk$_epsshk
+xpdb_set <- expose_property(xpdb_set, etashk)
+xpdb_set$mod1$..etashk
 
 }

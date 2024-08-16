@@ -109,7 +109,7 @@ xpose_set <- function(..., .relationships = NULL, .as_ordered = FALSE) {
   out <- purrr::imap(
     xpdb_objs,
     ~ {
-      rlang::list2(
+      item <- rlang::list2(
         xpdb = .x,
         label = .y, # fixed
         parent = NA, # vector of parents
@@ -119,6 +119,8 @@ xpose_set <- function(..., .relationships = NULL, .as_ordered = FALSE) {
         focus = FALSE, # editing in place, should changes be applied to this xpdb?
         # Other features
       )
+      class(item) = c("xpose_set_item", class(item))
+      item
     }
   )
   class(out) = c("xpose_set", class(out))
@@ -138,6 +140,69 @@ xpose_set <- function(..., .relationships = NULL, .as_ordered = FALSE) {
   # Return
   out
 }
+
+
+
+
+#' @rdname check_xpose_set
+#' @order 1
+#'
+#' @title Check an `xpose_set` object
+#'
+#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param xpdb_s_i <[`xpose_set_item`][xpose_set]> An xpose_set_item object (element of an xpose_set)
+#'
+#' @return TRUE or error thrown
+#' @export
+#'
+#' @examples
+#'
+#' check_xpose_set(xpdb_set)
+#'
+#' check_xpose_set_item(xpdb_set$mod1)
+#'
+check_xpose_set <- function(xpdb_s) {
+  # First check the obvious
+  if (!inherits(xpdb_s, "xpose_set")) rlang::abort("Input must be an xpose_set object.")
+
+  # Now make sure top-level elements are as expected
+  set_test <- rlang::try_fetch(
+    purrr::map(xpdb_s, check_xpose_set_item),
+    error = function(s) rlang::abort("xpose_set elements are not valid.", parent=s)
+  )
+
+  ### Label checks
+  llabells <- purrr::map_chr(xpdb_s, ~.x$label)
+  # Make sure each label is unique
+  if (length(unique(llabells)) != length(xpdb_s)) {
+    rlang::abort("xpose_set labels are not unique.")
+  }
+  # Make sure each element name is its label
+  if (!all(names(xpdb_s) == llabells)) {
+    rlang::abort("xpose_set element names do not match their labels.")
+  }
+  # Warn if parents are not in set
+  for (elem in xpdb_s) {
+    if (!all(elem$parent %in% c(llabells, NA))) {
+      missing_parent(s) <- elem$parent[!elem$parent %in% c(llabells, NA)]
+      cli::cli_warn("Parent(s) not in {deparse(substitute(xpdb_s))} for {cli::col_blue(elem$label)}: {missing_parent}")
+    }
+  }
+
+  TRUE
+}
+#' @rdname check_xpose_set
+#' @order 2
+check_xpose_set_item <- function(xpdb_s_i) {
+  # First check the obvious
+  if (!inherits(xpdb_s_i, "xpose_set_item")) rlang::abort("Input does not seem to be part of an xpose_set object.")
+
+  # Now make sure top-level elements are as expected
+  if (!all(names(xpdb_set$mod1) %in% names(xpdb_s_i))) {
+    rlang::abort("xpose_set_item elements are not valid.")
+  }
+}
+
 
 add_xpdb <- function(xpdb_s, ..., .parent = NULL) {
   # Add an xpdb object to an xpose_set
@@ -208,32 +273,83 @@ check_relationships <- function(rel_list, xpdb_s) {
 #' Expose a property of xpdb objects in an xpose_set
 #'
 #' @param xpdb_s <[`xpose_set`]> An xpose_set object
-#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more properties to expose, or passed to `get_*()` function.
-#' @param .get_fn <[`function`]> Function in the get_*() family (with a single return value) to use for extraction.
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more properties to expose
 #'
 #' @return An `xpose_set` object with the properties exposed
 #'
 #' @details
 #'
-#' The property returned will be top-level, and to avoid conflicting names will be preprended by an underscore.
+#' The property returned will be top-level, and to avoid conflicting
+#' names will be preprended by `..` (e.g., `..descr`).
+#'
+#' For some properties, transformations are applied automatically to
+#' make them more useful. This includes:
+#' - `etashk` and `epsshk`: transformed to numeric vectors as in <[`get_shk`]>
+#' - `ofv` and other per-problem properties: transformed as
+#' needed and pulls from each `xpdb` default problem.
 #'
 #' @export
 #'
 #' @examples
-#' data("xpdb_ex_pk", package = "xpose")
-#' set <- xpose_set(xpdb_ex_pk, xpdb_ex_pk2 = xpdb_ex_pk)
 #'
-#' set <- expose_property(set, descr)
-#' set$xpdb_ex_pk$_descr
+#' xpdb_set <- expose_property(xpdb_set, descr)
+#' xpdb_set$mod1$..descr
 #'
-#' set <- expose_property(set, .get_fun = get_shk)
-#' set$xpdb_ex_pk$_etashk
+#' xpdb_set <- expose_property(xpdb_set, etashk)
+#' xpdb_set$mod1$..etashk
 #'
-#' set <- expose_property(set, wh="eps" .get_fun = get_shk)
-#' set$xpdb_ex_pk$_epsshk
-#'
-expose_property <- function(xpdb_s, ..., .get_fn = NULL) {
+expose_property <- function(xpdb_s, ...) {
+  # Consume dots
+  props <- rlang::quos(..., .named = TRUE, .ignore_empty = "all") %>%
+    names() %>%
+    unique()
+  # Default properties
+  typical_summary <- xpdb_set[[1]]$xpdb %>%
+    xpose::get_summary()
+  nonprob_props <- typical_summary %>% dplyr::filter(problem==0) %>% dplyr::pull(label) %>% unique()
+  prob_props <- typical_summary %>% dplyr::filter(problem!=0) %>% dplyr::pull(label) %>% unique()
+  avail_props <- c(nonprob_props, prob_props) %>% unique()
 
+  # Validate input
+  ## Basic check
+  check_xpose_set(xpdb_s)
+  ## Make sure properties can be found
+  if (!all(props %in% avail_props)) {
+    cli::cli_abort("Properties not available in xpdb objects: {setdiff(props, avail_props)}")
+  }
+
+  # Process
+  ## Create functions to fetch the needed properties
+  get_funs <- purrr::map(
+      props,
+      ~ {
+        prop <- .x
+        function(xpdp) {
+          if (prop == "etashk") return(get_shk(xpdp, wh="eta"))
+          if (prop == "epsshk") return(get_shk(xpdp, wh="eps"))
+          if (prop %in% nonprob_props) return(get_prop(xpdp, prop))
+          if (!is.na(as.numeric(get_prop(xpdp, prop)))) return(as.numeric(get_prop(xpdp, prop)))
+
+          get_prop(xpdp, prop)
+        }
+      }
+    ) %>%
+    setNames(props)
+
+  p_xpdb_s <- xpdb_s %>%
+    reshape_set() %>%
+    # In grouped form, apply functions to individual xpdb objects
+    group_by(label)
+
+  for (prop in props)
+    p_xpdb_s <- dplyr::mutate(
+      p_xpdb_s,
+      !!rlang::sym(paste0("..", prop)) := get_funs[[prop]](xpdb[[1]])
+    )
+
+  p_xpdb_s %>%
+    ungroup() %>%
+    unreshape_set()
 }
 
 #' Convenience wrapper for tidyselect
@@ -251,16 +367,10 @@ expose_property <- function(xpdb_s, ..., .get_fn = NULL) {
 #'
 #' @examples
 #'
-#' data("xpdb_ex_pk", package = "xpose")
 #'
-#' # Arbitrary copies
-#' xpdb_ex_pk2 <- xpdb_ex_pk3 <- xpdb_ex_pk4 <- xpdb_ex_pk
+#' xpose.xtras:::select_subset(mod2, xpdb_s=xpdb_set)
 #'
-#' set <- xpose_set(mod1=xpdb_ex_pk, mod2=xpdb_ex_pk2, fix1 = xpdb_ex_pk3, fix2 = xpdb_ex_pk4)
-#'
-#' xpose.xtras:::select_subset(mod2, xpdb_s=set)
-#'
-#' xpose.xtras:::select_subset(dplyr::starts_with("fix"), xpdb_s=set)
+#' xpose.xtras:::select_subset(dplyr::starts_with("fix"), xpdb_s=xpdb_set)
 #'
 #'
 select_subset <- function(xpdb_s, ...) {
@@ -283,21 +393,13 @@ select_subset <- function(xpdb_s, ...) {
 #' @export
 #' @examples
 #'
-#' data("xpdb_ex_pk", package = "xpose")
-#'
-#' # Arbitrary copies
-#' xpdb_ex_pk2 <- xpdb_ex_pk3 <- xpdb_ex_pk4 <- xpdb_ex_pk
-#'
-#' set <- xpose_set(mod1=xpdb_ex_pk, mod2=xpdb_ex_pk2, fix1 = xpdb_ex_pk3, fix2 = xpdb_ex_pk4,
-#'         .as_ordered = TRUE)
-#'
-#' xpose.xtras:::select_subset(where.xp(~"fix1" %in% parent), xpdb_s=set)
+#' xpose.xtras:::select_subset(where.xp(~"fix1" %in% parent), xpdb_s=xpdb_set)
 where_xp <- function(fn) {
   predicate <- rlang::as_function(fn)
   call <- rlang::current_call()
   function(x, ...) {
     # Want to apply this function over columns of xpdb_set list elements (x)
-    out_xpdb
+    out_xpdb # TODO: WIP
     tidyselect:::check_predicate_output(out, call = call)
     out
   }
@@ -316,11 +418,31 @@ where_xp <- function(fn) {
 # mutate() = add characteristic to list elements (top-level, like "parent", not to xpdb objects themselves)
 #     For passthrough to xpdb objects, use focus_xpdb, or across() inside mutate.
 
-#' @exportS3Method base::print
+#' @export
 print.xpose_set <- function(xpdb_s, ...) {
   # Print summary of xpose_set
   # (number of models, parameters, etc.)
   print(length(xpdb_s))
+}
+
+#' @export
+`[.xpose_set` <- function(x, i) {
+  structure(
+    NextMethod(),
+    options = attr(x, "options"),
+    class = class(x)
+  )
+}
+
+#' @export
+print.xpose_set_item <- function(xpdb_s_i, ...) {
+  # Print summary of xpose_set_item
+  cli::cli_h1("Part of an xpose_set, with label: {cli::col_blue(xpdb_s_i$label)}")
+  # Maybe some info about the parent, etc
+
+  # Print the xpdb object
+  cli::cli_h3("xpdb object (accessible with {cli::col_blue('{xpose_set}$',xpdb_s_i$label,'$xpdb')}):")
+  print(xpdb_s_i$xpdb)
 }
 
 
@@ -341,24 +463,38 @@ print.xpose_set <- function(xpdb_s, ...) {
 #'
 #' @examples
 #'
-#' data("xpdb_ex_pk", package = "xpose")
-#'
-#' # Arbitrary copies
-#' xpdb_ex_pk2 <- xpdb_ex_pk3 <- xpdb_ex_pk4 <- xpdb_ex_pk
-#'
-#' set <- xpose_set(mod1=xpdb_ex_pk, mod2=xpdb_ex_pk2, fix1 = xpdb_ex_pk3, fix2 = xpdb_ex_pk4)
-#'
-#' rset <- reshape_set(set)
+#' rset <- reshape_set(xpdb_set)
 #' # Properties (exposed and top-level) can be seen. xpdb objects are nested in the xpdb column.
 #' rset %>% dplyr::select(-xpdb) %>% dplyr::glimpse()
 #'
 #' unreshape_set(rset)
 #'
+#' # The reversibility of reshaping can be confirmed:
+#' identical(xpdb_set,reshape_set(xpdb_set) %>% unreshape_set())
+#'
 reshape_set <- function(x) {
-  xpdbs <- purrr:::map(x, ~.x$xpdb) %>%
-    dplyr::tibble(xpdb = .)
-  other_elems <- purrr:::map_dfr(x, ~.x[names(.x) != "xpdb"])
-  dplyr::bind_cols(other_elems, xpdbs) %>%
+  check_xpose_set(x)
+
+  # Transpose set to a list of tibbles of each top-level element
+  purrr:::map(names(x[[1]]), ~ {
+    tl_name <- .x
+    # Get list of only the named top-level element
+    purrr:::map(x, ~.x[[tl_name]]) %>%
+      # for single-element elements, unlist (except for special columns)
+      `if`(
+        all(purrr::map_dbl(., length)==1) &&
+          # xpdb is always a list, and parent should be assumed to have multiple elements
+          !tl_name %in% c("xpdb", "parent"),
+        unlist(., recursive = FALSE, use.names = FALSE),
+        .
+      ) %>%
+      # Transform to tibble column
+      dplyr::tibble() %>%
+      dplyr::rename(!!tl_name := `.`)
+  }) %>%
+    # Combine into a single tibble
+    purrr:::reduce(dplyr::bind_cols) %>%
+    # Force sort error
     dplyr::select(!!!names(x[[1]]))
 }
 
@@ -370,6 +506,8 @@ unreshape_set <- function(y) {
   if (!tibble::is_tibble(y)) rlang::abort("Input must be a tibble, ideally from reshape_set().")
   if (nrow(y)!=length(unique(y$label))) rlang::abort("Input must have unique labels.")
 
+  # TODO: add identical() unit test
+
   # Process
   out <- y %>%
     # Index in current order
@@ -380,8 +518,10 @@ unreshape_set <- function(y) {
     purrr:::map(~{
       ll <- as.list(.x)
       ll$grp_key <- NULL
-      ll$xpdb <- ll$xpdb[[1]]
+      # Columns that are lists should be extracted
+      ll <- purrr::map_if(ll, is.list, ~.x[[1]])
 
+      class(ll) <- c("xpose_set_item", class(ll))
       ll
     }) %>%
     rlang::set_names(purrr::map_chr(., ~.x$label))
@@ -390,9 +530,42 @@ unreshape_set <- function(y) {
   out
 }
 
+
+
+#' @title Mutation method for xpose_set
+#'
+#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Mutations to apply to the xpose_set (passed through to <[`dplyr::mutate`]>)
+#' @param .force <[`logical`]> Should top-level elements be allowed to be manipulated? (default: `FALSE`)
+#' @param .retest <[`logical`]> Should the xpose_set be retested after mutation? (default: `!force`)
+#'
+#' @examples
+#' xpdb_set %>%
+#'   # Adds foo = bar for all objects in the set
+#'   mutate(foo = "bar") %>%
+#'   # Reshape to visualize
+#'   reshape_set()
+#'
 #' @exportS3Method dplyr::mutate
-mutate.xpose_set <- function(xpdb_s, ...) {
-  reshape_set(xpdb_s) %>%
+mutate.xpose_set <- function(xpdb_s, ..., .force = FALSE, .retest = !.force) {
+  # Validate input
+  # Basic checks
+  check_xpose_set(xpdb_s)
+  # Disallow any top-level elements from being manipulated like this, unless forced
+  if (!.force &&
+      any(
+          names(rlang::list2(...)) %in% names(xpdb_set[[1]])
+        )
+      ) {
+    rlang::abort("Top-level elements cannot be manipulated with mutate().")
+  }
+
+  out <- reshape_set(xpdb_s) %>%
     dplyr::mutate(...) %>%
     unreshape_set()
+
+  # Ensure sound-ness of changes
+  if (.retest) check_xpose_set(out)
+
+  out
 }

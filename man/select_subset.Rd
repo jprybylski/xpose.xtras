@@ -19,16 +19,10 @@ This is intended for use as an internal function to select a subset of xpdb obje
 }
 \examples{
 
-data("xpdb_ex_pk", package = "xpose")
 
-# Arbitrary copies
-xpdb_ex_pk2 <- xpdb_ex_pk3 <- xpdb_ex_pk4 <- xpdb_ex_pk
+xpose.xtras:::select_subset(mod2, xpdb_s=xpdb_set)
 
-set <- xpose_set(mod1=xpdb_ex_pk, mod2=xpdb_ex_pk2, fix1 = xpdb_ex_pk3, fix2 = xpdb_ex_pk4)
-
-xpose.xtras:::select_subset(mod2, xpdb_s=set)
-
-xpose.xtras:::select_subset(dplyr::starts_with("fix"), xpdb_s=set)
+xpose.xtras:::select_subset(dplyr::starts_with("fix"), xpdb_s=xpdb_set)
 
 
 }

@@ -2,3 +2,4 @@
 ^\.Rproj\.user$
 ^README\.Rmd$
 ^_\.*\\.txt$
+^data-raw$
