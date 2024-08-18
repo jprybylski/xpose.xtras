@@ -16,10 +16,10 @@ be added to the base xpose package.
   structures.
   - [ ] Add support for defining catcov, dvid, occ and dv levels
   - [ ] Add support for categorical dv (and corresponding diagnostics)
-- [ ] Add new class for set of xpdb objects
+- [x] Add new class for set of xpdb objects
   - [ ] Read from directory
   - [ ] diff() method
-  - [ ] Ability to add child-parent relationships
+  - [x] Ability to add child-parent relationships
   - [ ] tabulate dofv (and related)
   - [ ] apply transformations to one or multiple xpdbs in a set
   - [ ] model comparison functions from xpose4
@@ -29,7 +29,9 @@ be added to the base xpose package.
     present*)
   - [x] set_var_type to accept tidyselect syntax
 - [x] import irepl fix
-- [ ] Getter and setter for description (“descr”) in xpose_data
+- [ ] Ability to import bbr model (bbr::read_model %\>%
+  xpose.xtras::import_bbr())
+- [ ] ~~Getter~~ and setter for description (“descr”) in xpose_data
 - [ ] When joining firstonly, rows are getting duplicated
 - [ ] Option to set 0s to NA for select columns
 - [ ] Add support to grab xpose_plot objects

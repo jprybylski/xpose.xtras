@@ -1,5 +1,7 @@
 # This script contains the functions and other information to define a set of xpose objects.
 # This set can be used to define relationships between models.
+# TODO: Visualize lineage (network diagram, like the cwl package)
+# TODO: add method for model comparison table
 
 ###
 
@@ -127,8 +129,7 @@ xpose_set <- function(..., .relationships = NULL, .as_ordered = FALSE) {
 
   # Add relationships (use associated functions to ensure consistency)
   if (!is.null(.relationships)) {
-    if (is.list(.relationships))    out <- add_relationship(out, !!!.relationships)
-    if (is.formula(.relationships)) out <- add_relationship(out, .relationships)
+    out <- add_relationship(out, .relationships)
   }
   if (.as_ordered) {
     mods <- names(out)
@@ -168,7 +169,7 @@ check_xpose_set <- function(xpdb_s) {
   # Now make sure top-level elements are as expected
   set_test <- rlang::try_fetch(
     purrr::map(xpdb_s, check_xpose_set_item),
-    error = function(s) rlang::abort("xpose_set elements are not valid.", parent=s)
+    error = function(s) rlang::abort("xpose_set elements are not valid. Error details below.", parent=s)
   )
 
   ### Label checks
@@ -184,8 +185,8 @@ check_xpose_set <- function(xpdb_s) {
   # Warn if parents are not in set
   for (elem in xpdb_s) {
     if (!all(elem$parent %in% c(llabells, NA))) {
-      missing_parent(s) <- elem$parent[!elem$parent %in% c(llabells, NA)]
-      cli::cli_warn("Parent(s) not in {deparse(substitute(xpdb_s))} for {cli::col_blue(elem$label)}: {missing_parent}")
+      missing_parent <- elem$parent[!elem$parent %in% c(llabells, NA)]
+      cli::cli_alert_warning("Parent(s) not in {{xpose_set}} for {cli::col_blue(elem$label)}: {missing_parent}")
     }
   }
 
@@ -199,24 +200,33 @@ check_xpose_set_item <- function(xpdb_s_i) {
 
   # Now make sure top-level elements are as expected
   if (!all(names(xpdb_set$mod1) %in% names(xpdb_s_i))) {
-    rlang::abort("xpose_set_item elements are not valid.")
+    missing_names <- setdiff(names(xpdb_set$mod1),names(xpdb_s_i))
+    cli::cli_abort("xpose_set_item elements are not valid. Missing: {missing_names}")
   }
 }
 
 
-add_xpdb <- function(xpdb_s, ..., .parent = NULL) {
-  # Add an xpdb object to an xpose_set
-}
+#' Add one or more `xpdb` objects to an `xpose_set`
+#'
+#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more `xpdb` objects to add to the set
+#' @param .relationships <[`list`]> A list of relationships between the `xpdb` objects.
+#'
+#' @return An `xpose_set` object with the new `xpdb` objects added
+#' @export
+#'
+#' @examples
+#'
+#' add_xpdb(xpdb_set, ttt=xpdb_ex_pk)
+#'
+add_xpdb <- function(xpdb_s, ..., .relationships = NULL) {
+  # Create set of dots
+  new_set <- xpose_set(...)
 
-focus_xpdb <- function(xpdb_s, ...) {
-  # Focus on an xpdb object in an xpose_set
-  # ... is the selector for the xpdb object(s?) can be label or index. If multi-focusing is allowed,
-  # then have to decide how to handle in S3 method
-  # For piping, xpdb_s is passed, but with S3 method transformations are applied to the focused xpdb
-}
+  # Combine
+  out <- c(xpdb_s, new_set, .relationships = .relationships)
 
-unfocus_xpdb <- function(xpdb_s) {
-  # Unfocus on an xpdb object in an xpose_set
+  out
 }
 
 set_parent <- function( xpdb_c, ...) {
@@ -227,10 +237,92 @@ set_parent <- function( xpdb_c, ...) {
   UseMethod("set_parent") # so for focused set, can define parent
 }
 
+#' @title Focus on an xpdb object in an xpose_set
+#'
+#' @rdname focus_xpdb
+#' @order 1
+#'
+#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more xpdb objects to focus on
+#' @param .add <[`logical`]> Should the focus be added to the existing focus? (default: `FALSE`)
+#'
+#' @description
+#' For piping, set is passed, but with S3 method transformations are applied to the focused `xpdb` object.
+#'
+#'
+#' @return An `xpose_set` object with the focused xpdb object(s)
+#' @export
+#'
+#' @examples
+#'
+#' # Select two xpdb objects to focus on
+#' xpdb_set %>% focus_xpdb(mod2,fix1)
+#'
+#' # Add a focus
+#' xpdb_set %>% focus_xpdb(mod2,fix1) %>% focus_xpdb(mod1, .add=TRUE)
+#'
+#' # Remove focus
+#' xpdb_set %>% focus_xpdb(mod2,fix1) %>% focus_xpdb()
+#'
+focus_xpdb <- function(xpdb_s, ..., .add = FALSE) {
+  # Focus on an xpdb object in an xpose_set
+  # ... is the selector for the xpdb object(s?) can be label or index. If multi-focusing is allowed,
+  # then have to decide how to handle in S3 method
+  # For piping, xpdb_s is passed, but with S3 method transformations are applied to the focused xpdb
+
+  # Consumes dots
+  ## Get dots
+  focus_on <- names(select_subset(xpdb_s, ...))
+  if (.add) focus_on <- c(focused_xpdbs(xpdb_s), focus_on)
+
+  # Process
+  out <- xpdb_s %>%
+    reshape_set() %>%
+    dplyr::mutate(focus = label %in% focus_on) %>%
+    unreshape_set()
+
+  out
+}
+
+#' @rdname focus_xpdb
+#' @order 2
+unfocus_xpdb <- function(xpdb_s) {
+  # Unfocus on an xpdb object in an xpose_set
+  focus_xpdb(xpdb_s) # unfocuses
+}
+
+# Return a named vector of focused xpdb objects
+#' @rdname focus_xpdb
+#' @order 3
+focused_xpdbs <- function(xpdb_s) {
+  reshape_set(xpdb_s) %>%
+    dplyr::filter(focus) %>%
+    dplyr::pull(label)
+}
+
+#' @rdname focus_xpdb
+#' @order 4
+focus_function <- function(xpdb_s, fn, ...) {
+  focused <- focused_xpdbs(xpdb_s)
+  if (length(focused)==0) rlang::abort("No xpdb objects are focused.")
+
+  out <- reshape_set(xpdb_s) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(xpdb = `if`(
+      label %in% focused,
+      fn(xpdb, ...),
+      xpdb
+    ) %>% list()) %>%
+    dplyr::ungroup() %>%
+    unreshape_set()
+  return(out)
+}
+
 #' Add relationship(s) to an xpose_set
 #'
 #' @param xpdb_s <[`xpose_set`]> An xpose_set object
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more formulas that define relationships between models. One list of formulas can also be used, but a warning is generated.
+#' @param .warn <[`logical`]> Should warnings be generated for non-formula inputs? (default: `TRUE`)
 #'
 #' @return An `xpose_set` object with relationships added
 #' @export
@@ -239,13 +331,13 @@ set_parent <- function( xpdb_c, ...) {
 #'
 #' c()
 #'
-add_relationship <- function(xpdb_s, ...) {
+add_relationship <- function(xpdb_s, ..., .warn = TRUE) {
 
 
   rel_list <- rlang::list2(...) # List of formulas (hopefully)
   # Allow a list to be passed to ... given .relationship behavior
   if (length(rel_list)==1 && is.list(rel_list[[1]])) {
-    rlang::warn("List should not be used in ..., but is allowed; instead pass as arguments or pass list with !!!list.")
+    if (.warn) rlang::warn("List should not be used in ..., but is allowed; instead pass as arguments or pass list with !!!list.")
     rel_list <- rel_list[[1]]
   }
 
@@ -257,17 +349,74 @@ add_relationship <- function(xpdb_s, ...) {
 
 
   # Process
-  formulas <- rlang::list2(...) # List of formulas
+  rel_table <- purrr::map_dfr(
+    rel_list,
+    ~ {
+      # Extract symbols
+      lhs <- all.vars(.x[[2]])
+      rhs <- all.vars(.x[[3]])
+      # Create a tibble
+      tibble::tibble(
+        child = list(lhs),
+        parent = list(rhs)
+      )
+    }
+  )
 
-  rlang::inform("add_relationship not yet implemented. Formulas are:")
-  for (form in formulas) rlang::inform(Reduce(paste, deparse(form)))
+  out <- xpdb_s %>%
+    purrr::imap(~ {
+      parents <- rel_table %>%
+        dplyr::rowwise() %>%
+        dplyr::filter(any(child == .y)) %>%
+        dplyr::pull(parent) %>%
+        purrr::list_c() %>%
+        unique()
+      if (length(parents)==0) return(.x)
+      .x$parent <- c(.x$parent, parents) %>%
+        unique() %>%
+        # Drop NA
+        .[!is.na(.)]
+      .x
+    })
+  class(out) = c("xpose_set", class(out))
 
-  xpdb_s
+  out
 }
 
+# Internal
 check_relationships <- function(rel_list, xpdb_s) {
   # Check that relationships are valid
   ## ensure that rel_list is a list of formulas, and that the formulas associate models within the set
+
+  # All symbols
+  lhs_syms <- c()
+  rhs_syms <- c()
+  for (fla in rel_list) {
+    lhs_syms <- c(lhs_syms, all.vars(fla[[2]]) )
+    rhs_syms <- c(rhs_syms, all.vars(fla[[3]]) )
+  }
+
+  # Check that all symbols are in the set
+  if (!all(c(lhs_syms,rhs_syms) %in% names(xpdb_s))) {
+    missing_lhs <- lhs_syms[!lhs_syms %in% names(xpdb_s)] %>% unique()
+    missing_rhs <- rhs_syms[!rhs_syms %in% names(xpdb_s)] %>% unique()
+    if (length(missing_lhs)>0) cli::cli_alert_warning("Child models not in the set: {missing_lhs}")
+    if (length(missing_rhs)>0) cli::cli_alert_warning("Parent models not in the set: {missing_rhs}")
+  }
+
+}
+
+# Internal
+total_relationships <- function(xpdb_s) {
+  # Return a count of all relationships in an xpose_set
+  # TODO: This is probably slow
+  xpdb_s %>%
+    reshape_set() %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(nn = sum(!is.na(parent))) %>%
+    dplyr::ungroup() %>%
+    dplyr::pull(nn) %>%
+    sum()
 }
 
 #' Expose a property of xpdb objects in an xpose_set
@@ -326,7 +475,7 @@ expose_property <- function(xpdb_s, ...) {
         prop <- .x
         function(xpdp) {
           if (prop == "etashk") return(list(get_shk(xpdp, wh="eta")))
-          if (prop == "epsshk") return(list(get_shk(xpdp, wh="eps")))
+          if (prop == "epsshk") return(list(get_shk(xpdp, wh="eps"))) # TODO: Make sure length>1 stuff is always wrapped in list
           if (prop %in% nonprob_props) return(get_prop(xpdp, prop))
           if (!is.na(as.numeric(get_prop(xpdp, prop)))) return(as.numeric(get_prop(xpdp, prop)))
 
@@ -409,21 +558,16 @@ where_xp <- function(fn) {
 ##### Methods
 
 # Need methods for:
-# c() = xpose_set alias or combine two sets. Allow relationships between mods if combining two sets. Should xpose_set have methods?
+# x c() = xpose_set alias or combine two sets. Allow relationships between mods if combining two sets. Should xpose_set have methods?
 # diff() = dOFV for lineage(s), if present,
-# print() = summary of models (n models, parameters, )
+# x print() = summary of models (n models, parameters, )
 # duplicated() = using identical(), determine which xpdbs are duplicates
 # Any methods defined for xpose_data so it can be passed through in focus_xpdb, or
 #  so when unfocused, the methods can be applied to all xpdbs in the set
-# mutate() = add characteristic to list elements (top-level, like "parent", not to xpdb objects themselves)
+# x mutate() = add characteristic to list elements (top-level, like "parent", not to xpdb objects themselves)
 #     For passthrough to xpdb objects, use focus_xpdb, or across() inside mutate.
+# x Generic function for passing through functions to xpdb objects (filter and mutate are similar)
 
-#' @export
-print.xpose_set <- function(xpdb_s, ...) {
-  # Print summary of xpose_set
-  # (number of models, parameters, etc.)
-  print(length(xpdb_s))
-}
 
 #' @export
 `[.xpose_set` <- function(x, i) {
@@ -435,16 +579,67 @@ print.xpose_set <- function(xpdb_s, ...) {
 }
 
 #' @export
-print.xpose_set_item <- function(xpdb_s_i, ...) {
-  # Print summary of xpose_set_item
-  cli::cli_h1("Part of an xpose_set, with label: {cli::col_blue(xpdb_s_i$label)}")
-  # Maybe some info about the parent, etc
-
-  # Print the xpdb object
-  cli::cli_h3("xpdb object (accessible with {cli::col_blue('{xpose_set}$',xpdb_s_i$label,'$xpdb')}):")
-  print(xpdb_s_i$xpdb)
+print.xpose_set <- function(xpdb_s, ...) {
+  # Print summary of xpose_set
+  cli::cli({
+    cli::cli_h1("{cli::col_blue('xpose_set')} object")
+    cli::cli_ul()
+    cli::cli_li("Number of models: {length(xpdb_s)}")
+    if (length(xpdb_s)<=5) cli::cli_li("Model labels: {names(xpdb_s)}")
+    if (length(xpdb_s)>5)  cli::cli_li("Model labels (truncated): {names(xpdb_s)[1:5]} (...)")
+    cli::cli_li("Number of relationships: {total_relationships(xpdb_s)}")
+    fnames <- focused_xpdbs(xpdb_s)
+    cli::cli_li("Focused on: {if (length(fnames)>0) fnames else 'none'}")
+    dotnames <- purrr::map(xpdb_s, \(xpdb_s_i) names(xpdb_s_i)[startsWith(names(xpdb_s_i), "..")]) %>%
+      purrr::flatten() %>%
+      unique() %>%
+      substring(3)
+    cli::cli_li("Exposed properties: {if (length(dotnames)>0) dotnames else 'none'}")
+    cli::cli_end()
+  })
 }
 
+#' @export
+print.xpose_set_item <- function(xpdb_s_i, ...) {
+  # Print summary of xpose_set_item
+  cli::cli({
+    cli::cli_h1("Part of an xpose_set, with label: {cli::col_blue(xpdb_s_i$label)}")
+    # Maybe some info about the parent, etc
+    cli::cli_ul()
+    cli::cli_li("Parent(s): {xpdb_s_i$parent}")
+    cli::cli_li("Focused?: {ifelse(xpdb_s_i$focus, cli::col_green('yes'), 'no')}")
+    dotnames <- names(xpdb_s_i)[startsWith(names(xpdb_s_i), "..")]
+    for (prop in dotnames) {
+      cli::cli_li("{cli::col_cyan(substring(prop,3))} value: {xpdb_s_i[[prop]]}")
+    }
+    cli::cli_end()
+    # Print the xpdb object
+    cli::cli_h3("xpdb object (accessible with {cli::col_blue('{xpose_set}$',xpdb_s_i$label,'$xpdb')}):")
+    cli::cli_verbatim(capture.output(print(xpdb_ex_pk)))
+  })
+}
+
+#' @export
+c.xpose_set <- function(..., .relationships = NULL) {
+  # Method workaround
+  .rel_saved <- .relationships
+  .relationships <- NULL
+
+  # Combine xpose_set objects
+  basic_c <- NextMethod() # concatenated list
+  class(basic_c) <- c("xpose_set", class(basic_c))
+
+  # Check
+  check_xpose_set(basic_c)
+
+  # Add relationships
+  .relationships <- .rel_saved  # Method workaround
+  if (!is.null(.relationships)) {
+    basic_c <- add_relationship(basic_c, .relationships)
+  }
+
+  basic_c
+}
 
 #' @rdname reshape_set
 #' @order 1
@@ -538,6 +733,8 @@ unreshape_set <- function(y) {
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Mutations to apply to the xpose_set (passed through to <[`dplyr::mutate`]>)
 #' @param .force <[`logical`]> Should top-level elements be allowed to be manipulated? (default: `FALSE`)
 #' @param .retest <[`logical`]> Should the xpose_set be retested after mutation? (default: `!force`)
+#' @param .rowwise <[`logical`]> Should the mutation be applied rowwise? (default: `FALSE`)
+#'
 #'
 #' @examples
 #' xpdb_set %>%
@@ -547,25 +744,105 @@ unreshape_set <- function(y) {
 #'   reshape_set()
 #'
 #' @exportS3Method dplyr::mutate
-mutate.xpose_set <- function(xpdb_s, ..., .force = FALSE, .retest = !.force) {
+mutate.xpose_set <- function(xpdb_s, ..., .force = FALSE, .retest = !.force, .rowwise = FALSE) {
+
+
   # Validate input
   # Basic checks
   check_xpose_set(xpdb_s)
+  # Determine if focused
+  focused <- focused_xpdbs(xpdb_s)
   # Disallow any top-level elements from being manipulated like this, unless forced
+  manipulations <- rlang::quos(..., named=FALSE, .ignore_empty = "all")
   if (!.force &&
+      length(focused)==0 && # doesn't matter if focused
       any(
-          names(rlang::list2(...)) %in% names(xpdb_set[[1]])
+          names(manipulations) %in% names(xpdb_set[[1]])
         )
       ) {
     rlang::abort("Top-level elements cannot be manipulated with mutate().")
   }
 
+  # ** Focused output
+  if (length(focused)>0) {
+    return(focus_function(xpdb_s, xpose::mutate, ...))
+  }
+
+  # Typical
   out <- reshape_set(xpdb_s) %>%
+    {if (.rowwise) dplyr::rowwise(.) else .} %>%
     dplyr::mutate(...) %>%
+    {if (.rowwise) dplyr::ungroup(.) else .} %>%
     unreshape_set()
 
   # Ensure sound-ness of changes
   if (.retest) check_xpose_set(out)
+
+  out
+}
+
+
+#' @title Selection method for xpose_set
+#'
+#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> (passed through to <[`select_subset`]>)
+#'
+#' @examples
+#' xpdb_set %>%
+#'   select(starts_with("fix"))
+#'
+#' xpdb_set %>%
+#'   select(mod1, fix1)
+#'
+#' @exportS3Method dplyr::select
+select.xpose_set <- function(xpdb_s, ...) {
+  # Validate input
+  # Basic checks
+  check_xpose_set(xpdb_s)
+
+  out_cols <- select_subset(xpdb_s, ...)
+  out <- xpdb_s[out_cols]
+
+  out
+}
+
+
+
+
+
+#' @title Filtration method for xpose_set
+#'
+#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> (passed through to <[`dplyr::filter`]>)
+#' @param .rowwise <[`logical`]> Should the mutation be applied rowwise? (default: `FALSE`)
+#'
+#' @examples
+#' xpdb_set %>%
+#'   filter(label=="mod1")
+#'
+#' xpdb_set %>%
+#'   filter(length(parent)>1, .rowwise=TRUE)
+#'
+#'
+#' @exportS3Method dplyr::filter
+filter.xpose_set <- function(xpdb_s, ..., .rowwise = FALSE) {
+  # Validate input
+  # Basic checks
+  check_xpose_set(xpdb_s)
+
+
+  # ** Focused output
+  focused <- focused_xpdbs(xpdb_s)
+  if (length(focused)>0) {
+    return(focus_function(xpdb_s, xpose::filter, ...))
+  }
+
+  # Typical
+  out <- reshape_set(xpdb_s) %>%
+    {if (.rowwise) dplyr::rowwise(.) else .} %>%
+    dplyr::filter(...) %>%
+    {if (.rowwise) dplyr::ungroup(.) else .} %>%
+    unreshape_set()
 
   out
 }

@@ -4,7 +4,7 @@
 \alias{mutate.xpose_set}
 \title{Mutation method for xpose_set}
 \usage{
-\method{mutate}{xpose_set}(xpdb_s, ..., .force = FALSE, .retest = !.force)
+\method{mutate}{xpose_set}(xpdb_s, ..., .force = FALSE, .retest = !.force, .rowwise = FALSE)
 }
 \arguments{
 \item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
@@ -14,6 +14,8 @@
 \item{.force}{<\code{\link{logical}}> Should top-level elements be allowed to be manipulated? (default: \code{FALSE})}
 
 \item{.retest}{<\code{\link{logical}}> Should the xpose_set be retested after mutation? (default: \code{!force})}
+
+\item{.rowwise}{<\code{\link{logical}}> Should the mutation be applied rowwise? (default: \code{FALSE})}
 }
 \description{
 Mutation method for xpose_set

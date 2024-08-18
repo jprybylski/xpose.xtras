@@ -4,12 +4,14 @@
 \alias{add_relationship}
 \title{Add relationship(s) to an xpose_set}
 \usage{
-add_relationship(xpdb_s, ...)
+add_relationship(xpdb_s, ..., .warn = TRUE)
 }
 \arguments{
 \item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
 
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> One or more formulas that define relationships between models. One list of formulas can also be used, but a warning is generated.}
+
+\item{.warn}{<\code{\link{logical}}> Should warnings be generated for non-formula inputs? (default: \code{TRUE})}
 }
 \value{
 An \code{xpose_set} object with relationships added
