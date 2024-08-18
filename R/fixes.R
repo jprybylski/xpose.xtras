@@ -18,7 +18,12 @@
 #' data("xpdb_ex_pk", package = "xpose")
 #'
 #' # Change variable type
-#' xpdb_2 <- set_var_types_x(xpdb_ex_pk, .problem = 1, idv = TAD, catcov = starts_with("MED"), contcov = c(CLCR,AGE))
+#' xpdb_2 <- set_var_types_x(
+#'   xpdb_ex_pk, .problem = 1,
+#'   idv = TAD,
+#'   catcov = starts_with("MED"),
+#'   contcov = c(CLCR,AGE)
+#'   )
 #'
 #' @name set_var_types
 set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quiet) {

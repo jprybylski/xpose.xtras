@@ -1,5 +1,7 @@
 ^xpose\.xtras\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
-^_\.*\\.txt$
 ^data-raw$
+^LICENSE\.md$
+^_.*\.txt$
+^lamb\.r$
