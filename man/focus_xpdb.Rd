@@ -4,6 +4,7 @@
 \alias{focus_xpdb}
 \alias{unfocus_xpdb}
 \alias{focused_xpdbs}
+\alias{focus_function}
 \title{Focus on an xpdb object in an xpose_set}
 \usage{
 focus_xpdb(xpdb_s, ..., .add = FALSE)
@@ -11,6 +12,8 @@ focus_xpdb(xpdb_s, ..., .add = FALSE)
 unfocus_xpdb(xpdb_s)
 
 focused_xpdbs(xpdb_s)
+
+focus_function(xpdb_s, fn, ...)
 }
 \arguments{
 \item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}

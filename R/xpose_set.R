@@ -115,8 +115,6 @@ xpose_set <- function(..., .relationships = NULL, .as_ordered = FALSE) {
         xpdb = .x,
         label = .y, # fixed
         parent = NA, # vector of parents
-        # Implement getter and setter for xpdb object directly
-        #descr = xpose::get_summary(xpdb_ex_pk) %>% dplyr::filter(label=="descr") %>% dplyr::pull(value),
         base = FALSE, # should changes be considered relative to this model?
         focus = FALSE, # editing in place, should changes be applied to this xpdb?
         # Other features
@@ -559,7 +557,7 @@ where_xp <- function(fn) {
 
 # Need methods for:
 # x c() = xpose_set alias or combine two sets. Allow relationships between mods if combining two sets. Should xpose_set have methods?
-# diff() = dOFV for lineage(s), if present,
+# diff() = dOFV for lineage(s), if present, (feature)
 # x print() = summary of models (n models, parameters, )
 # duplicated() = using identical(), determine which xpdbs are duplicates
 # Any methods defined for xpose_data so it can be passed through in focus_xpdb, or
@@ -641,6 +639,15 @@ c.xpose_set <- function(..., .relationships = NULL) {
   basic_c
 }
 
+#' @export
+duplicated.xpose_set <- function(xpdb_s, ...) {
+  if (rlang::dots_n(...)>0) rlang::abort("Dots should be empty.")
+
+  # Check
+  purrr::map(xpdb_s, ~.x$xpdb) %>%
+    duplicated()
+}
+
 #' @rdname reshape_set
 #' @order 1
 #'
@@ -706,7 +713,7 @@ unreshape_set <- function(y) {
   # Process
   out <- y %>%
     # Index in current order
-    mutate(grp_key = forcats::as_factor(label)) %>%
+    dplyr::mutate(grp_key = forcats::as_factor(label)) %>%
     # Split
     dplyr::group_split(grp_key,.keep = TRUE) %>%
     # Cleanup
