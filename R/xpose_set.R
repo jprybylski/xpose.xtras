@@ -502,7 +502,6 @@ select_subset <- function(xpdb_s, ...) {
 #'
 #' @inheritParams tidyselect::where
 #'
-#' @export
 #' @examples
 #'
 #' xpose.xtras:::select_subset(where_xp(~"fix1" %in% parent), xpdb_s=xpdb_set)
@@ -624,6 +623,9 @@ focus_function <- function(xpdb_s, fn, ...) {
 
 #' @export
 print.xpose_set <- function(xpdb_s, ...) {
+  if (length(xpdb_s)==0) {
+    return(cli::cli_alert_warning("No xpdb objects in the set."))
+  }
   # Print summary of xpose_set
   cli::cli({
     cli::cli_h1("{cli::col_blue('xpose_set')} object")
@@ -633,12 +635,14 @@ print.xpose_set <- function(xpdb_s, ...) {
     if (length(xpdb_s)>5)  cli::cli_li("Model labels (truncated): {names(xpdb_s)[1:5]} (...)")
     cli::cli_li("Number of relationships: {total_relationships(xpdb_s)}")
     fnames <- focused_xpdbs(xpdb_s)
-    cli::cli_li("Focused on: {if (length(fnames)>0) fnames else 'none'}")
+    cli::cli_li("Focused xpdb objects: {if (length(fnames)>0) fnames else 'none'}")
     dotnames <- purrr::map(xpdb_s, \(xpdb_s_i) names(xpdb_s_i)[startsWith(names(xpdb_s_i), "..")]) %>%
       purrr::flatten() %>%
       unique() %>%
       substring(3)
     cli::cli_li("Exposed properties: {if (length(dotnames)>0) dotnames else 'none'}")
+    base_mod <- get_base_model(xpdb_s)
+    cli::cli_li("Base model: {if (!is.null(base_mod)) cli::col_blue(base_mod) else 'none'}")
     check_xpose_set(xpdb_s, .warn=TRUE)
     cli::cli_end()
   })
@@ -652,7 +656,8 @@ print.xpose_set_item <- function(xpdb_s_i, ...) {
     # Maybe some info about the parent, etc
     cli::cli_ul()
     cli::cli_li("Parent(s): {xpdb_s_i$parent}")
-    cli::cli_li("Focused?: {ifelse(xpdb_s_i$focus, cli::col_green('yes'), 'no')}")
+    cli::cli_li("In focus?: {ifelse(xpdb_s_i$focus, cli::col_green('yes'), 'no')}")
+    cli::cli_li("Base model?: {ifelse(xpdb_s_i$base, cli::col_green('yes'), 'no')}")
     dotnames <- names(xpdb_s_i)[startsWith(names(xpdb_s_i), "..")]
     for (prop in dotnames) {
       cli::cli_li("{cli::col_cyan(substring(prop,3))} value: {xpdb_s_i[[prop]]}")
@@ -688,7 +693,7 @@ c.xpose_set <- function(..., .relationships = NULL) {
 
 #' @export
 duplicated.xpose_set <- function(xpdb_s, ...) {
-  if (rlang::dots_n(...)>0) rlang::abort("Dots should be empty.")
+  rlang::check_dots_empty()
 
   # Check
   purrr::map(xpdb_s, ~.x$xpdb) %>%
@@ -797,6 +802,7 @@ unreshape_set <- function(y) {
 #'   # Reshape to visualize
 #'   reshape_set()
 #'
+#' @export
 #' @exportS3Method dplyr::mutate
 mutate.xpose_set <- function(xpdb_s, ..., .force = FALSE, .retest = !.force, .rowwise = FALSE) {
   # Validate input
@@ -846,11 +852,19 @@ mutate.xpose_set <- function(xpdb_s, ..., .force = FALSE, .retest = !.force, .ro
 #' xpdb_set %>%
 #'   select(mod1, fix1)
 #'
+#' @export
 #' @exportS3Method dplyr::select
 select.xpose_set <- function(xpdb_s, ...) {
   # Validate input
   # Basic checks
   check_xpose_set(xpdb_s, .warn = FALSE)
+
+
+  # ** Focused output
+  focused <- focused_xpdbs(xpdb_s)
+  if (length(focused)>0) {
+    return(focus_function(xpdb_s, xpose::select, ...))
+  }
 
   out_cols <- select_subset(xpdb_s, ...)
   out <- xpdb_s[out_cols]
@@ -876,6 +890,7 @@ select.xpose_set <- function(xpdb_s, ...) {
 #'   filter(length(parent)>1, .rowwise=TRUE)
 #'
 #'
+#' @export
 #' @exportS3Method dplyr::filter
 filter.xpose_set <- function(xpdb_s, ..., .rowwise = FALSE) {
   # Validate input
@@ -910,6 +925,7 @@ filter.xpose_set <- function(xpdb_s, ..., .rowwise = FALSE) {
 #'   rename(Mod = mod1)
 #'
 #'
+#' @export
 #' @exportS3Method dplyr::rename
 rename.xpose_set <- function(xpdb_s, ...) {
   # Validate input

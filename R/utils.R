@@ -52,7 +52,13 @@ get_shk <- function(xpdb, wh = "eta", .problem = NULL) {
 get_prop <- function(xpdb, prop, .problem = NULL) {
   use_problem <- dplyr::coalesce(.problem[1],xpose::default_plot_problem(xpdb))
 
-  xpose::get_summary(xpdb) %>%
+  summ <- xpose::get_summary(xpdb)
+
+  if (length(prop)>1 || !prop %in% summ$label) {
+    rlang::abort("Request one property at a time from the xpdb model summary.")
+  }
+
+  summ %>%
     dplyr::filter(label==prop) %>%
     # Include 0 for non-problem values
     dplyr::filter(problem %in% c(0,use_problem)) %>%

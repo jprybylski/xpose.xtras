@@ -42,7 +42,7 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
   if (is.null(.problem)) .problem <- unique(dat$problem)
 
   # xpose.xtras :: Evaluate ... with tidyselect
-  dots <- rlang::expr(c(...)) # TODO: Can dots and environment be collected in a single call using enquos? Consider trying after adding unit tests
+  dots <- rlang::expr(c(...)) # enquos() would require a loop, I think
   cenv <- rlang::current_env()
 
   # Get positions in the data for each column
@@ -51,8 +51,10 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
   )
 
   # get types from ...
-  .types <- names(rlang::enquos(...)) # TODO: Consider names(rlang::dots_list(...)), when unit testing is added. dots_list is a single direct C call, while enquos has a few wrapped layers
-  .types <- .types[.types != ''] # Ignoring empty (can be done as an argument to dots_list)
+  .types <- names(
+    #rlang::dots_list(..., .ignore_empty = "all") # tries to evaluate values, gives object not found errors
+    rlang::enquos(..., .ignore_empty = "all")
+  )
 
   # Get column type names for each type from .positions
   .coltypes <- purrr::map(.types, ~ {
