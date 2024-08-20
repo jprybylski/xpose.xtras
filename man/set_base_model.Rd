@@ -27,11 +27,11 @@ Base model for \code{xpose_set}
 
 w_base <- xpdb_set \%>\%
   set_base_model(mod2)
-w_base
+w_base # base model listed in output
 
-get_base_model(w_base)
+get_base_model(w_base) # base model name
 
-unset_base_model(w_base)
+unset_base_model(w_base) # base model no longer in output
 
 
 }

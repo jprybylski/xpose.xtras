@@ -873,6 +873,39 @@ select.xpose_set <- function(xpdb_s, ...) {
 }
 
 
+#' @title Selection method for xpose_set
+#'
+#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> (passed through to <[`select_subset`]>)
+#'
+#' @examples
+#' xpdb_set %>%
+#'   select(starts_with("fix"))
+#'
+#' xpdb_set %>%
+#'   select(mod1, fix1)
+#'
+#' @export
+#' @exportS3Method dplyr::select
+select.xpose_set <- function(xpdb_s, ...) {
+  # Validate input
+  # Basic checks
+  check_xpose_set(xpdb_s, .warn = FALSE)
+
+
+  # ** Focused output
+  focused <- focused_xpdbs(xpdb_s)
+  if (length(focused)>0) {
+    return(focus_function(xpdb_s, xpose::select, ...))
+  }
+
+  out_cols <- select_subset(xpdb_s, ...)
+  out <- xpdb_s[out_cols]
+
+  out
+}
+
+
 
 
 
@@ -949,6 +982,35 @@ rename.xpose_set <- function(xpdb_s, ...) {
   out <- reshape_set(xpdb_s) %>%
     dplyr::mutate(label = names(dummy)) %>%
     unreshape_set()
+
+  out
+}
+
+
+#' @title Pulling method for xpose_set
+#'
+#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> (passed through to <[`pull`][dplyr::pull]>)
+#'
+#' @examples
+#'
+#' xpdb_set %>%
+#'   pull(xpdb)
+#'
+#' @importFrom dplyr pull
+#' @export
+#' @exportS3Method dplyr::pull
+pull.xpose_set <- function(xpdb_s, ...) {
+  # Validate input
+  # Basic checks
+  check_xpose_set(xpdb_s, .warn = FALSE)
+
+
+  # (no focus check needed because xpose::pull is not a method)
+
+  out <- xpdb_s %>%
+    reshape_set() %>%
+    dplyr::pull(...)
 
   out
 }

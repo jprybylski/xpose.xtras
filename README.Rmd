@@ -28,6 +28,7 @@ The goal of xpose.xtras is to add some at-present missing functionality (to-be-d
   - [ ] Read from directory
   - [ ] diff() method
   - [x] Ability to add child-parent relationships
+  - [ ] Ability to **drop** child-parent relationships
   - [ ] tabulate dofv (and related)
   - [ ] apply transformations to one or multiple xpdbs in a set
   - [ ] model comparison functions from xpose4
@@ -37,6 +38,7 @@ The goal of xpose.xtras is to add some at-present missing functionality (to-be-d
     - [x] set_var_type to accept tidyselect syntax
 - [x] import irepl fix
 - [ ] Ability to import bbr model (bbr::read_model %>% xpose.xtras::import_bbr())
+- [ ] Ability to import/export xpose4 model (xpdb <- xpose.xtras::import_xp4(xpdb4); xpdb4 <- xpose.xtras::export_xp4(xpdb))
 - [ ] ~~Getter~~ and setter for description ("descr") in xpose_data
 - [ ] When joining firstonly, rows are getting duplicated
 - [ ] Option to set 0s to NA for select columns
