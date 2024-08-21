@@ -112,7 +112,7 @@ xpose_set <- function(..., .relationships = NULL, .as_ordered = FALSE) {
     xpdb_objs,
     ~ {
       item <- rlang::list2(
-        xpdb = .x,
+        xpdb = as.xpdb(.x), # <- make sure this xpdb is already ready to be used with this package
         label = .y, # fixed
         parent = NA_character_, # vector of parents
         base = FALSE, # should changes be considered relative to this model?
@@ -214,7 +214,7 @@ check_xpose_set_item <- function(xpdb_s_i) {
   example_i <- xpdb_set[[1]]
   tl_elems <- names(example_i)
   for (elem in tl_elems) {
-    if (!identical(class(example_i[[elem]]), class(xpdb_s_i[[elem]]))) {
+    if (!inherits(xpdb_s_i[[elem]], class(example_i[[elem]]))) {
       cli::cli_abort("xpose_set_item elements are not valid. {elem} class mismatch.")
     }
   }
@@ -258,25 +258,32 @@ add_xpdb <- function(xpdb_s, ..., .relationships = NULL) {
 # }
 
 #' Add relationship(s) to an xpose_set
+#' @rdname add_relationship
+#' @order 1
 #'
 #' @param xpdb_s <[`xpose_set`]> An xpose_set object
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more formulas that define relationships between models. One list of formulas can also be used, but a warning is generated.
 #' @param .warn <[`logical`]> Should warnings be generated for non-formula inputs? (default: `TRUE`)
+#' @param .remove <[`logical`]> Should listed relationships be removed? (default: `FALSE`)
 #'
 #' @return An `xpose_set` object with relationships added
 #' @export
 #'
 #' @examples
 #'
-#' c()
+#' xpdb_set %>%
+#'   add_relationship(mod1~fix2) # ouroboros
 #'
-add_relationship <- function(xpdb_s, ..., .warn = TRUE) {
+#' xpdb_set %>%
+#'   remove_relationship(fix1~mod2) # split down the middle
+#'
+add_relationship <- function(xpdb_s, ..., .warn = TRUE, .remove = FALSE) {
 
 
   rel_list <- rlang::list2(...) # List of formulas (hopefully)
   # Allow a list to be passed to ... given .relationship behavior
   if (length(rel_list)>=1 && is.list(rel_list[[1]])) {
-    if (.warn) rlang::warn("List should not be used in ..., but is allowed; instead pass as arguments or pass list with !!!list.")
+    if (.warn) rlang::warn("List should not be used in dots, but is allowed; instead pass as arguments or pass list with !!!list.")
     rel_list <- rel_list[[1]]
   }
 
@@ -303,11 +310,24 @@ add_relationship <- function(xpdb_s, ..., .warn = TRUE) {
         unique() %>%
         # Drop NA
         .[!is.na(.)]
+      if (.remove) .x$parent <- .x$parent[.x$parent != parents]
+      if (length(.x$parent)==0) .x$parent <- NA_character_
       .x
     })
   class(out) = c("xpose_set", class(out))
 
   out
+}
+
+
+#' @rdname add_relationship
+#' @order 2
+remove_relationship <- function(xpdb_s, ...) {
+  add_relationship(
+    xpdb_s = xpdb_s,
+    ...,
+    .remove = TRUE
+  )
 }
 
 # Ensure that rel_list is a list of formulas, and that the formulas associate models within the set
@@ -493,6 +513,8 @@ select_subset <- function(xpdb_s, ...) {
 
 #' Alternative to where() for `xpose_set`
 #'
+#' @noRd
+#'
 #' @description
 #' `r lifecycle::badge("experimental")`
 #'
@@ -505,16 +527,17 @@ select_subset <- function(xpdb_s, ...) {
 #' @examples
 #'
 #' xpose.xtras:::select_subset(where_xp(~"fix1" %in% parent), xpdb_s=xpdb_set)
-where_xp <- function(fn) {
-  predicate <- rlang::as_function(fn)
-  call <- rlang::current_call()
-  function(x, ...) {
-    # Want to apply this function over columns of xpdb_set list elements (x)
-    out # TODO: WIP (currently just a copy of where()
-    tidyselect:::check_predicate_output(out, call = call)
-    out
-  }
-}
+NULL
+# where_xp <- function(fn) {
+#   predicate <- rlang::as_function(fn)
+#   call <- rlang::current_call()
+#   function(x, ...) {
+#     # Want to apply this function over columns of xpdb_set list elements (x)
+#     out # TODO: WIP (currently just a copy of where()
+#     tidyselect:::check_predicate_output(out, call = call)
+#     out
+#   }
+# }
 
 #' @title Focus on an xpdb object in an xpose_set
 #'

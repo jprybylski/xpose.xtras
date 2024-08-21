@@ -16,7 +16,7 @@
 #'
 #' c()
 as.xpdb <- function(x) {
-  if (!xpose::is.xpdb(x)) {
+  if (!xpose::is.xpdb(x) || !inherits(x, "xp_xtras")) {
     structure(
       x,
       class = c("xp_xtras", "xpose_data", 'uneval')

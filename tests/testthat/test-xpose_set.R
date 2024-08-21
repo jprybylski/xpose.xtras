@@ -101,6 +101,17 @@ test_that("relationship companion functions work", {
   expect_equal(total_relationships(
     add_relationship(xpdb_set, fix2~mod1+mod2,fix1~mod1)
   ), curr_rels+3)
+  expect_equal(total_relationships(
+    add_relationship(xpdb_set, fix2~fix1, .remove = TRUE)
+  ), curr_rels-1)
+  expect_equal(total_relationships(
+    remove_relationship(xpdb_set, fix2~fix1)
+  ), curr_rels-1)
+  expect_identical(
+    add_relationship(xpdb_set, fix2~fix1, .remove = TRUE),
+    remove_relationship(xpdb_set, fix2~fix1)
+  )
+  expect_identical(xpdb_set, add_relationship(xpdb_set))
   expect_warning(add_relationship(xpdb_set, list(fix2~mod1+mod2),list(fix1~mod1)))
   expect_identical(xpdb_set, add_relationship(xpdb_set))
 

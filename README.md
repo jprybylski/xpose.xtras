@@ -12,7 +12,7 @@ be added to the base xpose package.
 
 # Todo
 
-- [ ] Extend xpose_data class or add a new class with additional
+- [x] Extend xpose_data class or add a new class with additional
   structures.
   - [ ] Add support for defining catcov, dvid, occ and dv levels
   - [ ] Add support for categorical dv (and corresponding diagnostics)
@@ -20,6 +20,7 @@ be added to the base xpose package.
   - [ ] Read from directory
   - [ ] diff() method
   - [x] Ability to add child-parent relationships
+  - [x] Ability to **drop** child-parent relationships
   - [ ] tabulate dofv (and related)
   - [ ] apply transformations to one or multiple xpdbs in a set
   - [ ] model comparison functions from xpose4
@@ -29,8 +30,13 @@ be added to the base xpose package.
     present*)
   - [x] set_var_type to accept tidyselect syntax
 - [x] import irepl fix
+- [ ] micro/macro and derived constant convenience functions, as well as
+  un-flip flop suggestions for up to 3 compartments
 - [ ] Ability to import bbr model (bbr::read_model %\>%
   xpose.xtras::import_bbr())
+- [ ] Ability to import/export xpose4 model (xpdb \<-
+  xpose.xtras::import_xp4(xpdb4); xpdb4 \<-
+  xpose.xtras::export_xp4(xpdb))
 - [ ] ~~Getter~~ and setter for description (“descr”) in xpose_data
 - [ ] When joining firstonly, rows are getting duplicated
 - [ ] Option to set 0s to NA for select columns
