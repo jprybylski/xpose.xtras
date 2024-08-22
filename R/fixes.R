@@ -26,7 +26,7 @@
 #'   )
 #'
 #' @name set_var_types
-set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quiet) {
+set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quiet) { # TODO: set_var_types_x as default with xp_xtras
   # xpose.xtras :: Same beginning to the existing function, as that is necessary
 
   # Check input

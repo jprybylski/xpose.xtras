@@ -7,7 +7,7 @@
 \usage{
 check_xpose_set(xpdb_s, .warn = TRUE)
 
-check_xpose_set_item(xpdb_s_i)
+check_xpose_set_item(xpdb_s_i, .example = xpdb_set)
 }
 \arguments{
 \item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}

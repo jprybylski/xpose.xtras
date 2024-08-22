@@ -15,13 +15,22 @@
 #' @examples
 #'
 #' c()
-as.xpdb <- function(x) {
-  if (!xpose::is.xpdb(x) || !inherits(x, "xp_xtras")) {
-    structure(
-      x,
-      class = c("xp_xtras", "xpose_data", 'uneval')
-    )
-  } else {
-    x
-  }
+as_xpdb_x <- function(x) { # TODO
+  # First just declare class
+  new_x <- structure(
+    x,
+    class = c("xp_xtras", "xpose_data", 'uneval')
+  )
+  # Next check if it has _xtras parts already
+  # If it does, just return new_x
+
+  # If it doesn't, fill names with empty versions of true
+
+
+  new_x
+}
+
+check_xpdb_x <- function(x, .skip_is=TRUE) {
+  # Check for xp_xtras list elements in an xpose_data object
+
 }

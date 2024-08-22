@@ -112,7 +112,7 @@ xpose_set <- function(..., .relationships = NULL, .as_ordered = FALSE) {
     xpdb_objs,
     ~ {
       item <- rlang::list2(
-        xpdb = as.xpdb(.x), # <- make sure this xpdb is already ready to be used with this package
+        xpdb = as_xpdb_x(.x), # <- make sure this xpdb is already ready to be used with this package
         label = .y, # fixed
         parent = NA_character_, # vector of parents
         base = FALSE, # should changes be considered relative to this model?
@@ -165,8 +165,9 @@ check_xpose_set <- function(xpdb_s, .warn = TRUE) {
   if (!inherits(xpdb_s, "xpose_set")) rlang::abort("Input must be an xpose_set object.")
 
   # Now make sure top-level elements are as expected
+  example_to_check <- xpose_set(mod1=xpose::xpdb_ex_pk) # set example so not dependent on the xpdb_set data item, in case that changes too much
   set_test <- rlang::try_fetch(
-    purrr::map(xpdb_s, check_xpose_set_item),
+    purrr::map(xpdb_s, check_xpose_set_item, .example=example_to_check),
     error = function(s) rlang::abort("xpose_set elements are not valid. Error details below.", parent=s)
   )
 
@@ -200,18 +201,18 @@ check_xpose_set <- function(xpdb_s, .warn = TRUE) {
 }
 #' @rdname check_xpose_set
 #' @order 2
-check_xpose_set_item <- function(xpdb_s_i) {
+check_xpose_set_item <- function(xpdb_s_i, .example = xpdb_set) {
   # First check the obvious
   if (!inherits(xpdb_s_i, "xpose_set_item")) rlang::abort("Input does not seem to be part of an xpose_set object.")
 
   # Now make sure top-level elements are as expected
-  if (!all(names(xpdb_set$mod1) %in% names(xpdb_s_i))) {
-    missing_names <- setdiff(names(xpdb_set$mod1),names(xpdb_s_i))
+  if (!all(names(.example[[1]]) %in% names(xpdb_s_i))) {
+    missing_names <- setdiff(names(.example[[1]]),names(xpdb_s_i))
     cli::cli_abort("xpose_set_item elements are not valid. Missing: {missing_names}")
   }
 
   # Make sure classes of top-level elements are as expected
-  example_i <- xpdb_set[[1]]
+  example_i <- .example[[1]]
   tl_elems <- names(example_i)
   for (elem in tl_elems) {
     if (!inherits(xpdb_s_i[[elem]], class(example_i[[elem]]))) {
