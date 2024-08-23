@@ -4,12 +4,12 @@
 \alias{pull.xpose_set}
 \title{Pulling method for xpose_set}
 \usage{
-\method{pull}{xpose_set}(xpdb_s, ...)
+\method{pull}{xpose_set}(.data, ...)
 }
 \arguments{
-\item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
-
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> (passed through to <\code{\link[dplyr:pull]{pull}}>)}
+
+\item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
 }
 \description{
 Pulling method for xpose_set

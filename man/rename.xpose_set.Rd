@@ -4,12 +4,12 @@
 \alias{rename.xpose_set}
 \title{Renaming method for xpose_set}
 \usage{
-\method{rename}{xpose_set}(xpdb_s, ...)
+\method{rename}{xpose_set}(.data, ...)
 }
 \arguments{
-\item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
-
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> (passed indirectly to <\code{\link[dplyr:mutate]{dplyr::mutate}}>)}
+
+\item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
 }
 \description{
 Renaming method for xpose_set

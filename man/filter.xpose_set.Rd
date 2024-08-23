@@ -4,14 +4,14 @@
 \alias{filter.xpose_set}
 \title{Filtration method for xpose_set}
 \usage{
-\method{filter}{xpose_set}(xpdb_s, ..., .rowwise = FALSE)
+\method{filter}{xpose_set}(.data, ..., .rowwise = FALSE)
 }
 \arguments{
-\item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
-
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> (passed through to <\code{\link[dplyr:filter]{dplyr::filter}}>)}
 
 \item{.rowwise}{<\code{\link{logical}}> Should the mutation be applied rowwise? (default: \code{FALSE})}
+
+\item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
 }
 \description{
 Filtration method for xpose_set

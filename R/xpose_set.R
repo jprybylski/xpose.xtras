@@ -201,6 +201,7 @@ check_xpose_set <- function(xpdb_s, .warn = TRUE) {
 }
 #' @rdname check_xpose_set
 #' @order 2
+#' @export
 check_xpose_set_item <- function(xpdb_s_i, .example = xpdb_set) {
   # First check the obvious
   if (!inherits(xpdb_s_i, "xpose_set_item")) rlang::abort("Input does not seem to be part of an xpose_set object.")
@@ -323,6 +324,7 @@ add_relationship <- function(xpdb_s, ..., .warn = TRUE, .remove = FALSE) {
 
 #' @rdname add_relationship
 #' @order 2
+#' @export
 remove_relationship <- function(xpdb_s, ...) {
   add_relationship(
     xpdb_s = xpdb_s,
@@ -589,6 +591,7 @@ focus_xpdb <- function(xpdb_s, ..., .add = FALSE) {
 
 #' @rdname focus_xpdb
 #' @order 2
+#' @export
 unfocus_xpdb <- function(xpdb_s) {
   # Unfocus on an xpdb object in an xpose_set
   focus_xpdb(xpdb_s) # unfocuses
@@ -597,6 +600,7 @@ unfocus_xpdb <- function(xpdb_s) {
 # Return a named vector of focused xpdb objects
 #' @rdname focus_xpdb
 #' @order 3
+#' @export
 focused_xpdbs <- function(xpdb_s) {
   reshape_set(xpdb_s) %>%
     dplyr::filter(focus) %>%
@@ -605,6 +609,7 @@ focused_xpdbs <- function(xpdb_s) {
 
 #' @rdname focus_xpdb
 #' @order 4
+#' @export
 focus_function <- function(xpdb_s, fn, ...) {
   focused <- focused_xpdbs(xpdb_s)
   if (length(focused)==0) rlang::abort("No xpdb objects are focused.")
@@ -645,8 +650,12 @@ focus_function <- function(xpdb_s, fn, ...) {
   )
 }
 
+#' Handling xpose_set objects with common methods
+#' @rdname namespace_methods
+#' @order 1
 #' @export
-print.xpose_set <- function(xpdb_s, ...) {
+print.xpose_set <- function(x, ...) {
+  xpdb_s <- x
   if (length(xpdb_s)==0) {
     return(cli::cli_alert_warning("No xpdb objects in the set."))
   }
@@ -672,8 +681,11 @@ print.xpose_set <- function(xpdb_s, ...) {
   })
 }
 
+#' @rdname namespace_methods
+#' @order 2
 #' @export
-print.xpose_set_item <- function(xpdb_s_i, ...) {
+print.xpose_set_item <- function(x, ...) {
+  xpdb_s_i <- x
   # Print summary of xpose_set_item
   cli::cli({
     cli::cli_h1("Part of an xpose_set, with label: {cli::col_blue(xpdb_s_i$label)}")
@@ -693,6 +705,10 @@ print.xpose_set_item <- function(xpdb_s_i, ...) {
   })
 }
 
+
+
+#' @rdname namespace_methods
+#' @order 3
 #' @export
 c.xpose_set <- function(..., .relationships = NULL) {
   # Method workaround
@@ -715,6 +731,8 @@ c.xpose_set <- function(..., .relationships = NULL) {
   basic_c
 }
 
+#' Check if any xpose_data objects are repeated in xpose_set
+#' @rdname duplicated.xpose_set
 #' @export
 duplicated.xpose_set <- function(xpdb_s, ...) {
   rlang::check_dots_empty()
@@ -754,10 +772,10 @@ reshape_set <- function(x) {
   check_xpose_set(x, .warn=FALSE) # Warning does not need to be fired every time
 
   # Transpose set to a list of tibbles of each top-level element
-  purrr:::map(names(x[[1]]), ~ {
+  purrr::map(names(x[[1]]), ~ {
     tl_name <- .x
     # Get list of only the named top-level element
-    purrr:::map(x, ~.x[[tl_name]]) %>%
+    purrr::map(x, ~.x[[tl_name]]) %>%
       # for single-element elements, unlist (except for special columns)
       `if`(
         all(purrr::map_dbl(., length)==1) &&
@@ -771,14 +789,14 @@ reshape_set <- function(x) {
       dplyr::rename(!!tl_name := `.`)
   }) %>%
     # Combine into a single tibble
-    purrr:::reduce(dplyr::bind_cols) %>%
+    purrr::reduce(dplyr::bind_cols) %>%
     # Force sort error
     dplyr::select(!!!names(x[[1]]))
 }
 
 #' @rdname reshape_set
 #' @order 2
-#'
+#' @export
 unreshape_set <- function(y) {
   # Validation
   if (!tibble::is_tibble(y)) rlang::abort("Input must be a tibble, ideally from reshape_set().")
@@ -793,7 +811,7 @@ unreshape_set <- function(y) {
     # Split
     dplyr::group_split(grp_key,.keep = TRUE) %>%
     # Cleanup
-    purrr:::map(~{
+    purrr::map(~{
       ll <- as.list(.x)
       ll$grp_key <- NULL
       # Columns that are lists should be extracted
@@ -826,9 +844,11 @@ unreshape_set <- function(y) {
 #'   # Reshape to visualize
 #'   reshape_set()
 #'
+#' @importFrom dplyr mutate
+#' @rdname mutate.xpose_set
 #' @export
-#' @exportS3Method dplyr::mutate
-mutate.xpose_set <- function(xpdb_s, ..., .force = FALSE, .retest = !.force, .rowwise = FALSE) {
+mutate.xpose_set <- function(.data, ..., .force = FALSE, .retest = !.force, .rowwise = FALSE) {
+  xpdb_s <- .data
   # Validate input
   # Basic checks
   check_xpose_set(xpdb_s, .warn = FALSE)
@@ -863,7 +883,6 @@ mutate.xpose_set <- function(xpdb_s, ..., .force = FALSE, .retest = !.force, .ro
   out
 }
 
-
 #' @title Selection method for xpose_set
 #'
 #' @param xpdb_s <[`xpose_set`]> An xpose_set object
@@ -876,42 +895,11 @@ mutate.xpose_set <- function(xpdb_s, ..., .force = FALSE, .retest = !.force, .ro
 #' xpdb_set %>%
 #'   select(mod1, fix1)
 #'
+#' @importFrom dplyr select
+#' @rdname select.xpose_set
 #' @export
-#' @exportS3Method dplyr::select
-select.xpose_set <- function(xpdb_s, ...) {
-  # Validate input
-  # Basic checks
-  check_xpose_set(xpdb_s, .warn = FALSE)
-
-
-  # ** Focused output
-  focused <- focused_xpdbs(xpdb_s)
-  if (length(focused)>0) {
-    return(focus_function(xpdb_s, xpose::select, ...))
-  }
-
-  out_cols <- select_subset(xpdb_s, ...)
-  out <- xpdb_s[out_cols]
-
-  out
-}
-
-
-#' @title Selection method for xpose_set
-#'
-#' @param xpdb_s <[`xpose_set`]> An xpose_set object
-#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> (passed through to <[`select_subset`]>)
-#'
-#' @examples
-#' xpdb_set %>%
-#'   select(starts_with("fix"))
-#'
-#' xpdb_set %>%
-#'   select(mod1, fix1)
-#'
-#' @export
-#' @exportS3Method dplyr::select
-select.xpose_set <- function(xpdb_s, ...) {
+select.xpose_set <- function(.data, ...) {
+  xpdb_s <- .data
   # Validate input
   # Basic checks
   check_xpose_set(xpdb_s, .warn = FALSE)
@@ -947,9 +935,11 @@ select.xpose_set <- function(xpdb_s, ...) {
 #'   filter(length(parent)>1, .rowwise=TRUE)
 #'
 #'
+#' @importFrom dplyr filter
+#' @rdname filter.xpose_set
 #' @export
-#' @exportS3Method dplyr::filter
-filter.xpose_set <- function(xpdb_s, ..., .rowwise = FALSE) {
+filter.xpose_set <- function(.data, ..., .rowwise = FALSE) {
+  xpdb_s <- .data
   # Validate input
   # Basic checks
   check_xpose_set(xpdb_s, .warn = FALSE)
@@ -982,9 +972,11 @@ filter.xpose_set <- function(xpdb_s, ..., .rowwise = FALSE) {
 #'   rename(Mod = mod1)
 #'
 #'
+#' @importFrom dplyr rename
+#' @rdname rename.xpose_set
 #' @export
-#' @exportS3Method dplyr::rename
-rename.xpose_set <- function(xpdb_s, ...) {
+rename.xpose_set <- function(.data, ...) {
+  xpdb_s <- .data
   # Validate input
   # Basic checks
   check_xpose_set(xpdb_s, .warn = FALSE)
@@ -1022,9 +1014,10 @@ rename.xpose_set <- function(xpdb_s, ...) {
 #'   pull(xpdb)
 #'
 #' @importFrom dplyr pull
+#' @rdname pull.xpose_set
 #' @export
-#' @exportS3Method dplyr::pull
-pull.xpose_set <- function(xpdb_s, ...) {
+pull.xpose_set <- function(.data, ...) {
+  xpdb_s <- .data
   # Validate input
   # Basic checks
   check_xpose_set(xpdb_s, .warn = FALSE)

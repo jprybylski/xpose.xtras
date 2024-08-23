@@ -4,27 +4,17 @@
 \alias{select.xpose_set}
 \title{Selection method for xpose_set}
 \usage{
-\method{select}{xpose_set}(xpdb_s, ...)
-
-\method{select}{xpose_set}(xpdb_s, ...)
+\method{select}{xpose_set}(.data, ...)
 }
 \arguments{
-\item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
-
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> (passed through to <\code{\link{select_subset}}>)}
+
+\item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
 }
 \description{
 Selection method for xpose_set
-
-Selection method for xpose_set
 }
 \examples{
-xpdb_set \%>\%
-  select(starts_with("fix"))
-
-xpdb_set \%>\%
-  select(mod1, fix1)
-
 xpdb_set \%>\%
   select(starts_with("fix"))
 
