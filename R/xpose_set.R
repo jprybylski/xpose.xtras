@@ -425,7 +425,7 @@ expose_property <- function(xpdb_s, ...) {
     names() %>%
     unique()
   # Default properties
-  typical_summary <- xpdb_set[[1]]$xpdb %>%
+  typical_summary <- (xpose::xpdb_ex_pk) %>%
     xpose::get_summary()
   nonprob_props <- typical_summary %>% dplyr::filter(problem==0) %>% dplyr::pull(label) %>% unique()
   prob_props <- typical_summary %>% dplyr::filter(problem!=0) %>% dplyr::pull(label) %>% unique()
@@ -856,10 +856,11 @@ mutate.xpose_set <- function(.data, ..., .force = FALSE, .retest = !.force, .row
   focused <- focused_xpdbs(xpdb_s)
   # Disallow any top-level elements from being manipulated like this, unless forced
   manipulations <- rlang::quos(..., named=FALSE, .ignore_empty = "all")
+  example_xpdb_set <- xpose_set(xpose::xpdb_ex_pk)
   if (!.force &&
       length(focused)==0 && # doesn't matter if focused
       any(
-          names(manipulations) %in% names(xpdb_set[[1]])
+          names(manipulations) %in% names(example_xpdb_set[[1]])
         )
       ) {
     rlang::abort("Top-level elements cannot be manipulated with mutate().")
