@@ -340,8 +340,7 @@ check_relationships <- function(rel_list, xpdb_s) {
   # Confirm list of formulas
   if (
     length(rel_list)==0 ||
-    !is.list(rel_list) ||
-    !all(purrr::map_lgl(rel_list, rlang::is_formula))
+    !is_formula_list(rel_list)
   ) {
     rlang::abort("Relationships must be a list of formulas.")
   }

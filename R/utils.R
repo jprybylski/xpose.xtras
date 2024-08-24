@@ -64,3 +64,19 @@ get_prop <- function(xpdb, prop, .problem = NULL) {
     dplyr::filter(problem %in% c(0,use_problem)) %>%
     dplyr::pull(value)
 }
+
+
+
+
+#' Convenience functions used in package
+#'
+#' @rdname convience
+#' @order 1
+#'
+#' @param x object to test
+#'
+#' @export
+is_formula_list <- function(x) {
+  if (!is.list(x)) return(FALSE)
+  all(purrr::map_lgl(x, rlang::is_formula))
+}
