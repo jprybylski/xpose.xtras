@@ -65,6 +65,31 @@ get_prop <- function(xpdb, prop, .problem = NULL) {
     dplyr::pull(value)
 }
 
+#' Get full index for xpose_data data
+#'
+#' @param xpdb <`xpose_data`[xpose::xpose_data]> object
+#' @param .problem <`numeric`> Problem number to use. Uses the all problems if `NULL`
+#' @param ... Ignored. Here for future expansion
+#'
+#' @return Tibble of index
+#' @export
+#'
+#' @examples
+#' get_index(xpose::xpdb_ex_pk)
+get_index <- function(xpdb, .problem=NULL, ...) {
+  xpose::check_xpdb(xpdb, check = "data")
+  xp_d <- xpdb$data
+  if (is.null(.problem)) .problem <- xp_d$problem
+  xp_d %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      index = list(mutate(index, problem = .env$problem))
+    ) %>%
+    dplyr::filter(problem %in% .problem) %>%
+    dplyr::pull(index) %>%
+    dplyr::bind_rows()
+}
+
 
 
 
