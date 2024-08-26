@@ -256,7 +256,7 @@ check_levels <- function(lvl_list, index) {
   }
 
   # Warn if level won't matter (not a leveled var type)
-  level_types <- c("catcov", "dvid", "occ")
+  level_types <- c("catcov", "dvid", "occ", "catdv") # catdv is an xp_xtras type
   valid_index <- dplyr::filter(index, type %in% level_types)
   if (!all(names(lvl_list) %in% valid_index$col)) {
     cli::cli_warn("Var types not compatible with levels, but levels will still be applied: {setdiff(names(lvl_list), valid_index$col)}\n")

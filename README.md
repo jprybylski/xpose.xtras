@@ -7,15 +7,20 @@
 <!-- badges: end -->
 
 The goal of xpose.xtras is to add some at-present missing functionality
-(to-be-deprecated as they are added to xpose), or functions unlikely to
+(to-be-deprecated if they are added to xpose), or functions unlikely to
 be added to the base xpose package.
 
 # Todo
 
+Partially completed items have ~~strikethough~~ to “hide” the finished
+part.
+
 - [x] Extend xpose_data class or add a new class with additional
   structures.
-  - [ ] Add support for defining catcov, dvid, occ and dv levels
-  - [ ] Add support for categorical dv (and corresponding diagnostics)
+  - [x] Add support for defining catcov, dvid, occ and dv levels
+    - [ ] Add related plots
+  - [ ] Add ~~support for categorical dv~~ (and corresponding
+    diagnostics) (catdv added, no support yet)
 - [x] Add new class for set of xpdb objects
   - [ ] Read from directory
   - [ ] diff() method
@@ -37,7 +42,8 @@ be added to the base xpose package.
 - [ ] Ability to import/export xpose4 model (xpdb \<-
   xpose.xtras::import_xp4(xpdb4); xpdb4 \<-
   xpose.xtras::export_xp4(xpdb))
-- [ ] ~~Getter~~ and setter for description (“descr”) in xpose_data
+- [x] Getter and setter for description (“descr”) in xpose_data (get/set
+  any summary property)
 - [ ] When joining firstonly, rows are getting duplicated
 - [ ] Option to set 0s to NA for select columns
 - [ ] Add support to grab xpose_plot objects

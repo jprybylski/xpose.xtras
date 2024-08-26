@@ -65,6 +65,53 @@ get_prop <- function(xpdb, prop, .problem = NULL) {
     dplyr::pull(value)
 }
 
+#' Set a summary property
+#'
+#' @param xpdb <`xpose_data`[xpose::xpose_data]> object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> defining which properties to transform. Argument should be valid label.
+#' @param .problem <`numeric`> Problem number to use. Uses all problem if not provided.
+#'
+#' @return `xp_xtras` object
+#' @export
+#'
+#' @examples
+#'
+#' set_prop(xpose::xpdb_ex_pk, descr = "New model description") %>%
+#'   xpose::get_summary()
+#'
+set_prop <- function(xpdb, ..., .problem = NULL) {
+  summ <- xpose::get_summary(xpdb)
+
+  props_to_set <- rlang::dots_list(..., .homonyms = "error", .ignore_empty = "all")
+
+  # Error checks
+  if (any(!names(props_to_set) %in% summ$label)) {
+    cli::cli_abort("Cannot set non-existant properties, which should be matched to labels: {setdiff(names(props_to_set), summ$label)}")
+  }
+
+  # Validate values
+  check_sum <- purrr::map_lgl(props_to_set, ~ length(.x)==1)
+  if (any(!check_sum)) {
+    cli::cli_abort("Properties can only by set to one value. ({names(prop_to_set)[!check_sum]})")
+  }
+
+  # Row update tibble
+  ru_tbl <- tibble::tibble(
+    label = names(props_to_set),
+    value = purrr::list_c(props_to_set)
+  )
+  if (!is.null(.problem)) ru_tbl <- purrr::map_dfr(.problem, ~ dplyr::mutate(ru_tbl, problem=.x))
+
+  new_summ <- summ %>%
+    dplyr::rows_update(
+      ru_tbl,
+      by = c("label", `if`(is.null(.problem), NULL, "problem")),
+      unmatched = "ignore"
+    )
+  xpdb$summary <- new_summ
+  as_xpdb_x(xpdb)
+}
+
 #' Get full index for xpose_data data
 #'
 #' @rdname get_set_index
