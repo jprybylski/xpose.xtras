@@ -20,7 +20,7 @@ as_xpdb_x <- function(x) { # TODO
 
   # Next check if it has _xtras parts already
   if (check_xpdb_x(new_x)) {
-    # If it does, just return new_x
+    # If it does, just return original x
     return(x)
   } else{
     # If it doesn't, fill info with empty versions of true\\
@@ -109,6 +109,38 @@ set_var_levels <- function(xpdb, .problem = NULL, ..., .missing = "Other", .hand
   lvl_list <- rlang::dots_list(..., .ignore_empty = "all", .homonyms = "keep")
   check_levels(lvl_list, full_index)
 
+  # Add all levels
+  lvl_names <- unique(names(lvl_list))
+  for (lvn in lvl_names) {
+    lv_sub <- lvl_list[names(lvl_list) == lvn]
+
+    if (is_leveller(lv_sub[[1]])) {
+      levs <- lv_sub[[1]]
+      n_levs <- length(levs)
+      st_levs <- attr(levs, "start")
+      seq_levs <- seq(st_levs, st_levs+n_levs, 1)
+
+      lvls <- purrr::map2(0:1, c("n","y"), ~ stats::formula(paste0(.x,"~'",.y,"'")))
+
+    } else {
+
+      lvls <- do.call(c,  lv_sub)
+
+    }
+
+    rlang::try_fetch(
+      plvls <- proc_levels(lvls),
+         error = function(cnd) {
+            cli::cli_abort(
+              "LHS should all be numeric, and RHS should all be quoted strings. (error from {lvn})."
+            )
+         })
+
+    # make sure lhs are in data
+
+    # put processed levels in the index tibble
+
+  }
 
 }
 
@@ -156,26 +188,27 @@ proc_levels <-  function(lvl_list) {
       rhs <- .x[[3]]
       # Create a tibble
       tibble::tibble(
-        value = list(lhs),
-        level = list(rhs)
+        value = lhs,
+        level = rhs
       )
     }
   )
 }
 
 # Predefined levels
-as_leveller <- function(x) {
+as_leveller <- function(x, .start_index = 1) {
   structure(
     x,
-    class = c("xp_levels", class(x))
+    class = c("xp_levels", class(x)),
+    start = .start_index[1]
   )
 }
 is_leveller <- function(x) inherits(x, "xp_levels")
-lvl_bin <- function(x = c("No","Yes")) {
+lvl_bin <- function(x = c("No","Yes"), .start_index = 0) {
   if (length(x)!=2) cli::cli_abort("This is a convience function for binary variables.")
   as_leveller(x)
 }
-lvl_inord <- function(x) {
+lvl_inord <- function(x, .start_index = 1) {
   as_leveller(x)
 }
 
