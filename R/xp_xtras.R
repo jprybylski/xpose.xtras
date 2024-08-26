@@ -117,7 +117,7 @@ set_var_types.xp_xtras <- function (xpdb, .problem = NULL, ..., auto_factor = TR
 #' levels. This function provides a straightforward means to do so,
 #' consistent with `tidy` functions like <[`case_when`][dplyr::case_when]>.
 #'
-#' Several convenience functions are provided for common levels in <[`levelers`]>.
+#' Several convenience functions are provided for common levels in <[`levelers`][`as_leveler`]>.
 #'
 #' @param xpdb <`xp_xtras`> object
 #' @param .problem <`numeric`> Problem number to use. Uses the all problems if `NULL`
@@ -270,7 +270,7 @@ check_levels <- function(lvl_list, index) {
 #' @description
 #' Consumes formula list and converts into corresponding tibble.
 #'
-#' @param lvl_list
+#' @param lvl_list <`list`> of formulas
 #'
 #' @return <`tibble`> of levels
 #'

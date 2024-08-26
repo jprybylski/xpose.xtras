@@ -7,7 +7,7 @@
 proc_levels(lvl_list)
 }
 \arguments{
-\item{lvl_list}{}
+\item{lvl_list}{<\code{list}> of formulas}
 }
 \value{
 <\code{tibble}> of levels

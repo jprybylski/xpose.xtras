@@ -31,7 +31,7 @@ For variable types such as \code{catcov}, it can be convenient to define
 levels. This function provides a straightforward means to do so,
 consistent with \code{tidy} functions like <\code{\link[dplyr:case_when]{case_when}}>.
 
-Several convenience functions are provided for common levels in <\code{\link{levelers}}>.
+Several convenience functions are provided for common levels in <\code{\link[=as_leveler]{levelers}}>.
 }
 \examples{
 
