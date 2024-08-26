@@ -2,9 +2,12 @@
 % Please edit documentation in R/utils.R
 \name{get_index}
 \alias{get_index}
+\alias{set_index}
 \title{Get full index for xpose_data data}
 \usage{
 get_index(xpdb, .problem = NULL, ...)
+
+set_index(xpdb, index, ...)
 }
 \arguments{
 \item{xpdb}{<\code{xpose_data}\link[xpose:xpose_data]{xpose::xpose_data}> object}
@@ -12,6 +15,8 @@ get_index(xpdb, .problem = NULL, ...)
 \item{.problem}{<\code{numeric}> Problem number to use. Uses the all problems if \code{NULL}}
 
 \item{...}{Ignored. Here for future expansion}
+
+\item{index}{<\code{tibble}> Index to set}
 }
 \value{
 Tibble of index

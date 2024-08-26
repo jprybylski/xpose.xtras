@@ -2,12 +2,15 @@
 % Please edit documentation in R/xp_xtras.R
 \name{as_xpdb_x}
 \alias{as_xpdb_x}
+\alias{check_xpdb_x}
 \title{Convert an object to an \code{xpose_data} and \code{xp_xtras} object}
 \usage{
 as_xpdb_x(x)
+
+check_xpdb_x(x)
 }
 \arguments{
-\item{x}{<\code{list}> object with \code{xpose_data} and \code{xp_xtras} components}
+\item{x}{Suspected \code{xp_xtras} object}
 }
 \value{
 <\code{\link[xpose:xpose_data]{xpose_data}}> and <\code{xp_xtras}> object
@@ -17,6 +20,7 @@ This function masks the default in \code{xpose} package, adding the
 \code{xp_xtras} class to default \code{xpose_data} objects.
 }
 \examples{
+xp_x <- as_xpdb_x(xpose::xpdb_ex_pk)
+check_xpdb_x(xp_x)
 
-c()
 }

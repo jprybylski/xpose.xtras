@@ -2,12 +2,19 @@
 #' @description
 #' `r lifecycle::badge("experimental")`
 #'
-#' \code{\link[xpose]{set_var_types}} wrapper that accepts tidyselect syntax.
+#' <[`set_var_types`][xpose::set_var_types]> wrapper that accepts tidyselect syntax.
+#' Character vector-based selection still works.
+#'
+#' `set_var_types_x` accepts `xpose_data` or `xp_xtras` objects.
+#'
+#' `set_var_types` without `_x` is defined with S3 methods. To maintain `xpose` expectations,
+#' the default method is <[`set_var_types`][xpose::set_var_types]>, but if an `xp_xtras` object
+#' is used, the method uses `set_var_types_x`.
 #'
 #' @param xpdb An \code{xpose_data} object.
 #' @param .problem The problem number to which the edits will be applied.
-#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Passed to \code{\link[xpose]{set_var_types}}.
-#' @param auto_factor With \code{set_var_types} only. If \code{TRUE} new columns assigned to the type 'catcov' will be converted to
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Passed to \code{\link[xpose]{set_var_types}} after processing.
+#' @param auto_factor If \code{TRUE} new columns assigned to the type 'catcov' will be converted to
 #' factor.
 #' @param quiet Logical, if \code{FALSE} messages are printed to the console.
 #'

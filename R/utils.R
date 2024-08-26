@@ -67,8 +67,12 @@ get_prop <- function(xpdb, prop, .problem = NULL) {
 
 #' Get full index for xpose_data data
 #'
+#' @rdname get_set_index
+#' @order 1
+#'
 #' @param xpdb <`xpose_data`[xpose::xpose_data]> object
 #' @param .problem <`numeric`> Problem number to use. Uses the all problems if `NULL`
+#' @param index <`tibble`> Index to set
 #' @param ... Ignored. Here for future expansion
 #'
 #' @return Tibble of index
@@ -78,6 +82,7 @@ get_prop <- function(xpdb, prop, .problem = NULL) {
 #' get_index(xpose::xpdb_ex_pk)
 get_index <- function(xpdb, .problem=NULL, ...) {
   xpose::check_xpdb(xpdb, check = "data")
+  rlang::check_dots_empty0(...)
   xp_d <- xpdb$data
   if (is.null(.problem)) .problem <- xp_d$problem
   xp_d %>%
@@ -90,7 +95,24 @@ get_index <- function(xpdb, .problem=NULL, ...) {
     dplyr::bind_rows()
 }
 
-
+#' @rdname get_set_index
+#' @order 1
+#' @export
+set_index <- function(xpdb, index, ...) {
+  xpose::check_xpdb(xpdb, check = "data")
+  new_index <- index %>%
+    dplyr::nest_by(problem) %>%
+    dplyr::ungroup() %>%
+    dplyr::rename(index=data) %>%
+    dplyr::mutate(index = as.list(index))
+  new_d <- dplyr::rows_update(
+    xpdb$data,
+    new_index,
+    by = "problem"
+  )
+  xpdb$data <- new_d
+  as_xpdb_x(xpdb)
+}
 
 
 #' Convenience functions used in package
