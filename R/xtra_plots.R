@@ -28,23 +28,3 @@ xplot_pairs <- function(
   ) {
 
 }
-
-
-xplot_boxplot <- function(
-  xpdb
-  mapping   = NULL,
-  group     = 'ID',
-  orientation = "bottom",
-  guide     = FALSE,
-  title     = NULL,
-  subtitle  = NULL,
-  caption   = NULL,
-  tag       = NULL,
-  plot_name = 'box_plot',
-  gg_theme,
-  xp_theme,
-  opt,
-  quiet,
-  ...) {
-
-}
