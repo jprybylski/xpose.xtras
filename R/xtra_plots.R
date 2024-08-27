@@ -6,10 +6,12 @@
 #' Established `xplot_` are used to generate parts of the grid.
 #'
 #'
-#' @return
+#' @return specified pair plot
 #' @export
 #'
 #' @examples
+#' c()
+#'
 xplot_pairs <- function(
   xpdb,
   mapping   = NULL,
