@@ -36,10 +36,14 @@ as_xpdb_x <- function(x) {
         })
       )
 
+    # Update xp_theme with xp_xtras theme
+    # Would use xpose::update_themes but that does a lot more than is needed
+    new_x$xp_theme <- xp_xtra_theme(new_x$xp_theme)
+
   }
 
 
-  # First just declare class
+  # Now just declare class
   new_x <- structure(
     new_x,
     class = c("xp_xtras", "xpose_data", "uneval")
@@ -56,7 +60,7 @@ as_xpdb_x <- function(x) {
 #' @export
 check_xpdb_x <- function(x) {
   # Basic check first
-  if (inherits(x, "xpose_data") && !inherits(x, "xp_xtras")) {
+  if (inherits(x, "xpose_data") && !is_xp_xtras(x)) {
     # First just add the class and see if it passes the check
     # This is d/t the cross-compatibility, so an xpose function may
     # strip the xp_xtras class for a valid xp_xtras object
@@ -75,16 +79,37 @@ check_xpdb_x <- function(x) {
   if (!inherits(x, "xp_xtras")) return(FALSE)
 
   # Check for xp_xtras list elements in an xpose_data object
-
-
   ### check for "levels" in index
   if ("data" %in% names(x) &&
       !"levels" %in% names(x$data$index[[1]])
   ) {
     return(FALSE)
   }
+  ### check that "dotplot_" is in xp_theme
+  if ("xp_theme" %in% names(x) %% !any(
+    grepl("^dotplot_", names(x$xp_theme))
+  )) {
+    return(FALSE)
+  }
 
   TRUE
+}
+
+#' Basic class checker for `xp_xtras`
+#'
+#' @param x Object to test
+#'
+#' @return <`logical`> TRUE if `xp_xtras` object
+#' @export
+#'
+#' @examples
+#'
+#' is_xp_xtras(xpose::xpdb_ex_pk)
+#'
+#' is_xp_xtras(xpdb_x)
+#'
+is_xp_xtras <- function(x) {
+  inherits(x, "xp_xtras")
 }
 
 #' @rdname set_var_types

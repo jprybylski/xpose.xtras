@@ -12,6 +12,7 @@
 #'   \item `p` points (from geom_dotplot)
 #'   \item `v` violin (from geom_violin)
 #'   \item `o` outliers (show outliers)
+#'   \item `l` line through 0 (or as indicated in line_*intercept)
 #' }
 #'
 #'
@@ -21,6 +22,7 @@ xplot_boxplot <- function(xpdb,
                           type      = 'bo',
                           xscale    = 'discrete',
                           yscale    = 'continuous',
+                          orientation = "x",
                           title     = NULL,
                           subtitle  = NULL,
                           caption   = NULL,
@@ -47,10 +49,24 @@ xplot_boxplot <- function(xpdb,
   }
 
   # Check type
-  xpose::check_plot_type(type, allowed = c('b', "p","v","o"))
+  xpose::check_plot_type(type, allowed = c('b', "p","v","o","l"))
+
+  # Check orientation
+  orientation <- rlang::arg_match(arg = orientation, values = c("x","y"))
+  if (orientation == "y" && yscale != "discrete") {
+    if (!quiet) cli::cli_warn(
+      "orientation set to y but yscale is not discrete. This will be flipped"
+    )
+    xscale1 <- xscale
+    xscale <- yscale
+    yscale <- xscale1
+  }
 
   # Assign xp_theme
   if (!missing(xp_theme)) xpdb <- xpose::update_themes(xpdb = xpdb, xp_theme = xp_theme)
+
+  # Update theme of non-xp_xtra object
+  if (!is_xp_xtras(xpdb)) xpdb <- xpose::update_themes(xpdb = xpdb, xp_theme = xp_xtra_theme(xpdb$xp_theme))
 
   # Assign gg_theme
   if (missing(gg_theme)) {
@@ -64,6 +80,17 @@ xplot_boxplot <- function(xpdb,
 
   # Create ggplot base
   xp <- ggplot2::ggplot(data = data, xpose::aes_filter(mapping, keep_only = c('x', 'y'))) + gg_theme
+
+  # Add line
+  if (stringr::str_detect(type, stringr::fixed('l', ignore_case = TRUE))) {
+    geom_hvline <- ifelse(orientation=="x", "geom_hline", "geom_vline")
+    hvline_name <- ifelse(orientation=="x", "hline", "vline")
+    xp <- xp + xpose::xp_geoms(mapping  = NULL,
+                               xp_theme = xpdb$xp_theme,
+                               name     = hvline_name,
+                               ggfun    = geom_hvline,
+                               ...)
+  }
 
   # Add boxplot
   if (stringr::str_detect(type, stringr::fixed('b', ignore_case = TRUE))) {
@@ -90,9 +117,7 @@ xplot_boxplot <- function(xpdb,
                                xp_theme = xpdb$xp_theme,
                                name     = 'dotplot',
                                ggfun    = 'geom_dotplot',
-                               dotplot_binaxis ="y", # TODO: add defaults to xp_xtas xp_theme
-                               dotplot_stackdir="center",
-                               dotplot_binpositions="all",
+                               dotplot_binaxis =ifelse(orientation=="x", "y","x"),
                                ...)
   }
 

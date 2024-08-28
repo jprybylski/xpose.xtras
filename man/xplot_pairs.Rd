@@ -22,7 +22,7 @@ xplot_pairs(
 )
 }
 \value{
-specified boxplot
+specified pair plot
 }
 \description{
 Following the \code{xpose} design pattern to derive <\code{\link[GGally:ggpairs]{ggpairs}}> plots.

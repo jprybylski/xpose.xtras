@@ -7,7 +7,7 @@
 xplot_boxplot(
   xpdb,
   mapping = NULL,
-  type = "bp",
+  type = "bo",
   xscale = "discrete",
   yscale = "continuous",
   title = NULL,
@@ -16,7 +16,6 @@ xplot_boxplot(
   tag = NULL,
   plot_name = "boxplot",
   intercept = NULL,
-  orientation = c("vertical", "horizontal"),
   gg_theme,
   xp_theme,
   opt,
@@ -26,9 +25,6 @@ xplot_boxplot(
 }
 \arguments{
 \item{type}{<\code{character}> vector of elements to include in the plot. See \link{Details}.}
-
-\item{orientation}{<\code{character}> Direction for the boxplot spread;
-\code{xscale} and \code{yscale} will be reversed if \code{"horizontal"} is used.}
 }
 \description{
 Manually generate boxplots from an xpdb object.
