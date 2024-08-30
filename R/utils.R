@@ -54,8 +54,11 @@ get_prop <- function(xpdb, prop, .problem = NULL) {
 
   summ <- xpose::get_summary(xpdb)
 
-  if (length(prop)>1 || !prop %in% summ$label) {
+  if (length(prop)>1) {
     rlang::abort("Request one property at a time from the xpdb model summary.")
+  }
+  if (!prop %in% summ$label) {
+    cli::cli_abort("{cli::col_cyan(prop)} not in xpdb model summary.")
   }
 
   summ %>%
@@ -92,7 +95,7 @@ set_prop <- function(xpdb, ..., .problem = NULL) {
   # Validate values
   check_sum <- purrr::map_lgl(props_to_set, ~ length(.x)==1)
   if (any(!check_sum)) {
-    cli::cli_abort("Properties can only by set to one value. ({names(prop_to_set)[!check_sum]})")
+    cli::cli_abort("Properties can only by set to one value. (applies to {names(props_to_set)[!check_sum]})")
   }
 
   # Row update tibble
