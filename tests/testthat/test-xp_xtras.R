@@ -1,0 +1,76 @@
+test_that("xp_xtra class can be set", {
+
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  # example data passes check
+  expect_true(check_xpdb_x(xpdb_x))
+
+  expect_false(
+    is_xp_xtras(xpdb_ex_pk)
+  )
+  expect_true(
+    is_xp_xtras(as_xpdb_x(xpdb_ex_pk))
+  )
+
+  expect_s3_class(
+    as_xpdb_x(xpdb_ex_pk),
+    "xp_xtras"
+  )
+  expect_identical(
+    as_xpdb_x(xpdb_ex_pk),
+    as_xpdb_x(as_xpdb_x(xpdb_ex_pk))
+  )
+
+  expect_message(check_xpdb_x(xpose::xpdb_ex_pk),
+                 regexp = "xpose_data")
+
+  # edge case where an xp_xtras object loses its class due to cross-compatibility
+  secret_xp_xtra <- xpose::set_var_units(as_xpdb_x(xpdb_ex_pk), AGE="yr")
+  expect_false(is_xp_xtras(secret_xp_xtra)) # "stric"
+  expect_true(check_xpdb_x(secret_xp_xtra)) # compatibility checker
+  expect_no_message(check_xpdb_x(secret_xp_xtra))
+
+  # Test alias
+  expect_identical(
+    check_xp_xtras(secret_xp_xtra),
+    check_xpdb_x(secret_xp_xtra)
+  )
+
+  # other trivial checks
+  expect_false(check_xpdb_x(c()))
+  weird_theme <- as_xpdb_x(xpdb_ex_pk)
+  weird_theme$xp_theme <- xpose::theme_xp_default()
+  expect_false(is_xp_xtras(weird_theme))
+
+})
+
+test_that("set_var_types is class-dependent", {
+
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  expect_gte(length(methods(set_var_types)),2)
+
+  xpdb__ex_pk2 <- as_xpdb_x(xpdb_ex_pk)
+  expect_failure(expect_identical(
+    set_var_types(xpdb_ex_pk),
+    set_var_types(xpdb__ex_pk2)
+  ))
+
+})
+
+test_that("levels can be set for categories", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  expect_message(try(set_var_levels(xpdb_ex_pk), silent = TRUE), regexp="xpose_data")
+  suppressMessages(expect_error(set_var_levels(xpdb_ex_pk), regexp="xp_xtras object required"))
+
+  # Check level processor (with any formula list)
+
+  # Check level checker
+
+  # Check levelers
+
+  # Check set_var_levels
+
+
+})

@@ -78,3 +78,65 @@ test_that("set_* functions works", {
   ))
 
 })
+
+test_that("get-set index works", {
+
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  expect_error(
+    get_index(c())
+  )
+  expect_error(
+    get_index(xpdb_ex_pk, NULL, sddd=1),
+    regexp = "sddd"
+  )
+
+  expect_s3_class(
+    get_index(xpdb_ex_pk),
+    "data.frame"
+  )
+
+  expect_setequal(
+    xpdb_ex_pk$data$problem,
+    get_index(xpdb_ex_pk)$problem
+  )
+  expect_setequal(
+    1,
+    get_index(xpdb_ex_pk, .problem = 1)$problem
+  )
+  expect_setequal(
+    2,
+    get_index(xpdb_ex_pk, .problem = 2)$problem
+  )
+
+
+  expect_failure(expect_identical(
+    get_index(xpdb_ex_pk),
+    get_index(set_index(xpdb_ex_pk, get_index(xpdb_ex_pk)))
+  ))
+  expect_s3_class(
+    set_index(xpdb_ex_pk, get_index(xpdb_ex_pk)),
+    "xp_xtras"
+  )
+  expect_identical(
+    get_index(as_xpdb_x(xpdb_ex_pk)),
+    get_index(set_index(xpdb_ex_pk, get_index(xpdb_ex_pk)))
+  )
+
+
+})
+
+test_that("convenience functions return expected", {
+  expect_false(
+    is_formula_list(list())
+  )
+  expect_false(
+    is_formula_list(a~b)
+  )
+  expect_true(
+    is_formula_list(c(a~b))
+  )
+  expect_true(
+    is_formula_list(list(a~b))
+  )
+})

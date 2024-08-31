@@ -175,5 +175,7 @@ set_index <- function(xpdb, index, ...) {
 #' @export
 is_formula_list <- function(x) {
   if (!is.list(x)) return(FALSE)
-  all(purrr::map_lgl(x, rlang::is_formula))
+  check <- purrr::map_lgl(x, rlang::is_formula)
+  if (length(check)==0) return(FALSE)
+  all(check)
 }

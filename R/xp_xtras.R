@@ -86,7 +86,7 @@ check_xpdb_x <- function(x) {
     return(FALSE)
   }
   ### check that "dotplot_" is in xp_theme
-  if ("xp_theme" %in% names(x) %% !any(
+  if ("xp_theme" %in% names(x) && !any(
     grepl("^dotplot_", names(x$xp_theme))
   )) {
     return(FALSE)
@@ -94,6 +94,10 @@ check_xpdb_x <- function(x) {
 
   TRUE
 }
+
+# Alias for name consistency
+#' @export
+check_xp_xtras <- function(...) check_xpdb_x(...)
 
 #' Basic class checker for `xp_xtras`
 #'
