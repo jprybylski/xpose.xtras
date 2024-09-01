@@ -7,6 +7,7 @@
 #' @importFrom dplyr rename
 #' @importFrom dplyr select
 #' @importFrom ggplot2 %+%
+#' @importFrom ggplot2 aes
 #' @importFrom lifecycle deprecated
 #' @importFrom stats as.formula
 #' @importFrom stats setNames

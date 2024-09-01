@@ -206,3 +206,93 @@ test_that("levels can be set for categories", {
 
 
 })
+
+
+test_that("print methods are working", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  # mention xp_xtras
+  expect_message(
+    print(xpdb_x),
+    "xp_xtras"
+  )
+  # does not
+  invisible(capture.output(expect_failure(expect_message(
+    print(xpdb_ex_pk),
+    "xp_xtras"
+  ))))
+  expect_failure(expect_output(
+    print(xpdb_ex_pk), # print.xpose_data uses cat(), so...
+    "xp_xtras"
+  ))
+
+  # expect to recognize xp_xtras affected by cross-compatibility
+  hidden_xp_xtras <- xpose::set_var_labels(xpdb_x, AGE="Age")
+  expect_false(
+    is_xp_xtras(hidden_xp_xtras)
+  )
+  expect_message(
+    print(hidden_xp_xtras),
+    "xp_xtras"
+  )
+
+})
+
+test_that("list_vars extension behaves as expected", {
+
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  expect_gte(length(methods(list_vars)),2)
+
+  expect_message(
+    list_vars(xpdb_x),
+    "MED1\\s*\\[.*0.*\\]"
+  )
+  lvl_x <- set_var_levels(xpdb_x, MED1 = lvl_bin())
+  expect_message(
+    list_vars(lvl_x),
+    "MED1\\s*\\[.*2.*\\]"
+  )
+  lbl_x <- xpose::set_var_labels(xpdb_x, AGE = "the age")
+  expect_message(
+    list_vars(lbl_x),
+    "AGE.*\\('the age'\\)"
+  )
+  unt_x <- xpose::set_var_units(xpdb_x, AGE = "years")
+  expect_message(
+    list_vars(unt_x),
+    "AGE.*\\(years\\)"
+  )
+  lblunt_x <- xpose::set_var_labels(xpdb_x, AGE = "the age") %>%
+    xpose::set_var_units(AGE = "years")
+  expect_message(
+    list_vars(lblunt_x),
+    "AGE.*\\('the age', years\\)"
+  )
+
+
+  # above would fail if below test would fail, but just to verify
+  expect_false(
+    is_xp_xtras(lbl_x)
+  )
+  expect_true(
+    check_xpdb_x(lbl_x)
+  )
+
+  # xpdb_ex_pk uses default
+  invisible(capture.output(
+    expect_failure(expect_message(
+      list_vars(xpdb_ex_pk),
+      "MED1\\s*\\[.*0.*\\]"
+    ))
+  ))
+
+  expect_error(
+    list_vars(xpdb_x, 3),
+    "not found"
+  )
+  suppressMessages(expect_no_message(
+    list_vars(xpdb_x, 1),
+    message="problem no\\. 2 "
+  ))
+})

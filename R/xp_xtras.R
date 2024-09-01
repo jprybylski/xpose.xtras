@@ -108,13 +108,15 @@ print.xp_xtras <- function(x, ...) {
   cli::cli({
     cli::cli_h3("{package_flex} object")
     cli::cli_text("{cli::style_bold('Model description')}: {get_prop(x, 'descr')}")
-    cli::cli_verbatim(capture.output(NextMethod()))
+    cli::cli_verbatim(capture.output(xpose:::print.xpose_data(x, ...)))
   })
 }
 
 # This is not exported from xpose, so to avoid issues...
 #' @export
 print.xpose_data <- function(x, ...) {
+ if (suppressMessages(check_xp_xtras(x))) return(print.xp_xtras(x, ...))
+
   xpose:::print.xpose_data(x, ...)
 }
 
@@ -446,75 +448,82 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
 
   if (!is.null(.problem)) {
     if (!all(.problem %in% x$problem)) {
-      cli::cli_abort('Problem no.', stringr::str_c(.problem[!.problem %in% x$problem], collapse = ', '),
-           ' not found in the data.', call. = FALSE)
+      cli::cli_abort("Problem no. { .problem[!.problem %in% x$problem]} not found in the data.")
     }
     x <- x[x$problem %in% .problem, ]
   }
 
   order <- c('id', 'dv', 'catdv', 'idv', 'dvid', 'occ', 'amt', 'evid', 'mdv', 'pred', 'ipred',
              'param', 'eta', 'res', 'catcov', 'contcov', 'a', 'na')
-
-  x <- x %>%
-    dplyr::mutate(grouping = as.integer(.$problem)) %>%
-    dplyr::group_by_at(.vars = 'grouping') %>%
-    tidyr::nest() %>%
-    dplyr::ungroup() %>%
-    {purrr::map(.$data, function(df) {
-      cat('\nList of available variables for problem no.', df$problem[1], '\n')
-      df$index[[1]] %>%
-        dplyr::mutate(type2=type) %>% # xtra :: just to keep type
-        dplyr::group_by_at(.vars = 'type') %>%
-        tidyr::nest() %>%
-        dplyr::ungroup() %>%
-        dplyr::mutate(
-          string = purrr::map_chr(.$data, ~{
-            cols_c <- unique(.$col)
-            if (!all(is.na(c(.$label,.$units)))) {
-              labs_c <- .$label[!duplicated(.$col)]
-              units_c <- .$units[!duplicated(.$col)]
-              tocols_c <- stringr::str_c(
-                dplyr::coalesce(stringr::str_c(
-                  "'", labs_c, "'"
-                ), ""),
-                dplyr::coalesce(stringr::str_c(
-                  ", ", units_c
-                ), "")
-              ) %>% ifelse(.=="", ., paste0(" (",.,")"))
-              cols_c <- stringr::str_c(cols_c, cli::style_bold(tocols_c))
-            }
-            if (.$type2[1] %in% level_types) {
-              lvls_c <- .$levels[!duplicated(.$col)]
-              cols_c <- purrr::map2_chr(cols_c, lvls_c, ~{
-                paste0(.x, " [", cli::col_yellow(nrow(.y)),"]")
-              })
-            }
-            stringr::str_c(cols_c, collapse = ', ')
-          }),
-          descr = dplyr::case_when(.$type == 'id' ~ 'Subject identifier (id)',
-                                   .$type == 'occ' ~ 'Occasion flag (occ)',
-                                   .$type == 'na' ~ 'Not attributed (na)',
-                                   .$type == 'amt' ~ 'Dose amount (amt)',
-                                   .$type == 'idv' ~ 'Independent variable (idv)',
-                                   .$type == 'ipred' ~ 'Model individual predictions (ipred)',
-                                   .$type == 'pred' ~ 'Model typical predictions (pred)',
-                                   .$type == 'res' ~ 'Residuals (res)',
-                                   .$type == 'evid' ~ 'Event identifier (evid)',
-                                   .$type == 'dv' ~ 'Dependent variable (dv)',
-                                   .$type == 'catdv' ~ 'Categorical endpoint (catdv)',
-                                   .$type == 'catcov' ~ 'Categorical covariates (catcov)',
-                                   .$type == 'contcov' ~ 'Continuous covariates (contcov)',
-                                   .$type == 'param' ~ 'Model parameter (param)',
-                                   .$type == 'eta' ~ 'Eta (eta)',
-                                   .$type == 'a' ~ 'Compartment amounts (a)',
-                                   .$type == 'dvid' ~ 'DV identifier (dvid)',
-                                   .$type == 'mdv' ~ 'Missing dependent variable (mdv)',
-                                  TRUE ~ "Undefined type")
+  cli::cli({
+    if (rlang::is_interactive()) sp <- cli::make_spinner("dots")
+    if (rlang::is_interactive()) sp$spin()
+    x %>%
+      dplyr::mutate(grouping = as.integer(.$problem)) %>%
+      dplyr::group_by_at(.vars = 'grouping') %>%
+      tidyr::nest() %>%
+      dplyr::ungroup() %>%
+      {purrr::map(.$data, function(df) {
+        if (rlang::is_interactive()) sp$spin()
+        cli::cli_bullets("List of available variables for problem no. {df$problem[1]}")
+        df$index[[1]] %>%
+          dplyr::mutate(type2=type) %>% # xtra :: just to keep type
+          dplyr::group_by_at(.vars = 'type') %>%
+          tidyr::nest() %>%
+          dplyr::ungroup() %>%
+          dplyr::mutate(
+            string = purrr::map_chr(.$data, ~{
+              if (rlang::is_interactive()) sp$spin()
+              cols_c <- unique(.$col)
+              if (!all(is.na(c(.$label,.$units)))) {
+                labs_c <- .$label[!duplicated(.$col)]
+                units_c <- .$units[!duplicated(.$col)]
+                tocols_c <- stringr::str_c(
+                  dplyr::coalesce(stringr::str_c(
+                    "'", labs_c, "'"
+                  ), ""),
+                  dplyr::coalesce(stringr::str_c(
+                    ifelse(is.na(labs_c), "", ", "),
+                    units_c
+                  ), "")
+                ) %>% ifelse(.=="", ., paste0(" (",.,")"))
+                cols_c <- stringr::str_c(cols_c, cli::style_bold(tocols_c))
+              }
+              if (.$type2[1] %in% level_types) {
+                lvls_c <- .$levels[!duplicated(.$col)]
+                cols_c <- purrr::map2_chr(cols_c, lvls_c, ~{
+                  paste0(.x, " [", cli::col_yellow(nrow(.y)),"]")
+                })
+              }
+              stringr::str_c(cols_c, collapse = ', ')
+            }),
+            descr = dplyr::case_when(.$type == 'id' ~ 'Subject identifier (id)',
+                                     .$type == 'occ' ~ 'Occasion flag (occ)',
+                                     .$type == 'na' ~ 'Not attributed (na)',
+                                     .$type == 'amt' ~ 'Dose amount (amt)',
+                                     .$type == 'idv' ~ 'Independent variable (idv)',
+                                     .$type == 'ipred' ~ 'Model individual predictions (ipred)',
+                                     .$type == 'pred' ~ 'Model typical predictions (pred)',
+                                     .$type == 'res' ~ 'Residuals (res)',
+                                     .$type == 'evid' ~ 'Event identifier (evid)',
+                                     .$type == 'dv' ~ 'Dependent variable (dv)',
+                                     .$type == 'catdv' ~ 'Categorical endpoint (catdv)',
+                                     .$type == 'catcov' ~ 'Categorical covariates (catcov)',
+                                     .$type == 'contcov' ~ 'Continuous covariates (contcov)',
+                                     .$type == 'param' ~ 'Model parameter (param)',
+                                     .$type == 'eta' ~ 'Eta (eta)',
+                                     .$type == 'a' ~ 'Compartment amounts (a)',
+                                     .$type == 'dvid' ~ 'DV identifier (dvid)',
+                                     .$type == 'mdv' ~ 'Missing dependent variable (mdv)',
+                                     TRUE ~ "Undefined type")
           ) %>%
-        dplyr::mutate(descr = stringr::str_pad(.$descr, 37, 'right')
-                      ) %>%
-        dplyr::slice(order(match(.$type, order))) %>%
-        {stringr::str_c(' -', .$descr, ':', .$string, sep = ' ')} %>%
-        stringr::str_c(collapse="\n") %>%
-        cli::cli_verbatim()})}
+          dplyr::mutate(descr = stringr::str_pad(.$descr, 37, 'right')
+          ) %>%
+          dplyr::slice(order(match(.$type, order))) %>%
+          {stringr::str_c(' -', .$descr, ':', .$string, sep = ' ')} %>%
+          stringr::str_c(collapse="\n") %>%
+          cli::cli_verbatim()})}
+    if (rlang::is_interactive()) sp$finish()
+  })
+
 }

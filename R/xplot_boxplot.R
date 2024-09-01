@@ -1,4 +1,5 @@
 
+# TODO: Add params
 #' Default xpose boxplot function
 #'
 #' @param type <`character`> vector of elements to include in the plot. See [Details].
@@ -28,7 +29,6 @@ xplot_boxplot <- function(xpdb,
                           caption   = NULL,
                           tag       = NULL,
                           plot_name = 'boxplot',
-                          intercept = NULL,
                           gg_theme,
                           xp_theme,
                           opt,
