@@ -700,7 +700,11 @@ print.xpose_set_item <- function(x, ...) {
     cli::cli_end()
     # Print the xpdb object
     cli::cli_h3("xpdb object (accessible with {cli::col_blue('{xpose_set}$',xpdb_s_i$label,'$xpdb')}):")
-    cli::cli_verbatim(capture.output(xpose:::print.xpose_data(xpdb_s_i$xpdb)))
+    if (!is_xp_xtras(xpdb_s_i$xpdb)) {
+      cli::cli_verbatim(capture.output(print(xpdb_s_i$xpdb)))
+    } else {
+      print(xpdb_s_i$xpdb)
+    }
   })
 }
 

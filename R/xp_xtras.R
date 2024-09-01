@@ -32,7 +32,7 @@ as_xpdb_x <- function(x) {
       # add nested levels to index
       mutate(
         index = purrr::map(index, ~{
-          mutate(.x, levels = list(NA))
+          mutate(.x, levels = list(tibble::tibble()))
         })
       )
 
@@ -98,6 +98,27 @@ check_xpdb_x <- function(x) {
 # Alias for name consistency
 #' @export
 check_xp_xtras <- function(...) check_xpdb_x(...)
+
+# Methods
+#' @rdname namespace_methods
+#' @order 11
+#' @export
+print.xp_xtras <- function(x, ...) {
+  package_flex <- cli::col_magenta(paste(cli::symbol$star, "xp_xtras"))
+  cli::cli({
+    cli::cli_h3("{package_flex} object")
+    cli::cli_text("{cli::style_bold('Model description')}: {get_prop(x, 'descr')}")
+    cli::cli_verbatim(capture.output(NextMethod()))
+  })
+}
+
+# This is not exported from xpose, so to avoid issues...
+#' @export
+print.xpose_data <- function(x, ...) {
+  xpose:::print.xpose_data(x, ...)
+}
+
+# New functions
 
 #' Basic class checker for `xp_xtras`
 #'
@@ -233,10 +254,17 @@ set_var_levels <- function(xpdb, .problem = NULL, ..., .missing = "Other", .hand
         as.character() %>%
         as.double() %>%
         tibble::tibble(value = ., level=.missing)
-      plvls <- dplyr::bind_rows(
-        plvls,
-        missing_levels
-      )
+      rlang::try_fetch({
+        plvls <- dplyr::bind_rows(
+          plvls,
+          missing_levels
+        )
+      },
+      error = function(cnd) {
+        cli::cli_abort(
+          "{cli::col_red(lvn)}: LHS should all be numeric, and RHS should all be quoted strings (characters)."
+        )
+      })
     }
 
     # put processed levels in the index tibble
@@ -254,6 +282,9 @@ set_var_levels <- function(xpdb, .problem = NULL, ..., .missing = "Other", .hand
   }
   new_x
 }
+
+#' @noMd
+level_types <- c("catcov", "dvid", "occ", "catdv")# catdv is an xp_xtras type
 
 #' Verify validity of level list
 #'
@@ -285,7 +316,6 @@ check_levels <- function(lvl_list, index) {
   }
 
   # Warn if level won't matter (not a leveled var type)
-  level_types <- c("catcov", "dvid", "occ", "catdv") # catdv is an xp_xtras type
   valid_index <- dplyr::filter(index, type %in% level_types)
   if (!all(names(lvl_list) %in% valid_index$col)) {
     cli::cli_warn("Var types not compatible with levels, but levels will still be applied: {setdiff(names(lvl_list), valid_index$col)}\n")
@@ -369,3 +399,122 @@ lvl_inord <- function(x, .start_index = 1) {
   as_leveler(x, .start_index=.start_index)
 }
 
+# Slight updates to list_vars
+
+#' Updates to `list_vars`
+#'
+#' @description
+#' To accommodate changes made in `xpose.xtras`,
+#' <[`list_vars`][xpose::list_vars]> needed some minimal updates.
+#'
+#'
+#' @param xpdb <`xpose_data`> or <`xp_xtras`> object
+#' @param .problem <`numeric`> Problem number to use. Uses the all problems if `NULL`
+#' @param ... Should be blank.
+#'
+#' @return <`tibble`> of variables`cat()` of variables
+#' @export
+#'
+#'
+#' @examples
+#'
+#' list_vars(xpose::xpdb_ex_pk)
+#'
+#' list_vars(xpdb_x)
+#'
+list_vars <- function (xpdb, .problem = NULL, ...) {
+  UseMethod("list_vars")
+}
+
+#' @export
+list_vars.default <- function (xpdb, .problem = NULL, ...) {
+  if (suppressMessages(check_xp_xtras(xpdb)))
+    return(list_vars.xp_xtras(xpdb, .problem = NULL, ...))
+
+  xpose::list_vars(xpdb = xpdb, .problem = .problem)
+}
+
+#' @export
+list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
+  #### xpose.xtras ::: Most of the default function can be copied.
+  #### xpose.xtras ::: There are some minimal changes throughout for style and new var types
+
+  # Check input
+  xpose::check_xpdb(xpdb, check = 'data')
+
+  x <- xpdb$data
+
+  if (!is.null(.problem)) {
+    if (!all(.problem %in% x$problem)) {
+      cli::cli_abort('Problem no.', stringr::str_c(.problem[!.problem %in% x$problem], collapse = ', '),
+           ' not found in the data.', call. = FALSE)
+    }
+    x <- x[x$problem %in% .problem, ]
+  }
+
+  order <- c('id', 'dv', 'catdv', 'idv', 'dvid', 'occ', 'amt', 'evid', 'mdv', 'pred', 'ipred',
+             'param', 'eta', 'res', 'catcov', 'contcov', 'a', 'na')
+
+  x <- x %>%
+    dplyr::mutate(grouping = as.integer(.$problem)) %>%
+    dplyr::group_by_at(.vars = 'grouping') %>%
+    tidyr::nest() %>%
+    dplyr::ungroup() %>%
+    {purrr::map(.$data, function(df) {
+      cat('\nList of available variables for problem no.', df$problem[1], '\n')
+      df$index[[1]] %>%
+        dplyr::mutate(type2=type) %>% # xtra :: just to keep type
+        dplyr::group_by_at(.vars = 'type') %>%
+        tidyr::nest() %>%
+        dplyr::ungroup() %>%
+        dplyr::mutate(
+          string = purrr::map_chr(.$data, ~{
+            cols_c <- unique(.$col)
+            if (!all(is.na(c(.$label,.$units)))) {
+              labs_c <- .$label[!duplicated(.$col)]
+              units_c <- .$units[!duplicated(.$col)]
+              tocols_c <- stringr::str_c(
+                dplyr::coalesce(stringr::str_c(
+                  "'", labs_c, "'"
+                ), ""),
+                dplyr::coalesce(stringr::str_c(
+                  ", ", units_c
+                ), "")
+              ) %>% ifelse(.=="", ., paste0(" (",.,")"))
+              cols_c <- stringr::str_c(cols_c, cli::style_bold(tocols_c))
+            }
+            if (.$type2[1] %in% level_types) {
+              lvls_c <- .$levels[!duplicated(.$col)]
+              cols_c <- purrr::map2_chr(cols_c, lvls_c, ~{
+                paste0(.x, " [", cli::col_yellow(nrow(.y)),"]")
+              })
+            }
+            stringr::str_c(cols_c, collapse = ', ')
+          }),
+          descr = dplyr::case_when(.$type == 'id' ~ 'Subject identifier (id)',
+                                   .$type == 'occ' ~ 'Occasion flag (occ)',
+                                   .$type == 'na' ~ 'Not attributed (na)',
+                                   .$type == 'amt' ~ 'Dose amount (amt)',
+                                   .$type == 'idv' ~ 'Independent variable (idv)',
+                                   .$type == 'ipred' ~ 'Model individual predictions (ipred)',
+                                   .$type == 'pred' ~ 'Model typical predictions (pred)',
+                                   .$type == 'res' ~ 'Residuals (res)',
+                                   .$type == 'evid' ~ 'Event identifier (evid)',
+                                   .$type == 'dv' ~ 'Dependent variable (dv)',
+                                   .$type == 'catdv' ~ 'Categorical endpoint (catdv)',
+                                   .$type == 'catcov' ~ 'Categorical covariates (catcov)',
+                                   .$type == 'contcov' ~ 'Continuous covariates (contcov)',
+                                   .$type == 'param' ~ 'Model parameter (param)',
+                                   .$type == 'eta' ~ 'Eta (eta)',
+                                   .$type == 'a' ~ 'Compartment amounts (a)',
+                                   .$type == 'dvid' ~ 'DV identifier (dvid)',
+                                   .$type == 'mdv' ~ 'Missing dependent variable (mdv)',
+                                  TRUE ~ "Undefined type")
+          ) %>%
+        dplyr::mutate(descr = stringr::str_pad(.$descr, 37, 'right')
+                      ) %>%
+        dplyr::slice(order(match(.$type, order))) %>%
+        {stringr::str_c(' -', .$descr, ':', .$string, sep = ' ')} %>%
+        stringr::str_c(collapse="\n") %>%
+        cli::cli_verbatim()})}
+}

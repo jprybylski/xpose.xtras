@@ -204,17 +204,17 @@ test_that("methods work", {
   # c() tested in xpose_set generating functions
   data("xpdb_ex_pk", package = "xpose", envir = environment())
   big_set <- purrr::map(1:10, ~xpdb_ex_pk) %>% setNames(letters[1:10]) %>% {xpose_set(!!!.)}
-  exp_set <- expose_property(xpdb_set, ofv, descr)
+  exp_set <- expose_property(xpdb_set, ofv, runtime )
 
   expect_message(print(xpdb_set))
   expect_message(print(big_set), regexp = "truncated")
   suppressMessages(expect_no_message(print(xpdb_set), message = "truncated"))
   expect_message(print(xpdb_set[FALSE]), regexp = "No xpdb objects")
-  expect_message(print(exp_set), regexp = "(ofv|descr)")
-  suppressMessages(expect_no_message(print(xpdb_set), message = "(ofv|descr)"))
+  expect_message(print(exp_set), regexp = "(ofv|runtime)")
+  suppressMessages(expect_no_message(print(xpdb_set), message = "(ofv|runtime)"))
   expect_message(print(xpdb_set[[1]]))
-  expect_message(print(exp_set[[1]]), regexp = "(ofv|descr)")
-  suppressMessages(expect_no_message(print(xpdb_set[[1]]), message = "(ofv|descr)"))
+  expect_message(print(exp_set[[1]]), regexp = "(ofv|runtime)")
+  suppressMessages(expect_no_message(print(xpdb_set[[1]]), message = "(ofv|runtime)"))
 
 
   expect_identical(xpdb_set, xpdb_set[])

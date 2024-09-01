@@ -10,6 +10,7 @@ xplot_boxplot(
   type = "bo",
   xscale = "discrete",
   yscale = "continuous",
+  orientation = "x",
   title = NULL,
   subtitle = NULL,
   caption = NULL,
@@ -36,5 +37,6 @@ For type-based customization of plots:
 \item \code{p} points (from geom_dotplot)
 \item \code{v} violin (from geom_violin)
 \item \code{o} outliers (show outliers)
+\item \code{l} line through 0 (or as indicated in line_*intercept)
 }
 }
