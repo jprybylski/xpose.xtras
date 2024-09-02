@@ -37,8 +37,7 @@ as_xpdb_x <- function(x) {
       )
 
     # Update xp_theme with xp_xtras theme
-    # Would use xpose::update_themes but that does a lot more than is needed
-    new_x$xp_theme <- xp_xtra_theme(new_x$xp_theme)
+    new_x <- xpose::update_themes(xpdb = xpose::as.xpdb(new_x), xp_theme = xp_xtra_theme(new_x$xp_theme))
 
   }
 
