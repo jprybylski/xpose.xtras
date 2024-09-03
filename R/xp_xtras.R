@@ -50,14 +50,19 @@ as_xpdb_x <- function(x) {
   new_x
 }
 
+#' @export
+as_xp_xtras <- function(x) as_xpdb_x(x)
+
 #'
 #' @rdname xp_xtras
 #' @order 2
 #'
 #' @param x Suspected `xp_xtras` object
+#' @param warn <`logical`> Whether to warn if `xpose_data` but not `xp_xtras`
+#'
 #'
 #' @export
-check_xpdb_x <- function(x) {
+check_xpdb_x <- function(x, warn=TRUE) {
   # Basic check first
   if (inherits(x, "xpose_data") && !is_xp_xtras(x)) {
     # First just add the class and see if it passes the check
@@ -67,7 +72,7 @@ check_xpdb_x <- function(x) {
     class(test_x) <- c("xp_xtras", class(x))
     if (check_xpdb_x(test_x)) return(TRUE)
     # Return warning if this is valid
-    cli::cli_alert_warning(
+    if (warn) cli::cli_alert_warning(
       paste(
         "{cli::col_cyan(deparse(substitute(x)))} is an xpose_data object, but lacks xp_xtras feature.",
         "Use as_xpdb_x() to convert to cross-compatible xp_xtras object.",
@@ -351,6 +356,24 @@ proc_levels <-  function(lvl_list) {
 }
 
 
+#' Translate values to levels
+#'
+#' @description
+#' This is intended to be used as a convenience function
+#' in plotting where levels are set for some variable.
+#'
+#' @param vals vector of values associated with levels in `lvl_tbl`
+#' @param lvl_tbl tibble of levels
+#'
+#' @export
+val2lvl <- function(vals, lvl_tbl = NULL) {
+  if (is.null(lvl_tbl)) return(forcats::as_factor(vals))
+
+  lvl_v <- lvl_tbl$level[match(vals,lvl_tbl$value)] %>%
+    factor(levels = unique(lvl_tbl$level))
+  lvl_v
+}
+
 #' Level-defining helper functions
 #' @rdname levelers
 #' @order 1
@@ -525,4 +548,65 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
     if (rlang::is_interactive()) sp$finish()
   })
 
+}
+
+
+
+#' `xp_var` Method
+#'
+#' @description
+#' To add a small amount of functionality to <[`xp_var`][xpose::xp_var]>,
+#' this method was created.
+#'
+#' @rdname xp_var
+#'
+#'
+#' @inheritParams xpose::xp_var
+#'
+xp_var <- function (xpdb, .problem, col = NULL, type = NULL, silent = FALSE) {
+  UseMethod("xp_var")
+}
+
+#' @rdname xp_var
+#' @export
+xp_var.default <- function (xpdb, .problem, col = NULL, type = NULL, silent = FALSE) {
+  if (suppressMessages(check_xp_xtras(xpdb))) {
+    return(xp_var.xp_xtras(xpdb=xpdb, .problem=.problem, col = col, type = type, silent = silent))
+  }
+
+  xpose::check_xpdb(xpdb, check="data") # overlooked check in current version
+
+  xpose::xp_var(xpdb=xpdb, .problem=.problem, col = col, type = type, silent = silent)
+}
+
+#' @rdname xp_var
+#' @export
+xp_var.xp_xtras <- function (xpdb, .problem, col = NULL, type = NULL, silent = FALSE) {
+  xpose::check_xpdb(xpdb, check="data")
+
+  if (missing(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+
+  if (!all(.problem %in% xpdb$data$problem)) {
+    cli::cli_abort("$prob no.{ .problem[!.problem %in% xpdb$data$problem]} not found in model output data.")
+  }
+  index <- xpdb$data[xpdb$data$problem == .problem, ]$index[[1]]
+  if (!is.null(type)) {
+    index <- index[index$type %in% type, ]
+  }
+  else {
+    index <- index[index$col %in% col, ]
+  }
+  missing_cols <- if (is.null(col)) c() else col[!col%in%index$col]
+  missing_types <- if (is.null(type)) c() else type[!type%in%index$type]
+  if (nrow(index) == 0 || length(missing_cols)>0 || length(missing_types)>0) {
+    if (silent)
+      return()
+    cli::cli_abort("Column {ifelse(!is.null(type) || length(missing_types)>0,
+                    paste0('type ', missing_types), paste0('`',missing_cols,'`'))}
+                    not available in data for problem no. { .problem}.
+                   Check `list_vars()` for an exhaustive list of available columns.")
+  }
+  index %>% dplyr::distinct(!!rlang::sym("col"), .keep_all = TRUE) %>%
+    dplyr::select(dplyr::one_of("col", "type", "label", "units", "levels")) %>%
+    dplyr::arrange(type, col) # would prefer to sort by requested order, but to keep behavior consistent...
 }

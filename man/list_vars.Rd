@@ -11,7 +11,7 @@ list_vars(xpdb, .problem = NULL, ...)
 
 \item{.problem}{<\code{numeric}> Problem number to use. Uses the all problems if \code{NULL}}
 
-\item{...}{Typically should be blank.}
+\item{...}{Should be blank.}
 }
 \value{
 <\code{tibble}> of variables\code{cat()} of variables

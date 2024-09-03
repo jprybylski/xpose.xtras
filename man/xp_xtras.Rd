@@ -7,10 +7,12 @@
 \usage{
 as_xpdb_x(x)
 
-check_xpdb_x(x)
+check_xpdb_x(x, warn = TRUE)
 }
 \arguments{
 \item{x}{Suspected \code{xp_xtras} object}
+
+\item{warn}{<\code{logical}> Whether to warn if \code{xpose_data} but not \code{xp_xtras}}
 }
 \value{
 <\code{\link[xpose:xpose_data]{xpose_data}}> and <\code{xp_xtras}> object

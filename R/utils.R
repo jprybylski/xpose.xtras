@@ -179,3 +179,31 @@ is_formula_list <- function(x) {
   if (length(check)==0) return(FALSE)
   all(check)
 }
+
+#' Reportable digits for model fit
+#'
+#' @description
+#' An opinionated function where for optimization routines
+#' that report number of significant digits (eg, FO-based), only
+#' those number of digits are considered reportable.
+#'
+#'
+#' @param xpdb <`xpose_data`[xpose::xpose_data]> object
+#' @param .default <`numeric`> Default number of digits to return if not found
+#'
+#' @return Number of reportable digits
+#' @export
+#'
+#' @examples
+#'
+#' reportable_digits(xpdb_x)
+#'
+reportable_digits <- function(xpdb, .default = 3) {
+  rlang::try_fetch(
+    floor(
+      as.numeric(
+        get_prop(xpdb_x, "nsig")
+      )
+    ),
+    error = function(x) 3)
+}

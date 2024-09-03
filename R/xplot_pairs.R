@@ -1,0 +1,235 @@
+#' Wrapper around ggpairs
+#'
+#' @description
+#' Following the `xpose` design pattern to derive <[`ggpairs`][GGally::ggpairs]> plots.
+#'
+#' Established `xplot_` are used to generate parts of the grid.
+#'
+#' @importFrom GGally ggpairs
+#'
+#' @return specified pair plot
+#' @export
+#'
+#' @examples
+#' c()
+#'
+xplot_pairs <- function(
+    xpdb,
+    mapping   = NULL,
+    vars = NULL,
+    cont_opts = list(
+      group = "ID",
+      guide     = FALSE,
+      type     = 'ps'
+    ),
+    dist_opts = list(
+      guide     = FALSE,
+      type = "hr"
+    ),
+    cat_opts = list(
+      type      = 'bo',
+      log = NULL
+    ),
+    contcont_opts = list(
+      other_fun = NULL,
+      stars= FALSE,
+      digits = reportable_digits(xpdb),
+      title = "Pearson Corr"
+    ),
+    catcont_opts = list(
+      other_fun = NULL,
+      stars= FALSE,
+      digits = reportable_digits(xpdb),
+      title = "Spearman rho"
+    ),
+    catcat_opts = list(
+      use_rho = TRUE
+    ),
+    title     = NULL,
+    subtitle  = NULL,
+    caption   = NULL,
+    tag       = NULL,
+    plot_name = 'pairs',
+    gg_theme,
+    xp_theme,
+    opt,
+    quiet,
+    ...
+) {
+  #### Boilerplate for typical parts
+  # Check input
+  xpose::check_xpdb(xpdb, check = FALSE)
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+
+  # Fetch data
+  if (missing(opt)) opt <- xpose::data_opt()
+  data <- xpose::fetch_data(xpdb, quiet = quiet, .problem = opt$problem, .subprob = opt$subprob,
+                            .method = opt$method, .source = opt$source, simtab = opt$simtab,
+                            filter = opt$filter, tidy = opt$tidy, index_col = opt$index_col,
+                            value_col = opt$value_col, post_processing = opt$post_processing)
+  if (is.null(data) || nrow(data) == 0 || rlang::quo_is_null(rlang::enquo(vars))) {
+    rlang::abort('No data available for plotting. Please check the variable mapping and filering options.')
+  }
+  data <- dplyr::select(data, {{vars}})
+
+  # Update _opts defauls
+  use_upt <- function(x_opt) {
+    opt_nm <- deparse(substitute(x_opt))
+    if (is.list(x_opt)) modifyList(eval(formals(xplot_pairs)[[opt_nm]]), x_opt) else cli::cli_abort("`{opt_nm}` must be a list.")
+  }
+
+  # Check types (allow incomplete list to specify opts)
+  cont_opts <- use_upt(cont_opts)
+  xpose::check_plot_type(cont_opts$type, allowed = c("l", "p", "s", "t"))
+  dist_opts <- use_upt(dist_opts)
+  xpose::check_plot_type(dist_opts$type, allowed = c("d", "h", "r"))
+  cat_opts <- use_upt(cat_opts)
+  xpose::check_plot_type(cat_opts$type, allowed = c('b', "p","v","o","l"))
+
+  # Check other options
+  contcont_opts <- use_upt(contcont_opts)
+  catcont_opts <- use_upt(catcont_opts)
+  catcat_opts <- use_upt(catcat_opts)
+
+  # Assign xp_theme
+  if (!missing(xp_theme)) xpdb <- xpose::update_themes(xpdb = xpdb, xp_theme = xp_theme)
+
+  # Update theme of non-xp_xtra object
+  if (!is_xp_xtras(xpdb)) xpdb <- xpose::update_themes(xpdb = xpdb, xp_theme = xp_xtra_theme(xpdb$xp_theme))
+
+  # Assign gg_theme
+  if (missing(gg_theme)) {
+    gg_theme <- xpdb$gg_theme
+  } else {
+    gg_theme <- xpose::update_themes(xpdb = xpdb, gg_theme = gg_theme)$gg_theme
+  }
+  if (is.function(gg_theme)) {
+    gg_theme <- do.call(gg_theme, args = list())
+  }
+
+
+  #### Wrapped functions for ggpairs
+  wrapped_scatter <- function(data = NULL, mapping = NULL) {
+    xpose::xplot_scatter(
+      xpdb = xpdb,
+      mapping = mapping,
+      group = cont_opts$group,
+      type = cont_opts$type,
+      guide = cont_opts$guid,
+      opt = opt,
+      gg_theme=xpdb$gg_theme,
+      xp_theme=xpdb$xp_theme,
+      quiet=quiet
+    )
+  }
+  wrapped_dist <- function(data = NULL, mapping = NULL) {
+    xpose::xplot_distrib(
+      xpdb = xpdb,
+      mapping = mapping,
+      group = dist_opts$group,
+      type = dist_opts$type,
+      guide = dist_opts$guid,
+      opt = opt,
+      gg_theme=xpdb$gg_theme,
+      xp_theme=xpdb$xp_theme,
+      quiet=quiet
+    )
+  }
+  wrapped_box <- function(data = NULL, mapping = NULL) {
+    orientation = formals(xplot_boxplot)$orientation
+    var_x <- rlang::eval_tidy(mapping$x, data)
+    var_y <- rlang::eval_tidy(mapping$y, data)
+    if (inherits(var_x, "factor") && inherits(var_y, "numeric")) {
+      orientation <- "x"
+      xscale = "discrete"
+      yscale = xpose::check_scales("y", cat_opts$log)
+    } else {
+      orientation <- "y"
+      yscale = "discrete"
+      xscale = xpose::check_scales("x", cat_opts$log)
+    }
+
+    xplot_boxplot(
+      xpdb = xpdb,
+      mapping = mapping,
+      group = cat_opts$group,
+      type = cat_opts$type,
+      guide = cat_opts$guid,
+      xscale = xscale,
+      yscale = yscale,
+      orientation = orientation,
+      opt = opt,
+      gg_theme=xpdb$gg_theme,
+      xp_theme=xpdb$xp_theme,
+      quiet=quiet
+    )
+  }
+  ## Upper cells
+  if (!is.null(contcont_opts$other_fun)) {
+    if (!rlang::is_function(contcont_opts$other_fun)) {
+      cli::cli_abort("`contcont_opts$otherfun` must be a function compatible with `GGally::ggpairs()`, not a {cli::col_yellow(class(contcont_opts$other_fun))}.")
+    }
+    xp_cor <- contcont_opts$other_fun
+  } else {
+    xp_cor <- GGally::wrapp("cor", params = contcont_opts)
+  }
+  if (!is.null(catcont_opts$other_fun)) {
+    if (!rlang::is_function(catcont_opts$other_fun)) {
+      cli::cli_abort("`catcont_opts$otherfun` must be a function compatible with `GGally::ggpairs()`, not a {cli::col_yellow(class(catcont_opts$other_fun))}.")
+    }
+    xp_aov <- catcont_opts$other_fun
+  } else {
+    rho_fun <-  function(x, y) {
+      if (inherits(x, c("POSIXt", "POSIXct", "POSIXlt", "Date"))) {
+        x <- as.numeric(x)
+      }
+      if (inherits(y, c("POSIXt", "POSIXct", "POSIXlt", "Date"))) {
+        y <- as.numeric(y)
+      }
+      corObj <- stats::cor.test(as.numeric(y),as.numeric(x), method="spearman", exact = FALSE)
+      cor_est <- as.numeric(corObj$estimate)
+      cor_txt <- formatC(cor_est, digits = catcont_opts$digits, format = "f")
+      if (isTRUE(catcont_opts$stars)) {
+        cor_txt <- stringr::str_c(cor_txt, GGally::signif_stars(corObj$p.value))
+      }
+      cor_txt
+    }
+    xp_rho <- GGally::wrap("statistic", text_fn = rho_fun, title = catcont_opts$title, sep=":\n")
+  }
+
+  if (catcat_opts$use_rho) catcat_upper <- xp_rho else catcat_upper <- wrap_xp_ggally("count", xp_theme = xpdb$xp_theme)
+
+  xp <-
+    ggpairs(
+      data,
+      diag = list(continuous = wrapped_dist, discrete = wrap_xp_ggally("barDiag", xp_theme = xpdb$xp_theme), na = "naDiag"),
+      lower = list(continuous = wrapped_scatter, combo = wrapped_box, discrete = wrap_xp_ggally("facetbar", xp_theme = xpdb$xp_theme), na =
+                     "na"),
+      upper = list(continuous = xp_cor, combo = xp_rho, discrete = catcat_upper, na = "na"),
+      progress = FALSE
+    ) +
+    xpdb$gg_theme()
+
+
+
+  # Add metadata to plots
+  xp$xpose <- list(fun      = plot_name,
+                   summary  = xpdb$summary,
+                   problem  = attr(data, 'problem'),
+                   subprob  = attr(data, 'subprob'),
+                   method   = attr(data, 'method'),
+                   quiet    = quiet,
+                   xp_theme = xpdb$xp_theme[stringr::str_c(c('title', 'subtitle',
+                                                             'caption', 'tag'), '_suffix')])
+
+  # Output the plot
+  xpose::as.xpose.plot(xp) %>%
+    structure(class=c("xp_xtra_plot", class(.)))
+}
+
+
+
+print.xp_xtra_plot <- function(x, page, ...) {
+  # more or less the same as print.xpose_plot, but check if is ggmatrix, then send
+  # to that printer instead of ggplot printer
+}

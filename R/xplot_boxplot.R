@@ -157,6 +157,6 @@ xplot_boxplot <- function(xpdb,
                    xp_theme = xpdb$xp_theme[stringr::str_c(c('title', 'subtitle',
                                                              'caption', 'tag'), '_suffix')])
 
-  # Ouptut the plot
+  # Output the plot
   xpose::as.xpose.plot(xp)
 }

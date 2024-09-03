@@ -16,7 +16,6 @@ xplot_boxplot(
   caption = NULL,
   tag = NULL,
   plot_name = "boxplot",
-  intercept = NULL,
   gg_theme,
   xp_theme,
   opt,
