@@ -62,7 +62,7 @@ as_xp_xtras <- function(x) as_xpdb_x(x)
 #'
 #'
 #' @export
-check_xpdb_x <- function(x, warn=TRUE) {
+check_xpdb_x <- function(x, .warn=TRUE) {
   # Basic check first
   if (inherits(x, "xpose_data") && !is_xp_xtras(x)) {
     # First just add the class and see if it passes the check

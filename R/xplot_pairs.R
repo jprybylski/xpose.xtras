@@ -54,6 +54,7 @@ xplot_pairs <- function(
     xp_theme,
     opt,
     quiet,
+    progress = rlang::is_interactive() && quiet,
     ...
 ) {
   #### Boilerplate for typical parts
@@ -119,7 +120,8 @@ xplot_pairs <- function(
       opt = opt,
       gg_theme=xpdb$gg_theme,
       xp_theme=xpdb$xp_theme,
-      quiet=quiet
+      quiet=quiet,
+      smooth_formula=y~x
     )
   }
   wrapped_dist <- function(data = NULL, mapping = NULL) {
@@ -206,11 +208,16 @@ xplot_pairs <- function(
       lower = list(continuous = wrapped_scatter, combo = wrapped_box, discrete = wrap_xp_ggally("facetbar", xp_theme = xpdb$xp_theme), na =
                      "na"),
       upper = list(continuous = xp_cor, combo = xp_rho, discrete = catcat_upper, na = "na"),
-      progress = FALSE
+      progress = progress
     ) +
     xpdb$gg_theme()
 
+  # Add labels
+  xp <- xp + ggplot2::labs(title = title, subtitle = subtitle, caption = caption)
 
+  if (utils::packageVersion('ggplot2') >= '3.0.0') {
+    xp <- xp + ggplot2::labs(tag = tag)
+  }
 
   # Add metadata to plots
   xp$xpose <- list(fun      = plot_name,
@@ -224,12 +231,50 @@ xplot_pairs <- function(
 
   # Output the plot
   xpose::as.xpose.plot(xp) %>%
-    structure(class=c("xp_xtra_plot", class(.)))
+   structure(class=c("xp_xtra_plot", class(.)))
 }
 
 
-
+#' @export
 print.xp_xtra_plot <- function(x, page, ...) {
-  # more or less the same as print.xpose_plot, but check if is ggmatrix, then send
-  # to that printer instead of ggplot printer
+  if (!inherits(x, "ggmatrix")) return(NextMethod())
+
+  if (xpose::is.xpose.plot(x)) {
+    x$title <- xpose::append_suffix(x$xpose, x$title,
+                                    "title")
+    x$gg$labs$subtitle <- xpose::append_suffix(x$xpose, x$gg$labs$subtitle,
+                                       "subtitle")
+    x$gg$labs$caption <- xpose::append_suffix(x$xpose, x$gg$labs$caption,
+                                      "caption")
+    if (utils::packageVersion("ggplot2") >= "3.0.0") {
+      x$gg$labs$tag <- xpose::append_suffix(x$xpose, x$gg$labs$tag,
+                                    "tag")
+    }
+    var_map <- x$mapping %>% as.character() %>% stringr::str_remove(pattern = "^~") %>%
+      ifelse(stringr::str_detect(., "\\.data\\[\\[\"\\w+\"]]"),
+             yes = stringr::str_remove_all(., "(\\.data\\[\\[\")|(\"]])"),
+             no = .) %>% purrr::set_names(names(x$mapping))
+    tr_vals <- function(xx) {
+      if (is.null(xx)) return(xx)
+      xx %>%
+        {`if`(
+          rlang::is_character(.),
+          list(.),
+          .
+        )} %>%
+        structure(class="list") %>%
+        purrr::map_if(stringr::str_detect(purrr::list_c(.), "@"),
+                      .f = xpose::parse_title, xpdb = x$xpose, problem = x$xpose$problem,
+                      quiet = x$xpose$quiet, ignore_key = c("page", "lastpage"),
+                      extra_key = c("plotfun", "timeplot", names(var_map)),
+                      extra_value = c(x$xpose$fun, format(Sys.time(), "%a %b %d %X %Z %Y"),
+                                      var_map)) %>%
+        structure(class=class(xx))
+    }
+
+    x$gg$labs <- x$gg$labs %>% tr_vals()
+    x$title <- x$title %>% tr_vals()
+  }
+  if (!missing(page)) NULL
+  x %>% GGally:::print.ggmatrix()
 }

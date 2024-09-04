@@ -4,16 +4,16 @@
 \alias{wrap_xp_ggally}
 \title{Ensure consistent style with \code{GGally} functions}
 \usage{
-wrap_xp_ggally(fn, mapping = NULL, xp_theme, ...)
+wrap_xp_ggally(fn, xp_theme, ...)
 }
 \arguments{
 \item{fn}{<\code{character}> name of \code{GGally} function}
 
-\item{mapping}{<\code{ggplot2::aes}> mapping}
-
 \item{xp_theme}{theme to use}
 
 \item{...}{<\code{any}> additional arguments to pass to \code{GGally} function}
+
+\item{mapping}{<\code{ggplot2::aes}> mapping}
 }
 \value{
 \code{ggplot2} function

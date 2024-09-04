@@ -7,7 +7,7 @@
 \usage{
 as_xpdb_x(x)
 
-check_xpdb_x(x, warn = TRUE)
+check_xpdb_x(x, .warn = TRUE)
 }
 \arguments{
 \item{x}{Suspected \code{xp_xtras} object}

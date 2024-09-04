@@ -4,7 +4,24 @@
 
 ### Grid plots
 
-eta_grid <- function() {}
+eta_grid <- function(xpdb,
+                     mapping  = NULL,
+                     etavar = NULL,
+                     drop_fixed = TRUE,
+                     linsm = FALSE,
+                     type     = 'ps',
+                     title    = 'Eta versus continuous covariates | @run',
+                     subtitle = 'Based on @nind individuals, Eta shrink: @etashk',
+                     caption  = '@dir',
+                     tag      = NULL,
+                     log      = NULL,
+                     guide    = TRUE,
+                     facets,
+                     .problem,
+                     quiet,
+                     ...) {
+
+}
 cov_grid <- function() {}
 eat_cov_grid <- function() {}
 
@@ -132,7 +149,7 @@ eta_vs_catcov <- function(xpdb,
                           etavar = NULL,
                           drop_fixed = TRUE,
                           orientation = "x",
-                          show_n = check_xpdb_x(xpdb, warn=FALSE),
+                          show_n = check_xpdb_x(xpdb, .warn=FALSE),
                           type     = 'bol',
                           title    = 'Eta versus categorical covariates | @run',
                           subtitle = 'Based on @nind individuals, Eta shrink: @etashk',
@@ -196,7 +213,7 @@ eta_vs_catcov <- function(xpdb,
   }
 
   # Set cov factor to label and units, if relevant
-  if (!check_xpdb_x(xpdb, warn=FALSE)) {
+  if (!check_xpdb_x(xpdb, .warn=FALSE)) {
     post_processing_cov <- apply_labels_units(xpdb = xpdb, .problem = .problem)
     if (show_n && !quiet) cli::cli_inform("Cannot show N unless xpdb is converted to a cross-compatible xp_xtras object. `as_xpdb_x()` should do this.")
   } else {
