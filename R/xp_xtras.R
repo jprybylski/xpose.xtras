@@ -72,7 +72,7 @@ check_xpdb_x <- function(x, .warn=TRUE) {
     class(test_x) <- c("xp_xtras", class(x))
     if (check_xpdb_x(test_x)) return(TRUE)
     # Return warning if this is valid
-    if (warn) cli::cli_alert_warning(
+    if (.warn) cli::cli_alert_warning(
       paste(
         "{cli::col_cyan(deparse(substitute(x)))} is an xpose_data object, but lacks xp_xtras feature.",
         "Use as_xpdb_x() to convert to cross-compatible xp_xtras object.",

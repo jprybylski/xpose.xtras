@@ -7,7 +7,6 @@
 xplot_pairs(
   xpdb,
   mapping = NULL,
-  vars = NULL,
   cont_opts = list(group = "ID", guide = FALSE, type = "ps"),
   dist_opts = list(guide = FALSE, type = "hr"),
   cat_opts = list(type = "bo", log = NULL),
@@ -25,8 +24,52 @@ xplot_pairs(
   xp_theme,
   opt,
   quiet,
+  progress = rlang::is_interactive() && quiet,
+  switch = NULL,
   ...
 )
+}
+\arguments{
+\item{xpdb}{<\verb{xp_xtras> or  <}xpose_data`> object}
+
+\item{mapping}{\code{ggplot2} style mapping}
+
+\item{cont_opts}{List of options to pass to \code{xplot_scatter}. See Details}
+
+\item{dist_opts}{List of options to pass to \code{xplot_distribution}. See Details}
+
+\item{cat_opts}{List of options to pass to \code{xplot_boxplot}. See Details}
+
+\item{contcont_opts}{List of options to pass to \code{ggally_cors}. See Details}
+
+\item{catcont_opts}{List of options to pass to \code{ggally_statistic}. See Details}
+
+\item{catcat_opts}{A list wit \code{use_rho} \code{TRUE} or \code{FALSE}. If \code{TRUE} (default),
+then the Spearman rho is displayed, else the ggpairs default count is used.}
+
+\item{title}{Plot title}
+
+\item{subtitle}{Plot subtitle}
+
+\item{caption}{Plot caption}
+
+\item{tag}{Plot tag}
+
+\item{plot_name}{Metadata name of plot}
+
+\item{gg_theme}{As in \code{xpose}}
+
+\item{xp_theme}{As in \code{xpose}}
+
+\item{opt}{Processing options for fetched data}
+
+\item{quiet}{Silence extra debugging output}
+
+\item{progress}{Show a progress bar as the plot is generated?}
+
+\item{switch}{Passed to \code{ggpairs}}
+
+\item{...}{}
 }
 \value{
 specified pair plot
@@ -36,7 +79,15 @@ Following the \code{xpose} design pattern to derive <\code{\link[GGally:ggpairs]
 
 Established \code{xplot_} are used to generate parts of the grid.
 }
-\examples{
-c()
+\details{
+There is only limited control over the underlying \code{ggpairs()} call given
+the need to address abstractions in \code{GGally} and \code{xpose}. However, users
+can modify  key display features. For \code{scatter}, \code{distribution} and \code{boxplots},
+the \code{type} option is directly forwarded to the user. For upper elements of the matrix,
+users can modify features of the text displayed or supply some other
+function entirely (\code{other_fun}).
 
+\verb{_opts} lists are consumed with <\code{\link[utils:modifyList]{modifyList}}> from the default,
+so there is no need to declare preferences that align with the default if updating
+a subset.
 }

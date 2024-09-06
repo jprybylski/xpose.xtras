@@ -1,22 +1,53 @@
 #' Wrapper around ggpairs
 #'
+#' @param xpdb <`xp_xtras> or  <`xpose_data`> object
+#' @param mapping `ggplot2` style mapping
+#' @param cont_opts List of options to pass to `xplot_scatter`. See Details
+#' @param dist_opts List of options to pass to `xplot_distribution`. See Details
+#' @param cat_opts List of options to pass to `xplot_boxplot`. See Details
+#' @param contcont_opts List of options to pass to `ggally_cors`. See Details
+#' @param catcont_opts List of options to pass to `ggally_statistic`. See Details
+#' @param catcat_opts A list wit `use_rho` `TRUE` or `FALSE`. If `TRUE` (default),
+#' then the Spearman rho is displayed, else the ggpairs default count is used.
+#' @param title Plot title
+#' @param subtitle Plot subtitle
+#' @param caption Plot caption
+#' @param tag Plot tag
+#' @param plot_name Metadata name of plot
+#' @param gg_theme As in `xpose`
+#' @param xp_theme As in `xpose`
+#' @param opt Processing options for fetched data
+#' @param quiet Silence extra debugging output
+#' @param progress Show a progress bar as the plot is generated?
+#' @param switch Passed to `ggpairs`
+#' @param ...
+#'
 #' @description
 #' Following the `xpose` design pattern to derive <[`ggpairs`][GGally::ggpairs]> plots.
 #'
 #' Established `xplot_` are used to generate parts of the grid.
+#'
+#' @details
+#' There is only limited control over the underlying `ggpairs()` call given
+#' the need to address abstractions in `GGally` and `xpose`. However, users
+#' can modify  key display features. For `scatter`, `distribution` and `boxplots`,
+#' the `type` option is directly forwarded to the user. For upper elements of the matrix,
+#' users can modify features of the text displayed or supply some other
+#' function entirely (`other_fun`).
+#'
+#' `_opts` lists are consumed with <[`modifyList`][utils::modifyList]> from the default,
+#' so there is no need to declare preferences that align with the default if updating
+#' a subset.
+#'
 #'
 #' @importFrom GGally ggpairs
 #'
 #' @return specified pair plot
 #' @export
 #'
-#' @examples
-#' c()
-#'
 xplot_pairs <- function(
     xpdb,
     mapping   = NULL,
-    vars = NULL,
     cont_opts = list(
       group = "ID",
       guide     = FALSE,
@@ -55,6 +86,7 @@ xplot_pairs <- function(
     opt,
     quiet,
     progress = rlang::is_interactive() && quiet,
+    switch = NULL,
     ...
 ) {
   #### Boilerplate for typical parts
@@ -68,10 +100,9 @@ xplot_pairs <- function(
                             .method = opt$method, .source = opt$source, simtab = opt$simtab,
                             filter = opt$filter, tidy = opt$tidy, index_col = opt$index_col,
                             value_col = opt$value_col, post_processing = opt$post_processing)
-  if (is.null(data) || nrow(data) == 0 || rlang::quo_is_null(rlang::enquo(vars))) {
+  if (is.null(data) || nrow(data) == 0) {
     rlang::abort('No data available for plotting. Please check the variable mapping and filering options.')
   }
-  data <- dplyr::select(data, {{vars}})
 
   # Update _opts defauls
   use_upt <- function(x_opt) {
@@ -173,6 +204,7 @@ xplot_pairs <- function(
     }
     xp_cor <- contcont_opts$other_fun
   } else {
+    contcont_opts <- within(contcont_opts, rm(other_fun))
     xp_cor <- GGally::wrapp("cor", params = contcont_opts)
   }
   if (!is.null(catcont_opts$other_fun)) {
@@ -181,13 +213,8 @@ xplot_pairs <- function(
     }
     xp_aov <- catcont_opts$other_fun
   } else {
+    catcont_opts <- within(catcont_opts, rm(other_fun))
     rho_fun <-  function(x, y) {
-      if (inherits(x, c("POSIXt", "POSIXct", "POSIXlt", "Date"))) {
-        x <- as.numeric(x)
-      }
-      if (inherits(y, c("POSIXt", "POSIXct", "POSIXlt", "Date"))) {
-        y <- as.numeric(y)
-      }
       corObj <- stats::cor.test(as.numeric(y),as.numeric(x), method="spearman", exact = FALSE)
       cor_est <- as.numeric(corObj$estimate)
       cor_txt <- formatC(cor_est, digits = catcont_opts$digits, format = "f")
@@ -199,7 +226,17 @@ xplot_pairs <- function(
     xp_rho <- GGally::wrap("statistic", text_fn = rho_fun, title = catcont_opts$title, sep=":\n")
   }
 
-  if (catcat_opts$use_rho) catcat_upper <- xp_rho else catcat_upper <- wrap_xp_ggally("count", xp_theme = xpdb$xp_theme)
+  if (catcat_opts$use_rho && exists("xp_rho")) {
+    catcat_upper <- xp_rho
+  } else {
+    catcat_upper <- wrap_xp_ggally("count", xp_theme = xpdb$xp_theme)
+  }
+
+  if (!"pairs_labeller" %in% names(xpdb$xp_theme)) {
+    use_labeller <- xpdb$xp_theme$labeller
+  } else {
+    use_labeller <- xpdb$xp_theme$pairs_labeller
+  }
 
   xp <-
     ggpairs(
@@ -208,7 +245,9 @@ xplot_pairs <- function(
       lower = list(continuous = wrapped_scatter, combo = wrapped_box, discrete = wrap_xp_ggally("facetbar", xp_theme = xpdb$xp_theme), na =
                      "na"),
       upper = list(continuous = xp_cor, combo = xp_rho, discrete = catcat_upper, na = "na"),
-      progress = progress
+      progress = progress,
+      labeller = use_labeller,
+      switch = switch
     ) +
     xpdb$gg_theme()
 
@@ -278,3 +317,5 @@ print.xp_xtra_plot <- function(x, page, ...) {
   if (!missing(page)) NULL
   x %>% GGally:::print.ggmatrix()
 }
+
+

@@ -1,8 +1,21 @@
 
-# TODO: Add params
 #' Default xpose boxplot function
 #'
-#' @param type <`character`> vector of elements to include in the plot. See [Details].
+#' @param xpdb <`xp_xtras> or  <`xpose_data`> object
+#' @param mapping `ggplot2` style mapping
+#' @param xscale Defaults to `discrete`.
+#' @param yscale Defaults to `continuous`, used as check if `orientation` changed.
+#' @param orientation Defaults to `x`
+#' @param title Plot title
+#' @param subtitle Plot subtitle
+#' @param caption Plot caption
+#' @param tag Plot tag
+#' @param plot_name Metadata name of plot
+#' @param gg_theme As in `xpose`
+#' @param xp_theme As in `xpose`
+#' @param opt Processing options for fetched data
+#' @param quiet Silence extra debugging output
+#' @param ...
 #'
 #' @description Manually generate boxplots from an xpdb object.
 #'
@@ -10,10 +23,11 @@
 #' For type-based customization of plots:
 #' \itemize{
 #'   \item `b` box-whisker (using default quantiles)
-#'   \item `p` points (from geom_dotplot)
-#'   \item `v` violin (from geom_violin)
+#'   \item `p` points (from `geom_dotplot`)
+#'   \item `v` violin (from `geom_violin`)
 #'   \item `o` outliers (show outliers)
-#'   \item `l` line through 0 (or as indicated in line_*intercept)
+#'   \item `l` line through 0 (or as indicated in `hline_yintercept` or
+#'   `yline_xintercept`)
 #' }
 #'
 #'

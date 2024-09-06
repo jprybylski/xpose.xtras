@@ -24,7 +24,35 @@ xplot_boxplot(
 )
 }
 \arguments{
-\item{type}{<\code{character}> vector of elements to include in the plot. See \link{Details}.}
+\item{xpdb}{<\verb{xp_xtras> or  <}xpose_data`> object}
+
+\item{mapping}{\code{ggplot2} style mapping}
+
+\item{xscale}{Defaults to \code{discrete}.}
+
+\item{yscale}{Defaults to \code{continuous}, used as check if \code{orientation} changed.}
+
+\item{orientation}{Defaults to \code{x}}
+
+\item{title}{Plot title}
+
+\item{subtitle}{Plot subtitle}
+
+\item{caption}{Plot caption}
+
+\item{tag}{Plot tag}
+
+\item{plot_name}{Metadata name of plot}
+
+\item{gg_theme}{As in \code{xpose}}
+
+\item{xp_theme}{As in \code{xpose}}
+
+\item{opt}{Processing options for fetched data}
+
+\item{quiet}{Silence extra debugging output}
+
+\item{...}{}
 }
 \description{
 Manually generate boxplots from an xpdb object.
@@ -33,9 +61,10 @@ Manually generate boxplots from an xpdb object.
 For type-based customization of plots:
 \itemize{
 \item \code{b} box-whisker (using default quantiles)
-\item \code{p} points (from geom_dotplot)
-\item \code{v} violin (from geom_violin)
+\item \code{p} points (from \code{geom_dotplot})
+\item \code{v} violin (from \code{geom_violin})
 \item \code{o} outliers (show outliers)
-\item \code{l} line through 0 (or as indicated in line_*intercept)
+\item \code{l} line through 0 (or as indicated in \code{hline_yintercept} or
+\code{yline_xintercept})
 }
 }

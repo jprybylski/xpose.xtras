@@ -2,31 +2,391 @@
 # Covariate plots
 ######
 
-### Grid plots
-
+#' Grid plots
+#'
+#' @rdname grid_plots
+#'
+#' @param xpdb <`xp_xtras> or  <`xpose_data`> object
+#' @param mapping `ggplot2` style mapping
+#' @param etavar `tidyselect` for `eta` variables
+#' @param cols `tidyselect` for covariates variables
+#' @param covtypes Subset to specific covariate type?
+#' @param show_n Count the number of `ID`s in each category
+#' @param drop_fixed As in `xpose`
+#' @param title Plot title
+#' @param subtitle Plot subtitle
+#' @param caption Plot caption
+#' @param tag Plot tag
+#' @param etacov For`eta_vs_cov_grid`, `eta` are sorted after covariates to
+#' give an `x` orientation to covariate relationships.
+#' @param pairs_opts List of arguments to pass to `_opts`. See <[`xplot_pairs`]>
+#' @param .problem Problem number
+#' @param quiet Silence extra debugging output
+#' @param ... Passed to `xplot_pairs`
+#'
+#' @return `xp_tras_plot` object
+#' @export
+#'
+#'
+#' @examples
+#'
+#' eta_grid(xpdb_x)
+#' cov_grid(xpdb_x)
+#' eta_vs_cov_grid(xpdb_x)
+#'
 eta_grid <- function(xpdb,
                      mapping  = NULL,
                      etavar = NULL,
                      drop_fixed = TRUE,
-                     linsm = FALSE,
-                     type     = 'ps',
-                     title    = 'Eta versus continuous covariates | @run',
+                     title    = 'Eta correlations | @run',
                      subtitle = 'Based on @nind individuals, Eta shrink: @etashk',
                      caption  = '@dir',
                      tag      = NULL,
-                     log      = NULL,
-                     guide    = TRUE,
-                     facets,
+                     pairs_opts,
                      .problem,
                      quiet,
                      ...) {
+  # Check input
+  xpose::check_xpdb(xpdb, check = 'data')
+  if (missing(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet)) quiet <- xpdb$options$quiet
 
+  # Get eta col(s)
+  all_eta_cols <- xpose::xp_var(xpdb, .problem, type = 'eta')$col
+  if (rlang::quo_is_null(rlang::enquo(etavar))) {
+    etavar <- all_eta_cols
+  } else {
+    etavar <- dplyr::select(
+      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
+      {{etavar}}
+    ) %>% names() %>% unique()
+  }
+
+  eta_col <- etavar
+  if (drop_fixed) {
+    eta_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = eta_col, quiet = quiet)
+  }
+  if (is.null(eta_col)) {
+    rlang::abort('No usable eta column found in the xpdb data index.')
+  }
+  if (any(!eta_col %in% all_eta_cols)) {
+    cli::cli_abort("`etavar` should only include etas, which does not seem to apply to: {setdiff(eta_col, xpose::xp_var(xpdb, .problem, type = 'eta')$col)}")
+  }
+
+  # Eta label consistency
+  if (xpose::software(xpdb) == 'nonmem') {
+    eta_col_old <- eta_col
+    eta_col_new <- stringr::str_replace(eta_col_old, "^ET(A?)(\\d+)$", "ETA(\\2)")
+    post_processing_eta <-  function(x) {
+      x %>%
+        dplyr::rename(!!!rlang::set_names(eta_col_old, eta_col_new))
+    }
+    eta_col <- eta_col_new
+  } else {
+    post_processing_eta <- function(x) x
+  }
+  post_processing <- function(x) {
+    post_processing_eta(x) %>%
+      dplyr::select(!!eta_col)
+  }
+
+  opt <- xpose::data_opt(.problem = .problem,
+                         filter = xpose::only_distinct(xpdb, .problem, NULL, quiet),
+                         post_processing = post_processing)
+
+  if (missing(pairs_opts)) pairs_opts <- list()
+  pairs_opts_ <- formals(xplot_pairs) %>%
+    names() %>%
+    stringr::str_subset("_opts$") %>%
+    rlang::set_names(.,.) %>%
+    purrr::map(~{if (.x %in% names(pairs_opts)) pairs_opts[[.x]] else list()})
+
+  xplot_pairs(
+    xpdb,
+    mapping   = mapping,
+    cont_opts = pairs_opts_$cont_opts,
+    dist_opts = pairs_opts_$dist_opts,
+    cat_opts = pairs_opts_$cat_opts,
+    contcont_opts = pairs_opts_$contcont_opts,
+    catcont_opts = pairs_opts_$catcont_opts,
+    catcat_opts = pairs_opts_$catcat_opts,
+    title     = title,
+    subtitle  = subtitle,
+    caption   = caption,
+    tag       = tag,
+    plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
+    opt=opt,
+    quiet=quiet,
+    ...
+  )
 }
-cov_grid <- function() {}
-eat_cov_grid <- function() {}
 
-### Non-grid plots
 
+#' @rdname grid_plots
+#' @export
+cov_grid <- function(xpdb,
+                     mapping  = NULL,
+                     cols = NULL,
+                     covtypes = c("cont","cat"),
+                     show_n = TRUE,
+                     drop_fixed = TRUE,
+                     title    = 'Covariate relationships | @run',
+                     subtitle = 'Based on @nind individuals',
+                     caption  = '@dir',
+                     tag      = NULL,
+                     pairs_opts,
+                     .problem,
+                     quiet,
+                     ...) {
+  # Check input
+  xpose::check_xpdb(xpdb, check = 'data')
+  if (missing(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+
+  # Get col(s)
+  valid_covtypes <- eval(formals()$covtypes)
+  if (is.null(covtypes) || any(!covtypes %in% valid_covtypes)) {
+    cli::cli_abort("Invalid `covtype`(s): {setdiff(covtypes, valid_covtypes)}")
+  }
+  get_govs <- paste0(covtypes, "cov")
+  all_cov_cols <- xp_var(xpdb, .problem, type = get_govs)$col
+  if (rlang::quo_is_null(rlang::enquo(cols))) {
+    covvar <- all_cov_cols
+  } else {
+    covvar <- dplyr::select(
+      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
+      {{cols}}
+    ) %>% names() %>% unique()
+  }
+
+  cov_col <- covvar
+  if (drop_fixed) {
+    cov_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = cov_col, quiet = quiet)
+  }
+  if (is.null(cov_col)) {
+    rlang::abort('No usable covariate column found in the xpdb data index.')
+  }
+  if (any(!cov_col %in% all_cov_cols)) {
+    cli::cli_abort("`cols` should only include ({covtypes}) covariates, which does not seem to apply to: {setdiff(cov_col, all_cov_cols)}")
+  }
+
+  # Set cov factor to label and units, if relevant
+  lvld_cov <- cov_col[cov_col %in% xp_var(xpdb, .problem, type = "catcov")$col]
+  if (!check_xpdb_x(xpdb, .warn=FALSE)) {
+    post_processing_cov <- apply_lul_wide(xpdb = xpdb, cols=cov_col, lvl_cols=lvld_cov, .problem = .problem)
+    if (show_n && !quiet) cli::cli_inform("Cannot show N unless xpdb is converted to a cross-compatible xp_xtras object. `as_xpdb_x()` should do this.")
+  } else {
+    post_processing_cov <- apply_lul_wide(xpdb = xpdb, cols=cov_col, lvl_cols=lvld_cov, .problem = .problem, show_n = show_n)
+  }
+  post_processing <- function(x) {
+    orig_names <- names(x)
+    proc_df <- post_processing_cov(x)
+    new_names <- names(proc_df)
+    # only return processed data
+    return_names <- new_names[match(cov_col, orig_names)]
+    dplyr::select(proc_df, !!return_names)
+  }
+
+  opt <- xpose::data_opt(.problem = .problem,
+                         filter = xpose::only_distinct(xpdb, .problem, NULL, quiet),
+                         post_processing = post_processing)
+
+  if (missing(pairs_opts)) pairs_opts <- list()
+  pairs_opts_ <- formals(xplot_pairs) %>%
+    names() %>%
+    stringr::str_subset("_opts$") %>%
+    rlang::set_names(.,.) %>%
+    purrr::map(~{if (.x %in% names(pairs_opts)) pairs_opts[[.x]] else list()})
+
+  xplot_pairs(
+    xpdb,
+    mapping   = mapping,
+    cont_opts = pairs_opts_$cont_opts,
+    dist_opts = pairs_opts_$dist_opts,
+    cat_opts = pairs_opts_$cat_opts,
+    contcont_opts = pairs_opts_$contcont_opts,
+    catcont_opts = pairs_opts_$catcont_opts,
+    catcat_opts = pairs_opts_$catcat_opts,
+    title     = title,
+    subtitle  = subtitle,
+    caption   = caption,
+    tag       = tag,
+    plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
+    opt=opt,
+    quiet=quiet,
+    ...
+  )
+}
+
+#' @rdname grid_plots
+#' @export
+eta_vs_cov_grid <- function(xpdb,
+                            mapping  = NULL,
+                            etavar = NULL,
+                            cols = NULL,
+                            covtypes = c("cont","cat"),
+                            show_n = TRUE,
+                            drop_fixed = TRUE,
+                            title    = 'Eta covariate correlations | @run',
+                            subtitle = 'Based on @nind individuals, Eta shrink: @etashk',
+                            caption  = '@dir',
+                            tag      = NULL,
+                            etacov = TRUE,
+                            pairs_opts,
+                            .problem,
+                            quiet,
+                            ...) {
+  # Check input
+  xpose::check_xpdb(xpdb, check = 'data')
+  if (missing(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+
+  # Get eta col(s)
+  all_eta_cols <- xpose::xp_var(xpdb, .problem, type = 'eta')$col
+  if (rlang::quo_is_null(rlang::enquo(etavar))) {
+    etavar <- all_eta_cols
+  } else {
+    etavar <- dplyr::select(
+      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
+      {{etavar}}
+    ) %>% names() %>% unique()
+  }
+
+  # Get cov col(s)
+  valid_covtypes <- eval(formals()$covtypes)
+  if (is.null(covtypes) || any(!covtypes %in% valid_covtypes)) {
+    cli::cli_abort("Invalid `covtype`(s): {setdiff(covtypes, valid_covtypes)}")
+  }
+  get_govs <- paste0(covtypes, "cov")
+  all_cov_cols <- xp_var(xpdb, .problem, type = get_govs)$col
+  if (rlang::quo_is_null(rlang::enquo(cols))) {
+    covvar <- all_cov_cols
+  } else {
+    covvar <- dplyr::select(
+      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
+      {{cols}}
+    ) %>% names() %>% unique()
+  }
+
+  eta_col <- etavar
+  cov_col <- covvar
+  if (drop_fixed) {
+    eta_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = eta_col, quiet = quiet)
+    cov_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = cov_col, quiet = quiet)
+  }
+  if (is.null(eta_col) || is.null(cov_col)) {
+    rlang::abort('No usable eta or covariate column found in the xpdb data index.')
+  }
+  if (any(!cov_col %in% all_cov_cols)) {
+    cli::cli_abort("`cols` should only include ({covtypes}) covariates, which does not seem to apply to: {setdiff(cov_col, all_cov_cols)}")
+  }
+  if (any(!eta_col %in% all_eta_cols)) {
+    cli::cli_abort("`etavar` should only include etas, which does not seem to apply to: {setdiff(eta_col, xpose::xp_var(xpdb, .problem, type = 'eta')$col)}")
+  }
+
+  # Eta label consistency
+  if (xpose::software(xpdb) == 'nonmem') {
+    eta_col_old <- eta_col
+    eta_col_new <- stringr::str_replace(eta_col_old, "^ET(A?)(\\d+)$", "ETA(\\2)")
+    post_processing_eta <-  function(x) {
+      x %>%
+        dplyr::rename(!!!rlang::set_names(eta_col_old, eta_col_new))
+    }
+    eta_col <- eta_col_new
+  } else {
+    post_processing_eta <- function(x) x
+  }
+
+
+  # Set cov factor to label and units, if relevant
+  lvld_cov <- cov_col[cov_col %in% xp_var(xpdb, .problem, type = "catcov")$col]
+  if (!check_xpdb_x(xpdb, .warn=FALSE)) {
+    post_processing_cov <- apply_lul_wide(xpdb = xpdb, cols=cov_col, lvl_cols=lvld_cov, .problem = .problem)
+    if (show_n && !quiet) cli::cli_inform("Cannot show N unless xpdb is converted to a cross-compatible xp_xtras object. `as_xpdb_x()` should do this.")
+  } else {
+    post_processing_cov <- apply_lul_wide(xpdb = xpdb, cols=cov_col, lvl_cols=lvld_cov, .problem = .problem, show_n = show_n)
+  }
+
+  post_processing <- function(x) {
+    orig_names <- names(x)
+    proc_df <- post_processing_eta(x) %>%
+      post_processing_cov()
+    new_names <- names(proc_df)
+    # only return processed data
+    return_names <- new_names[match(cov_col, orig_names)]
+
+    if (etacov) {
+      list_first <- return_names
+      list_second <- eta_col
+    } else {
+      list_first <- eta_col
+      list_second <- return_names
+    }
+
+    dplyr::select(proc_df, !!list_first, !!list_second)
+  }
+
+  opt <- xpose::data_opt(.problem = .problem,
+                         filter = xpose::only_distinct(xpdb, .problem, NULL, quiet),
+                         post_processing = post_processing)
+
+  if (missing(pairs_opts)) pairs_opts <- list()
+  pairs_opts_ <- formals(xplot_pairs) %>%
+    names() %>%
+    stringr::str_subset("_opts$") %>%
+    rlang::set_names(.,.) %>%
+    purrr::map(~{if (.x %in% names(pairs_opts)) pairs_opts[[.x]] else list()})
+
+
+  xplot_pairs(
+    xpdb,
+    mapping   = mapping,
+    cont_opts = pairs_opts_$cont_opts,
+    dist_opts = pairs_opts_$dist_opts,
+    cat_opts = pairs_opts_$cat_opts,
+    contcont_opts = pairs_opts_$contcont_opts,
+    catcont_opts = pairs_opts_$catcont_opts,
+    catcat_opts = pairs_opts_$catcat_opts,
+    title     = title,
+    subtitle  = subtitle,
+    caption   = caption,
+    tag       = tag,
+    plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
+    opt=opt,
+    quiet=quiet,
+    ...
+  )
+}
+
+
+#' Eta continuous covariate plots (typical)
+#'
+#' @param xpdb <`xp_xtras> or <`xpose_data`> object
+#' @param mapping `ggplot2` style mapping
+#' @param etavar `tidyselect` for `eta` variables
+#' @param drop_fixed As in `xpose`
+#' @param linsm If `type` contains "s" should the smooth method by `lm`?
+#' @param type Passed to `xplot_scatter`
+#' @param title Plot title
+#' @param subtitle Plot subtitle
+#' @param caption Plot caption
+#' @param tag Plot tag
+#' @param log Log scale covariate value?
+#' @param guide Add guide line?
+#' @param facets Additional facets
+#' @param .problem Problem number
+#' @param quiet Silence output
+#' @param ...
+#'
+#' @export
+#'
+#' @examples
+#'
+#' eta_vs_contcov(xpdb_x)
+#'
 eta_vs_contcov <- function(xpdb,
                            mapping  = NULL,
                            etavar = NULL,
@@ -71,7 +431,7 @@ eta_vs_contcov <- function(xpdb,
   if (is.null(eta_col) || is.null(cov_col)) {
     rlang::abort('No usable eta or covariate column found in the xpdb data index.')
   }
-  if (!any(eta_col %in% xpose::xp_var(xpdb, .problem, type = 'eta')$col)) {
+  if (any(!eta_col %in% xpose::xp_var(xpdb, .problem, type = 'eta')$col)) {
     cli::cli_abort("`etavar` should only include etas, which does not seem to apply to: {setdiff(eta_col, xpose::xp_var(xpdb, .problem, type = 'eta')$col)}")
   }
 
@@ -133,7 +493,7 @@ eta_vs_contcov <- function(xpdb,
     guide = guide,
     facets = facets,
     xscale = xpose::check_scales('x', log),
-    yscale = xpose::check_scales('y', log),
+    yscale = xpose::check_scales('y', NULL),
     title = title,
     subtitle = subtitle,
     caption = caption,
@@ -144,6 +504,30 @@ eta_vs_contcov <- function(xpdb,
     ...)
 }
 
+#' Eta categorical covariate plots (typical)
+#'
+#' @param xpdb <`xp_xtras> or  <`xpose_data`> object
+#' @param mapping `ggplot2` style mapping
+#' @param etavar `tidyselect` for `eta` variables
+#' @param drop_fixed As in `xpose`
+#' @param orientation Passed to `xplot_boxplot`
+#' @param show_n Add "N=" to plot
+#' @param type Passed to `xplot_boxplot`
+#' @param title Plot title
+#' @param subtitle Plot subtitle
+#' @param caption Plot caption
+#' @param tag Plot tag
+#' @param facets Additional facets
+#' @param .problem Problem number
+#' @param quiet Silence output
+#' @param ...
+#'
+#' @export
+#'
+#' @examples
+#'
+#' eta_vs_catcov(xpdb_x)
+#'
 eta_vs_catcov <- function(xpdb,
                           mapping  = NULL,
                           etavar = NULL,
@@ -155,7 +539,6 @@ eta_vs_catcov <- function(xpdb,
                           subtitle = 'Based on @nind individuals, Eta shrink: @etashk',
                           caption  = '@dir',
                           tag      = NULL,
-                          log      = NULL,
                           facets,
                           .problem,
                           quiet,
@@ -204,7 +587,6 @@ eta_vs_catcov <- function(xpdb,
                                               subtitle = subtitle,
                                               caption  = caption,
                                               tag      = tag,
-                                              log      = log,
                                               facets=facets,
                                               .problem=.problem,
                                               quiet=quiet,
@@ -242,13 +624,13 @@ eta_vs_catcov <- function(xpdb,
       x = .data[["value"]],
       y = .data[[eta_col]]), mapping)
     xscale = "discrete"
-    yscale = xpose::check_scales('y', log)
+    yscale = xpose::check_scales('y', NULL)
   } else {
     vars <- xpose::aes_c(aes(
       y = .data[["value"]],
       x = .data[[eta_col]]), mapping)
     yscale = "discrete"
-    xscale = xpose::check_scales('x', log)
+    xscale = xpose::check_scales('x', NULL)
   }
 
   really_quiet <- `(`
@@ -287,6 +669,29 @@ res_vs_catdv <- function() {}
 # Themes
 #####
 
+#' Extra theme defaults
+#'
+#' @description
+#' Adds aesthetics for plot components used in this
+#' package.
+#'
+#' @param base_on `xp_theme` object to extend
+#'
+#' @details
+#' This package attempts to generate a consistent
+#' theme even if users are working with a highly
+#' cutomized `xp_theme`. There is are only a few
+#' hard-coded aesthetics, and the rest are derived from
+#' existing aesthetics in `base_on`, which defaults to
+#' the default from `xpose`.
+#'
+#' Only a few options are worth noting. In <[`xplot_pairs`]>
+#' (and functions using it), the aesthetics for `GGally`-specific
+#' elements like `barDiag` are defined as `gga(element)_(aesthetic)`.
+#' The labeller for pairs plots is also changed from the *de facto* default
+#' `label_both` to `label_value`, but any labeller can be provided as
+#' `pairs_labeller`.
+#'
 #' @export
 xp_xtra_theme <- function(base_on = NULL) {
   if (is.null(base_on)) base_on <- xpose::theme_xp_default()
@@ -327,7 +732,8 @@ xp_xtra_theme <- function(base_on = NULL) {
     ggafacetbar_fill = base_on$histogram_fill,
     ggafacetbar_color = base_on$histogram_color,
     ggafacetbar_alpha = base_on$histogram_alpha,
-    ggafacetbar_linewidth = base_on$histogram_linewidth
+    ggafacetbar_linewidth = base_on$histogram_linewidth,
+    pairs_labeller = "label_value"
   )
 
   # May rarely have these xp_theme elements already defined for an xpose
@@ -348,7 +754,6 @@ xp4_xtra_theme <- function() xp_xtra_theme(xpose::theme_xp_xpose4())
 # Labels and levels
 #########
 
-#' @export
 apply_labels_units <- function(xpdb, .problem=NULL) {
   function(x) {
     vars <- sort(unique(x$variable))
@@ -369,7 +774,6 @@ apply_labels_units <- function(xpdb, .problem=NULL) {
   }
 }
 
-#' @export
 apply_levels <- function(xpdb, .problem=NULL, show_n = TRUE) {
   # xp_xtras class should be checked before this function is called
   function(x) {
@@ -382,7 +786,11 @@ apply_levels <- function(xpdb, .problem=NULL, show_n = TRUE) {
       dplyr::rowwise() %>%
       dplyr::mutate(
         this_lvls = xp_var_res$levels[rn],
-        value = `if`(nrow(this_lvls)==0, val2lvl(value), val2lvl(value, this_lvls))
+        value = `if`(
+          nrow(this_lvls)==0,
+          val2lvl(value),
+          val2lvl(value, this_lvls)
+          )
       ) %>%
       dplyr::ungroup() %>%
       dplyr::select(-c(rn, this_lvls))
@@ -406,6 +814,77 @@ apply_labels_units_levels <- function(xpdb, .problem=NULL, show_n = TRUE) {
   }
 }
 
+apply_lul_wide <- function(xpdb, cols=NULL, lvl_cols=NULL, .problem=NULL, show_n = TRUE) {
+  if (is.null(cols)) {
+    cols <- xpose::get_data(xpdb, .problem = .problem, quiet = TRUE) %>%
+      names() %>% unique()
+  }
+  nlnl_vols <- setdiff(cols, lvl_cols)
+
+  lbl_unt_fun <- apply_labels_units(xpdb = xpdb, .problem = .problem)
+  lvl_fun <- apply_levels(xpdb = xpdb, .problem = .problem, show_n = show_n)
+
+  function(x) {
+   name_order <- names(x)
+   if (length(nlnl_vols)>0) {
+     wo_leveler_ <- x %>%
+       tidyr::pivot_longer(
+         cols = nlnl_vols,
+         names_to = "variable",
+         values_to = "value"
+       ) %>%
+       dplyr::mutate(old_name = variable) %>%
+       lbl_unt_fun()
+     new_cols1 <- wo_leveler_ %>%
+       { .$variable[match(nlnl_vols, .$old_name)] } %>%
+       as.character() %>%
+       unique()
+     wo_leveler <- wo_leveler_ %>%
+       dplyr::select(-old_name) %>%
+       tidyr::pivot_wider(
+         names_from = "variable",
+         values_from = "value"
+       )
+     new_name_order <- name_order
+     new_name_order[match(nlnl_vols, new_name_order)] <- new_cols1
+     if (length(lvl_cols)==0) {
+       return(dplyr::select(wo_leveler, !!new_name_order))
+     }
+   } else {
+     wo_leveler <- dplyr::select(x, -everything())
+     new_cols1 <- c()
+     new_name_order <- name_order
+   }
+   w_leveler_ <- x %>%
+     tidyr::pivot_longer(
+       cols = lvl_cols,
+       names_to = "variable",
+       values_to = "value"
+     ) %>%
+     lvl_fun() %>%
+     dplyr::mutate(old_name = variable) %>%
+     lbl_unt_fun()
+   new_cols2 <- w_leveler_ %>%
+     { .$variable[match(lvl_cols, .$old_name)] } %>%
+     as.character() %>%
+     unique()
+   w_leveler <- w_leveler_ %>%
+     dplyr::select(-old_name) %>%
+     tidyr::pivot_wider(
+       names_from = "variable",
+       values_from = "value"
+     )
+
+   new_name_order[match(lvl_cols, new_name_order)] <- new_cols2
+
+   dplyr::bind_cols(
+     dplyr::select(x, !!setdiff(name_order, cols)),
+     dplyr::select(wo_leveler, !!new_cols1),
+     dplyr::select(w_leveler, !!new_cols2)
+   ) %>%
+     dplyr::select(!!new_name_order)
+  }
+}
 
 #########
 # Utility functions
