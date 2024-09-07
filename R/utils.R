@@ -207,3 +207,28 @@ reportable_digits <- function(xpdb, .default = 3) {
     ),
     error = function(x) 3)
 }
+
+#' Set an `xpose` option
+#'
+#' @param xpdb <`xpose_data`[xpose::xpose_data]> object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Arguments in
+#' the form of `option = value`
+#'
+#' @return `xp_xtras` object
+#' @export
+#'
+#' @examples
+#'
+#' xpdb_x <- set_option(xpdb_x, quiet = TRUE)
+#'
+
+set_option <- function(xpdb, ...) {
+  new_opts <- rlang::dots_list(..., .ignore_empty = "all", .homonyms = "error")
+
+  old_opts <- xpdb$options
+
+  xpdb$options <- utils::modifyList(old_opts, new_opts)
+
+  as_xpdb_x(xpdb)
+
+}

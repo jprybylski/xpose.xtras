@@ -298,6 +298,12 @@ test_that("methods work", {
     names() %>%
     {expect_false("new_name" %in% .)}
 
+  # pull
+  expect_setequal(
+    xpdb_set %>% pull(label),
+    names(xpdb_set)
+  )
+
 })
 
 test_that("focusing works", {

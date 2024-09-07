@@ -102,3 +102,34 @@ lineage_list <- function(xpdb_s) {
 diff.xpose_set <- function(xpdb_s) {
 
 }
+
+
+
+########
+# Tables
+########
+
+
+
+########
+# Plots
+########
+
+# This is specific enough to not need a generic
+sharkfin_plot <- function() {}
+
+# There may need to be a waterfall generic: xset_waterfall
+prm_waterfall <- function() {}
+eta_waterfall <- function() {}
+iofv_waterfall <- function() {}
+
+# These would just create a new xpdb in situ, then mutate, and then use xplot_scatter
+ipred_vs_ipred <- function() {}
+prm_vs_prm <- function() {}
+eta_vs_eta <- function() {}
+
+# This would also just be an in situ xpdb, but there may need to be a function
+# for model-averaging
+ipred_vs_idv_modavg <- function() {}
+pred_vs_idv_modavg <- function() {}
+

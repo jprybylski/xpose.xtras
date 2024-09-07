@@ -18,7 +18,7 @@ part.
 - [x] Extend xpose_data class or add a new class with additional
   structures.
   - [x] Add support for defining catcov, dvid, occ and dv levels
-    - [ ] Add related plots
+    - [x] Add related plots
   - [ ] Add ~~support for categorical dv~~ (and corresponding
     diagnostics) (catdv added, no support yet)
 - [x] Add new class for set of xpdb objects
@@ -46,9 +46,9 @@ part.
   any summary property)
 - [ ] When joining firstonly, rows are getting duplicated
 - [ ] Option to set 0s to NA for select columns
-- [ ] Add support to grab xpose_plot objects
-- [ ] Built-in support for contcov and catcov plots
-- [ ] Built-in implementation of GGally::ggpairs
+- [x] Add support to grab xpose_plot objects
+- [x] Built-in support for contcov and catcov plots
+- [x] Built-in implementation of GGally::ggpairs
 - [ ] Correct filter() (filter on xpdb_data breaks some columns, eg ETA)
   - [ ] Happens if ETAs are only in firstonly join, which adds them as
     NA in the main data object

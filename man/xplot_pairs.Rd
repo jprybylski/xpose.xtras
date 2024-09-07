@@ -44,7 +44,7 @@ xplot_pairs(
 
 \item{catcont_opts}{List of options to pass to \code{ggally_statistic}. See Details}
 
-\item{catcat_opts}{A list wit \code{use_rho} \code{TRUE} or \code{FALSE}. If \code{TRUE} (default),
+\item{catcat_opts}{A list with \code{use_rho} \code{TRUE} or \code{FALSE}. If \code{TRUE} (default),
 then the Spearman rho is displayed, else the ggpairs default count is used.}
 
 \item{title}{Plot title}
@@ -57,7 +57,7 @@ then the Spearman rho is displayed, else the ggpairs default count is used.}
 
 \item{plot_name}{Metadata name of plot}
 
-\item{gg_theme}{As in \code{xpose}}
+\item{gg_theme}{As in \code{xpose}. This does not work reliably when changed from the default.}
 
 \item{xp_theme}{As in \code{xpose}}
 
@@ -69,7 +69,7 @@ then the Spearman rho is displayed, else the ggpairs default count is used.}
 
 \item{switch}{Passed to \code{ggpairs}}
 
-\item{...}{}
+\item{...}{Ignored}
 }
 \value{
 specified pair plot

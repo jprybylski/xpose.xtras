@@ -7,20 +7,20 @@
 #' @param cat_opts List of options to pass to `xplot_boxplot`. See Details
 #' @param contcont_opts List of options to pass to `ggally_cors`. See Details
 #' @param catcont_opts List of options to pass to `ggally_statistic`. See Details
-#' @param catcat_opts A list wit `use_rho` `TRUE` or `FALSE`. If `TRUE` (default),
+#' @param catcat_opts A list with `use_rho` `TRUE` or `FALSE`. If `TRUE` (default),
 #' then the Spearman rho is displayed, else the ggpairs default count is used.
 #' @param title Plot title
 #' @param subtitle Plot subtitle
 #' @param caption Plot caption
 #' @param tag Plot tag
 #' @param plot_name Metadata name of plot
-#' @param gg_theme As in `xpose`
+#' @param gg_theme As in `xpose`. This does not work reliably when changed from the default.
 #' @param xp_theme As in `xpose`
 #' @param opt Processing options for fetched data
 #' @param quiet Silence extra debugging output
 #' @param progress Show a progress bar as the plot is generated?
 #' @param switch Passed to `ggpairs`
-#' @param ...
+#' @param ... Ignored
 #'
 #' @description
 #' Following the `xpose` design pattern to derive <[`ggpairs`][GGally::ggpairs]> plots.
@@ -204,7 +204,7 @@ xplot_pairs <- function(
     }
     xp_cor <- contcont_opts$other_fun
   } else {
-    contcont_opts <- within(contcont_opts, rm(other_fun))
+    if ("other_fun" %in% names(contcont_opts)) contcont_opts <- within(contcont_opts, rm(other_fun))
     xp_cor <- GGally::wrapp("cor", params = contcont_opts)
   }
   if (!is.null(catcont_opts$other_fun)) {
@@ -213,7 +213,7 @@ xplot_pairs <- function(
     }
     xp_aov <- catcont_opts$other_fun
   } else {
-    catcont_opts <- within(catcont_opts, rm(other_fun))
+    if ("other_fun" %in% names(catcont_opts)) catcont_opts <- within(catcont_opts, rm(other_fun))
     rho_fun <-  function(x, y) {
       corObj <- stats::cor.test(as.numeric(y),as.numeric(x), method="spearman", exact = FALSE)
       cor_est <- as.numeric(corObj$estimate)

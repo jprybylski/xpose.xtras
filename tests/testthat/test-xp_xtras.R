@@ -21,6 +21,11 @@ test_that("xp_xtra class can be set", {
     as_xpdb_x(as_xpdb_x(xpdb_ex_pk))
   )
 
+  expect_identical(
+    as_xpdb_x(xpdb_ex_pk),
+    as_xp_xtras(xpdb_ex_pk)
+  )
+
   expect_message(check_xpdb_x(xpose::xpdb_ex_pk),
                  regexp = "xpose_data")
 
@@ -295,4 +300,61 @@ test_that("list_vars extension behaves as expected", {
     list_vars(xpdb_x, 1),
     message="problem no\\. 2 "
   ))
+})
+
+test_that("xp_var methods work", {
+
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  expect_gte(length(methods(xp_var)),2)
+
+  expect_failure(expect_identical(
+    xp_var(xpdb_ex_pk, 1, col="AGE"),
+    xp_var(as_xp_xtras(xpdb_ex_pk), 1, col="AGE")
+  ))
+
+  expect_identical(
+    xp_var(xpdb_x, col="AGE"),
+    # convert xp_xtra to xpose_data
+    structure(xpdb_x, class=class(xpdb_ex_pk)) %>% xp_var(col="AGE")
+  )
+
+  expect_error(
+    xp_var(xpdb_ex_pk, col="AGE"),
+    "missing, with no default"
+  )
+  expect_no_error(
+    xp_var(xpdb_x, col="AGE")
+  )
+  expect_error(
+    xp_var(xpdb_x, 3, col="AGE"),
+    "not found"
+  )
+  expect_error(
+    xp_var(xpdb_x, col="AGE", type="contcov"),
+    "Cannot declare both"
+  )
+
+  select_cols <- sample(get_index(xpdb_x)$col, 3)
+  expect_setequal(
+    xp_var(xpdb_x, col=select_cols)$col,
+    select_cols
+  )
+
+  select_types <- sample(get_index(xpdb_x)$type, 3)
+  expect_setequal(
+    xp_var(xpdb_x, type=select_types)$type,
+    select_types
+  )
+
+  expect_error(
+    xp_var(xpdb_x, col = c("AGE","hhh")),
+    "hhh.*not available"
+  )
+  expect_error(
+    xp_var(xpdb_x, type = c("contcov","hhh")),
+    "hhh.*not available"
+  )
+
+
 })

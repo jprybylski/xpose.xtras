@@ -596,6 +596,9 @@ xp_var.xp_xtras <- function (xpdb, .problem, col = NULL, type = NULL, silent = F
   else {
     index <- index[index$col %in% col, ]
   }
+  if (!is.null(type) && !is.null(col)) {
+    rlang::abort("Cannot declare both `type` and `col`")
+  }
   missing_cols <- if (is.null(col)) c() else col[!col%in%index$col]
   missing_types <- if (is.null(type)) c() else type[!type%in%index$type]
   if (nrow(index) == 0 || length(missing_cols)>0 || length(missing_types)>0) {

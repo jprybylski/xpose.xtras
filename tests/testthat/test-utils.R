@@ -77,6 +77,12 @@ test_that("set_* functions works", {
     rand_label
   ))
 
+  # set_option
+  current_quiet <- xpdb_ex_pk$options$quiet
+  expect_equal(
+    set_option(xpdb_ex_pk, quiet = !current_quiet)$options$quiet,
+    !current_quiet
+  )
 })
 
 test_that("get-set index works", {
