@@ -14,3 +14,6 @@
 #' @importFrom utils capture.output
 ## usethis namespace: end
 NULL
+
+
+default_spinner <- "dots"

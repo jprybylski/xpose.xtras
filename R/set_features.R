@@ -77,12 +77,6 @@ unset_base_model <- function(xpdb_s) {
     return()
 }
 
-lineage_list <- function(xpdb_s) {
-  check_xpose_set(xpdb_s, .warn = FALSE)
-
-
-}
-
 #' Display deltaOFV values across `xpose_set`
 #'
 #' @description
@@ -91,6 +85,8 @@ lineage_list <- function(xpdb_s) {
 #'
 #'
 #' @param xpdb_s <`xpose_set`> object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Passed to <[`xset_lineage`]>.
+#' `.spinner=FALSE` can also be set here.
 #'
 #' @return <`numeric`> vector of deltaOFV values
 #' @export
@@ -99,10 +95,106 @@ lineage_list <- function(xpdb_s) {
 #' @examples
 #'
 #' c()
-diff.xpose_set <- function(xpdb_s) {
+diff.xpose_set <- function(xpdb_s, ...) {
+  lineage <- xset_lineage(xpdb_s, ...)
 
+  exposed_ofv <- expose_property(xpdb_s, ofv)
+
+  dofv_fun <- function(line) {
+    exposed_ofv %>%
+      select(!!line) %>%
+      pull(..ofv) %>%
+      diff()
+  }
+
+  if (is.list(lineage)) return(purrr::map(lineage, dofv_fun))
+
+  dofv_fun(lineage)
 }
 
+#' Determine lineage within a set
+#'
+#' @param xpdb_s <`xpose_set`> object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> either labels for
+#' models in the set from which to create lineage lists. If empty,
+#' lineage from base model will be output; if no base, first listed
+#' model will be used. Always used the most senior model in this list.
+#' @param .spinner Set to `FALSE` to not show a loading spinner in interactive mode.
+#'
+#' @return <`character`> vector of `c('base', 'base child',
+#' 'base grandchild', ...)` or list thereof, depending on dots arguments.
+#' @export
+#'
+#' @examples
+#'
+#' c()
+#'
+xset_lineage <- function(xpdb_s, ..., .spinner=NULL) { # TODO: test with more complex hierarchy
+  check_xpose_set(xpdb_s, .warn = FALSE)
+
+  # Check for base model
+  basemod <- get_base_model(xpdb_s)
+
+  spinner_test <- rlang::is_interactive() && !isFALSE(.spinner)
+  if (spinner_test && is.null(.spinner)) sp <- cli::make_spinner(default_spinner)
+  if (spinner_test && !is.null(.spinner)) sp <- .spinner
+  if (isFALSE(.spinner)) sp <- FALSE
+  if (spinner_test) sp$spin()
+
+  # Process dots
+  if (rlang::dots_n(...)>=1) {
+    out_list <- select_subset(xpdb_s, ...) %>%
+      purrr::map(~{
+        if (rlang::is_interactive()) sp$spin()
+        set_base_model(xpdb_s, all_of(.x)) %>%
+          xset_lineage(.spinner = FALSE)
+      })
+    if (spinner_test) sp$finish()
+    if (length(out_list)==1) return(out_list[[1]])
+    return(out_list)
+  } else if (is.null(basemod)) {
+    out <- set_base_model(xpdb_s, all_of(1)) %>%
+      xset_lineage(.spinner = sp)
+    return(out)
+  }
+
+  # The default, where base mod is established
+  find_child <- child_finder(xpdb_s)
+  longest_line <- function(parent, found_parents=NULL) {
+    if (spinner_test) sp$spin()
+    ch <- find_child(parent)
+    if (any(ch %in% found_parents)) ch <- ch[!ch %in% found_parents]
+    if (length(ch)==0) return(parent)
+    lines <- purrr::map(ch, longest_line, found_parents = c(found_parents, parent))
+    line_lens <- purrr::map_int(lines, length)
+    longests <- lines[line_lens==max(line_lens)]
+    # pick first if tie
+    c(parent, longests[[1]])
+  }
+
+  out <- longest_line(basemod)
+
+  if (spinner_test) sp$finish()
+
+  return(out)
+}
+
+diagram_lineage <- function() {}
+
+child_finder <- function(xpdb_s) {
+  parent_list <- reshape_set(xpdb_s)$parent
+  function(parent) {
+    # Return the children or null
+    children <- purrr::imap_chr(parent_list, ~{
+      ifelse(parent %in% .x, .y, NA_character_)
+    }) %>%
+      na.omit() %>%
+      as.character()
+    if (length(children)==0) return(NULL)
+    if (length(children)==1) return(children)
+    return(children)
+  }
+}
 
 
 ########

@@ -478,7 +478,7 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
   order <- c('id', 'dv', 'catdv', 'idv', 'dvid', 'occ', 'amt', 'evid', 'mdv', 'pred', 'ipred',
              'param', 'eta', 'res', 'catcov', 'contcov', 'a', 'na')
   cli::cli({
-    if (rlang::is_interactive()) sp <- cli::make_spinner("dots")
+    if (rlang::is_interactive()) sp <- cli::make_spinner(default_spinner)
     if (rlang::is_interactive()) sp$spin()
     x %>%
       dplyr::mutate(grouping = as.integer(.$problem)) %>%

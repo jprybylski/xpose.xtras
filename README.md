@@ -23,11 +23,12 @@ part.
     diagnostics) (catdv added, no support yet)
 - [x] Add new class for set of xpdb objects
   - [ ] Read from directory
-  - [ ] diff() method
+  - [x] diff() method
   - [x] Ability to add child-parent relationships
   - [x] Ability to **drop** child-parent relationships
   - [ ] tabulate dofv (and related)
-  - [ ] apply transformations to one or multiple xpdbs in a set
+  - [x] apply transformations to one or multiple xpdbs in a set (done
+    with `focus`)
   - [ ] model comparison functions from xpose4
   - [ ] model averaging VPC
 - [x] set_var_type changes
