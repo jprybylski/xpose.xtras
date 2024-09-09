@@ -179,7 +179,7 @@ xset_lineage <- function(xpdb_s, ..., .spinner=NULL) { # TODO: test with more co
   return(out)
 }
 
-diagram_lineage <- function() {}
+diagram_lineage <- function() {} # diagrammr
 
 child_finder <- function(xpdb_s) {
   parent_list <- reshape_set(xpdb_s)$parent
@@ -208,7 +208,13 @@ child_finder <- function(xpdb_s) {
 ########
 
 # This is specific enough to not need a generic
-sharkfin_plot <- function() {}
+shark_plot <- function(xpdb_s, ...) {} # ... is either two models in set (parent, child), or one model that has a parent (or if a base model is declared), or a formula of child~parent
+dofv_vs_id <- function() {shark_plot()} # < alias to match xpose4
+
+# boxplot (etc) of all iOFVs in all models for a set
+# ... is either models in set, child(ren) of parent formula, or empty (all models).
+# if .lineage=TRUE, then ... is interpreted with xset_lineage
+iofv_vs_mod <- function(xpdb_s, ..., .lineage = FALSE) {}
 
 # There may need to be a waterfall generic: xset_waterfall
 prm_waterfall <- function() {}

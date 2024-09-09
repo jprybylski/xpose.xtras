@@ -25,7 +25,7 @@ as_xpdb_x <- function(x) {
     # If it does, set up to return x
     new_x <- x
   } else{
-    # If it doesn't, fill info with empty versions of true\\
+    # If it doesn't, fill info with empty versions of true
 
     # Space for levels in index
     new_x$data <- new_x$data %>%
@@ -423,7 +423,69 @@ lvl_inord <- function(x, .start_index = 1) {
   as_leveler(x, .start_index=.start_index)
 }
 
-# Slight updates to list_vars
+
+#### Backfill functions
+#' Add individual objective function to data
+#'
+#' @param xpdb <`xpose_data`> or <`xp_xtras`> object
+#' @param .label The name of the new column. `iOFV` is the default,
+#' but as long as <[`set_var_type`]> is called there is no problem.
+#'
+#' @details
+#' This function will only work for objects with software listed as
+#' `nonmem`, which has a `phi` file and with an `OBJ` column in that
+#' file.
+#'
+#'
+#' @return <`xp_xtras`> object with new column in the data and a
+#' column with `iofv` var type.
+#' @export
+#'
+#' @examples
+#'
+#' xpdb_x %>%
+#'   backfill_iofv() %>%
+#'   list_vars()
+#'
+backfill_iofv <- function(xpdb, .problem=NULL, .label = "iOFV") {
+  if (xpose::software(xpdb) != 'nonmem')
+    cli::cli_abort("This backfill function only works for nonmem-based objects, not those from {.strong {cli::col_yellow(xpose::software(xpdb))}}")
+
+  xpose::check_xpdb(xpdb, "data")
+  xpose::check_xpdb(xpdb, "files")
+
+  if (!"phi" %in% xpdb$files$extension) rlang::abort("phi table not found in files.")
+
+  # Apply backfill to all problems if missing
+  if (is.null(.problem)) {
+    .problem <- xpose::all_data_problem(xpdb_x)
+  }
+
+  # Get iOFV from phi
+  phi_df <- xpdb$files %>%
+    dplyr::filter(extension=="phi") %>%
+    dplyr::pull(data) %>%
+    .[[1]]
+  match_obj <- function(id) {
+    phi_df$OBJ[match(id,phi_df$ID)]
+  }
+
+  new_xpdb <- as_xp_xtras(xpdb)
+  for (prob in .problem) {
+    # ID column
+    id_col <- xp_var(new_xpdb, .problem = prob, type = "id")$col[1] # Should only be 1 id but just in case
+
+
+    new_xpdb <- new_xpdb %>%
+      xpose::mutate({{.label}} := match_obj(!!id_col), .problem = prob) %>%
+      set_var_types(.problem = prob, iofv = {{.label}})
+  }
+  new_xpdb
+}
+
+
+
+#### Slight updates to list_vars
 
 #' Updates to `list_vars`
 #'
@@ -476,7 +538,7 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
   }
 
   order <- c('id', 'dv', 'catdv', 'idv', 'dvid', 'occ', 'amt', 'evid', 'mdv', 'pred', 'ipred',
-             'param', 'eta', 'res', 'catcov', 'contcov', 'a', 'na')
+             'param', 'eta', 'iofv', 'res', 'catcov', 'contcov', 'a', 'na')
   cli::cli({
     if (rlang::is_interactive()) sp <- cli::make_spinner(default_spinner)
     if (rlang::is_interactive()) sp$spin()
@@ -534,6 +596,7 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
                                      .$type == 'contcov' ~ 'Continuous covariates (contcov)',
                                      .$type == 'param' ~ 'Model parameter (param)',
                                      .$type == 'eta' ~ 'Eta (eta)',
+                                     .$type == 'iofv' ~ 'Individual OFV (iofv)',
                                      .$type == 'a' ~ 'Compartment amounts (a)',
                                      .$type == 'dvid' ~ 'DV identifier (dvid)',
                                      .$type == 'mdv' ~ 'Missing dependent variable (mdv)',
