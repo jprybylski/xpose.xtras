@@ -21,6 +21,7 @@ part.
     - [x] Add related plots
   - [ ] Add ~~support for categorical dv~~ (and corresponding
     diagnostics) (catdv added, no support yet)
+  - [ ] Binned time var type
 - [x] Add new class for set of xpdb objects
   - [ ] Read from directory
   - [x] diff() method
@@ -71,3 +72,7 @@ part.
 - [ ] vignette
 - [ ] examples
 - [ ] pkgdown
+- [ ] devtools::spell_check
+- [ ] Custom examples (eg, phenobarbital model building, xpose_xtra for
+  each and together xpose_set)
+- [ ] nlmixr2.xpose tests

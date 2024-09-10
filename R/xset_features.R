@@ -115,8 +115,9 @@ diff.xpose_set <- function(xpdb_s, ...) {
 #' Determine lineage within a set
 #'
 #' @param xpdb_s <`xpose_set`> object
-#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> either labels for
-#' models in the set from which to create lineage lists. If empty,
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> labels for
+#' models in the set from which to create lineages (will result in a list
+#' if multiple labels are used). If empty,
 #' lineage from base model will be output; if no base, first listed
 #' model will be used. Always used the most senior model in this list.
 #' @param .spinner Set to `FALSE` to not show a loading spinner in interactive mode.
@@ -125,9 +126,23 @@ diff.xpose_set <- function(xpdb_s, ...) {
 #' 'base grandchild', ...)` or list thereof, depending on dots arguments.
 #' @export
 #'
+#' @details
+#' This function uses a not-especially-optimized tree-searching algorithm
+#' to determine the longest lineage starting from whatever is treated as
+#' the base model. It is based loosely on <[`pluck_depth`][purrr::pluck_depth]>,
+#' but the values at each depth are maintained.
+#' As such, for larger sets this function and, more importantly,
+#' functions that use it may take some time.
+#'
+#'
 #' @examples
 #'
-#' c()
+#' xset_lineage(xpdb_set)
+#'
+#' set_base_model(xpdb_set, fix1) %>%
+#'   xset_lineage()
+#'
+#' xset_lineage(xpdb_set, fix1)
 #'
 xset_lineage <- function(xpdb_s, ..., .spinner=NULL) { # TODO: test with more complex hierarchy
   check_xpose_set(xpdb_s, .warn = FALSE)
@@ -179,8 +194,6 @@ xset_lineage <- function(xpdb_s, ..., .spinner=NULL) { # TODO: test with more co
   return(out)
 }
 
-diagram_lineage <- function() {} # diagrammr
-
 child_finder <- function(xpdb_s) {
   parent_list <- reshape_set(xpdb_s)$parent
   function(parent) {
@@ -196,6 +209,8 @@ child_finder <- function(xpdb_s) {
   }
 }
 
+
+diagram_lineage <- function() {} # diagrammr
 
 ########
 # Tables

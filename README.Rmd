@@ -27,6 +27,7 @@ Partially completed items have ~~strikethough~~ to "hide" the finished part.
   - [x] Add support for defining catcov, dvid, occ and dv levels
     - [x] Add related plots
   - [ ] Add ~~support for categorical dv~~ (and corresponding diagnostics) (catdv added, no support yet)
+  - [ ] Binned time var type
 - [x] Add new class for set of xpdb objects
   - [ ] Read from directory
   - [x] diff() method
@@ -67,4 +68,7 @@ Partially completed items have ~~strikethough~~ to "hide" the finished part.
 - [ ] vignette
 - [ ] examples
 - [ ] pkgdown
+- [ ] devtools::spell_check
+- [ ] Custom examples (eg, phenobarbital model building, xpose_xtra for each and together xpose_set)
+- [ ] nlmixr2.xpose tests
   

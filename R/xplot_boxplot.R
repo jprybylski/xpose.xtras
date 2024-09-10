@@ -1,11 +1,13 @@
 
 #' Default xpose boxplot function
 #'
-#' @param xpdb <`xp_xtras> or  <`xpose_data`> object
+#' @param xpdb <`xp_xtras`> or <`xpose_data`> object
 #' @param mapping `ggplot2` style mapping
+#' @param type See Details.
 #' @param xscale Defaults to `discrete`.
 #' @param yscale Defaults to `continuous`, used as check if `orientation` changed.
 #' @param orientation Defaults to `x`
+#' @param group Grouping for connecting lines through jitter
 #' @param title Plot title
 #' @param subtitle Plot subtitle
 #' @param caption Plot caption
@@ -15,6 +17,7 @@
 #' @param xp_theme As in `xpose`
 #' @param opt Processing options for fetched data
 #' @param quiet Silence extra debugging output
+#' @param jitter_seed A numeric optional seed to be used in jitters
 #' @param ...
 #'
 #' @description Manually generate boxplots from an xpdb object.
@@ -28,6 +31,8 @@
 #'   \item `o` outliers (show outliers)
 #'   \item `l` line through 0 (or as indicated in `hline_yintercept` or
 #'   `yline_xintercept`)
+#'   \item `j` jitter points (from `geom_jitter`)
+#'   \item `c` connecting lines for jitter points  (from `geom_path`)
 #' }
 #'
 #'
@@ -38,6 +43,7 @@ xplot_boxplot <- function(xpdb,
                           xscale    = 'discrete',
                           yscale    = 'continuous',
                           orientation = "x",
+                          group     = 'ID',
                           title     = NULL,
                           subtitle  = NULL,
                           caption   = NULL,
@@ -47,6 +53,7 @@ xplot_boxplot <- function(xpdb,
                           xp_theme,
                           opt,
                           quiet,
+                          jitter_seed,
                           ...) {
   # Check input
   xpose::check_xpdb(xpdb, check = FALSE)
@@ -63,7 +70,10 @@ xplot_boxplot <- function(xpdb,
   }
 
   # Check type
-  xpose::check_plot_type(type, allowed = c('b', "p","v","o","l"))
+  allow_types <-  c('b', "p","v","o","l","j","c")
+  xpose::check_plot_type(type, allowed = allow_types)
+  check_type <- purrr::map(allow_types, ~stringr::str_detect(type, stringr::fixed(.x, ignore_case = TRUE))) %>%
+    setNames(allow_types)
 
   # Check orientation
   orientation <- rlang::arg_match(arg = orientation, values = c("x","y"))
@@ -96,7 +106,7 @@ xplot_boxplot <- function(xpdb,
   xp <- ggplot2::ggplot(data = data, xpose::aes_filter(mapping, keep_only = c('x', 'y'))) + gg_theme
 
   # Add line
-  if (stringr::str_detect(type, stringr::fixed('l', ignore_case = TRUE))) {
+  if (check_type$l) {
     geom_hvline <- ifelse(orientation=="x", "geom_hline", "geom_vline")
     hvline_name <- ifelse(orientation=="x", "hline", "vline")
     xp <- xp + xpose::xp_geoms(mapping  = NULL,
@@ -107,17 +117,17 @@ xplot_boxplot <- function(xpdb,
   }
 
   # Add boxplot
-  if (stringr::str_detect(type, stringr::fixed('b', ignore_case = TRUE))) {
+  if (check_type$b) {
     xp <- xp + xpose::xp_geoms(mapping  = mapping,
                                xp_theme = xpdb$xp_theme,
                                name     = 'boxplot', # TODO: add defaults to xp_xtas xp_theme
                                ggfun    = 'geom_boxplot',
-                               boxplot_outliers = stringr::str_detect(type, stringr::fixed('o', ignore_case = TRUE)),
+                               boxplot_outliers = check_type$o && !check_type$j,
                                ...)
   }
 
   # Add violin
-  if (stringr::str_detect(type, stringr::fixed('v', ignore_case = TRUE))) {
+  if (check_type$v) {
     xp <- xp + xpose::xp_geoms(mapping  = mapping,
                                xp_theme = xpdb$xp_theme,
                                name     = 'violin',
@@ -126,7 +136,7 @@ xplot_boxplot <- function(xpdb,
   }
 
   # Add dotplot
-  if (stringr::str_detect(type, stringr::fixed('p', ignore_case = TRUE))) {
+  if (check_type$p) {
     xp <- xp + xpose::xp_geoms(mapping  = mapping,
                                xp_theme = xpdb$xp_theme,
                                name     = 'dotplot',
@@ -134,6 +144,29 @@ xplot_boxplot <- function(xpdb,
                                dotplot_binaxis =ifelse(orientation=="x", "y","x"),
                                ...)
   }
+
+  # Add jitter
+  if (missing(jitter_seed) || !is.numeric(jitter_seed)) jitter_seed <- sample(1:1000, 1)
+  if (check_type$j) {
+    xp <- xp + xpose::xp_geoms(mapping  = mapping,
+                               xp_theme = xpdb$xp_theme,
+                               name     = 'jitter',
+                               ggfun    = 'geom_point',
+                               jitter_position = ggplot2::position_jitter(seed = jitter_seed),
+                               ...)
+  }
+
+  # Add connecting lines for jitter
+  if (check_type$c) {
+    this_pos <- if (check_type$j) ggplot2::position_jitter(seed = jitter_seed) else ggplot2::position_identity()
+    xp <- xp + xpose::xp_geoms(mapping  = c(mapping, aes(line_group = .data[[group]])),
+                               xp_theme = xpdb$xp_theme,
+                               name     = 'line',
+                               ggfun    = 'geom_path',
+                               line_position = this_pos,
+                               ...)
+  }
+  rm(jitter_seed) # <- don't want an element of randomness in plot_env
 
   # Define scales
   xp <- xp +

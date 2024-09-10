@@ -538,7 +538,7 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
   }
 
   order <- c('id', 'dv', 'catdv', 'idv', 'dvid', 'occ', 'amt', 'evid', 'mdv', 'pred', 'ipred',
-             'param', 'eta', 'iofv', 'res', 'catcov', 'contcov', 'a', 'na')
+             'param', 'eta', 'iofv', 'res', 'catcov', 'contcov', 'a', 'bin', 'na')
   cli::cli({
     if (rlang::is_interactive()) sp <- cli::make_spinner(default_spinner)
     if (rlang::is_interactive()) sp$spin()
@@ -581,26 +581,28 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
               }
               stringr::str_c(cols_c, collapse = ', ')
             }),
-            descr = dplyr::case_when(.$type == 'id' ~ 'Subject identifier (id)',
-                                     .$type == 'occ' ~ 'Occasion flag (occ)',
-                                     .$type == 'na' ~ 'Not attributed (na)',
-                                     .$type == 'amt' ~ 'Dose amount (amt)',
-                                     .$type == 'idv' ~ 'Independent variable (idv)',
-                                     .$type == 'ipred' ~ 'Model individual predictions (ipred)',
-                                     .$type == 'pred' ~ 'Model typical predictions (pred)',
-                                     .$type == 'res' ~ 'Residuals (res)',
-                                     .$type == 'evid' ~ 'Event identifier (evid)',
-                                     .$type == 'dv' ~ 'Dependent variable (dv)',
-                                     .$type == 'catdv' ~ 'Categorical endpoint (catdv)',
-                                     .$type == 'catcov' ~ 'Categorical covariates (catcov)',
-                                     .$type == 'contcov' ~ 'Continuous covariates (contcov)',
-                                     .$type == 'param' ~ 'Model parameter (param)',
-                                     .$type == 'eta' ~ 'Eta (eta)',
-                                     .$type == 'iofv' ~ 'Individual OFV (iofv)',
-                                     .$type == 'a' ~ 'Compartment amounts (a)',
-                                     .$type == 'dvid' ~ 'DV identifier (dvid)',
-                                     .$type == 'mdv' ~ 'Missing dependent variable (mdv)',
-                                     TRUE ~ "Undefined type")
+            descr = dplyr::case_when(type == 'id' ~ 'Subject identifier',
+                                     type == 'occ' ~ 'Occasion flag',
+                                     type == 'na' ~ 'Not attributed',
+                                     type == 'amt' ~ 'Dose amount',
+                                     type == 'idv' ~ 'Independent variable',
+                                     type == 'ipred' ~ 'Model individual predictions',
+                                     type == 'pred' ~ 'Model typical predictions',
+                                     type == 'res' ~ 'Residuals',
+                                     type == 'evid' ~ 'Event identifier',
+                                     type == 'dv' ~ 'Dependent variable',
+                                     type == 'catdv' ~ 'Categorical endpoint',
+                                     type == 'catcov' ~ 'Categorical covariates',
+                                     type == 'contcov' ~ 'Continuous covariates',
+                                     type == 'param' ~ 'Model parameter',
+                                     type == 'eta' ~ 'Eta',
+                                     type == 'iofv' ~ 'Individual OFV',
+                                     type == 'bin' ~ 'Binned IDV',
+                                     type == 'a' ~ 'Compartment amounts',
+                                     type == 'dvid' ~ 'DV identifier',
+                                     type == 'mdv' ~ 'Missing dependent variable',
+                                     TRUE ~ "Undefined type") %>%
+              sprintf("%s (%s)", ., type)
           ) %>%
           dplyr::mutate(descr = stringr::str_pad(.$descr, 37, 'right')
           ) %>%

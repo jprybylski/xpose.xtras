@@ -11,6 +11,7 @@ xplot_boxplot(
   xscale = "discrete",
   yscale = "continuous",
   orientation = "x",
+  group = "ID",
   title = NULL,
   subtitle = NULL,
   caption = NULL,
@@ -20,19 +21,24 @@ xplot_boxplot(
   xp_theme,
   opt,
   quiet,
+  jitter_seed,
   ...
 )
 }
 \arguments{
-\item{xpdb}{<\verb{xp_xtras> or  <}xpose_data`> object}
+\item{xpdb}{<\code{xp_xtras}> or <\code{xpose_data}> object}
 
 \item{mapping}{\code{ggplot2} style mapping}
+
+\item{type}{See Details.}
 
 \item{xscale}{Defaults to \code{discrete}.}
 
 \item{yscale}{Defaults to \code{continuous}, used as check if \code{orientation} changed.}
 
 \item{orientation}{Defaults to \code{x}}
+
+\item{group}{Grouping for connecting lines through jitter}
 
 \item{title}{Plot title}
 
@@ -52,6 +58,8 @@ xplot_boxplot(
 
 \item{quiet}{Silence extra debugging output}
 
+\item{jitter_seed}{A numeric optional seed to be used in jitters}
+
 \item{...}{}
 }
 \description{
@@ -66,5 +74,7 @@ For type-based customization of plots:
 \item \code{o} outliers (show outliers)
 \item \code{l} line through 0 (or as indicated in \code{hline_yintercept} or
 \code{yline_xintercept})
+\item \code{j} jitter points (from \code{geom_jitter})
+\item \code{c} connecting lines for jitter points  (from \code{geom_path})
 }
 }

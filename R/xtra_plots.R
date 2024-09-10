@@ -45,6 +45,9 @@ xp_xtra_theme <- function(base_on = NULL) {
     boxplot_linetype = base_on$density_linetype,
     boxplot_outlier.colour = base_on$point_color,
     boxplot_outlier.shape = base_on$point_shape,
+    boxplot_outlier.alpha = base_on$point_alpha,
+    boxplot_outlier.size = base_on$point_size,
+    boxplot_outlier.stroke = base_on$point_stroke,
     violin_fill = base_on$density_fill,
     violin_linewidth = base_on$density_linewidth,
     violin_linetype =  base_on$density_linetype,
@@ -75,7 +78,12 @@ xp_xtra_theme <- function(base_on = NULL) {
     ggafacetbar_color = base_on$histogram_color,
     ggafacetbar_alpha = base_on$histogram_alpha,
     ggafacetbar_linewidth = base_on$histogram_linewidth,
-    pairs_labeller = "label_value"
+    pairs_labeller = "label_value",
+    jitter_colour = base_on$point_color,
+    jitter_shape = base_on$point_shape,
+    jitter_alpha = base_on$point_alpha,
+    jitter_size = base_on$point_size,
+    jitter_stroke = base_on$point_stroke,
   )
 
   # May rarely have these xp_theme elements already defined for an xpose

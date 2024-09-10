@@ -9,8 +9,9 @@ xset_lineage(xpdb_s, ..., .spinner = NULL)
 \arguments{
 \item{xpdb_s}{<\code{xpose_set}> object}
 
-\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> either labels for
-models in the set from which to create lineage lists. If empty,
+\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> labels for
+models in the set from which to create lineages (will result in a list
+if multiple labels are used). If empty,
 lineage from base model will be output; if no base, first listed
 model will be used. Always used the most senior model in this list.}
 
@@ -22,8 +23,21 @@ model will be used. Always used the most senior model in this list.}
 \description{
 Determine lineage within a set
 }
+\details{
+This function uses a not-especially-optimized tree-searching algorithm
+to determine the longest lineage starting from whatever is treated as
+the base model. It is based loosely on <\code{\link[purrr:pluck_depth]{pluck_depth}}>,
+but the values at each depth are maintained.
+As such, for larger sets this function and, more importantly,
+functions that use it may take some time.
+}
 \examples{
 
-c()
+xset_lineage(xpdb_set)
+
+set_base_model(xpdb_set, fix1) \%>\%
+  xset_lineage()
+
+xset_lineage(xpdb_set, fix1)
 
 }
