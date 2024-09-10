@@ -41,6 +41,24 @@ test_that("set_* functions works", {
     get_prop(new_desc, "descr"), rand_desc
   ))
 
+  # expect check for string
+  expect_error(
+    set_prop(xpdb_x, descr = list(one="item")),
+    "to character/string values"
+  )
+  expect_error(
+    set_prop(xpdb_x, descr = Sys.Date()),
+    "to character/string values"
+  )
+  # expect for length 1 numbers and factors to be gracefully converted
+  expect_no_error(
+    set_prop(xpdb_x, nsig=4)
+  )
+  expect_no_error(
+    set_prop(xpdb_x, descr = factor("for some reason this is a factor"))
+  )
+
+
 
   expect_failure(expect_equal(
     get_prop(xpdb_ex_pk, "label", .problem = 1),
@@ -145,4 +163,55 @@ test_that("convenience functions return expected", {
   expect_true(
     is_formula_list(list(a~b))
   )
+})
+
+test_that("reportable digits works", {
+  # cross-compatible
+  expect_identical(
+    reportable_digits(xpose::xpdb_ex_pk),
+    reportable_digits(as_xpdb_x(xpose::xpdb_ex_pk))
+  )
+
+  # gets new nsig
+  new_digs <- sample(4:9,1)
+  expect_equal(
+    set_prop(xpdb_x, nsig=new_digs) %>% reportable_digits(),
+    new_digs
+  )
+
+
+  # doesn't return error if nsig not in summary
+  no_sig <- xpdb_x
+  no_sig$summary <- no_sig$summary %>%
+    dplyr::filter(label!="nsig")
+  no_sig <- as_xpdb_x(no_sig)
+  expect_no_error(
+    reportable_digits(no_sig)
+  )
+  new_digs <- sample(4:9,1)
+  expect_equal(
+    reportable_digits(no_sig, .default = new_digs),
+    new_digs
+  )
+
+  # expect error if not even talking about xpdb
+  expect_error(
+    reportable_digits(Sys.Date()),
+    "Bad input"
+  )
+
+  # doesn't return non-numeric
+  new_digs <- sample(4:9,1)
+  expect_equal(
+    set_prop(xpdb_x, nsig="not a number") %>% reportable_digits(.default = new_digs),
+    new_digs
+  )
+
+  # doesn't return other NA
+  new_digs <- sample(4:9,1)
+  expect_equal(
+    set_prop(xpdb_x, nsig=NA_character_) %>% reportable_digits(.default = new_digs),
+    new_digs
+  )
+
 })

@@ -98,6 +98,16 @@ set_prop <- function(xpdb, ..., .problem = NULL) {
     cli::cli_abort("Properties can only by set to one value. (applies to {names(props_to_set)[!check_sum]})")
   }
 
+  # Convert any numeric or factors to characters for convenience
+  props_to_set <- purrr::map(props_to_set, ~{
+    if (is.numeric(.x) || inherits(.x, "factor")) paste(.x) else .x
+  })
+
+  check_chr <- purrr::map_lgl(props_to_set, ~ inherits(.x, "character"))
+  if (any(!check_chr)) {
+    cli::cli_abort("Properties can only by set to character/string values. (applies to {names(props_to_set)[!check_chr]})")
+  }
+
   # Row update tibble
   ru_tbl <- tibble::tibble(
     label = names(props_to_set),
@@ -199,13 +209,18 @@ is_formula_list <- function(x) {
 #' reportable_digits(xpdb_x)
 #'
 reportable_digits <- function(xpdb, .default = 3) {
-  rlang::try_fetch(
+  xpose::check_xpdb(xpdb, "summary")
+  digs <- rlang::try_fetch(
     floor(
       as.numeric(
-        get_prop(xpdb_x, "nsig")
+        get_prop(xpdb, "nsig")
       )
     ),
-    error = function(x) 3)
+    error = function(x) .default,
+    warning = function(x) .default
+    )
+  if (is.na(digs)) digs <- .default
+  digs
 }
 
 #' Set an `xpose` option
