@@ -6,9 +6,6 @@ test_that("xplot_boxplot", {
   # test both xpdb_x xpdb_ex_pk produce the same plot (d/t filling theme)
   wo_xpx <- xpdb_ex_pk %>% xplot_boxplot(aes(MED1,ETA1), quiet = TRUE)
   w_xpx <- xpdb_ex_pk %>% as_xpdb_x() %>% xplot_boxplot(aes(MED1,ETA1), quiet = TRUE)
-  expect_doppelganger("from xpose_data", wo_xpx) # expect same as snapshot
-  expect_doppelganger("from xp_xtra", w_xpx) # expect same as snapshot
-  expect_doppelganger("from xpose_data", w_xpx) # expect same as xpose_data snapshot
 
   # test desired geoms are included
   # wrapper function to get geom type and outliers
@@ -133,4 +130,13 @@ test_that("xplot_boxplot", {
                   opt = xpose::data_opt(filter = \(x) x[x$ETA1 >999,])),
     "No data available"
   )
+
+
+  #### vdiffr tests to skip on CRAN
+  skip_on_cran()
+  library(vdiffr)
+  expect_doppelganger("from xpose_data", wo_xpx) # expect same as snapshot
+  expect_doppelganger("from xp_xtra", w_xpx) # expect same as snapshot
+  expect_doppelganger("from xpose_data", w_xpx) # expect same as xpose_data snapshot
+
 })

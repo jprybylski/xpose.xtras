@@ -653,7 +653,7 @@ focus_function <- function(xpdb_s, fn, ...) {
 #' @rdname namespace_methods
 #' @order 1
 #' @export
-print.xpose_set <- function(x, ...) {
+print.xpose_set <- function(x, ..., n=5) {
   xpdb_s <- x
   if (length(xpdb_s)==0) {
     return(cli::cli_alert_warning("No xpdb objects in the set."))
@@ -663,11 +663,12 @@ print.xpose_set <- function(x, ...) {
     cli::cli_h1("{cli::col_blue('xpose_set')} object")
     cli::cli_ul()
     cli::cli_li("Number of models: {length(xpdb_s)}")
-    if (length(xpdb_s)<=5) cli::cli_li("Model labels: {names(xpdb_s)}")
-    if (length(xpdb_s)>5)  cli::cli_li("Model labels (truncated): {names(xpdb_s)[1:5]} (...)")
+    if (length(xpdb_s)<=n) cli::cli_li("Model labels: {names(xpdb_s)}")
+    if (length(xpdb_s)>n)  cli::cli_li("Model labels (truncated): {names(xpdb_s)[1:n]} (...)")
     cli::cli_li("Number of relationships: {total_relationships(xpdb_s)}")
     fnames <- focused_xpdbs(xpdb_s)
-    cli::cli_li("Focused xpdb objects: {if (length(fnames)>0) fnames else 'none'}")
+    if (length(fnames)<=n) cli::cli_li("Focused xpdb objects: {if (length(fnames)>0) fnames else 'none'}")
+    if (length(fnames)>n)  cli::cli_li("Focused xpdb objects (truncated): {fnames[1:n]} (...)")
     dotnames <- purrr::map(xpdb_s, \(xpdb_s_i) names(xpdb_s_i)[startsWith(names(xpdb_s_i), "..")]) %>%
       purrr::flatten() %>%
       unique() %>%
@@ -676,6 +677,14 @@ print.xpose_set <- function(x, ...) {
     base_mod <- get_base_model(xpdb_s)
     cli::cli_li("Base model: {if (!is.null(base_mod)) cli::col_blue(base_mod) else 'none'}")
     check_xpose_set(xpdb_s, .warn=TRUE)
+    # Truncation footer
+    if (length(xpdb_s)>n || length(fnames)>n) {
+      truncated <- c("xpdbs","focused")[c(length(xpdb_s)>n , length(fnames)>n)]
+      morer <- c(length(xpdb_s) - n,length(fnames) - n)[c(length(xpdb_s)>n , length(fnames)>n)]
+      more_items <- stringr::str_c(morer, " more ", truncated)
+      cli::cli_bullets(cli::col_grey("# {cli::symbol$info} {more_items}"))
+      cli::cli_bullets(cli::col_grey("# {cli::symbol$info} Use `print(n = ...)` to see more than n = {n}"))
+    }
     cli::cli_end()
   })
 }

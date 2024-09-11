@@ -76,3 +76,4 @@ part.
 - [ ] Custom examples (eg, phenobarbital model building, xpose_xtra for
   each and together xpose_set)
 - [ ] nlmixr2.xpose tests
+- [ ] *re-run* data-raw files prior to build

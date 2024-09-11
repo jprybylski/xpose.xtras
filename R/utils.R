@@ -247,3 +247,9 @@ set_option <- function(xpdb, ...) {
   as_xpdb_x(xpdb)
 
 }
+
+# TODO: more general extraction of model description from comments
+# add option to do this be default when converting to xp_xtra
+desc_from_comments <- function(xpdb, start_check = ".*description.*", end_check = "^\\$") {
+
+}

@@ -10,3 +10,4 @@ xpdb_set <- xpose_set(mod1=xpdb_ex_pk,
                       .as_ordered = TRUE)
 
 usethis::use_data(xpdb_set, overwrite = TRUE, compress = "gzip")
+rm(list=ls())

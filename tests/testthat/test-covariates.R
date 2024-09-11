@@ -1,35 +1,16 @@
 test_that("grid plots appear as expected", {
-  library(vdiffr)
 
   data("xpdb_ex_pk", package = "xpose", envir = environment())
 
   # test both xpdb_x xpdb_ex_pk produce the same plot
   wo_xpx <- xpdb_ex_pk %>% eta_grid(quiet = TRUE)
   w_xpx <- xpdb_ex_pk %>% as_xpdb_x() %>% eta_grid(quiet = TRUE)
-  expect_doppelganger("from xpose_data", wo_xpx) # expect same as snapshot
-  expect_doppelganger("from xp_xtra", w_xpx) # expect same as snapshot
-  expect_doppelganger("from xpose_data", w_xpx) # expect same as xpose_data snapshot
 
   ## General tests
   xpdb_x <- set_option(xpdb_x, quiet=TRUE)
   eta1_grid <- eta_grid(xpdb_x, etavar = ETA1)
   eta2_grid <- eta_grid(xpdb_x, etavar = ETA2)
   eta12_grid <- eta_grid(xpdb_x, etavar = c(ETA1,ETA2))
-  expect_doppelganger("eta1 plot", eta1_grid)
-  expect_doppelganger("eta12 plot", eta12_grid)
-  expect_failure(expect_doppelganger(
-    "eta1 plot", eta2_grid
-  ))
-  expect_failure(expect_doppelganger(
-    "eta1 plot", eta12_grid
-  ))
-  expect_failure(expect_doppelganger(
-    "eta1 plot", eta_grid(xpdb_x)
-  ))
-  expect_failure(expect_doppelganger(
-    "eta12 plot", eta_grid(xpdb_x, etavar = c(ETA1,ETA2),
-                           pairs_opts = list(contcont_opts=list(stars=TRUE)))
-  ))
 
   cont_p <- cov_grid(xpdb_x, covtypes = "cont")
   expect_setequal(
@@ -108,6 +89,32 @@ test_that("grid plots appear as expected", {
     xp_var(xpdb_x, type=c("contcov","catcov","eta"))$col %>%
       transform_eta()
   )
+
+
+  #### vdiffr tests to skip on CRAN
+  skip_on_cran()
+  library(vdiffr)
+  expect_doppelganger("from xpose_data", wo_xpx) # expect same as snapshot
+  expect_doppelganger("from xp_xtra", w_xpx) # expect same as snapshot
+  expect_doppelganger("from xpose_data", w_xpx) # expect same as xpose_data snapshot
+
+
+  expect_doppelganger("eta1 plot", eta1_grid)
+  expect_doppelganger("eta12 plot", eta12_grid)
+  expect_failure(expect_doppelganger(
+    "eta1 plot", eta2_grid
+  ))
+  expect_failure(expect_doppelganger(
+    "eta1 plot", eta12_grid
+  ))
+  expect_failure(expect_doppelganger(
+    "eta1 plot", eta_grid(xpdb_x)
+  ))
+  expect_failure(expect_doppelganger(
+    "eta12 plot", eta_grid(xpdb_x, etavar = c(ETA1,ETA2),
+                           pairs_opts = list(contcont_opts=list(stars=TRUE)))
+  ))
+
 
 })
 

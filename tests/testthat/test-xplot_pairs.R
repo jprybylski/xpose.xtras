@@ -14,6 +14,37 @@ test_that("xplot_pairs", {
   # test both xpdb_x xpdb_ex_pk produce the same plot (d/t filling theme)
   wo_xpx <- xpdb_ex_pk %>% xplot_pairs(opt=opt_xp, quiet = TRUE)
   w_xpx <- xpdb_ex_pk %>% as_xpdb_x() %>% xplot_pairs(opt=opt_xtra, quiet = TRUE)
+
+  ## Other
+  opt_xtra <- xpose::data_opt(.problem = 1,
+                              filter = xpose::only_distinct(xpdb_x, 1, NULL, TRUE),
+                              post_processing = function(x) dplyr::select(x, starts_with("ETA"), starts_with("MED")))
+
+  suppressMessages(expect_equal(
+    xpdb_x$options$quiet,
+    xplot_pairs(xpdb_x, opt=opt_xtra)$xpose$quiet
+  ))
+  expect_message(
+    xplot_pairs(xpdb_x, opt=opt_xtra),
+    "Using data from"
+  )
+
+  ## Check error catching
+  expect_error(
+    xplot_pairs(xpdb_x, opt=opt_xtra, quiet = TRUE,
+                contcont_opts = list(other_fun=1)),
+    "function.*not a.*numeric"
+  )
+  expect_error(
+    xplot_pairs(xpdb_x, opt=opt_xtra, quiet = TRUE,
+                catcont_opts = list(other_fun=1)),
+    "function.*not a.*numeric"
+  )
+
+  #### vdiffr tests to skip on CRAN
+  skip_on_cran()
+  library(vdiffr)
+
   expect_doppelganger("from xpose_data", wo_xpx) # expect same as snapshot
   expect_doppelganger("from xp_xtra", w_xpx) # expect same as snapshot
   expect_doppelganger("from xpose_data", w_xpx) # expect same as xpose_data snapshot
@@ -56,19 +87,6 @@ test_that("xplot_pairs", {
                                catcat_opts = list(use_rho=FALSE))
   ))
 
-  ## Other
-  opt_xtra <- xpose::data_opt(.problem = 1,
-                              filter = xpose::only_distinct(xpdb_x, 1, NULL, TRUE),
-                              post_processing = function(x) dplyr::select(x, starts_with("ETA"), starts_with("MED")))
-
-  suppressMessages(expect_equal(
-    xpdb_x$options$quiet,
-    xplot_pairs(xpdb_x, opt=opt_xtra)$xpose$quiet
-  ))
-  expect_message(
-    xplot_pairs(xpdb_x, opt=opt_xtra),
-    "Using data from"
-  )
 
   # test ggtheme basic check
   # expect_failure(expect_doppelganger(
@@ -83,18 +101,6 @@ test_that("xplot_pairs", {
     xpdb_ex_pk %>% xplot_pairs(opt=opt_xp, quiet = TRUE,
                                xp_theme = xpose::theme_xp_xpose4())
   ))
-
-  ## Check error catching
-  expect_error(
-    xplot_pairs(xpdb_x, opt=opt_xtra, quiet = TRUE,
-                contcont_opts = list(other_fun=1)),
-    "function.*not a.*numeric"
-  )
-  expect_error(
-    xplot_pairs(xpdb_x, opt=opt_xtra, quiet = TRUE,
-                catcont_opts = list(other_fun=1)),
-    "function.*not a.*numeric"
-  )
 
 
 })

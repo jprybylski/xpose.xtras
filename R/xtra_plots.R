@@ -40,9 +40,10 @@ xp_xtra_theme <- function(base_on = NULL) {
 
   # New defaults
   new_defs <- rlang::list2(
-    boxplot_fill = "grey45",
-    boxplot_linewidth = base_on$density_linewidth,
-    boxplot_linetype = base_on$density_linetype,
+    boxplot_fill = base_on$histogram_fill,
+    boxplot_alpha = base_on$histogram_alpha,
+    boxplot_linewidth = base_on$histogram_linewidth,
+    boxplot_linetype = base_on$histogram_linetype,
     boxplot_outlier.colour = base_on$point_color,
     boxplot_outlier.shape = base_on$point_shape,
     boxplot_outlier.alpha = base_on$point_alpha,
@@ -148,7 +149,9 @@ apply_levels <- function(xpdb, .problem=NULL, show_n = TRUE) {
     out %>%
       dplyr::group_by(variable, value) %>%
       dplyr::mutate(
-        value = paste0(value,"\nN = ", dplyr::n())
+        value = paste0(value,"\nN = ", dplyr::n()) %>%
+          forcats::as_factor() %>%
+          forcats::fct_inorder()
       ) %>%
       dplyr::ungroup()
   }
@@ -172,7 +175,8 @@ apply_lul_wide <- function(xpdb, cols=NULL, lvl_cols=NULL, .problem=NULL, show_n
   nlnl_cols <- setdiff(cols, lvl_cols)
 
   lbl_unt_fun <- apply_labels_units(xpdb = xpdb, .problem = .problem)
-  lvl_fun <- apply_levels(xpdb = xpdb, .problem = .problem, show_n = show_n)
+  lvl_fun <- function(x) x
+  if (check_xpdb_x(xpdb, .warn = FALSE)) lvl_fun <- apply_levels(xpdb = xpdb, .problem = .problem, show_n = show_n)
 
   function(x) {
    name_order <- names(x)

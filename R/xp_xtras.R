@@ -458,7 +458,7 @@ backfill_iofv <- function(xpdb, .problem=NULL, .label = "iOFV") {
 
   # Apply backfill to all problems if missing
   if (is.null(.problem)) {
-    .problem <- xpose::all_data_problem(xpdb_x)
+    .problem <- xpose::all_data_problem(xpdb)
   }
 
   # Get iOFV from phi
@@ -474,16 +474,23 @@ backfill_iofv <- function(xpdb, .problem=NULL, .label = "iOFV") {
   for (prob in .problem) {
     # ID column
     id_col <- xp_var(new_xpdb, .problem = prob, type = "id")$col[1] # Should only be 1 id but just in case
+    #? Need to get OBJs before mutate
+    xpdb_data <- xpose::get_data(xpdb, .problem = prob, quiet=TRUE)
+    new_objs <- function() match_obj(xpdb_data[[id_col]])
 
 
     new_xpdb <- new_xpdb %>%
-      xpose::mutate({{.label}} := match_obj(!!id_col), .problem = prob) %>%
+      xpose::mutate(!!.label := new_objs(), .problem = prob) %>%
       set_var_types(.problem = prob, iofv = {{.label}})
   }
   new_xpdb
 }
 
-
+# TODO: write this function
+# Calculate constants for N-CMT model (under some assumptions) given trans-dependent input prms
+# dots are which prms are what, like for trans=2, dots should be CL=TCL, V=Vd, etc, so
+# if the excpected prms are not named as expected
+backfill_constants <- function(xpdb, ..., trans = 2) {}
 
 #### Slight updates to list_vars
 
