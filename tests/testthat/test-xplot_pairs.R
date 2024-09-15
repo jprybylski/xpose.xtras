@@ -89,11 +89,11 @@ test_that("xplot_pairs", {
 
 
   # test ggtheme basic check
-  # expect_failure(expect_doppelganger(
-  #   "from xpose_data",
-  #   xpdb_ex_pk %>% xplot_pairs(opt=opt_xp, quiet = TRUE,
-  #                              gg_theme = xpose::theme_bw2())
-  # ))
+  expect_failure(expect_doppelganger(
+    "from xpose_data",
+    xpdb_ex_pk %>% xplot_pairs(opt=opt_xp, quiet = TRUE,
+                               gg_theme = xpose::theme_bw2())
+  ))
 
   # xp-theme basic check
   expect_failure(expect_doppelganger(

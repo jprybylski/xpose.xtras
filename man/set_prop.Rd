@@ -9,7 +9,8 @@ set_prop(xpdb, ..., .problem = NULL)
 \arguments{
 \item{xpdb}{<\code{xpose_data}\link[xpose:xpose_data]{xpose::xpose_data}> object}
 
-\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> defining which properties to transform. Argument should be valid label.}
+\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> defining which properties to transform.
+Argument should be valid label.}
 
 \item{.problem}{<\code{numeric}> Problem number to use. Uses all problem if not provided.}
 }
@@ -18,6 +19,12 @@ set_prop(xpdb, ..., .problem = NULL)
 }
 \description{
 Set a summary property
+}
+\details{
+Although one might be tempted to set custom properties using this function,
+with the intention to maintain cross-functionality with \code{xpose}, users cannot
+set a non-existent property with this function. When used internally, workarounds
+to this semi-limitation are used.
 }
 \examples{
 

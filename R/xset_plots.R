@@ -1,171 +1,6 @@
-
-
-# This is specific enough to not need a generic
-shark_plot <- function(
-    xpdb_s,
-    ...,
-    .inorder=FALSE,
-    type = "pclt",
-    alpha = 0.05,
-    df = "guess",
-    title    = 'Eta covariate correlations | @run',
-    subtitle = 'Based on @nind individuals, Eta shrink: @etashk',
-    caption  = '@dir',
-    tag      = NULL,
-    opt,
-    .problem,
-    .subprob,
-    .method,
-    quiet
-) {
-
-  # process dots
-  two_set_dots(xpdb_s, ..., .inorder=.inorder)
-  # Now have mod1 and mod2
-
-  # Default to the settings for mod1
-  if (missing(.problem)) .problem <- xpose::default_plot_problem(mod1$xpdb)
-  if (missing(.subprob))
-    .subprob <- xpose::last_file_subprob(mod1$xpdb, ext = "ext", .problem = .problem)
-  if (missing(.method))
-    .method <- xpose::last_file_method(mod1$xpdb, ext = "ext", .problem = .problem,
-                                .subprob = .subprob)
-  if (missing(quiet)) quiet <- mod1$xpdb$options$quiet
-
-  # Make sure both models have iofv
-  iofv1 <- xp_var(mod1$xpdb, .problem = .problem, type = "iofv")$col
-  iofv2 <- xp_var(mod2$xpdb, .problem = .problem, type = "iofv")$col
-
-  # Get combined xpdb
-  xpdb_f <- franken_xpdb(
-    mod1$xpdb,
-    mod2$xpdb,
-    .types = "iofv",
-    problem = .problem,
-    prop_transforms = function(xpdb_f, xpdb_list, problem) {
-      franken_prop(
-        xpdb_f = xpdb_f,
-        xpdb_list = xpdb_list,
-        prop = "ofv",
-        problem = problem,
-        glue_cmd = franken_numprop)
-    }
-  )
-
-  # Data options
-  ofv_columns <- paste0(c(iofv1,iofv2),"_",1:2)
-  # TODO: mod1ofv should actually be sum of iOFVs in mod1 to be more dynamic and allow faceting
-  mod1ofv <- get_prop(mod1$xpdb, "ofv", .problem = .problem) %>% as.numeric()
-  post_processing <- function(df) {
-    df %>%
-      dplyr::mutate(
-        dOFV = .data[[ofv_columns[2]]] - .data[[ofv_columns[1]]]
-      ) %>%
-      dplyr::arrange(-abs(dOFV)) %>%
-      dplyr::group_by(dOFV>0) %>%
-      dplyr::mutate(
-        nind = 1:dplyr::n(),
-        OFV = mod1ofv - cumsum(dOFV)
-      ) %>%
-      dplyr::ungroup() %>%
-      dplyr::mutate(
-        nind = ifelse(dOFV==0, 0, nind),
-        OFV = ifelse(dOFV==0, mod1ofv, OFV)
-      )
-  }
-  def_opt <- xpose::data_opt(.problem = .problem, .subprob = .subprob, .method = .method,
-                             filter = xpose::only_distinct(xpdb_f, .problem, NULL, quiet),
-                             post_processing = post_processing)
-  if (missing(opt)) opt <- def_opt
-  # Only some data options should be used
-  data <- xpose::fetch_data(xpdb_f, quiet = quiet, .problem = def_opt$problem, .subprob = def_opt$subprob,
-                            .method = def_opt$method, .source = opt$source, simtab = opt$simtab,
-                            filter = def_opt$filter, tidy = FALSE, index_col = NULL,
-                            value_col = NULL, post_processing = def_opt$post_processing)
-  if (is.null(data) || nrow(data) == 0) {
-    rlang::abort('No data available for plotting. Please check the variable mapping and filering options.')
-  }
-
-  pdofv <- data %>% dplyr::filter(dOFV>=0)
-  ndofv <- data %>% dplyr::filter(dOFV<=0)
-
-  # Significance of dOFV
-  if (df == "guess") {
-    prm1 <- xpose::get_prm(mod1$xpdb, .problem = .problem, .subprob = .subprob, .method = .method, quiet = quiet)
-    prm2 <- xpose::get_prm(mod2$xpdb, .problem = .problem, .subprob = .subprob, .method = .method, quiet = quiet)
-
-    nfit1 <- sum(!prm1$fixed)
-    nfit2 <- sum(!prm2$fixed)
-
-    df <- nfit2 - nfit1
-  }
-  df <- rlang::try_fetch(as.numeric(df), warning=function(s) {
-    rlang::warn("df can only be 'guess' or an integer greater than 0.")
-    1
-  })
-  if (df<1) {
-    cli::cli_warn(paste("Guessing df merely uses the difference in unfixed parameters.",
-                        "For these models, that is {df}. Changed to 1."))
-    df <- 1
-  }
-  sigOFV <- mod1ofv + stats::qchisq(1-alpha, df)
-
-  # Check type
-  allow_types <-  c("p","c","l","t")
-  xpose::check_plot_type(type, allowed = allow_types)
-  check_type <- purrr::map(allow_types, ~stringr::str_detect(type, stringr::fixed(.x, ignore_case = TRUE))) %>%
-    setNames(allow_types)
-
-  # Start plot# Assign gg_theme
-  gg_theme <- xpdb_f$gg_theme
-  if (is.function(gg_theme)) {
-    gg_theme <- do.call(gg_theme, args = list())
-  }
-
-  # Create ggplot base
-  xp <- ggplot2::ggplot(data = data, aes(x = nind, y = OFV)) + gg_theme
-
-  # Add lines
-  if (check_type$l) {
-    xp <- xp + xpose::xp_geoms(mapping  = NULL,
-                               xp_theme = xpdb_f$xp_theme,
-                               name     = "hline",
-                               ggfun    = "geom_hline",
-                               hline_yintercept = mod1ofv
-                               )
-    xp <- xp + xpose::xp_geoms(mapping  = NULL,
-                               xp_theme = xpdb_f$xp_theme,
-                               name     = "hline",
-                               ggfun    = "geom_hline",
-                               hline_yintercept = sigOFV,
-                               hline_linetype = 2
-                               )
-  }
-
-  # Add points
-  if (check_type$p) {
-    xp <- xp + xpose::xp_geoms(mapping  = NULL,
-                               xp_theme = xpdb_f$xp_theme,
-                               name     = "point",
-                               ggfun    = "geom_point",
-                               point_data = pdofv,
-                               point_color = "blue"
-                               )
-    xp <- xp + xpose::xp_geoms(mapping  = NULL,
-                               xp_theme = xpdb_f$xp_theme,
-                               name     = "point",
-                               ggfun    = "geom_point",
-                               point_data = ndofv,
-                               point_color = "red"
-                               )
-  }
-
-
-  xpose::as.xpose.plot(xp)
-
-
-}
-dofv_vs_id <- function() {shark_plot()} # < alias to match xpose4
+########
+# Simple Plots (these may spin into their own script like shark_plots)
+########
 
 # boxplot (etc) of all iOFVs in all models for a set
 # ... is either models in set, child(ren) of parent formula, or empty (all models).
@@ -207,9 +42,13 @@ pred_vs_idv_modavg <- function() {}
 #' as base or parent.
 #' @param envir Where to assign `mod1` and `mod2` <`xpose_set_item`>s
 #'
-#' @return Into `envir`, `mod1` and `mod2`
+#' @return Into environment specified by `envir`, `mod1` and `mod2`
 #'
-two_set_dots <- function(xpdb_s, ..., .inorder=FALSE, envir = parent.frame()) {
+two_set_dots <- function(
+    xpdb_s, ...,
+    .inorder=FALSE,
+    envir = parent.frame()
+    ) {
   check_xpose_set(xpdb_s, .warn = FALSE)
 
   if (length(xpdb_s)<2) {
@@ -387,7 +226,7 @@ franken_xpdb <-  function(
       as.list()
 
     new_xpdb <- new_xpdb %>%
-      xpose::mutate(!!!new_data_list)
+      xpose::mutate(!!!new_data_list, .problem = prob, .source = "data")
   }
   new_xpdb %>%
     prop_transforms(xpdb_list,problem) %>%

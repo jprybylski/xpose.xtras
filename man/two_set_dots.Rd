@@ -18,7 +18,7 @@ as base or parent.}
 \item{envir}{Where to assign \code{mod1} and \code{mod2} <\code{xpose_set_item}>s}
 }
 \value{
-Into \code{envir}, \code{mod1} and \code{mod2}
+Into environment specified by \code{envir}, \code{mod1} and \code{mod2}
 }
 \description{
 Typical processing for plots of 2 sets

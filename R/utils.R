@@ -71,11 +71,19 @@ get_prop <- function(xpdb, prop, .problem = NULL) {
 #' Set a summary property
 #'
 #' @param xpdb <`xpose_data`[xpose::xpose_data]> object
-#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> defining which properties to transform. Argument should be valid label.
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> defining which properties to transform.
+#' Argument should be valid label.
 #' @param .problem <`numeric`> Problem number to use. Uses all problem if not provided.
 #'
 #' @return `xp_xtras` object
 #' @export
+#'
+#' @details
+#' Although one might be tempted to set custom properties using this function,
+#' with the intention to maintain cross-functionality with `xpose`, users cannot
+#' set a non-existent property with this function. When used internally, workarounds
+#' to this semi-limitation are used.
+#'
 #'
 #' @examples
 #'
@@ -89,7 +97,7 @@ set_prop <- function(xpdb, ..., .problem = NULL) {
 
   # Error checks
   if (any(!names(props_to_set) %in% summ$label)) {
-    cli::cli_abort("Cannot set non-existant properties, which should be matched to labels: {setdiff(names(props_to_set), summ$label)}")
+    cli::cli_abort("Cannot set new and non-existant properties, which should be matched to labels: {setdiff(names(props_to_set), summ$label)}")
   }
 
   # Validate values

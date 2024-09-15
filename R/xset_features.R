@@ -237,10 +237,3 @@ child_finder <- function(xpdb_s) {
   possible_parent$label %in% all_parents
 }
 
-########
-# Tables
-########
-
-
-
-

@@ -2,6 +2,8 @@
 # Final version would use df input
 # color based on focus and base
 # allow extra info to be shown (like exposed_props)
+# Final version should have function that makes diagram
+# and another that renders, so plot is not forced to generate
 diagram_lineage <- function(xpdb_s) {
   base_diag <- DiagrammeR::create_graph() %>%
     DiagrammeR::add_n_nodes(length(xpdb_s)) %>%
