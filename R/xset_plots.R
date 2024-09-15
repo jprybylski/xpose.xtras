@@ -7,10 +7,7 @@
 # if .lineage=TRUE, then ... is interpreted with xset_lineage
 iofv_vs_mod <- function(xpdb_s, ..., .lineage = FALSE) {}
 
-# There may need to be a waterfall generic: xset_waterfall
-prm_waterfall <- function() {}
-eta_waterfall <- function() {}
-iofv_waterfall <- function() {}
+
 
 # These would just create a new xpdb in situ, then mutate, and then use xplot_scatter
 ipred_vs_ipred <- function() {}

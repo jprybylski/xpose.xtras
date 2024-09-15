@@ -81,7 +81,7 @@
 #'   # As before
 #'   focus_xpdb(everything()) %>%
 #'   focus_function(backfill_iofv) %>%
-#'   # Add indicator
+#'   # Add indicator (or use established covariate)
 #'   mutate(APGRtest = as.numeric(as.character(APGR))<5) %>%
 #'   # Pick two models or consistent with two_set_dots()
 #'   shark_plot(run6,run11, facets = "APGRtest")
@@ -156,6 +156,10 @@ shark_plot <- function(
       (!is.character(facets) &&
        !is.null(facets))) {
     cli::cli_abort("Facets should be a simple character vector.")
+  }
+  post_processing_cov <- function(x) x
+  if (facets %in% xp_var(xpdb_f, .problem = .problem, type = "catcov")$col) {
+    # TODO: use apply_lul_wide here for facets, but will have to be sure the new name is captured
   }
   post_processing <- function(df) {
     df %>%
