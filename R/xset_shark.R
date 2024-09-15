@@ -31,7 +31,7 @@
 #' @param xlab x-axis label
 #' @param opt User-specified data options. Only some of these
 #' will be used.
-#' @param facets Currently unused.
+#' @param facets <`character`> vector selecting facets, or `NULL` (default).
 #' @param .problem The problem to be used, by default returns the last one.
 #' @param .subprob The subproblem to be used, by default returns the last one.
 #' @param .method The estimation method to be used, by default returns the last one.
@@ -76,6 +76,15 @@
 #'   focus_function(backfill_iofv) %>%
 #'   # Pick two models or consistent with two_set_dots()
 #'   shark_plot(run6,run11)
+#'
+#' pheno_set %>%
+#'   # As before
+#'   focus_xpdb(everything()) %>%
+#'   focus_function(backfill_iofv) %>%
+#'   # Add indicator
+#'   mutate(APGRtest = as.numeric(as.character(APGR))<5) %>%
+#'   # Pick two models or consistent with two_set_dots()
+#'   shark_plot(run6,run11, facets = "APGRtest")
 #'
 shark_plot <- function(
     xpdb_s,
@@ -141,18 +150,28 @@ shark_plot <- function(
 
   # Data options
   ofv_columns <- paste0(c(iofv1,iofv2),"_",1:2)
-  # TODO: modNofvs should actually be sum of iOFVs in mod1 to be more dynamic and allow faceting
-  # facets would need to be part of the post-processing function
-  mod1ofv <- get_prop(mod1$xpdb, "ofv", .problem = .problem) %>% as.numeric()
-  mod2ofv <- get_prop(mod2$xpdb, "ofv", .problem = .problem) %>% as.numeric()
-  total_dOFV <- mod2ofv - mod1ofv
+  # Check if user tries to pass symbol to facets instead of character
+  if ((rlang::quo_is_symbol(rlang::enquo(facets)) &&
+      !exists(deparse(substitute(facets)), envir = parent.frame())) ||
+      (!is.character(facets) &&
+       !is.null(facets))) {
+    cli::cli_abort("Facets should be a simple character vector.")
+  }
   post_processing <- function(df) {
     df %>%
       dplyr::mutate(
         dOFV = .data[[ofv_columns[2]]] - .data[[ofv_columns[1]]]
       ) %>%
+      # Ensure sort
       dplyr::arrange(-abs(dOFV)) %>%
-      dplyr::group_by(dOFV>0) %>%
+      # Sum (maybe faceted) total dOFV
+      dplyr::group_by(across(dplyr::any_of(facets))) %>%
+      dplyr::group_modify(~{
+        dplyr::mutate(.x,
+          total_dOFV = sum(dOFV)
+        )
+      }) %>%
+      dplyr::group_by(dOFV>0, .add = TRUE) %>%
       dplyr::mutate(
         nind = 1:dplyr::n(),
         OFV = total_dOFV - cumsum(dOFV)
@@ -164,7 +183,7 @@ shark_plot <- function(
       )
   }
   def_opt <- xpose::data_opt(.problem = .problem, .subprob = .subprob, .method = .method,
-                             filter = xpose::only_distinct(xpdb_f, .problem, NULL, quiet),
+                             filter = xpose::only_distinct(xpdb_f, .problem, facets, quiet),
                              post_processing = post_processing)
   if (missing(opt)) opt <- def_opt
   # Only some data options should be used
@@ -225,11 +244,10 @@ shark_plot <- function(
 
   # Add lines
   if (check_type$l) {
-    xp <- xp + xpose::xp_geoms(mapping  = NULL,
+    xp <- xp + xpose::xp_geoms(mapping  = aes(hline_yintercept = .data[["total_dOFV"]]),
                                xp_theme = xpdb_f$xp_theme,
                                name     = "hline",
-                               ggfun    = "geom_hline",
-                               hline_yintercept = total_dOFV
+                               ggfun    = "geom_hline"
     )
     xp <- xp + xpose::xp_geoms(mapping  = NULL,
                                xp_theme = xpdb_f$xp_theme,
@@ -290,6 +308,11 @@ shark_plot <- function(
     )
   }
 
+  # Define panels
+  if (!is.null(facets)) {
+    xp <- xp + xpose::xpose_panels(xp_theme = xpdb_f$xp_theme,
+                                   extra_args = list(facets = facets))
+  }
 
   # Add labels
   xp <- xp + ggplot2::labs(

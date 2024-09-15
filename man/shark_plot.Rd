@@ -83,7 +83,7 @@ use an extreme positive number like 9999.}
 \item{opt}{User-specified data options. Only some of these
 will be used.}
 
-\item{facets}{Currently unused.}
+\item{facets}{<\code{character}> vector selecting facets, or \code{NULL} (default).}
 
 \item{.problem}{The problem to be used, by default returns the last one.}
 
@@ -136,6 +136,15 @@ pheno_set \%>\%
   focus_function(backfill_iofv) \%>\%
   # Pick two models or consistent with two_set_dots()
   shark_plot(run6,run11)
+
+pheno_set \%>\%
+  # As before
+  focus_xpdb(everything()) \%>\%
+  focus_function(backfill_iofv) \%>\%
+  # Add indicator
+  mutate(APGRtest = as.numeric(as.character(APGR))<5) \%>\%
+  # Pick two models or consistent with two_set_dots()
+  shark_plot(run6,run11, facets = "APGRtest")
 
 }
 \seealso{
