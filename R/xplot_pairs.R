@@ -249,7 +249,7 @@ xplot_pairs <- function(
       labeller = use_labeller,
       switch = switch
     ) +
-    xpdb$gg_theme()
+    gg_theme
 
   # Add labels
   xp <- xp + ggplot2::labs(title = title, subtitle = subtitle, caption = caption)
@@ -273,7 +273,7 @@ xplot_pairs <- function(
    structure(class=c("xp_xtra_plot", class(.)))
 }
 
-
+#' @method print xp_xtra_plot
 #' @export
 print.xp_xtra_plot <- function(x, page, ...) {
   if (!inherits(x, "ggmatrix")) return(NextMethod())
@@ -315,7 +315,10 @@ print.xp_xtra_plot <- function(x, page, ...) {
     x$title <- x$title %>% tr_vals()
   }
   if (!missing(page)) NULL
-  x %>% GGally:::print.ggmatrix()
+  nm_x <- x
+  class(nm_x) <- class(x)[!class(x) %in% c("xp_xtra_plot","xpose_plot")]
+  print(nm_x)
+  invisible(x)
 }
 
 

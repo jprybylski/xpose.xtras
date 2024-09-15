@@ -209,8 +209,33 @@ child_finder <- function(xpdb_s) {
   }
 }
 
+#' Binary check if LHS is parent of LHS
+#'
+#' @param possible_parent <`xpose_set_item`> object suspected as parent to ...
+#' @param possible_child  ... <`xpose_set_item`> object suspected child
+#'
+#' @export
+#'
+#' @examples
+#'
+#' # Detect direct parent
+#' pheno_set$run6 %p% pheno_set$run7
+#'
+#' # Detect non-parentage (does not try to "flip" parentage)
+#' pheno_set$run6 %p% pheno_set$run5
+#'
+#' # Does not detect grand-parentage
+#' pheno_set$run6 %p% pheno_set$run13
+#'
+`%p%` <- function(possible_parent, possible_child) {
+  check_xpose_set_item(possible_parent)
+  check_xpose_set_item(possible_child)
 
-diagram_lineage <- function() {} # diagrammr
+  all_parents <- possible_child$parent
+  if (length(all_parents)==0 || is.na(all_parents)) return(FALSE)
+
+  possible_parent$label %in% all_parents
+}
 
 ########
 # Tables
@@ -218,31 +243,4 @@ diagram_lineage <- function() {} # diagrammr
 
 
 
-########
-# Plots
-########
-
-# This is specific enough to not need a generic
-shark_plot <- function(xpdb_s, ...) {} # ... is either two models in set (parent, child), or one model that has a parent (or if a base model is declared), or a formula of child~parent
-dofv_vs_id <- function() {shark_plot()} # < alias to match xpose4
-
-# boxplot (etc) of all iOFVs in all models for a set
-# ... is either models in set, child(ren) of parent formula, or empty (all models).
-# if .lineage=TRUE, then ... is interpreted with xset_lineage
-iofv_vs_mod <- function(xpdb_s, ..., .lineage = FALSE) {}
-
-# There may need to be a waterfall generic: xset_waterfall
-prm_waterfall <- function() {}
-eta_waterfall <- function() {}
-iofv_waterfall <- function() {}
-
-# These would just create a new xpdb in situ, then mutate, and then use xplot_scatter
-ipred_vs_ipred <- function() {}
-prm_vs_prm <- function() {}
-eta_vs_eta <- function() {}
-
-# This would also just be an in situ xpdb, but there may need to be a function
-# for model-averaging
-ipred_vs_idv_modavg <- function() {}
-pred_vs_idv_modavg <- function() {}
 

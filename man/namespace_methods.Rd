@@ -7,7 +7,7 @@
 \alias{print.xp_xtras}
 \title{Handling xpose_set objects with common methods}
 \usage{
-\method{print}{xpose_set}(x, ...)
+\method{print}{xpose_set}(x, ..., n = 5)
 
 \method{print}{xpose_set_item}(x, ...)
 

@@ -236,10 +236,12 @@ test_that("print methods are working", {
   expect_false(
     is_xp_xtras(hidden_xp_xtras)
   )
-  expect_message(
-    print(hidden_xp_xtras),
-    "xp_xtras"
-  )
+  # This behavior, while nice, creates an annoying warning to user
+  # on package load like when GGally is loaded.
+  #expect_message(
+  #  print(hidden_xp_xtras),
+  #  "xp_xtras"
+  #)
 
 })
 

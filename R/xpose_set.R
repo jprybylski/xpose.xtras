@@ -568,6 +568,17 @@ NULL
 #' # Remove focus
 #' xpdb_set %>% focus_xpdb(mod2,fix1) %>% focus_xpdb()
 #'
+#' # Focus function and tidyselect
+#' pheno_set %>%
+#'   focus_xpdb(everything()) %>%
+#'   # Add iOFV col and iofv type to all xpdbs in set
+#'   focus_function(backfill_iofv) %>%
+#'   # Show 1... can do all like this, too, but no need
+#'   unfocus_xpdb() %>%
+#'   select(run6) %>%
+#'   {.[[1]]$xpdb} %>%
+#'   list_vars()
+#'
 focus_xpdb <- function(xpdb_s, ..., .add = FALSE) {
   # Focus on an xpdb object in an xpose_set
   # ... is the selector for the xpdb object(s?) can be label or index. If multi-focusing is allowed,
@@ -640,6 +651,7 @@ focus_function <- function(xpdb_s, fn, ...) {
 # x Generic function for passing through functions to xpdb objects (filter and mutate are similar)
 
 
+#' @method `[` xpose_set
 #' @export
 `[.xpose_set` <- function(x, i) {
   structure(
@@ -652,6 +664,7 @@ focus_function <- function(xpdb_s, fn, ...) {
 #' Handling xpose_set objects with common methods
 #' @rdname namespace_methods
 #' @order 1
+#' @method print xpose_set
 #' @export
 print.xpose_set <- function(x, ..., n=5) {
   xpdb_s <- x
@@ -659,6 +672,9 @@ print.xpose_set <- function(x, ..., n=5) {
     return(cli::cli_alert_warning("No xpdb objects in the set."))
   }
   # Print summary of xpose_set
+  spinner_test <- rlang::is_interactive()
+  if (spinner_test) sp <- cli::make_spinner(default_spinner)
+  if (spinner_test) sp$spin()
   cli::cli({
     cli::cli_h1("{cli::col_blue('xpose_set')} object")
     cli::cli_ul()
@@ -669,7 +685,11 @@ print.xpose_set <- function(x, ..., n=5) {
     fnames <- focused_xpdbs(xpdb_s)
     if (length(fnames)<=n) cli::cli_li("Focused xpdb objects: {if (length(fnames)>0) fnames else 'none'}")
     if (length(fnames)>n)  cli::cli_li("Focused xpdb objects (truncated): {fnames[1:n]} (...)")
-    dotnames <- purrr::map(xpdb_s, \(xpdb_s_i) names(xpdb_s_i)[startsWith(names(xpdb_s_i), "..")]) %>%
+    if (spinner_test) sp$spin()
+    dotnames <- purrr::map(xpdb_s, \(xpdb_s_i) {
+        if (spinner_test) sp$spin()
+        names(xpdb_s_i)[startsWith(names(xpdb_s_i), "..")]
+      }) %>%
       purrr::flatten() %>%
       unique() %>%
       substring(3)
@@ -679,6 +699,7 @@ print.xpose_set <- function(x, ..., n=5) {
     check_xpose_set(xpdb_s, .warn=TRUE)
     # Truncation footer
     if (length(xpdb_s)>n || length(fnames)>n) {
+      if (spinner_test) sp$spin()
       truncated <- c("xpdbs","focused")[c(length(xpdb_s)>n , length(fnames)>n)]
       morer <- c(length(xpdb_s) - n,length(fnames) - n)[c(length(xpdb_s)>n , length(fnames)>n)]
       more_items <- stringr::str_c(morer, " more ", truncated)
@@ -686,11 +707,13 @@ print.xpose_set <- function(x, ..., n=5) {
       cli::cli_bullets(cli::col_grey("# {cli::symbol$info} Use `print(n = ...)` to see more than n = {n}"))
     }
     cli::cli_end()
+    if (spinner_test) sp$finish()
   })
 }
 
 #' @rdname namespace_methods
 #' @order 2
+#' @method print xpose_set_item
 #' @export
 print.xpose_set_item <- function(x, ...) {
   xpdb_s_i <- x
@@ -721,6 +744,7 @@ print.xpose_set_item <- function(x, ...) {
 
 #' @rdname namespace_methods
 #' @order 3
+#' @method c xpose_set
 #' @export
 c.xpose_set <- function(..., .relationships = NULL) {
   # Method workaround
@@ -745,6 +769,7 @@ c.xpose_set <- function(..., .relationships = NULL) {
 
 #' Check if any xpose_data objects are repeated in xpose_set
 #' @rdname duplicated.xpose_set
+#' @method duplicated xpose_set
 #' @export
 duplicated.xpose_set <- function(xpdb_s, ...) {
   rlang::check_dots_empty()

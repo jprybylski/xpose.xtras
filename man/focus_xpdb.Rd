@@ -39,4 +39,15 @@ xpdb_set \%>\% focus_xpdb(mod2,fix1) \%>\% focus_xpdb(mod1, .add=TRUE)
 # Remove focus
 xpdb_set \%>\% focus_xpdb(mod2,fix1) \%>\% focus_xpdb()
 
+# Focus function and tidyselect
+pheno_set \%>\%
+  focus_xpdb(everything()) \%>\%
+  # Add iOFV col and iofv type to all xpdbs in set
+  focus_function(backfill_iofv) \%>\%
+  # Show 1... can do all like this, too, but no need
+  unfocus_xpdb() \%>\%
+  select(run6) \%>\%
+  {.[[1]]$xpdb} \%>\%
+  list_vars()
+
 }

@@ -106,6 +106,7 @@ check_xp_xtras <- function(...) check_xpdb_x(...)
 # Methods
 #' @rdname namespace_methods
 #' @order 11
+#' @method print xp_xtras
 #' @export
 print.xp_xtras <- function(x, ...) {
   package_flex <- cli::col_magenta(paste(cli::symbol$star, "xp_xtras"))
@@ -117,12 +118,14 @@ print.xp_xtras <- function(x, ...) {
 }
 
 # This is not exported from xpose, so to avoid issues...
-#' @export
-print.xpose_data <- function(x, ...) {
- if (suppressMessages(check_xp_xtras(x))) return(print.xp_xtras(x, ...))
-
-  xpose:::print.xpose_data(x, ...)
-}
+# TODO: confirm this method can be removed
+# #' @method print xpose_data
+# #' @export
+# print.xpose_data <- function(x, ...) {
+#  if (suppressMessages(check_xp_xtras(x))) return(print.xp_xtras(x, ...))
+#
+#   xpose:::print.xpose_data(x, ...)
+# }
 
 # New functions
 
@@ -565,7 +568,10 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
           dplyr::mutate(
             string = purrr::map_chr(.$data, ~{
               if (rlang::is_interactive()) sp$spin()
+
               cols_c <- unique(.$col)
+
+              # Add labels and/or units
               if (!all(is.na(c(.$label,.$units)))) {
                 labs_c <- .$label[!duplicated(.$col)]
                 units_c <- .$units[!duplicated(.$col)]
@@ -580,12 +586,15 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
                 ) %>% ifelse(.=="", ., paste0(" (",.,")"))
                 cols_c <- stringr::str_c(cols_c, cli::style_bold(tocols_c))
               }
+
+              # Add level count
               if (.$type2[1] %in% level_types) {
                 lvls_c <- .$levels[!duplicated(.$col)]
                 cols_c <- purrr::map2_chr(cols_c, lvls_c, ~{
                   paste0(.x, " [", cli::col_yellow(nrow(.y)),"]")
                 })
               }
+
               stringr::str_c(cols_c, collapse = ', ')
             }),
             descr = dplyr::case_when(type == 'id' ~ 'Subject identifier',
@@ -609,7 +618,7 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
                                      type == 'dvid' ~ 'DV identifier',
                                      type == 'mdv' ~ 'Missing dependent variable',
                                      TRUE ~ "Undefined type") %>%
-              sprintf("%s (%s)", ., type)
+              sprintf("%s (%s)", ., ifelse(type%in%order, type, paste0("?",type)))
           ) %>%
           dplyr::mutate(descr = stringr::str_pad(.$descr, 37, 'right')
           ) %>%
