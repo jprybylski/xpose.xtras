@@ -7,7 +7,10 @@
 # if .lineage=TRUE, then ... is interpreted with xset_lineage
 iofv_vs_mod <- function(xpdb_s, ..., .lineage = FALSE) {}
 
-
+# waterfalls
+prm_waterfall <- function() {}
+eta_waterfall <- function() {}
+iofv_waterfall <- function() {}
 
 # These would just create a new xpdb in situ, then mutate, and then use xplot_scatter
 ipred_vs_ipred <- function() {}
@@ -52,6 +55,8 @@ two_set_dots <- function(
     cli::cli_abort("Need at least two models in set.")
   }
 
+  tidyselect_check <- xpdb_s %>% select_subset(...) %>% length()
+
   # Process dots
   if (rlang::dots_n(...)==0 && length(xpdb_s)!=2) {
     cli::cli_abort("Need to select at least two models in set or use a length 2 set.")
@@ -62,9 +67,9 @@ two_set_dots <- function(
       !!names(xpdb_s)[2],
       .inorder = .inorder,
       envir = envir))
-  } else if (rlang::dots_n(...)!=2) {
+  } else if (rlang::dots_n(...)!=2 && tidyselect_check!=2) {
     cli::cli_abort("Need to select exactly two models in set.")
-  } else if (rlang::dots_n(...)==2) {
+  } else if (rlang::dots_n(...)==2 ||  tidyselect_check==2) {
     dot_mods <- select_subset(xpdb_s, ...)
     base_name <- get_base_model(xpdb_s)
     parent_name <- names(dot_mods)[c(
@@ -137,7 +142,7 @@ franken_xpdb <-  function(
     cli::cli_abort("Need at least two `xpose_data` or `xp_xtra` objects.")
   }
 
-  if (is.null(.types) && rlang::quo_is_null(.cols))
+  if (is.null(.types) && rlang::quo_is_null(rlang::enquo(.cols)))
     rlang::abort("Need `.cols` and/or `.types` to add into new object.")
 
   xpdb_list <- rlang::dots_list(...)
@@ -175,7 +180,6 @@ franken_xpdb <-  function(
 
       # Get data
       this_data <- xpose::get_data(db, .problem = problem, quiet=quiet)
-
       # nrow check
       prev_nrow <- nrow(this_data)
       if (index>1) prev_nrow <- prob_data[[prob]] %>% .[[index-1]] %>% nrow()

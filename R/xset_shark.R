@@ -158,7 +158,7 @@ shark_plot <- function(
     cli::cli_abort("Facets should be a simple character vector.")
   }
   post_processing_cov <- function(x) x
-  if (facets %in% xp_var(xpdb_f, .problem = .problem, type = "catcov")$col) {
+  if (!is.null(facets) && facets %in% xp_var(xpdb_f, .problem = .problem, type = "catcov")$col) {
     # TODO: use apply_lul_wide here for facets, but will have to be sure the new name is captured
   }
   post_processing <- function(df) {

@@ -549,10 +549,21 @@ NULL
 #' @param xpdb_s <[`xpose_set`]> An xpose_set object
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more xpdb objects to focus on
 #' @param .add <[`logical`]> Should the focus be added to the existing focus? (default: `FALSE`)
+#' @param .mods <`tidyselect`> Model names in set to quick-apply a function. See Details.
 #'
 #' @description
 #' For piping, set is passed, but with S3 method transformations are applied to the focused `xpdb` object.
 #'
+#' @details
+#' While these functions are used internally, it is recognized that they may have value
+#' in user scripting. It is hoped these are self-explanatory, but the examples should
+#' address common uses.
+#'
+#' *Note:* `focus_qapply()` (re)focuses as specified in `.mods` and then un-focuses all elements
+#' of the set so should only be used in the case where a quick application
+#' suffices. Otherwise, focusing with a sequence of `focus_function` calls
+#' (or a monolithic single `focus_function` call with a custom function)
+#' should be prefered.
 #'
 #' @return An `xpose_set` object with the focused xpdb object(s)
 #' @export
@@ -575,6 +586,13 @@ NULL
 #'   focus_function(backfill_iofv) %>%
 #'   # Show 1... can do all like this, too, but no need
 #'   unfocus_xpdb() %>%
+#'   select(run6) %>%
+#'   {.[[1]]$xpdb} %>%
+#'   list_vars()
+#'
+#' # Quick-apply version of previous example
+#' pheno_set %>%
+#'   focus_qapply(backfill_iofv) %>%
 #'   select(run6) %>%
 #'   {.[[1]]$xpdb} %>%
 #'   list_vars()
@@ -636,6 +654,18 @@ focus_function <- function(xpdb_s, fn, ...) {
   return(out)
 }
 
+#' @rdname focus_xpdb
+#' @order 5
+#' @export
+focus_qapply <- function(xpdb_s,
+                         fn,
+                         ...,
+                         .mods = everything()) {
+  xpdb_s %>%
+    focus_xpdb({{.mods}}) %>%
+    focus_function(fn = fn, ...) %>%
+    unfocus_xpdb()
+}
 
 ##### Methods
 

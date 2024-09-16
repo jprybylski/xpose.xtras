@@ -141,7 +141,7 @@ pheno_set \%>\%
   # As before
   focus_xpdb(everything()) \%>\%
   focus_function(backfill_iofv) \%>\%
-  # Add indicator
+  # Add indicator (or use established covariate)
   mutate(APGRtest = as.numeric(as.character(APGR))<5) \%>\%
   # Pick two models or consistent with two_set_dots()
   shark_plot(run6,run11, facets = "APGRtest")

@@ -1,7 +1,22 @@
-# If xpose is not loaded into namespace, notify the user but also
-# set conflicted::conflict_prefer for functions overwritten here.
-# conflicted is imported into tidyverse, so it should be considered
-# usable given the existing constraints of xpose.
+.onAttach <- function(...) {
+  if (!is_attached("xpose")) {
+    cli::cli_alert_info(paste("{.strong {cli::col_blue('xpose')}} is not currently attached."))
+  }
+
+  if (!is_loading_for_tests()) {
+    conflicted::conflict_prefer_all("xpose.xtras", "xpose", quiet=TRUE)
+  }
+}
+
+# These functions are from tidyverse
+is_attached <- function(x) {
+  paste0("package:", x) %in% search()
+}
+
+is_loading_for_tests <- function() {
+  !interactive() && identical(Sys.getenv("DEVTOOLS_LOAD"), "xpose.xtras")
+}
+
 
 # Remove CRAN note on no visible binding for global variable
 utils::globalVariables('.')
