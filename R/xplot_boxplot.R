@@ -152,13 +152,13 @@ xplot_boxplot <- function(xpdb,
                                xp_theme = xpdb$xp_theme,
                                name     = 'jitter',
                                ggfun    = 'geom_point',
-                               jitter_position = ggplot2::position_jitter(seed = jitter_seed),
+                               jitter_position = ggplot2::position_jitter(seed = jitter_seed, width = 0.2),
                                ...)
   }
 
   # Add connecting lines for jitter
   if (check_type$c) {
-    this_pos <- if (check_type$j) ggplot2::position_jitter(seed = jitter_seed) else ggplot2::position_identity()
+    this_pos <- if (check_type$j) ggplot2::position_jitter(seed = jitter_seed, width = 0.2) else ggplot2::position_identity()
     xp <- xp + xpose::xp_geoms(mapping  = c(mapping, aes(line_group = .data[[group]])),
                                xp_theme = xpdb$xp_theme,
                                name     = 'line',

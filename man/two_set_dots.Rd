@@ -9,7 +9,7 @@ two_set_dots(xpdb_s, ..., .inorder = FALSE, envir = parent.frame())
 \arguments{
 \item{xpdb_s}{<\code{xpose_set}> object}
 
-\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Passed to <[\code{select_subset}>}
+\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Passed to <\code{\link{select_subset}}>}
 
 \item{.inorder}{<\code{logical}> Regardless of base model or parentage, use the
 two plots in order of how they are in arguments. First plot listed is treated
@@ -18,8 +18,13 @@ as base or parent.}
 \item{envir}{Where to assign \code{mod1} and \code{mod2} <\code{xpose_set_item}>s}
 }
 \value{
-Into environment specified by \code{envir}, \code{mod1} and \code{mod2}
+Into environment specified by \code{envir}, <\code{xpose_set_item}> \code{mod1} and \code{mod2}
 }
 \description{
 Typical processing for plots of 2 sets
+}
+\details{
+Note that this function does not return valid \code{xpdb}-like objects (<\code{xpose_data}>
+or <\code{xp_xtras}>). The necessary objects for most functions can be retrieved using
+\code{mod1$xpdb} and \code{mod2$xpdb}.
 }

@@ -1,11 +1,57 @@
+#' Waterfall plot
+#'
+#' @description
+#' Generic function primarily used with wrappers targeting
+#' types of values changed between two models.
+#'
+#'
+#' @param xpdb_s <`xpose_set`> object
+#' @param ... See <[`two_set_dots`]>
+#' @param .inorder See <[`two_set_dots`]>
+#' @param type See Details.
+#' @param .cols <`tidyselect`> data columns to plot.
+#' @param max_nind If less than 1, the percentile of absolute
+#' change values above which to plot.
+#' If above 1, the absolute number of subjects is included. To show all,
+#' use an extreme positive number like 9999.
+#' @param scale_diff <`logical`> Scale change to the standard deviation
+#' of the model 1 column values. Respects faceting.
+#' @param show_n <`logical`> For faceting variables, show N per facet.
+#' *Not implemented*
+#' @param title Plot title
+#' @param subtitle Plot subtitle
+#' @param caption Plot caption
+#' @param tag Plot tag
+#' @param plot_name Metadata name of plot
+#' @param opt User-specified data options. Only some of these
+#' will be used.
+#' @param facets <`character`> Faceting variables
+#' @param facet_scales <`character`> Forwarded to `facet_*(scales = facet_scales)`
+#' @param .problem The problem to be used, by default returns the last one.
+#' @param .subprob The subproblem to be used, by default returns the last one.
+#' @param .method The estimation method to be used, by default returns the last one.
+#' @param quiet Silence extra debugging output
+#'
+#' @details
+#' For type-based customization of plots:
+#' \itemize{
+#'   \item `b` bar plot (from `geom_bar`)
+#'   \item `h` hline at 0 (from `geom_hline`)
+#'   \item `t` text of change value (from `geom_text`)
+#' }
+#'
+#'
+#' @export
+#'
 xset_waterfall <- function(
     xpdb_s,
     ...,
     .inorder=FALSE,
-    type = "bt",
-    .cols = NULL, # facet if more than one
+    type = "bh",
+    .cols = NULL,
     max_nind = 0.7,
     scale_diff = TRUE,
+    show_n = TRUE,
     title    = NULL,
     subtitle = NULL,
     caption  = NULL,
@@ -13,6 +59,7 @@ xset_waterfall <- function(
     plot_name = 'waterfall',
     opt,
     facets = NULL,
+    facet_scales = "free_x",
     .problem,
     .subprob,
     .method,
@@ -69,6 +116,7 @@ xset_waterfall <- function(
   post_processing_cov <- function(x) x
   if (!is.null(facets) && facets %in% xp_var(xpdb_f, .problem = .problem, type = "catcov")$col) {
     # TODO: use apply_lul_wide here for facets, but will have to be sure the new name is captured
+    # facet_labeller_fn <- apply_lul_wide(xpdb_f, .problem = .problem, show_n = show_n)
   }
   # post-processing
   id_var <- xp_var(xpdb_f, .problem = .problem, type = "id", silent = TRUE)$col
@@ -76,8 +124,10 @@ xset_waterfall <- function(
     if (max_nind<1) return(
       df %>% dplyr::filter(abs(value)>quantile(abs(value), max_nind))
     )
-    df %>% dplyr::slice(1:min(floor(max_nind),dplyr::n()))
+    # slice() here doesn't seem to filter correctly, so...
+    df %>% dplyr::filter(dplyr::row_number() <= min(floor(max_nind),dplyr::n()))
   }
+  labeller_fn <- apply_labels_units(xpdb_f, .problem = .problem)
   post_processing <- function(df) {
     # Given tidy processing, need to summarize from
     # variable: col1_1, col1_2, col2_1, col2_2,...
@@ -121,12 +171,12 @@ xset_waterfall <- function(
       # Filter number
       dplyr::arrange(-abs(value)) %>%
       dplyr::group_by(variable, across(dplyr::any_of(facets))) %>%
-      nind_filter() %>% # TODO: determine why this doesn't seem to be filtering right when faceted
+      nind_filter() %>%
       # Ensure waterfall sort
       dplyr::arrange(-value) %>%
       dplyr::ungroup() %>%
       # Apply labels and units
-      {apply_labels_units(xpdb_f, .problem = .problem)(.)} %>%
+      labeller_fn() %>%
       # Make sure ID stays in order
       dplyr::mutate(
         id_label=paste(.data[[id_var]]),
@@ -134,22 +184,36 @@ xset_waterfall <- function(
           forcats::fct_inorder()
       )
   }
+
   def_opt <- xpose::data_opt(.problem = .problem, .subprob = .subprob, .method = .method,
                              filter = xpose::only_distinct(xpdb_f, .problem, facets, quiet),
                              tidy = TRUE, value_col = combined_columns,
                              post_processing = post_processing)
+  if (!missing(opt)) {
+    if ("post_processing" %in% names(opt) && is.function(opt$post_processing)) {
+      def_opt$post_processing <- function(df) {
+        df %>%
+          post_processing() %>%
+          {opt$post_processing(.)}
+      }
+    }
+  }
   if (missing(opt)) opt <- def_opt
   # Only some data options should be used
   data <- xpose::fetch_data(xpdb_f, quiet = quiet, .problem = def_opt$problem, .subprob = def_opt$subprob,
                             .method = def_opt$method, .source = opt$source, simtab = opt$simtab,
                             filter = def_opt$filter, tidy = def_opt$tidy, index_col = NULL,
                             value_col = def_opt$value_col, post_processing = def_opt$post_processing)
+  if (!is.null(data) && all(data$value==0))
+    cli::cli_warn(paste("All individual parameter values are 0.",
+                        "This is unlikely to be an informative plot,",
+                        "since these are probably the same model."))
   if (is.null(data) || nrow(data) == 0) {
     rlang::abort('No data available for plotting. Please check the variable mapping and filering options.')
   }
 
   # Check type
-  allow_types <-  c("b", "t")
+  allow_types <-  c("b", "t","h")
   xpose::check_plot_type(type, allowed = allow_types)
   check_type <- purrr::map(allow_types, ~stringr::str_detect(type, stringr::fixed(.x, ignore_case = TRUE))) %>%
     setNames(allow_types)
@@ -170,7 +234,16 @@ xset_waterfall <- function(
       breaks = data$id_order
       )
 
-  # Add lines
+  # Add hline
+  if (check_type$h) {
+    xp <- xp + xpose::xp_geoms(mapping  = NULL,
+                               xp_theme = xpdb_f$xp_theme,
+                               name     = "hline",
+                               ggfun    = "geom_hline"
+    )
+  }
+
+  # Add bars
   if (check_type$b) {
     xp <- xp + xpose::xp_geoms(mapping  = NULL,
                                xp_theme = xpdb_f$xp_theme,
@@ -180,12 +253,32 @@ xset_waterfall <- function(
     )
   }
 
+  # Add text
+  if (check_type$t) {
+    xp <- xp + xpose::xp_geoms(mapping  = aes(
+      text_y = value,
+      text_label = formatC(
+        value,
+        format = "fg",
+        digits = reportable_digits(xpdb_f)
+      ),
+      text_hjust = ifelse(value>0, 1.1, 0)
+    ),
+    xp_theme = xpdb_f$xp_theme,
+    name     = "text",
+    ggfun    = "geom_text",
+    text_color = colorspace::darken(xpdb_f$xp_theme$ggabarDiag_fill, 0.68),
+    text_angle = 90,
+    text_alpha = 1
+    )
+  }
+
   # Define panels
   if (!is.null(facets) || length(sel_cols)>1) {
     facet_arg <- "variable"
     ncol_arg <- 1
     nrow_arg <- NULL
-    scales_arg <- "free_x"
+    scales_arg <- facet_scales
     if (!is.null(facets)) {
       # facet_arg <- paste(facets,collapse="+") %>%
       #   paste0("variable~",.) %>%
@@ -211,7 +304,6 @@ xset_waterfall <- function(
     y = ifelse(scale_diff, "Scaled change", "Change"),
     x = id_var
   )
-  return(xpose::as.xpose.plot(xp))
 
   if (utils::packageVersion('ggplot2') >= '3.0.0') {
     xp <- xp + ggplot2::labs(tag = tag)
@@ -231,4 +323,44 @@ xset_waterfall <- function(
   xpose::as.xpose.plot(xp)
 }
 
-# There may need to be a waterfall generic: xset_waterfall
+
+# Helper function for the specific type plots
+waterfall_helper <- function(
+    type,
+    label,
+    envir = parent.frame()
+) {
+  mod1 <- envir$mod1
+  mod2 <- envir$mod1
+  .problem <- envir$.problem
+
+  mid_sentence_label <- label
+  start_sentence_label <- stringr::str_to_title(label)
+  if (label!=tolower(label)) {
+    start_sentence_label <- label
+  }
+
+  rlang::try_fetch({
+    m1col <- xp_var(mod1$xpdb, .problem = .problem, type = type, silent=TRUE)$col
+    m2col <- xp_var(mod2$xpdb, .problem = .problem, type = type, silent=TRUE)$col
+  },
+  error = function(s) {
+    rlang::abort(paste0("No ", mid_sentence_label, "s appear to be available for at least one model.",
+                        "Make sure to `set_var_type(", type, " = *)` if they are available in the data."),
+                 parent = s)
+  })
+  if (!dplyr::setequal(m1col,m2col)) {
+    a_notin_b <- setdiff(m1col,m2col)
+    b_notin_a <- setdiff(m2col,m1col)
+    best_msg <- dplyr::case_when(
+      length(a_notin_b)>0 && length(b_notin_a)>0 ~ paste("{.strong {cli::col_cyan(a_notin_b)}} {ifelse(length(a_notin_b)==1,'is','are')} missing in model 2",
+                                                         "and {.strong {cli::col_cyan(b_notin_a)}} {ifelse(length(b_notin_a)==1,'is','are')} missing in model 1"),
+      length(a_notin_b)>0 ~ "{.strong {cli::col_cyan(a_notin_b)}} {ifelse(length(a_notin_b)==1,'is','are')}  missing in model 2",
+      length(b_notin_a)>0 ~ "{.strong {cli::col_cyan(b_notin_a)}} {ifelse(length(b_notin_a)==1,'is','are')} missing in model 1"
+    )
+    cli::cli_abort(paste(start_sentence_label,"list is not identical for the two models.", best_msg))
+  }
+
+  assign("m1col",m1col,envir = envir)
+  assign("m2col",m1col,envir = envir)
+}

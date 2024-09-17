@@ -656,7 +656,7 @@ eta_vs_catcov <- function(xpdb,
     xscale = xpose::check_scales('x', NULL)
   }
 
-  really_quiet <- `(`
+  really_quiet <- function(x) x
   if (quiet) really_quiet <- function(x) suppressWarnings(x) # <- trivial reshape warning silenced
 
   really_quiet(xplot_boxplot(

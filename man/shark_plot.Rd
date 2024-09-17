@@ -64,7 +64,7 @@ dofv_vs_id(
 use the difference in the number of unfixed parameters.}
 
 \item{text_cutoff}{If less than 1, the percentile of absolute
-individual dOFV values above which #' to show labels of IDs.
+individual dOFV values above which to show labels of IDs.
 If above 1, the absolute number of IDs to show. To show all,
 use an extreme positive number like 9999.}
 

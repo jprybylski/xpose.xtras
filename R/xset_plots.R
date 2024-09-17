@@ -1,26 +1,606 @@
 ########
 # Simple Plots (these may spin into their own script like shark_plots)
 ########
+# TODO: unit test all of these xset plot and helper functions, and generic functions
 
-# boxplot (etc) of all iOFVs in all models for a set
-# ... is either models in set, child(ren) of parent formula, or empty (all models).
-# if .lineage=TRUE, then ... is interpreted with xset_lineage
-iofv_vs_mod <- function(xpdb_s, ..., .lineage = FALSE) {}
+#' Objective function changes across models
+#'
+#' @description
+#' Another visualization of how individual objective functions change over
+#' the course of model development.
+#'
+#'
+#' @inheritParams xplot_boxplot
+#' @param xpdb_s <`xpose_set`> object
+#' @param ... <`tidyselect`> of models in set. If empty, all models are
+#' used in order of their position in the set.
+#' @param .lineage <`logical`> where if `TRUE`, `...` is processed
+#' in <[`xset_lineage`]>, and the output of that is used to plot the models.
+#' @param type Passed to <[`xplot_boxplot`]>
+#' @param axis.text What to label the model. This is parsed on a per-model
+#' basis.
+#' @param facets Additional facets
+#' @param .problem Problem number
+#' @param quiet Silence output
+#'
+#' @export
+#'
+#' @examples
+#'
+#' pheno_set %>%
+#'   focus_qapply(backfill_iofv) %>%
+#'   iofv_vs_mod()
+#'
+#' pheno_set %>%
+#'   focus_qapply(backfill_iofv) %>%
+#'   iofv_vs_mod(run3,run11,run14,run15)
+#'
+#' pheno_set %>%
+#'   focus_qapply(backfill_iofv) %>%
+#'   iofv_vs_mod(.lineage = TRUE)
+#'
+iofv_vs_mod <- function(
+    xpdb_s,
+    ...,
+    .lineage = FALSE,
+    mapping  = NULL,
+    orientation = "x",
+    type     = 'bjc',
+    title    = 'Individual OFVs across models',
+    subtitle = 'Based on @nind individuals, Initial OFV: @ofv',
+    caption  = 'Initial @dir',
+    tag      = NULL,
+    axis.text = "@run",
+    facets,
+    .problem,
+    quiet
+) {
+  check_xpose_set(xpdb_s)
 
-# waterfalls
-prm_waterfall <- function() {}
-eta_waterfall <- function() {}
-iofv_waterfall <- function() {}
+  # Make sure dots are unnamed
+  rlang::check_dots_unnamed()
 
-# These would just create a new xpdb in situ, then mutate, and then use xplot_scatter
-ipred_vs_ipred <- function() {}
-prm_vs_prm <- function() {}
-eta_vs_eta <- function() {}
+  if (.lineage==TRUE) {
+    mods <- xset_lineage(xpdb_s, ..., .spinner = FALSE)
+    if (is.list(mods)) {
+      rlang::abort(paste("`xset_lineage()` returned a list.",
+                         "If requesting to process `...` as a lineage, cannot request multiple lineages.",
+                         "Specifically, `...` should be empty or a single model name."))
+    }
+  } else if (rlang::dots_n(...)==0) {
+    mods <- names(xpdb_s)
+  } else if (rlang::dots_n(...)==1 && is_formula_list(rlang::dots_list(...))) {
+    mods <- all.vars(rlang::dots_list(...)[[1]])
+  } else {
+    mods <- select_subset(xpdb_s, ...) %>% names()
+  }
+  if (any(!mods %in% names(xpdb_s))) {
+    cli::cli_abort("Selected models not in set: {.strong {setdiff(mods, names(xpdb_s))}}")
+  }
+
+  xpose_subset <- xpdb_s %>% unfocus_xpdb() %>% select(!!mods)
+
+  # extra checks
+  if (missing(.problem))
+    .problem <- xpose::default_plot_problem(xpose_subset[[1]]$xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet))
+    quiet <- xpose_subset[[1]]$xpdb$options$quiet
+  if (missing(facets))
+    facets <- xpose_subset[[1]]$xpdb$xp_theme$facets
+
+
+
+  xpdb_l <- purrr::map(xpose_subset, ~.x$xpdb)
+  ofv_cols <- purrr::map_chr(xpdb_l,
+                             ~xp_var(.x, type="iofv", silent=TRUE)$col[1])
+  ofv_frk_cols <- paste0(ofv_cols,"_",seq_along(ofv_cols))
+  nicer_labs <- purrr::map_chr(xpdb_l,~xpose::parse_title(axis.text,.x, .problem))
+
+  # Get combined xpdb
+  xpdb_f <- franken_xpdb(
+    !!!xpdb_l,
+    .types = "iofv",
+    problem = .problem # TODO: can probably franken_prop first and last ofvs and first and last dirs (can easily now with indices argument)
+  )
+
+  post_processing <- function(df) {
+    df %>%
+      # Relabel variable
+      dplyr::mutate(
+        variable = nicer_labs[match(variable,ofv_frk_cols)] %>%
+          forcats::as_factor() %>%
+          forcats::fct_inorder()
+      )
+  }
+  opt <- xpose::data_opt(.problem = .problem,
+                         filter = xpose::only_distinct(xpdb_f, .problem, facets, quiet),
+                         tidy = TRUE, value_col = ofv_frk_cols, post_processing = post_processing)
+
+  if (orientation=="x") {
+    vars <- xpose::aes_c(aes(
+      x = .data[["variable"]],
+      y = .data[["value"]]), mapping)
+    xscale = "discrete"
+    yscale = xpose::check_scales('y', NULL)
+  } else {
+    vars <- xpose::aes_c(aes(
+      x = .data[["value"]],
+      y = .data[["variable"]]), mapping)
+    yscale = "discrete"
+    xscale = xpose::check_scales('x', NULL)
+  }
+
+  really_quiet <- function(x) x
+  if (quiet) really_quiet <- function(x) suppressWarnings(x) # <- trivial reshape warning silenced
+
+  really_quiet(xplot_boxplot(
+    xpdb = xpdb_f,
+    quiet = quiet,
+    opt = opt,
+    mapping = vars,
+    type = type,
+    facets = facets,
+    xscale = xscale,
+    yscale = yscale,
+    orientation = orientation,
+    title = title,
+    subtitle = subtitle, caption = caption,
+    tag = tag,
+    plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::")))
+
+}
+
+#' Specific waterfall plots
+#'
+#' @rdname waterfalls
+#'
+#' @inheritParams xset_waterfall
+#'
+#' @return <`xpose_plot`> object
+#' @export
+#'
+#'
+#' @details
+#' For type-based customization of plots:
+#' \itemize{
+#'   \item `b` bar plot (from `geom_bar`)
+#'   \item `h` hline at 0 (from `geom_hline`)
+#'   \item `t` text of change value (from `geom_text`)
+#' }
+#'
+#'
+#' @examples
+#'
+#' # Parameter value changes
+#' pheno_set %>%
+#'   # Ensure param is set
+#'   focus_qapply(set_var_types, param=c(CL,V)) %>%
+#'   prm_waterfall(run5,run6)
+#'
+#'
+#' # EBE value changes
+#' pheno_set %>%
+#'   eta_waterfall(run5,run6)
+#'
+#' # iOFV changes
+#' pheno_set %>%
+#'   focus_qapply(backfill_iofv) %>%
+#'   # Note the default scaling is flipped here
+#'   iofv_waterfall(run5,run6)
+#'
+#'
+prm_waterfall <- function(
+    xpdb_s,
+    ...,
+    .inorder=FALSE,
+    type = "bh",
+    max_nind = 0.7,
+    scale_diff = TRUE,
+    show_n = TRUE,
+    title    = "Parameter changes between models | @run",
+    subtitle = "Based on @nobs observations in @nind individuals",
+    caption  = "@dir",
+    tag      = NULL,
+    facets = NULL,
+    facet_scales = "free_x",
+    .problem,
+    .subprob,
+    .method,
+    quiet
+) {
+
+  # process dots (this is also done in forwarded model, but need to do here. Plus it's fast enough)
+  two_set_dots(xpdb_s, ..., .inorder=.inorder)
+  # Now have mod1 and mod2
+
+  # Get params
+  waterfall_helper("param", "parameter")
+
+  xset_waterfall(
+    xpdb_s = xpdb_s,
+    ...,
+    .inorder=.inorder,
+    type = type,
+    .cols = dplyr::all_of(c(m1col)),
+    max_nind = max_nind,
+    scale_diff = scale_diff,
+    show_n = show_n,
+    title    = title,
+    subtitle = subtitle,
+    caption  = caption,
+    tag      = tag,
+    plot_name = 'prm_waterfall',
+    facets = facets,
+    facet_scales = facet_scales,
+    .problem=.problem,
+    .subprob=.subprob,
+    .method=.method,
+    quiet=quiet
+  )
+}
+#' @rdname waterfalls
+#' @export
+eta_waterfall <- function(
+    xpdb_s,
+    ...,
+    .inorder=FALSE,
+    type = "bh",
+    max_nind = 0.7,
+    scale_diff = TRUE,
+    show_n = TRUE,
+    title    = "Eta changes between models | @run",
+    subtitle = "Based on @nobs observations in @nind individuals",
+    caption  = "@dir",
+    tag      = NULL,
+    facets = NULL,
+    facet_scales = "free_x",
+    .problem,
+    .subprob,
+    .method,
+    quiet
+) {
+
+  # process dots (this is also done in forwarded model, but need to do here. Plus it's fast enough)
+  two_set_dots(xpdb_s, ..., .inorder=.inorder)
+  # Now have mod1 and mod2
+
+  # Get etas
+  waterfall_helper("eta", "eta")
+
+
+  # Eta label consistency
+  if (xpose::software(mod1$xpdb) == 'nonmem') {
+    post_processing <-  function(x) {
+      x %>%
+        dplyr::mutate(
+          variable = stringr::str_replace(variable, "^ET(A?)(\\d+)$", "ETA(\\2)")
+        )
+    }
+  } else {
+    post_processing <- function(x) x
+  }
+
+  xset_waterfall(
+    xpdb_s = xpdb_s,
+    ...,
+    .inorder=.inorder,
+    type = type,
+    .cols = dplyr::all_of(c(m1col)),
+    max_nind = max_nind,
+    scale_diff = scale_diff,
+    show_n = show_n,
+    title    = title,
+    subtitle = subtitle,
+    caption  = caption,
+    tag      = tag,
+    plot_name = 'eta_waterfall',
+    facets = facets,
+    facet_scales = facet_scales,
+    opt = xpose::data_opt(post_processing = post_processing),
+    .problem=.problem,
+    .subprob=.subprob,
+    .method=.method,
+    quiet=quiet
+  )
+}
+#' @rdname waterfalls
+#' @export
+iofv_waterfall <- function(
+    xpdb_s,
+    ...,
+    .inorder=FALSE,
+    type = "bh",
+    max_nind = 0.7,
+    scale_diff = FALSE,
+    show_n = TRUE,
+    title    = "iOFV changes between models | @run",
+    subtitle = "Based on @nobs observations in @nind individuals",
+    caption  = "@dir",
+    tag      = NULL,
+    facets = NULL,
+    facet_scales = "free_x",
+    .problem,
+    .subprob,
+    .method,
+    quiet
+) {
+
+  # process dots (this is also done in forwarded model, but need to do here. Plus it's fast enough)
+  two_set_dots(xpdb_s, ..., .inorder=.inorder)
+  # Now have mod1 and mod2
+
+  # Get values
+  waterfall_helper("iofv", "iOFV")
+
+  xset_waterfall(
+    xpdb_s = xpdb_s,
+    ...,
+    .inorder=.inorder,
+    type = type,
+    .cols = dplyr::all_of(c(m1col)),
+    max_nind = max_nind,
+    scale_diff = scale_diff,
+    show_n = show_n,
+    title    = title,
+    subtitle = subtitle,
+    caption  = caption,
+    tag      = tag,
+    plot_name = 'ofv_waterfall',
+    facets = facets,
+    facet_scales = facet_scales,
+    .problem=.problem,
+    .subprob=.subprob,
+    .method=.method,
+    quiet=quiet
+  )
+}
+
+#' Compare model predictions
+#'
+#' @rdname pred_vs_pred
+#'
+#' @description
+#' For two models in an `xpose_set`, these functions are useful in comparing individual
+#' and population predictions
+#'
+#' @param xpdb_s <`xpose_set`> object
+#' @param ... See <[`two_set_dots`]>
+#' @param .inorder See <[`two_set_dots`]>
+#' @param type Passed to `xplot_scatter`
+#' @param title Plot title
+#' @param subtitle Plot subtitle
+#' @param caption Plot caption
+#' @param tag Plot tag
+#' @param log Log scale covariate value?
+#' @param guide Add guide line?
+#' @param facets Additional facets
+#' @param .problem Problem number
+#' @param quiet Silence output
+#'
+#' @export
+#'
+#' @examples
+#'
+#' pheno_set %>%
+#'   ipred_vs_ipred(run5,run15)
+#'
+#' pheno_set %>%
+#'   pred_vs_pred(run5,run15)
+#'
+ipred_vs_ipred <- function(
+    xpdb_s,
+    ...,
+    .inorder=FALSE,
+    type = "pls",
+    title    = "Individual prediction comparison | @run",
+    subtitle = "Ofv: @ofv, Eps shrink: @epsshk",
+    caption  = "@dir",
+    tag      = NULL,
+    log = NULL,
+    guide = TRUE,
+    facets,
+    .problem,
+    quiet) {
+
+  # process dots
+  two_set_dots(xpdb_s, ..., .inorder=.inorder)
+  # Now have mod1 and mod2
+
+  # extra checks
+  if (missing(.problem))
+    .problem <- xpose::default_plot_problem(mod1$xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet))
+    quiet <- mod1$xpdb$options$quiet
+  if (missing(facets))
+    facets <- mod1$xpdb$xp_theme$facets
+
+  # Use waterfall helper to make sure ipred is available and column names match
+  waterfall_helper("ipred", "IPRED")
+
+
+  # Get combined xpdb
+  xpdb_f <- franken_xpdb(
+    mod1$xpdb,
+    mod2$xpdb,
+    .types = "ipred",
+    problem = .problem,
+    prop_transforms = function(xpdb_f, xpdb_list, problem) {
+      # Combine OFV
+      updated <- franken_prop(
+        xpdb_f = xpdb_f,
+        xpdb_list = xpdb_list,
+        prop = "ofv",
+        problem = problem,
+        glue_cmd = franken_numprop)
+      # Combine epsshk
+      updated <- franken_prop(
+        xpdb_f = updated,
+        xpdb_list = xpdb_list,
+        prop = "epsshk",
+        problem = problem,
+        glue_cmd = franken_numprop)
+      # Combine dir
+      updated <- franken_prop(
+        xpdb_f = updated,
+        xpdb_list = xpdb_list,
+        prop = "dir")
+      updated
+    }
+  )
+
+  # TODO: add post-processing for levels labels etc of facets
+  new_col_names <- paste0(c(
+    m1col, m2col # should be the same, still
+  ), " (", c(
+    get_prop(mod1$xpdb, "run"),
+    get_prop(mod2$xpdb, "run")
+  ), ")")
+  post_processing <- function(df) {
+    df %>%
+      dplyr::rename_with(~dplyr::case_when(
+        grepl(sprintf("^%s_1$",m1col), .x) ~ new_col_names[1],
+        grepl(sprintf("^%s_2$",m2col), .x) ~ new_col_names[2],
+        TRUE ~ .x
+      ))
+  }
+
+  xpose::xplot_scatter(
+    xpdb = xpdb_f,
+    mapping = aes(
+      x = .data[[new_col_names[1]]],
+      y = .data[[new_col_names[2]]]
+    ),
+    opt = xpose::data_opt(.problem = .problem, filter = xpose::only_obs(xpdb_f, .problem, quiet),
+                          post_processing = post_processing),
+    guide = guide,
+    guide_slope = 1,
+    facets = facets,
+    xscale = xpose::check_scales("x", log),
+    yscale = xpose::check_scales("y", log),
+    title = title,
+    subtitle = subtitle,
+    caption = caption,
+    tag = tag,
+    plot_name = stringr::str_remove(deparse(match.call()[[1]]),"(\\w+\\.*)+::")
+  )
+}
+#' @rdname pred_vs_pred
+#' @export
+pred_vs_pred <- function(
+    xpdb_s,
+    ...,
+    .inorder=FALSE,
+    type = "pls",
+    title    = "Population prediction comparison | @run",
+    subtitle = "Ofv: @ofv, Eps shrink: @epsshk",
+    caption  = "@dir",
+    tag      = NULL,
+    log = NULL,
+    guide = TRUE,
+    facets,
+    .problem,
+    quiet) {
+
+  # process dots
+  two_set_dots(xpdb_s, ..., .inorder=.inorder)
+  # Now have mod1 and mod2
+
+  # extra checks
+  if (missing(.problem))
+    .problem <- xpose::default_plot_problem(mod1$xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet))
+    quiet <- mod1$xpdb$options$quiet
+  if (missing(facets))
+    facets <- mod1$xpdb$xp_theme$facets
+
+  # Use waterfall helper to make sure ipred is available and column names match
+  waterfall_helper("pred", "PRED")
+
+
+  # Get combined xpdb
+  xpdb_f <- franken_xpdb(
+    mod1$xpdb,
+    mod2$xpdb,
+    .types = "pred",
+    problem = .problem,
+    prop_transforms = function(xpdb_f, xpdb_list, problem) {
+      # Combine OFV
+      updated <- franken_prop(
+        xpdb_f = xpdb_f,
+        xpdb_list = xpdb_list,
+        prop = "ofv",
+        problem = problem,
+        glue_cmd = franken_numprop)
+      # Combine epsshk
+      updated <- franken_prop(
+        xpdb_f = updated,
+        xpdb_list = xpdb_list,
+        prop = "epsshk",
+        problem = problem,
+        glue_cmd = franken_numprop)
+      # Combine dir
+      updated <- franken_prop(
+        xpdb_f = updated,
+        xpdb_list = xpdb_list,
+        prop = "dir")
+      updated
+    }
+  )
+
+  # TODO: add post-processing for levels labels etc of facets
+  new_col_names <- paste0(c(
+    m1col, m2col # should be the same, still
+  ), " (", c(
+    get_prop(mod1$xpdb, "run"),
+    get_prop(mod2$xpdb, "run")
+  ), ")")
+  post_processing <- function(df) {
+    df %>%
+      dplyr::rename_with(~dplyr::case_when(
+        grepl(sprintf("^%s_1$",m1col), .x) ~ new_col_names[1],
+        grepl(sprintf("^%s_2$",m2col), .x) ~ new_col_names[2],
+        TRUE ~ .x
+      ))
+  }
+
+  xpose::xplot_scatter(
+    xpdb = xpdb_f,
+    mapping = aes(
+      x = .data[[new_col_names[1]]],
+      y = .data[[new_col_names[2]]]
+    ),
+    opt = xpose::data_opt(.problem = .problem, filter = xpose::only_obs(xpdb_f, .problem, quiet),
+                          post_processing = post_processing),
+    guide = guide,
+    guide_slope = 1,
+    facets = facets,
+    xscale = xpose::check_scales("x", log),
+    yscale = xpose::check_scales("y", log),
+    title = title,
+    subtitle = subtitle,
+    caption = caption,
+    tag = tag,
+    plot_name = stringr::str_remove(deparse(match.call()[[1]]),"(\\w+\\.*)+::")
+  )
+}
 
 # This would also just be an in situ xpdb, but there may need to be a function
 # for model-averaging
+dv_vs_ipred_modavg <- function() {}
+dv_vs_pred_modavg <- function() {}
 ipred_vs_idv_modavg <- function() {}
 pred_vs_idv_modavg <- function() {}
+modavg_processiong <- function( # TODO: When done, move this to helpers
+    df,
+    iofv_col = "iOFV",
+    algorithm = c("maa","msa"),
+    weight_type = c("population","individual")
+) {
+  # using iOFV (sum to get total OFV)
+}
 
 
 
@@ -29,20 +609,26 @@ pred_vs_idv_modavg <- function() {}
 
 
 ########
-# Helper functions
+# Helper functions (general)
 ########
 
 
 #' Typical processing for plots of 2 sets
 #'
 #' @param xpdb_s <`xpose_set`> object
-#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Passed to <[`select_subset`>
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Passed to <[`select_subset`]>
 #' @param .inorder <`logical`> Regardless of base model or parentage, use the
 #' two plots in order of how they are in arguments. First plot listed is treated
 #' as base or parent.
 #' @param envir Where to assign `mod1` and `mod2` <`xpose_set_item`>s
 #'
-#' @return Into environment specified by `envir`, `mod1` and `mod2`
+#' @return Into environment specified by `envir`, <`xpose_set_item`> `mod1` and `mod2`
+#'
+#' @details
+#' Note that this function does not return valid `xpdb`-like objects (<`xpose_data`>
+#' or <`xp_xtras`>). The necessary objects for most functions can be retrieved using
+#' `mod1$xpdb` and `mod2$xpdb`.
+#'
 #'
 two_set_dots <- function(
     xpdb_s, ...,
@@ -138,7 +724,7 @@ franken_xpdb <-  function(
     quiet = TRUE
 ) {
   rlang::check_dots_unnamed()
-  if (rlang::dots_n(...)<2) {
+  if (length(rlang::list2(...))<2) {
     cli::cli_abort("Need at least two `xpose_data` or `xp_xtra` objects.")
   }
 
@@ -287,13 +873,14 @@ franken_prop <- function(
     xpdb_list,
     prop,
     problem=NULL,
-    glue_cmd = function(x) glue::glue_collapse(x, ", ", last = " and ")
+    glue_cmd = function(x) glue::glue_collapse(x, ", ", last = " and "),
+    indices = seq_along(xpdb_list)
 ) {
   xpdb_f %>%
     # Ensure this commonly called property is updated
     set_prop(
       !!prop := purrr::map_chr(
-        xpdb_list,
+        xpdb_list[indices],
         get_prop,
         prop,
         .problem = problem) %>%
