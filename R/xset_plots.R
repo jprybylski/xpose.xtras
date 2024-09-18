@@ -13,9 +13,12 @@
 #' @inheritParams xplot_boxplot
 #' @param xpdb_s <`xpose_set`> object
 #' @param ... <`tidyselect`> of models in set. If empty, all models are
-#' used in order of their position in the set.
+#' used in order of their position in the set. May also use a formula,
+#' which will just be processed with `all.vars()`.
 #' @param .lineage <`logical`> where if `TRUE`, `...` is processed
-#' in <[`xset_lineage`]>, and the output of that is used to plot the models.
+#' @param auto_backfill <`logical`> If `TRUE`, apply <[`backfill_iofv()`]>
+#' automatically. `FALSE` by default to encourage data control as a
+#' separate process to plotting control.
 #' @param type Passed to <[`xplot_boxplot`]>
 #' @param axis.text What to label the model. This is parsed on a per-model
 #' basis.
@@ -43,6 +46,7 @@ iofv_vs_mod <- function(
     xpdb_s,
     ...,
     .lineage = FALSE,
+    auto_backfill = FALSE,
     mapping  = NULL,
     orientation = "x",
     type     = 'bjc',
@@ -78,7 +82,9 @@ iofv_vs_mod <- function(
     cli::cli_abort("Selected models not in set: {.strong {setdiff(mods, names(xpdb_s))}}")
   }
 
-  xpose_subset <- xpdb_s %>% unfocus_xpdb() %>% select(!!mods)
+  pre_process <- function(x) unfocus_xpdb(x)
+  if (auto_backfill==TRUE) pre_process <- function(x) focus_qapply(x, backfill_iofv)
+  xpose_subset <- xpdb_s %>% pre_process() %>% select(!!mods)
 
   # extra checks
   if (missing(.problem))
@@ -593,18 +599,128 @@ dv_vs_ipred_modavg <- function() {}
 dv_vs_pred_modavg <- function() {}
 ipred_vs_idv_modavg <- function() {}
 pred_vs_idv_modavg <- function() {}
-modavg_processiong <- function( # TODO: When done, move this to helpers
-    df,
-    iofv_col = "iOFV",
+modavg_xpdb <- function(
+    xpdb_s,
+    ...,
+    .lineage = FALSE,
+    avg_cols = NULL,
     algorithm = c("maa","msa"),
-    weight_type = c("population","individual")
+    weight_type = c("population","individual"),
+    auto_backfill = FALSE,
+    weight_basis = c("ofv","aic","res"),
+    res_col = "RES",
+    quiet
 ) {
-  # using iOFV (sum to get total OFV)
+
+  check_xpose_set(xpdb_s)
+
+  # Make sure dots are unnamed
+  rlang::check_dots_unnamed()
+
+  if (.lineage==TRUE) {
+    mods <- xset_lineage(xpdb_s, ..., .spinner = FALSE)
+    if (is.list(mods)) {
+      rlang::abort(paste("`xset_lineage()` returned a list.",
+                         "If requesting to process `...` as a lineage, cannot request multiple lineages.",
+                         "Specifically, `...` should be empty or a single model name."))
+    }
+  } else if (rlang::dots_n(...)==0) {
+    mods <- names(xpdb_s)
+  } else if (rlang::dots_n(...)==1 && is_formula_list(rlang::dots_list(...))) {
+    mods <- all.vars(rlang::dots_list(...)[[1]])
+  } else {
+    mods <- select_subset(xpdb_s, ...) %>% names()
+  }
+  if (any(!mods %in% names(xpdb_s))) {
+    cli::cli_abort("Selected models not in set: {.strong {setdiff(mods, names(xpdb_s))}}")
+  }
+
+  pre_process <- function(x) unfocus_xpdb(x)
+  if (auto_backfill==TRUE) pre_process <- function(x) focus_qapply(x,backfill_iofv)
+  xpose_subset <- xpdb_s %>% pre_process() %>% select(!!mods)
+
+  # extra checks
+  if (missing(quiet))
+    quiet <- xpose_subset[[1]]$xpdb$options$quiet
+  if (rlang::quo_is_null(rlang::enquo(avg_cols))) {
+    rlang::abort("Columns to average are required. Provide argument `avg_cols`.")
+  }
+  algorithm <- rlang::arg_match(algorithm, values = c("maa","msa"))
+  weight_type <- rlang::arg_match(weight_type, values = c("population","individual"))
+  weight_basis <- rlang::arg_match(weight_basis, values = c("ofv","aic","res"))
+
+  xpdb_l <- purrr::map(xpose_subset, ~.x$xpdb)
+
+  # Get combined xpdb
+  xpdb_f <- franken_xpdb(
+    !!!xpdb_l,
+    .types = c("iofv","res"),
+    .cols = {{avg_cols}}
+  )
+  # To make working with new columns easier
+  ofv_cols <- purrr::map_chr(xpdb_l,
+                             ~xp_var(.x, type="iofv", silent=TRUE)$col[1])
+  ofv_frk_cols <- paste0(ofv_cols,"_",seq_along(ofv_cols))
+  avgd_cols <- purrr::map2(xpdb_l,seq_along(xpdb_l),
+                           # Make sure to respect tidy selection
+                           ~{
+                             all_cols <- get_index(.x) %>%
+                               dplyr::pull(col) %>%
+                               setNames(.,.)
+                             tidyselect::eval_select({{avg_cols}},all_cols) %>%
+                               names() %>%
+                               paste0("_",.y)
+                           })
+  avgd_frk_cols <- purrr::list_c(avgd_cols)
+  grped_avgd_cols <- purrr::map(seq_along(avgd_cols[[1]]), ~purrr::map_chr(avgd_cols,function(x) x[.x]))
+  # Add AIC
+  aic_cols <- paste0("AIC_",seq_along(xpdb_l))
+  if (weight_basis=="aic") {
+    for (prob in xpose::all_data_problem(xpdb_f)) {
+      for (i in seq_along(xpdb_l)) {
+        xpdb <- xpdb_l[[i]]
+        new_col <- aic_cols[i]
+        id_col <- xp_var(xpdb_f, .problem = prob, type = "id", silent = TRUE)$col
+        ofv_col <- ofv_frk_cols[i]
+        npars <- xpose::get_prm(xpdb, .problem=prob, quiet = TRUE) %>%
+          dplyr::pull(fixed) %>% `!`() %>% sum()
+        xpdb_f <- xpdb_f %>%
+          `if`(
+            weight_type=="individual",
+            group_by_x(., across(any_of(id_col))),
+            .
+          ) %>%
+          mutate_x(
+            !!new_col := sum(.data[[ofv_col]][!duplicated(.data[[id_col]])]) + 2*.env$npars
+          ) %>%
+          `if`(
+            weight_type=="individual",
+            xpose::ungroup(.),
+            .
+          )
+      }
+
+    }
+  }
+
+  return(xpdb_f)
+
+  mod_ave_fn <- function(df) {
+    # expect to be grouped if individual weighting
+    # Calculate weights (used)
+    if (algorithm=="maa") {
+      for (i in seq_along(grped_avgd_cols)) {
+        # use
+      }
+    } else if ( algorithm=="msa" ) {
+
+    }
+  }
+
+  for (prob in xpose::all_data_problem(xpdb_f)) {
+
+  }
 }
-
-
-
-
 
 
 
@@ -623,6 +739,7 @@ modavg_processiong <- function( # TODO: When done, move this to helpers
 #' @param envir Where to assign `mod1` and `mod2` <`xpose_set_item`>s
 #'
 #' @return Into environment specified by `envir`, <`xpose_set_item`> `mod1` and `mod2`
+#' @keywords internal
 #'
 #' @details
 #' Note that this function does not return valid `xpdb`-like objects (<`xpose_data`>
@@ -707,6 +824,7 @@ two_set_dots <- function(
 #' @param quiet Prevents extra output.
 #'
 #' @return The first `xpose_data` object with new data columns
+#' @keywords internal
 #'
 #' @examples
 #'
@@ -827,7 +945,9 @@ franken_xpdb <-  function(
 #' @param prop <`character`> of the property to combine
 #' @param glue_cmd Any special transformation to the properties,
 #' including how to collapse.
-#'
+#' @param problem <`numeric`> If necessary to specify
+#' @param indices <`numeric`> Index values `1:length(xpdb_list)`
+#' to include in the property collapse.
 #'
 #' @details
 #' This function is meant to be called within [`franken_xpdb`].
@@ -840,6 +960,7 @@ franken_xpdb <-  function(
 #' functions is not intended.
 #'
 #' @return Same as `xpdb_f` with new properties.
+#' @keywords internal
 #'
 #' @examples
 #' # This is designed to be called in a function environment which

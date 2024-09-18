@@ -8,6 +8,7 @@ iofv_vs_mod(
   xpdb_s,
   ...,
   .lineage = FALSE,
+  auto_backfill = FALSE,
   mapping = NULL,
   orientation = "x",
   type = "bjc",
@@ -25,10 +26,14 @@ iofv_vs_mod(
 \item{xpdb_s}{<\code{xpose_set}> object}
 
 \item{...}{<\code{tidyselect}> of models in set. If empty, all models are
-used in order of their position in the set.}
+used in order of their position in the set. May also use a formula,
+which will just be processed with \code{all.vars()}.}
 
-\item{.lineage}{<\code{logical}> where if \code{TRUE}, \code{...} is processed
-in <\code{\link{xset_lineage}}>, and the output of that is used to plot the models.}
+\item{.lineage}{<\code{logical}> where if \code{TRUE}, \code{...} is processed}
+
+\item{auto_backfill}{<\code{logical}> If \code{TRUE}, apply <\code{\link[=backfill_iofv]{backfill_iofv()}}>
+automatically. \code{FALSE} by default to encourage data control as a
+separate process to plotting control.}
 
 \item{mapping}{\code{ggplot2} style mapping}
 

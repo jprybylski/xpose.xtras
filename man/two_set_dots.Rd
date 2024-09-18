@@ -28,3 +28,4 @@ Note that this function does not return valid \code{xpdb}-like objects (<\code{x
 or <\code{xp_xtras}>). The necessary objects for most functions can be retrieved using
 \code{mod1$xpdb} and \code{mod2$xpdb}.
 }
+\keyword{internal}

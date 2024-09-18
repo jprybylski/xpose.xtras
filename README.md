@@ -13,7 +13,8 @@ be added to the base xpose package.
 # Todo
 
 Partially completed items have ~~strikethough~~ to “hide” the finished
-part.
+part. VPC-related tasks have been **de-scoped** because I don’t plan to
+use xpose-style VPC (ie, vpc::vpc) functionality extensively.
 
 - [x] Extend xpose_data class or add a new class with additional
   structures.
@@ -30,8 +31,8 @@ part.
   - [ ] tabulate dofv (and related)
   - [x] apply transformations to one or multiple xpdbs in a set (done
     with `focus`)
-  - [ ] model comparison functions from xpose4
-  - [ ] model averaging VPC
+  - [x] model comparison functions from xpose4
+  - [x] **De-scoped** model averaging VPC
 - [x] set_var_type changes
   - [x] accept vector for continuous and categorical variables (*already
     present*)
@@ -41,7 +42,7 @@ part.
   un-flip flop suggestions for up to 3 compartments
 - [ ] Ability to import bbr model (bbr::read_model %\>%
   xpose.xtras::import_bbr())
-- [ ] Ability to import/export xpose4 model (xpdb \<-
+- [x] **De-scoped** Ability to import/export xpose4 model (xpdb \<-
   xpose.xtras::import_xp4(xpdb4); xpdb4 \<-
   xpose.xtras::export_xp4(xpdb))
 - [x] Getter and setter for description (“descr”) in xpose_data (get/set
@@ -64,8 +65,10 @@ part.
   - [ ] Need way to reference etas to fixed effects and state
     transformation
 - [ ] unit tests for all functions
-- [ ] tidyvpc support?
-  - [ ] Want vpc_tte ported over (even though this is not in xpose atm)
+- [x] **De-scoped (add any needed features to tidyvpc directly)**
+  tidyvpc support?
+  - [x] **De-scoped** Want vpc_tte ported over (even though this is not
+    in xpose atm)
 - [ ] options-defined default set of diagnostics
 - [ ] template-based reporting?
 - [ ] patchwork integration?

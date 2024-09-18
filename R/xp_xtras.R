@@ -465,6 +465,7 @@ backfill_iofv <- function(xpdb, .problem=NULL, .label = "iOFV") {
   }
 
   # Get iOFV from phi
+  # TODO: This function needs to also consider last_file_subprob and last_file_method, for SAEM/IMP and friends
   phi_df <- xpdb$files %>%
     dplyr::filter(extension=="phi") %>%
     dplyr::pull(data) %>%

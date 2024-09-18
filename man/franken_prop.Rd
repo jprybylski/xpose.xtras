@@ -9,7 +9,8 @@ franken_prop(
   xpdb_list,
   prop,
   problem = NULL,
-  glue_cmd = function(x) glue::glue_collapse(x, ", ", last = " and ")
+  glue_cmd = function(x) glue::glue_collapse(x, ", ", last = " and "),
+  indices = seq_along(xpdb_list)
 )
 }
 \arguments{
@@ -19,8 +20,13 @@ franken_prop(
 
 \item{prop}{<\code{character}> of the property to combine}
 
+\item{problem}{<\code{numeric}> If necessary to specify}
+
 \item{glue_cmd}{Any special transformation to the properties,
 including how to collapse.}
+
+\item{indices}{<\code{numeric}> Index values \code{1:length(xpdb_list)}
+to include in the property collapse.}
 }
 \value{
 Same as \code{xpdb_f} with new properties.
@@ -66,3 +72,4 @@ updated <- updated \%>\%
     glue_cmd = function(x) paste(x, collapse="&"))
 
 }
+\keyword{internal}

@@ -33,7 +33,7 @@
 #'   )
 #'
 #' @name set_var_types
-set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quiet) { # TODO: set_var_types_x as default with xp_xtras
+set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quiet) {
   # xpose.xtras :: Same beginning to the existing function, as that is necessary
 
   # Check input
@@ -120,4 +120,190 @@ irep <- function(x, quiet = FALSE) {
   x <- rep(1:(length(x)/ilen), each=ilen)
   xpose::msg(c('irep: ', max(x), ' simulations found.'), quiet)
   x
+}
+
+
+
+### More direct edit_xpose_data
+### The current implementation does a bit too many
+### checks that disrupt expected behavior of imported
+### functions. Currently these require difficult workarounds
+### to avoid these issues that.
+### This function will need to be called directly if we don't want to
+### overwrite the xpose methods (or the functions need to be renamed).
+#' Master xpdb editing function
+#'
+#' @description Generic function used to build dedicated editing functions
+#'
+#' @param .fun An editing function to be applied to the data.
+#' @param .fname The name of the editing function.
+#' @param .data An xpose database object.
+#' @param .problem The problem from which the data will be modified
+#' @param .source The source of the data in the xpdb. Can either be 'data' or an output
+#' file extension e.g. 'phi'.
+#' @param .where A vector of element names to be edited in special (e.g.
+#' \code{.where = c('vpc_dat', 'aggr_obs')} with vpc).
+#' @param ... Name-value pairs of expressions. Use \code{NULL} to drop a variable.
+#' @param check_quos Check that variables referenced exists. `TRUE` matches the
+#' behavior of <[`xpose::edit_xpose_data`]>
+#'
+#' These arguments are automatically quoted and evaluated in the
+#' context of the data frame. They support unquoting and splicing.
+#' See the dplyr vignette("programming") for an introduction to these concepts.
+#' @keywords internal
+#' @export
+edit_xpose_data <- function(.fun, .fname, .data, ..., .problem, .source, .where, check_quos = FALSE) {
+
+  # Check input
+  xpdb <- .data # Avoids issues with dplyr arguments
+  if (missing(.source)) .source <- 'data'
+  if (length(.source) > 1) stop('Argument `.source` should be of length 1.', call. = FALSE)
+  xpose::check_xpdb(xpdb, check = .source)
+
+  # Direct filter to specified source
+  if (.source == 'data') {
+    if (missing(.problem)) .problem <- xpose::all_data_problem(xpdb)
+    if (!all(.problem %in% xpose::all_data_problem(xpdb))) {
+      stop('Problem no.', stringr::str_c(.problem[!.problem %in% xpdb[['data']]$problem], collapse = ', '),
+           ' not found in model output data.', call. = FALSE)
+    }
+
+    if (check_quos==TRUE)
+      xpose::check_quo_vars(xpdb = xpdb, ..., .source = .source, .problem = .problem)
+
+    # do dplyr operation outside of mutate to avoid problems with n()
+    xpdb[['data']]$data <- purrr::map_if(xpdb[['data']]$data, xpdb[['data']]$problem %in% .problem,
+                                         # Forward all dots so dplyr pronouns work
+                                         .f = function(df) .fun(df, ...))
+    xpdb[['data']] <- xpdb[['data']] %>%
+      dplyr::mutate(modified = dplyr::if_else(.$problem %in% .problem, TRUE, .$modified))
+
+    if (.fname %in% c('mutate', 'select', 'rename')) {
+      xpdb[['data']] <- xpose::xpdb_index_update(xpdb = xpdb, .problem = .problem) # Update index
+    }
+  } else if (.source == 'special') {
+    if (missing(.problem)) {
+      .problem <- max(xpdb[['special']]$problem)
+      xpose::msg(c('Changes will be applied to `special` $prob no.', .problem), quiet = FALSE)
+    }
+    if (!all(.problem %in% xpdb[['special']]$problem)) {
+      stop('Problem no.', stringr::str_c(.problem[!.problem %in% xpdb[['special']]$problem], collapse = ', '),
+           ' not found in `special` data.', call. = FALSE)
+    }
+
+    if (check_quos==TRUE)
+      xpose::check_quo_vars(xpdb = xpdb, ..., .source = .source, .problem = .problem)
+
+    xpdb[['special']] <- xpdb[['special']] %>%
+      dplyr::group_by_at(.vars = 'problem')
+
+    ## TEMP handling
+    if (xpose::tidyr_new_interface()) {
+      xpdb[['special']] <- xpdb[['special']] %>%
+        tidyr::nest(tmp = -dplyr::one_of('problem')) %>%
+        dplyr::ungroup()
+    } else {
+      xpdb[['special']] <- xpdb[['special']] %>%
+        tidyr::nest(.key = 'tmp') %>%
+        dplyr::ungroup()
+    }
+    ## END TEMP
+
+    xpdb[['special']]$tmp <- purrr::map_if(.x = xpdb[['special']]$tmp, .p = xpdb[['special']]$problem %in% .problem,
+                                           .f = function(.x, .fun, .where, ...) {
+                                             if (.x$method == 'vpc') {
+                                               if (any(!.where %in% names(.x$data[[1]]))) {
+                                                 warning('elements ', stringr::str_c(.where[!.where %in% names(.x$data[[1]])], collapse = ', '),
+                                                         ' not found in ', .x$method, ' ', .x$type, call. = FALSE)
+                                               }
+                                               .x$data[[1]] <- .x$data[[1]] %>%
+                                                 purrr::map_at(.at = .where, .f = .fun, ...)
+                                               .x$modified <- TRUE
+                                               return(.x)
+                                             } else {
+                                               stop('edits of `', .x$method, '` data are not yet supported in xpose.', call. = FALSE)
+                                             }
+                                           }, .fun = .fun, .where = .where, !!!rlang::enquos(...))
+
+    xpdb[['special']] <- xpdb[['special']] %>%
+      tidyr::unnest(dplyr::one_of('tmp'))
+  } else {
+    if (missing(.problem)) .problem <- max(xpdb[['files']]$problem)
+    if (!all(.source %in% xpdb[['files']]$extension)) {
+      stop('File extension ', stringr::str_c(.source[!.source %in% xpdb[['files']]$extension], collapse = ', '),
+           ' not found in model output files.', call. = FALSE)
+    }
+
+    if (!all(.problem %in% xpdb[['files']]$problem[xpdb[['files']]$extension %in% .source])) {
+      stop('Problem no.', stringr::str_c(.problem[!.problem %in% xpdb[['files']]$problem], collapse = ', '),
+           ' not found in model output files.', call. = FALSE)
+    }
+
+    if (check_quos==TRUE)
+      xpose::check_quo_vars(xpdb = xpdb, ..., .source = .source, .problem = .problem)
+
+    xpdb[['files']]$data <- purrr::map_if(.x = xpdb[['files']]$data, .p = xpdb[['files']]$problem %in% .problem &
+                                            xpdb[['files']]$extension %in% .source,
+                                          .f = .fun, !!!rlang::enquos(...))
+    xpdb[['files']] <- xpdb[['files']] %>%
+      dplyr::mutate(modified = dplyr::if_else(.$problem %in% .problem & .$extension %in% .source, TRUE, .$modified))
+  }
+  xpose::as.xpdb(xpdb)
+}
+
+#' Add, remove or rename variables in an xpdb
+#'
+#' @description \code{mutate_x()} adds new variables and preserves existing ones.
+#' \code{select()} keeps only the listed variables; \code{rename()} keeps all variables.
+#'
+#' **Note:** this function uses `xpose.xtras::edit_xpose_data`, but is otherwise
+#' the same as <[`xpose::mutate`]>.
+#'
+#' @inheritParams edit_xpose_data
+#'
+#' @examples
+#' # Mutate columns
+#' xpdb_ex_pk %>%
+#'  mutate_x(lnDV = log(DV),
+#'         sim_count = irep(ID),
+#'         .problem = 1) %>%
+#'  dv_vs_idv(aes(y = lnDV))
+#'
+#' # Rename/select columns
+#' xpdb_ex_pk %>%
+#'  select(ID:TAD, DV, EVID) %>%
+#'  rename(TSLD = TAD) %>%
+#'  dv_vs_idv(aes(x = TSLD))
+#' @name modify_xpdb
+#' @export
+mutate_x <- function(.data, ..., .problem, .source, .where) {
+  edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = .data,
+                  .problem = .problem, .source = .source, .where = .where, ...)
+}
+
+#' Group/ungroup and summarize variables in an xpdb
+#'
+#' @description \code{group_by_x()} takes an existing table and converts it into a
+#' grouped table where operations are performed "by group". \code{ungroup()} removes grouping.
+#' \code{summarize()} reduces multiple values down to a single value.
+#'
+#' **Note:** this function uses `xpose.xtras::edit_xpose_data`, but is otherwise
+#' the same as <[`xpose::group_by`]>.
+#'
+#' @inheritParams edit_xpose_data
+#' @param x Same as .data (used for consistency with dplyr functions).
+#' @method group_by xpose_data
+#' @examples
+#' # Create a distribution plot of Cmax
+#' xpdb_ex_pk %>%
+#'  group_by(ID, SEX, .problem = 1) %>%
+#'  summarize(CMAX = max(DV), .problem = 1) %>%
+#'  ungroup(.problem = 1) %>%
+#'  xplot_distrib(aes(x = CMAX, density_fill = SEX), type = 'dr')
+#'
+#' @name summarise_xpdb
+#' @export
+group_by_x <- function(.data, ..., .problem, .source, .where) {
+  edit_xpose_data(.fun = dplyr::group_by, .fname = 'group_by', .data = .data,
+                  .problem = .problem, .source = .source, .where = .where, ...)
 }

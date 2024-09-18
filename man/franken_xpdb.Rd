@@ -41,3 +41,4 @@ xpose.xtras:::franken_xpdb(pheno_base, pheno_final, .types="catcov") \%>\%
   select(starts_with("APGR"))
 
 }
+\keyword{internal}
