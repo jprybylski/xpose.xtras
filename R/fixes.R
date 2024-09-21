@@ -292,7 +292,6 @@ mutate_x <- function(.data, ..., .problem, .source, .where) {
 #'
 #' @inheritParams edit_xpose_data
 #' @param x Same as .data (used for consistency with dplyr functions).
-#' @method group_by xpose_data
 #' @examples
 #' # Create a distribution plot of Cmax
 #' xpdb_ex_pk %>%
@@ -306,4 +305,12 @@ mutate_x <- function(.data, ..., .problem, .source, .where) {
 group_by_x <- function(.data, ..., .problem, .source, .where) {
   edit_xpose_data(.fun = dplyr::group_by, .fname = 'group_by', .data = .data,
                   .problem = .problem, .source = .source, .where = .where, ...)
+}
+
+#' @name summarise_xpdb
+#' @export
+ungroup_x <- function(.data, ..., .problem, .source, .where) {
+  edit_xpose_data(.fun = dplyr::ungroup, .fname = "ungroup",
+                  .data = .data, .problem = .problem, .source = .source, .where = .where,
+                  ...)
 }

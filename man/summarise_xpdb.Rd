@@ -3,9 +3,12 @@
 \name{summarise_xpdb}
 \alias{summarise_xpdb}
 \alias{group_by_x}
+\alias{ungroup_x}
 \title{Group/ungroup and summarize variables in an xpdb}
 \usage{
-\method{group_by}{xpose_data}(.data, ..., .problem, .source, .where)
+group_by_x(.data, ..., .problem, .source, .where)
+
+ungroup_x(.data, ..., .problem, .source, .where)
 }
 \arguments{
 \item{.data}{An xpose database object.}
