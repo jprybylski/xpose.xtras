@@ -1,0 +1,5 @@
+# https://confluence.pfizer.com/display/DSOEPipeline/Repository+Identification
+cmdb_id: ~
+primary_contact: PRYBYJ
+additional_contacts:
+  - john.prybylski@pfizer.com
