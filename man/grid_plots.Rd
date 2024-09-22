@@ -98,6 +98,7 @@ give an \code{x} orientation to covariate relationships.}
 Grid plots
 }
 \examples{
+\dontrun{
 
 eta_grid(xpdb_x)
 cov_grid(xpdb_x)
@@ -110,5 +111,5 @@ xpdb_x \%>\%
   set_var_levels(SEX=lvl_sex(), MED1 = lvl_bin()) \%>\%
   eta_vs_cov_grid()
 
-
+}
 }

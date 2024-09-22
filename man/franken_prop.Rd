@@ -45,6 +45,7 @@ This is a \emph{low-level} function, so its use outside of internal
 functions is not intended.
 }
 \examples{
+\dontrun{
 # This is designed to be called in a function environment which
 # would provide something like the following:
 
@@ -70,6 +71,6 @@ problem <- 1
 updated <- updated \%>\%
   franken_prop(xpdb_list, "ofv",  problem=problem,
     glue_cmd = function(x) paste(x, collapse="&"))
-
+}
 }
 \keyword{internal}

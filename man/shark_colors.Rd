@@ -25,6 +25,7 @@ This changes the point and text color
 in the \code{xp_theme} of an \code{xpose_data} object.
 }
 \examples{
+\dontrun{
 
 # Where this would fit in a particular workflow
 xpose_set(pheno_base, pheno_final) \%>\%
@@ -41,7 +42,7 @@ xpose_set(pheno_base, pheno_final) \%>\%
     )) \%>\%
   # See new plot
   shark_plot()
-
+}
 }
 \seealso{
 \code{\link[=shark_plot]{shark_plot()}}

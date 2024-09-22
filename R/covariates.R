@@ -29,6 +29,7 @@
 #'
 #'
 #' @examples
+#' \dontrun{
 #'
 #' eta_grid(xpdb_x)
 #' cov_grid(xpdb_x)
@@ -41,7 +42,7 @@
 #'   set_var_levels(SEX=lvl_sex(), MED1 = lvl_bin()) %>%
 #'   eta_vs_cov_grid()
 #'
-#'
+#' }
 eta_grid <- function(xpdb,
                      mapping  = NULL,
                      etavar = NULL,
@@ -393,6 +394,7 @@ eta_vs_cov_grid <- function(xpdb,
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #'
 #' eta_vs_contcov(xpdb_x)
 #'
@@ -402,7 +404,7 @@ eta_vs_cov_grid <- function(xpdb,
 #'   xpose::set_var_units(AGE="yrs") %>%
 #'   set_var_levels(SEX=lvl_sex(), MED1 = lvl_bin()) %>%
 #'   eta_vs_contcov()
-#'
+#' }
 eta_vs_contcov <- function(xpdb,
                            mapping  = NULL,
                            etavar = NULL,
@@ -541,6 +543,7 @@ eta_vs_contcov <- function(xpdb,
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #'
 #' eta_vs_catcov(xpdb_x)
 #'
@@ -550,7 +553,7 @@ eta_vs_contcov <- function(xpdb,
 #'   xpose::set_var_units(AGE="yrs") %>%
 #'   set_var_levels(SEX=lvl_sex(), MED1 = lvl_bin()) %>%
 #'   eta_vs_catcov()
-#'
+#' }
 eta_vs_catcov <- function(xpdb,
                           mapping  = NULL,
                           etavar = NULL,

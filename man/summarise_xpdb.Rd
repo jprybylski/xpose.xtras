@@ -33,12 +33,3 @@ grouped table where operations are performed "by group". \code{ungroup()} remove
 \strong{Note:} this function uses \code{xpose.xtras::edit_xpose_data}, but is otherwise
 the same as <\code{\link[xpose:reexports]{xpose::group_by}}>.
 }
-\examples{
-# Create a distribution plot of Cmax
-xpdb_ex_pk \%>\%
- group_by(ID, SEX, .problem = 1) \%>\%
- summarize(CMAX = max(DV), .problem = 1) \%>\%
- ungroup(.problem = 1) \%>\%
- xplot_distrib(aes(x = CMAX, density_fill = SEX), type = 'dr')
-
-}

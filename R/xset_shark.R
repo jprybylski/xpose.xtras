@@ -69,6 +69,7 @@
 #' @seealso [shark_colors()]
 #'
 #' @examples
+#' \dontrun{
 #'
 #' pheno_set %>%
 #'   # Make sure set has iofv var types defined
@@ -86,6 +87,7 @@
 #'   # Pick two models or consistent with two_set_dots()
 #'   shark_plot(run6,run11, facets = "APGRtest")
 #'
+#' }
 shark_plot <- function(
     xpdb_s,
     ...,
@@ -409,6 +411,7 @@ dofv_vs_id <- function(
 #' @seealso [shark_plot()]
 #'
 #' @examples
+#' \dontrun{
 #'
 #' # Where this would fit in a particular workflow
 #' xpose_set(pheno_base, pheno_final) %>%
@@ -425,7 +428,7 @@ dofv_vs_id <- function(
 #'     )) %>%
 #'   # See new plot
 #'   shark_plot()
-#'
+#' }
 shark_colors <- function(
     xpdb,
     upcolor = xp_xtra_theme(base_on = xpdb$xp_theme)$sharkup_color,

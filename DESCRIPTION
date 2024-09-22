@@ -12,10 +12,14 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports: 
+    assertthat,
     cli,
+    colorspace,
+    DiagrammeR,
     dplyr,
     forcats,
-    ggplot2,
+    GGally,
+    ggplot2 (>= 3.5.1),
     glue,
     lifecycle,
     magrittr,
@@ -25,6 +29,7 @@ Imports:
     stats,
     stringr,
     tibble,
+    tidyr,
     tidyselect,
     utils,
     xpose

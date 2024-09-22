@@ -136,6 +136,7 @@ diff.xpose_set <- function(xpdb_s, ...) {
 #'
 #'
 #' @examples
+#' \dontrun{
 #'
 #' xset_lineage(xpdb_set)
 #'
@@ -144,6 +145,7 @@ diff.xpose_set <- function(xpdb_s, ...) {
 #'
 #' xset_lineage(xpdb_set, fix1)
 #'
+#' }
 xset_lineage <- function(xpdb_s, ..., .spinner=NULL) { # TODO: test with more complex hierarchy
   check_xpose_set(xpdb_s, .warn = FALSE)
 

@@ -27,17 +27,3 @@ file extension e.g. 'phi'.}
 \strong{Note:} this function uses \code{xpose.xtras::edit_xpose_data}, but is otherwise
 the same as <\code{\link[xpose:reexports]{xpose::mutate}}>.
 }
-\examples{
-# Mutate columns
-xpdb_ex_pk \%>\%
- mutate_x(lnDV = log(DV),
-        sim_count = irep(ID),
-        .problem = 1) \%>\%
- dv_vs_idv(aes(y = lnDV))
-
-# Rename/select columns
-xpdb_ex_pk \%>\%
- select(ID:TAD, DV, EVID) \%>\%
- rename(TSLD = TAD) \%>\%
- dv_vs_idv(aes(x = TSLD))
-}

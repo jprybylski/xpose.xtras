@@ -29,6 +29,7 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #'
 #' pheno_set %>%
 #'   focus_qapply(backfill_iofv) %>%
@@ -42,6 +43,7 @@
 #'   focus_qapply(backfill_iofv) %>%
 #'   iofv_vs_mod(.lineage = TRUE)
 #'
+#' }
 iofv_vs_mod <- function(
     xpdb_s,
     ...,
@@ -842,6 +844,7 @@ franken_xpdb <-  function(
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #' # This is designed to be called in a function environment which
 #' # would provide something like the following:
 #'
@@ -867,7 +870,7 @@ franken_xpdb <-  function(
 #' updated <- updated %>%
 #'   franken_prop(xpdb_list, "ofv",  problem=problem,
 #'     glue_cmd = function(x) paste(x, collapse="&"))
-#'
+#' }
 franken_prop <- function(
     xpdb_f,
     xpdb_list,

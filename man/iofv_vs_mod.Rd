@@ -63,6 +63,7 @@ Another visualization of how individual objective functions change over
 the course of model development.
 }
 \examples{
+\dontrun{
 
 pheno_set \%>\%
   focus_qapply(backfill_iofv) \%>\%
@@ -76,4 +77,5 @@ pheno_set \%>\%
   focus_qapply(backfill_iofv) \%>\%
   iofv_vs_mod(.lineage = TRUE)
 
+}
 }

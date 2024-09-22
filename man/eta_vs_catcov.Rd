@@ -57,6 +57,7 @@ eta_vs_catcov(
 Eta categorical covariate plots (typical)
 }
 \examples{
+\dontrun{
 
 eta_vs_catcov(xpdb_x)
 
@@ -66,5 +67,5 @@ xpdb_x \%>\%
   xpose::set_var_units(AGE="yrs") \%>\%
   set_var_levels(SEX=lvl_sex(), MED1 = lvl_bin()) \%>\%
   eta_vs_catcov()
-
+}
 }

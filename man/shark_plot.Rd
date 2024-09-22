@@ -129,6 +129,7 @@ my_sigdrop <- -stats::qchisq(1-my_alpha, my_df)
 }\if{html}{\out{</div>}}
 }
 \examples{
+\dontrun{
 
 pheno_set \%>\%
   # Make sure set has iofv var types defined
@@ -146,6 +147,7 @@ pheno_set \%>\%
   # Pick two models or consistent with two_set_dots()
   shark_plot(run6,run11, facets = "APGRtest")
 
+}
 }
 \seealso{
 \code{\link[=shark_colors]{shark_colors()}}

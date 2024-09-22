@@ -261,19 +261,6 @@ edit_xpose_data <- function(.fun, .fname, .data, ..., .problem, .source, .where,
 #'
 #' @inheritParams edit_xpose_data
 #'
-#' @examples
-#' # Mutate columns
-#' xpdb_ex_pk %>%
-#'  mutate_x(lnDV = log(DV),
-#'         sim_count = irep(ID),
-#'         .problem = 1) %>%
-#'  dv_vs_idv(aes(y = lnDV))
-#'
-#' # Rename/select columns
-#' xpdb_ex_pk %>%
-#'  select(ID:TAD, DV, EVID) %>%
-#'  rename(TSLD = TAD) %>%
-#'  dv_vs_idv(aes(x = TSLD))
 #' @name modify_xpdb
 #' @export
 mutate_x <- function(.data, ..., .problem, .source, .where) {
@@ -292,13 +279,6 @@ mutate_x <- function(.data, ..., .problem, .source, .where) {
 #'
 #' @inheritParams edit_xpose_data
 #' @param x Same as .data (used for consistency with dplyr functions).
-#' @examples
-#' # Create a distribution plot of Cmax
-#' xpdb_ex_pk %>%
-#'  group_by(ID, SEX, .problem = 1) %>%
-#'  summarize(CMAX = max(DV), .problem = 1) %>%
-#'  ungroup(.problem = 1) %>%
-#'  xplot_distrib(aes(x = CMAX, density_fill = SEX), type = 'dr')
 #'
 #' @name summarise_xpdb
 #' @export

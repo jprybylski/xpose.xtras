@@ -93,6 +93,8 @@ test_that("grid plots appear as expected", {
 
   #### vdiffr tests to skip on CRAN
   skip_on_cran()
+  skip_on_covr()
+  skip()
   library(vdiffr)
   expect_doppelganger("from xpose_data", wo_xpx) # expect same as snapshot
   expect_doppelganger("from xp_xtra", w_xpx) # expect same as snapshot

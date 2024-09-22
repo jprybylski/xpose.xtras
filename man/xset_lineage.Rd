@@ -32,6 +32,7 @@ As such, for larger sets this function and, more importantly,
 functions that use it may take some time.
 }
 \examples{
+\dontrun{
 
 xset_lineage(xpdb_set)
 
@@ -40,4 +41,5 @@ set_base_model(xpdb_set, fix1) \%>\%
 
 xset_lineage(xpdb_set, fix1)
 
+}
 }
