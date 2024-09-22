@@ -4,7 +4,7 @@
 \alias{backfill_iofv}
 \title{Add individual objective function to data}
 \usage{
-backfill_iofv(xpdb, .problem = NULL, .label = "iOFV")
+backfill_iofv(xpdb, .problem = NULL, .subprob = NULL, .label = "iOFV")
 }
 \arguments{
 \item{xpdb}{<\code{xpose_data}> or <\code{xp_xtras}> object}

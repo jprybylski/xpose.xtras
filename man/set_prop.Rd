@@ -4,7 +4,7 @@
 \alias{set_prop}
 \title{Set a summary property}
 \usage{
-set_prop(xpdb, ..., .problem = NULL)
+set_prop(xpdb, ..., .problem = NULL, .subprob = NULL)
 }
 \arguments{
 \item{xpdb}{<\code{xpose_data}\link[xpose:xpose_data]{xpose::xpose_data}> object}

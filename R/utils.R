@@ -49,8 +49,9 @@ get_shk <- function(xpdb, wh = "eta", .problem = NULL) {
 #' data("xpdb_ex_pk", package = "xpose")
 #'
 #' get_prop(xpdb_ex_pk, "descr")
-get_prop <- function(xpdb, prop, .problem = NULL) {
-  use_problem <- dplyr::coalesce(.problem[1],xpose::default_plot_problem(xpdb))
+get_prop <- function(xpdb, prop, .problem = NULL, .subprob=NULL, .method=NULL) {
+
+  fill_prob_subprob_method(xpdb, .problem = .problem, .subprob=.subprob, .method=.method)
 
   summ <- xpose::get_summary(xpdb)
 
@@ -64,7 +65,7 @@ get_prop <- function(xpdb, prop, .problem = NULL) {
   summ %>%
     dplyr::filter(label==prop) %>%
     # Include 0 for non-problem values
-    dplyr::filter(problem %in% c(0,use_problem)) %>%
+    dplyr::filter(problem %in% c(0,.problem), subprob  %in% c(0,.subprob)) %>%
     dplyr::pull(value)
 }
 
@@ -90,7 +91,7 @@ get_prop <- function(xpdb, prop, .problem = NULL) {
 #' set_prop(xpose::xpdb_ex_pk, descr = "New model description") %>%
 #'   xpose::get_summary()
 #'
-set_prop <- function(xpdb, ..., .problem = NULL) {
+set_prop <- function(xpdb, ..., .problem = NULL, .subprob = NULL) {
   summ <- xpose::get_summary(xpdb)
 
   props_to_set <- rlang::dots_list(..., .homonyms = "error", .ignore_empty = "all")
@@ -104,6 +105,24 @@ set_prop <- function(xpdb, ..., .problem = NULL) {
   check_sum <- purrr::map_lgl(props_to_set, ~ length(.x)==1)
   if (any(!check_sum)) {
     cli::cli_abort("Properties can only by set to one value. (applies to {names(props_to_set)[!check_sum]})")
+  }
+  if (is.null(.problem) && !is.null(.subprob))
+    rlang::abort("`.problem` is needed if `.subprob` is used.")
+  if (!is.null(.problem) && !is.null(.subprob) && length(.problem)<length(.subprob)) {
+    # Check if recyclable
+    rlang::try_fetch(
+      .problem <- vctrs::vec_recycle(.problem, length(.subprob)),
+      error = function(s)
+        rlang::abort("`.problem` should be recyclable to match `.subprob`.", parent = s)
+    )
+  }
+  if (!is.null(.problem) && !is.null(.subprob) && length(.problem)>length(.subprob)) {
+    # Check if recyclable
+    rlang::try_fetch(
+      .subprob <- vctrs::vec_recycle(.subprob, length(.problem)),
+      error = function(s)
+        rlang::abort("`.subprob` should be recyclable to match `.problem`.", parent = s)
+    )
   }
 
   # Convert any numeric or factors to characters for convenience
@@ -121,12 +140,13 @@ set_prop <- function(xpdb, ..., .problem = NULL) {
     label = names(props_to_set),
     value = purrr::list_c(props_to_set)
   )
-  if (!is.null(.problem)) ru_tbl <- purrr::map_dfr(.problem, ~ dplyr::mutate(ru_tbl, problem=.x))
+  if (!is.null(.problem) && is.null(.subprob)) ru_tbl <- purrr::map_dfr(.problem, ~ dplyr::mutate(ru_tbl, problem=.x))
+  if (!is.null(.problem) && !is.null(.subprob)) ru_tbl <- purrr::map2_dfr(.problem,.subprob, ~ dplyr::mutate(ru_tbl, problem=.x, subprob=.y))
 
   new_summ <- summ %>%
     dplyr::rows_update(
       ru_tbl,
-      by = c("label", `if`(is.null(.problem), NULL, "problem")),
+      by = c("label", `if`(is.null(.problem), NULL, "problem"), `if`(is.null(.subprob), NULL, "subprob")),
       unmatched = "ignore"
     )
   xpdb$summary <- new_summ
@@ -216,12 +236,15 @@ is_formula_list <- function(x) {
 #'
 #' reportable_digits(xpdb_x)
 #'
-reportable_digits <- function(xpdb, .default = 3) {
+reportable_digits <- function(xpdb, .default = 3, .problem, .subprob, .method) {
   xpose::check_xpdb(xpdb, "summary")
+
+  fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob, .method=.method)
+
   digs <- rlang::try_fetch(
     floor(
       as.numeric(
-        get_prop(xpdb, "nsig")
+        get_prop(xpdb, "nsig", .problem = .problem, .subprob = .subprob)
       )
     ),
     error = function(x) .default,
@@ -248,6 +271,10 @@ reportable_digits <- function(xpdb, .default = 3) {
 set_option <- function(xpdb, ...) {
   new_opts <- rlang::dots_list(..., .ignore_empty = "all", .homonyms = "error")
 
+  # if cvtype is being updated, verify validity
+  if ("cvtype" %in% names(new_opts))
+    (function(cvtype) rlang::arg_match(cvtype, values=c("exact","sqrt")))(new_opts$cvtype)
+
   old_opts <- xpdb$options
 
   xpdb$options <- utils::modifyList(old_opts, new_opts)
@@ -260,4 +287,42 @@ set_option <- function(xpdb, ...) {
 # add option to do this be default when converting to xp_xtra
 desc_from_comments <- function(xpdb, start_check = ".*description.*", end_check = "^\\$") {
 
+}
+
+
+#' Place .problem, .subprob and .method into environment consistently
+#'
+#' @description
+#' Since this is a common need, it is being functionalized
+#' to ensure consistency.
+#'
+#'
+#' @param xpdb <`xpose_data`> or related object
+#' @param .problem `NULL` or missing
+#' @param .subprob `NULL` or missing
+#' @param .method `NULL` or missing
+#' @param envir <`environment`> in which to assign the problem info.
+#'
+#' @keywords Internal
+#'
+fill_prob_subprob_method <- function(xpdb, .problem, .subprob, .method, envir=parent.frame()) {
+  # Do generic checks for .problem, .subprob and .method, push to envir
+  xpose::check_xpdb(xpdb, check = "files")
+
+  if (!any(xpdb$files$extension == "ext")) {
+    rlang::abort("File extension `ext` needed and is missing.")
+  }
+
+  if (missing(.problem) || is.null(.problem))
+    .problem <- xpose::last_file_problem(xpdb, ext = "ext")
+  if (missing(.subprob) || is.null(.subprob))
+    .subprob <- xpose::last_file_subprob(xpdb, ext = "ext", .problem = .problem)
+  if (missing(.method) || is.null(.method))
+    .method <- xpose::last_file_method(xpdb, ext = "ext", .problem = .problem,
+                                       .subprob = .subprob)
+
+  assign(".problem", .problem, envir = envir)
+  assign(".subprob", .subprob, envir = envir)
+  assign(".method", .method, envir = envir)
+  return()
 }

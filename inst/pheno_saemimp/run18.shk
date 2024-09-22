@@ -1,0 +1,26 @@
+TABLE NO.     1: Stochastic Approximation Expectation-Maximization: Problem=1 Subproblem=0 Superproblem1=0 Iteration1=0 Superproblem2=0 Iteration2=0
+TYPE          SUBPOP       ETA(1)       ETA(2)
+            1            1  6.52698E-06  1.94149E-06
+            2            1  1.90928E-02  1.85090E-02
+            3            1  9.99727E-01  9.99916E-01
+            4            1  2.02867E+01  1.18460E+01
+            5            1  1.91410E+01  0.00000E+00
+            6            1  2.02936E+01  1.18493E+01
+            7            1  5.90000E+01  5.90000E+01
+            8            1  3.64579E+01  2.22887E+01
+            9            1  3.64688E+01  2.22945E+01
+           10            1  3.46182E+01  0.00000E+00
+           11            1  1.47736E+01  3.07707E+01
+TABLE NO.     2: Objective Function Evaluation by Importance Sampling: Problem=1 Subproblem=0 Superproblem1=0 Iteration1=0 Superproblem2=0 Iteration2=0
+TYPE          SUBPOP       ETA(1)       ETA(2)
+            1            1  2.31356E-04 -2.11636E-04
+            2            1  1.92712E-02  1.85015E-02
+            3            1  9.90421E-01  9.90873E-01
+            4            1  1.95418E+01  1.18818E+01
+            5            1  1.92692E+01  0.00000E+00
+            6            1  2.04262E+01  1.17379E+01
+            7            1  5.90000E+01  5.90000E+01
+            8            1  3.52647E+01  2.23518E+01
+            9            1  3.66801E+01  2.20980E+01
+           10            1  3.48254E+01  0.00000E+00
+           11            1  1.39319E+01  2.98269E+01

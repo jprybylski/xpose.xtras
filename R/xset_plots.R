@@ -597,11 +597,216 @@ pred_vs_pred <- function(
 
 # This would also just be an in situ xpdb, but there may need to be a function
 # for model-averaging
-dv_vs_ipred_modavg <- function() {}
-dv_vs_pred_modavg <- function() {}
-ipred_vs_idv_modavg <- function() {}
-pred_vs_idv_modavg <- function() {}
+#' Model averageg plots
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
+#' This is for use when the model averaging of a set
+#' is planned.
+#'
+#'
+#' @inheritParams modavg_xpdb
+#' @param .fun <`function`> For slightly more convenient
+#' piping of model-averaged `xpose_data` into a plotting
+#' function.
+#' @param .funargs <`list`> Extra args to pass to function.
+#' If passing `tidyselect` arguments, be mindful of where
+#' quosures might be needed. See Examples.
+#'
+#' @seealso [modavg_xpdb()]
+#'
+#' @rdname modavg_plots
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'
+#' pheno_set %>%
+#'   dv_vs_ipred_modavg(run8,run9,run10, auto_backfill = TRUE)
+#'
+#' pheno_set %>%
+#'   dv_vs_pred_modavg(run8,run9,run10, auto_backfill = TRUE)
+#'
+#' pheno_set %>%
+#'   ipred_vs_idv_modavg(run8,run9,run10, auto_backfill = TRUE)
+#'
+#' pheno_set %>%
+#'   pred_vs_idv_modavg(run8,run9,run10, auto_backfill = TRUE)
+#'
+#' # Model averaged ETA covariates
+#' pheno_set %>%
+#'   plotfun_modavg(run8,run9,run10, auto_backfill = TRUE,
+#'      avg_by_type = "eta",.fun = eta_vs_catcov,
+#'      # Note quosure
+#'      .funargs = list(etavar=rlang::quo(ETA1)))
+#'
+#' }
+dv_vs_ipred_modavg <- function(
+    xpdb_s,
+    ...,
+    .lineage = FALSE,
+    algorithm = c("maa","msa"),
+    weight_type = c("individual","population"),
+    auto_backfill = FALSE,
+    weight_basis = c("ofv","aic","res"),
+    res_col = "RES",
+    quiet) {
+  modavg_xpdb(
+    xpdb_s=xpdb_s,
+    ...,
+    .lineage = .lineage,
+    avg_by_type = "ipred",
+    algorithm = algorithm,
+    weight_type = weight_type,
+    auto_backfill = auto_backfill,
+    weight_basis = weight_basis,
+    res_col = res_col,
+    quiet=quiet
+  ) %>%
+    xpose::dv_vs_ipred(
+      title = paste(
+        "Model averaged",
+        formals(xpose::dv_vs_ipred)$title
+      )
+    )
+}
+#' @rdname modavg_plots
+#' @export
+dv_vs_pred_modavg <- function(
+    xpdb_s,
+    ...,
+    .lineage = FALSE,
+    algorithm = c("maa","msa"),
+    weight_type = c("individual","population"),
+    auto_backfill = FALSE,
+    weight_basis = c("ofv","aic","res"),
+    res_col = "RES",
+    quiet) {
+  modavg_xpdb(
+    xpdb_s=xpdb_s,
+    ...,
+    .lineage = .lineage,
+    avg_by_type = "pred",
+    algorithm = algorithm,
+    weight_type = weight_type,
+    auto_backfill = auto_backfill,
+    weight_basis = weight_basis,
+    res_col = res_col,
+    quiet=quiet
+  ) %>%
+    xpose::dv_vs_pred(
+      title = paste(
+        "Model averaged",
+        formals(xpose::dv_vs_pred)$title
+      ) # TODO: make these subtitles etc better. Maybe just wrap around plotfun_ if this gets too complex
+    )
+}
+#' @rdname modavg_plots
+#' @export
+ipred_vs_idv_modavg <- function(
+    xpdb_s,
+    ...,
+    .lineage = FALSE,
+    algorithm = c("maa","msa"),
+    weight_type = c("individual","population"),
+    auto_backfill = FALSE,
+    weight_basis = c("ofv","aic","res"),
+    res_col = "RES",
+    quiet) {
+  modavg_xpdb(
+    xpdb_s=xpdb_s,
+    ...,
+    .lineage = .lineage,
+    avg_by_type = "ipred",
+    algorithm = algorithm,
+    weight_type = weight_type,
+    auto_backfill = auto_backfill,
+    weight_basis = weight_basis,
+    res_col = res_col,
+    quiet=quiet
+  ) %>%
+    xpose::ipred_vs_idv(
+      title = paste(
+        "Model averaged",
+        formals(xpose::ipred_vs_idv)$title
+      )
+    )
+}
+#' @rdname modavg_plots
+#' @export
+pred_vs_idv_modavg <- function(
+    xpdb_s,
+    ...,
+    .lineage = FALSE,
+    algorithm = c("maa","msa"),
+    weight_type = c("individual","population"),
+    auto_backfill = FALSE,
+    weight_basis = c("ofv","aic","res"),
+    res_col = "RES",
+    quiet) {
+  modavg_xpdb(
+    xpdb_s=xpdb_s,
+    ...,
+    .lineage = .lineage,
+    avg_by_type = "pred",
+    algorithm = algorithm,
+    weight_type = weight_type,
+    auto_backfill = auto_backfill,
+    weight_basis = weight_basis,
+    res_col = res_col,
+    quiet=quiet
+  ) %>%
+    xpose::pred_vs_idv(
+      title = paste(
+        "Model averaged",
+        formals(xpose::pred_vs_idv)$title
+        )
+    )
+}
 
+#' @rdname modavg_plots
+#' @export
+plotfun_modavg <- function(
+    xpdb_s,
+    ...,
+    .lineage = FALSE,
+    avg_cols = NULL,
+    avg_by_type = NULL,
+    algorithm = c("maa","msa"),
+    weight_type = c("individual","population"),
+    auto_backfill = FALSE,
+    weight_basis = c("ofv","aic","res"),
+    res_col = "RES",
+    .fun = NULL,
+    .funargs = list(),
+    quiet) {
+  if (!is.function(.fun))
+    cli::cli_abort("`.fun` must be a function, not a {.emphasis {class(.fun)[1]}}")
+  maXPDB <- modavg_xpdb(
+    xpdb_s=xpdb_s,
+    ...,
+    .lineage = .lineage,
+    avg_cols = avg_cols,
+    avg_by_type = avg_by_type,
+    algorithm = algorithm,
+    weight_type = weight_type,
+    auto_backfill = auto_backfill,
+    weight_basis = weight_basis,
+    res_col = res_col,
+    quiet=quiet
+  )
+  do.call(
+    .fun,
+    modifyList(list(
+      xpdb = maXPDB,
+      title = paste(
+        "Model averaged",
+        formals(.fun)$title
+      )
+    ), .funargs)
+  )
+}
 
 
 

@@ -13,7 +13,11 @@
 #' used in order of their position in the set. May also use a formula,
 #' which will just be processed with `all.vars()`.
 #' @param .lineage <`logical`> where if `TRUE`, `...` is processed
-#' @param avg_cols <`tidyselect`> columns in data to avergae
+#' @param avg_cols <`tidyselect`> columns in data to average
+#' @param avg_by_type <`character`> Mainly for use in wrapper functions.
+#' Column type to average, but resulting column names must be valid
+#' for `avg_cols` (ie, same across all objects in the set). `avg_cols` will
+#' be overwritten.
 #' @param algorithm <`character`> Model selection or model averaging
 #' @param weight_type <`character`> Individual-level averaging or by full dataset.
 #' @param auto_backfill <`logical`> If true, <[`backfill_ofv`]> is automatically
@@ -39,7 +43,7 @@
 #'   avg_cols = "IPRED",
 #'   auto_backfill = TRUE,
 #'   algorithm = "maa",
-#'   weight_basis = "res"
+#'   weight_basis = "aic"
 #'  )
 #'
 modavg_xpdb <- function(
@@ -47,6 +51,7 @@ modavg_xpdb <- function(
     ...,
     .lineage = FALSE,
     avg_cols = NULL,
+    avg_by_type = NULL,
     algorithm = c("maa","msa"),
     weight_type = c("individual","population"),
     auto_backfill = FALSE,
@@ -85,7 +90,7 @@ modavg_xpdb <- function(
   # extra checks
   if (missing(quiet))
     quiet <- xpose_subset[[1]]$xpdb$options$quiet
-  if (rlang::quo_is_null(rlang::enquo(avg_cols))) {
+  if (rlang::quo_is_null(rlang::enquo(avg_cols)) && is.null(avg_by_type)) {
     rlang::abort("Columns to average are required. Provide argument `avg_cols`.")
   }
   algorithm <- rlang::arg_match(algorithm, values = c("maa","msa"))
@@ -95,6 +100,8 @@ modavg_xpdb <- function(
     rlang::abort("Only one residual column can be used as the weighting basis.")
 
   xpdb_l <- purrr::map(xpose_subset, ~.x$xpdb)
+  if (!is.null(avg_by_type)) avg_cols <- xp_var(xpdb_l[[1]], type=avg_by_type, silent=TRUE)$col %>%
+    {rlang::quo(dplyr::any_of(.))}
 
   # Get combined xpdb
   xpdb_f <- franken_xpdb(

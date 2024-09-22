@@ -34,7 +34,7 @@
 
 #' An `xp_xtras` example of a base model
 #'
-#' Base model for phenobarbital in neotates.
+#' Base model for phenobarbital in neonates.
 #'
 #' This is `run6` in <[`pheno_set`]>
 #'
@@ -46,7 +46,7 @@
 
 #' An `xp_xtras` example of a final model
 #'
-#' Final model for phenobarbital in neotates.
+#' Final model for phenobarbital in neonates.
 #'
 #' This is re-parameterized from the covariate-building work, which
 #' in this case did not identify a relationship with Apgar score.
@@ -58,3 +58,17 @@
 #'
 #' @source https://doi.org/10.1159/000457062 and nlmixr2data::pheno_sd
 "pheno_final"
+
+#' An `xp_xtras` example of a final model
+#'
+#' Final model for phenobarbital in neonates.
+#'
+#' This is the same as [`pheno_final`] but fitted with SAEM/IMP.
+#'
+#' Not a part of <[`pheno_set`]>
+#'
+#' @format ## `xp_xtras`
+#' An `xp_xtras` object.
+#'
+#' @source https://doi.org/10.1159/000457062 and nlmixr2data::pheno_sd
+"pheno_saem"

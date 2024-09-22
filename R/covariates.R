@@ -542,6 +542,12 @@ eta_vs_contcov <- function(xpdb,
 #'
 #' @export
 #'
+#' @details
+#' The ability to show number per covariate level is inspired
+#' by the package `pmplots`, but is implements here within
+#' the `xpose` ecosystem for consistency.
+#'
+#'
 #' @examples
 #' \dontrun{
 #'

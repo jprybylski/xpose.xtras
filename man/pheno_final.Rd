@@ -17,7 +17,7 @@ https://doi.org/10.1159/000457062 and nlmixr2data::pheno_sd
 pheno_final
 }
 \description{
-Final model for phenobarbital in neotates.
+Final model for phenobarbital in neonates.
 }
 \details{
 This is re-parameterized from the covariate-building work, which

@@ -39,6 +39,10 @@ as_xpdb_x <- function(x) {
     # Update xp_theme with xp_xtras theme
     new_x <- xpose::update_themes(xpdb = xpose::as.xpdb(new_x), xp_theme = xp_xtra_theme(new_x$xp_theme))
 
+    # Space for pars
+    new_x$pars <- NULL
+    # Corresponding option
+    new_x$options$cvtype="exact"
   }
 
 
@@ -93,6 +97,11 @@ check_xpdb_x <- function(x, .warn=TRUE) {
   if ("xp_theme" %in% names(x) && !any(
     grepl("^dotplot_", names(x$xp_theme))
   )) {
+    return(FALSE)
+  }
+  ### check for "pars" in top level
+  if ("pars" %in% names(x)
+  ) {
     return(FALSE)
   }
 
@@ -450,24 +459,18 @@ lvl_inord <- function(x, .start_index = 1) {
 #'   backfill_iofv() %>%
 #'   list_vars()
 #'
-backfill_iofv <- function(xpdb, .problem=NULL, .label = "iOFV") {
+backfill_iofv <- function(xpdb, .problem=NULL, .subprob=NULL, .label = "iOFV") {
   if (xpose::software(xpdb) != 'nonmem')
     cli::cli_abort("This backfill function only works for nonmem-based objects, not those from {.strong {cli::col_yellow(xpose::software(xpdb))}}")
 
   xpose::check_xpdb(xpdb, "data")
-  xpose::check_xpdb(xpdb, "files")
+  fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob) # fills in .problem and .subprob if missing
 
   if (!"phi" %in% xpdb$files$extension) rlang::abort("phi table not found in files.")
 
-  # Apply backfill to all problems if missing
-  if (is.null(.problem)) {
-    .problem <- xpose::all_data_problem(xpdb)
-  }
-
   # Get iOFV from phi
-  # TODO: This function needs to also consider last_file_subprob and last_file_method, for SAEM/IMP and friends
   phi_df <- xpdb$files %>%
-    dplyr::filter(extension=="phi") %>%
+    dplyr::filter(extension=="phi", problem==.problem, subprob==.subprob) %>%
     dplyr::pull(data) %>%
     .[[1]]
   match_obj <- function(id) {
@@ -652,7 +655,7 @@ xp_var <- function (xpdb, .problem, col = NULL, type = NULL, silent = FALSE) {
 #' @rdname xp_var
 #' @export
 xp_var.default <- function (xpdb, .problem, col = NULL, type = NULL, silent = FALSE) {
-  if (suppressMessages(check_xp_xtras(xpdb))) {
+  if (check_xpdb_x(xpdb, .warn = FALSE)) {
     return(xp_var.xp_xtras(xpdb=xpdb, .problem=.problem, col = col, type = type, silent = silent))
   }
 

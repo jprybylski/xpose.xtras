@@ -4,7 +4,7 @@
 \alias{get_prop}
 \title{Generic function to extract a property from a model summary}
 \usage{
-get_prop(xpdb, prop, .problem = NULL)
+get_prop(xpdb, prop, .problem = NULL, .subprob = NULL, .method = NULL)
 }
 \arguments{
 \item{xpdb}{<\code{xpose_data}\link[xpose:xpose_data]{xpose::xpose_data}> object}

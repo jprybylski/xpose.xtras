@@ -4,7 +4,7 @@
 \alias{reportable_digits}
 \title{Reportable digits for model fit}
 \usage{
-reportable_digits(xpdb, .default = 3)
+reportable_digits(xpdb, .default = 3, .problem, .subprob, .method)
 }
 \arguments{
 \item{xpdb}{<\code{xpose_data}\link[xpose:xpose_data]{xpose::xpose_data}> object}

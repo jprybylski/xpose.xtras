@@ -9,6 +9,7 @@ modavg_xpdb(
   ...,
   .lineage = FALSE,
   avg_cols = NULL,
+  avg_by_type = NULL,
   algorithm = c("maa", "msa"),
   weight_type = c("individual", "population"),
   auto_backfill = FALSE,
@@ -26,7 +27,12 @@ which will just be processed with \code{all.vars()}.}
 
 \item{.lineage}{<\code{logical}> where if \code{TRUE}, \code{...} is processed}
 
-\item{avg_cols}{<\code{tidyselect}> columns in data to avergae}
+\item{avg_cols}{<\code{tidyselect}> columns in data to average}
+
+\item{avg_by_type}{<\code{character}> Mainly for use in wrapper functions.
+Column type to average, but resulting column names must be valid
+for \code{avg_cols} (ie, same across all objects in the set). \code{avg_cols} will
+be overwritten.}
 
 \item{algorithm}{<\code{character}> Model selection or model averaging}
 
@@ -58,7 +64,7 @@ pheno_set \%>\%
   avg_cols = "IPRED",
   auto_backfill = TRUE,
   algorithm = "maa",
-  weight_basis = "res"
+  weight_basis = "aic"
  )
 
 }
