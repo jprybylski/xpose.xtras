@@ -39,10 +39,10 @@ as_xpdb_x <- function(x) {
     # Update xp_theme with xp_xtras theme
     new_x <- xpose::update_themes(xpdb = xpose::as.xpdb(new_x), xp_theme = xp_xtra_theme(new_x$xp_theme))
 
-    # Space for pars
-    new_x$pars <- NULL
+    # Space for pars (empty dummy)
+    new_x$pars <- proc_assc(list(a~fun(b,h=1)),1,1,"") %>% dplyr::slice(0)
     # Corresponding option
-    new_x$options$cvtype="exact"
+    new_x$options$cvtype <- "exact"
   }
 
 
@@ -100,7 +100,7 @@ check_xpdb_x <- function(x, .warn=TRUE) {
     return(FALSE)
   }
   ### check for "pars" in top level
-  if ("pars" %in% names(x)
+  if (!"pars" %in% names(x)
   ) {
     return(FALSE)
   }

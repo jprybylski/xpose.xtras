@@ -4,27 +4,22 @@
 \alias{add_prm_association}
 \title{Describe parameter associations}
 \usage{
-add_prm_association(
-  xpdb_x,
-  ...,
-  .problem = NULL,
-  .subprob = NULL,
-  .method = NULL,
-  quiet
-)
+add_prm_association(xpdb, ..., .problem, .subprob, .method, quiet)
 }
 \arguments{
-\item{xpdb_x}{h}
+\item{xpdb}{<\code{xp_xtras}> object}
 
-\item{...}{h}
+\item{...}{... <\code{\link[rlang:dyn-dots]{dynamic-dots}}> One or more formulas that
+define associations between parameters.
+One list of formulas can also be used, but a warning is generated.}
 
-\item{.problem}{h}
+\item{.problem}{<\code{numeric}> Problem number to apply this relationship.}
 
-\item{.subprob}{h}
+\item{.subprob}{<\code{numeric}> Problem number to apply this relationship.}
 
-\item{.method}{h}
+\item{.method}{<\code{numeric}> Problem number to apply this relationship.}
 
-\item{quiet}{h}
+\item{quiet}{Silence extra output.}
 }
 \description{
 The relationship between structural parameters and
@@ -39,7 +34,8 @@ described for other relationships.
 At time of writing, the built-in distributions for \code{pmxcv} are below.
 Those marked with an asterisk require a fixed effect parameter to calculate CV.
 \itemize{
-\item \code{log} typical log-normal. Optional \code{exact} parameter.
+\item \code{log} typical log-normal. Optional \code{exact} parameter (if \code{TRUE}, will not
+calculate with integration); this is unrelated to the \code{cvtype} option.
 \item \code{logexp}* modified log-normal \code{log(1+X)}
 \item \code{logit}* logit-normal
 \item \code{arcsin}* arcsine-transform
@@ -49,9 +45,39 @@ Requires a \code{lambda} parameter.
 
 To pass a custom parameter, use \code{custom} transform, and pass \code{pdist} and \code{qdist} to
 that transform. See Examples.
+
+Note that the functions used in describing associations are not real functions,
+it is just the syntax for this application. Based on examples, be mindful of
+where positional arguments would acceptable and where named arguments are
+required. Care has been given to provide a modest amount of flexibility
+with informative errors for fragile points, but not every error can be anticipated.
+If this function or downstream results from it seem wrong, the association syntax
+should be scrutinized.
+
+Format for associations is:
+\code{LHS~fun(OMEGA, args...)}
+
+\itemize{
+\item LHS: Selector for a fixed effect parameter. Can be \verb{the\{m\}} (eg, the1),
+\code{{name}} (eg, THETA1) or \code{{label}} (eg, TVCL). These should \emph{not} be quoted.
+Multiple associations can be defined at once with \code{+}. Cannot be empty.
+\item RHS: Should be a simple call to only one function, which should be
+custom or one of the built-in distributions or \code{custom(...)}. A lot of things
+can look like simple calls, so may not break immediately; keep to the described
+format and everything should be fine.
+\item RHS OMEGA: Selector for omega variable. Similar rules to the fixed
+effect selector. Can be \verb{ome\{m\}}, \code{{name}} or \code{{label}}, limited to diagonal
+elements. Should \emph{not} be quoted.
+\item RHS args: Applies when the distribution has extra arguments. If these
+are limited to 1, can be passed by position (eg, \code{lambda} for \code{nmboxcox} and
+\code{exact} for \code{log}). For \code{custom()}, \code{qdist}, \code{pdist} and any arguments needed to
+pass to them should be named.
+}
 }
 \examples{
-# example codes
+
+pheno_base \%>\%
+   add_prm_association(the1~log(IIVCL),V~log(IIVV))
 
 
 }
