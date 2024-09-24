@@ -67,7 +67,9 @@ can look like simple calls, so may not break immediately; keep to the described
 format and everything should be fine.
 \item RHS OMEGA: Selector for omega variable. Similar rules to the fixed
 effect selector. Can be \verb{ome\{m\}}, \code{{name}} or \code{{label}}, limited to diagonal
-elements. Should \emph{not} be quoted.
+elements. Should \emph{not} be quoted. \code{OMEGA} is not a named argument (\code{OMEGA={selector}}
+should \strong{not} be considered valid); whatever is used as the first argument to the
+"function" will be considered an OMEGA selector.
 \item RHS args: Applies when the distribution has extra arguments. If these
 are limited to 1, can be passed by position (eg, \code{lambda} for \code{nmboxcox} and
 \code{exact} for \code{log}). For \code{custom()}, \code{qdist}, \code{pdist} and any arguments needed to

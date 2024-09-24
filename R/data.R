@@ -72,3 +72,70 @@
 #'
 #' @source https://doi.org/10.1159/000457062 and nlmixr2data::pheno_sd
 "pheno_saem"
+
+#' A tibble of mock data used for fitting vismodegib models
+#'
+#' The referenced work presents two alternative modeling approaches
+#' for muscle spasm response to vismodegib. There is a mock
+#' dataset for one person, and using the provided model a 50 participant
+#' mock dataset could be generated.
+#'
+#'
+#' @format ## `tibble`
+#' An `tibble`.
+#'
+#' @references
+#' Lu, T., Yang, Y., Jin, J.Y. and Kågedal, M. (2020),
+#' Analysis of Longitudinal-Ordered Categorical Data for
+#' Muscle Spasm Adverse Event of Vismodegib: Comparison
+#' Between Different Pharmacometric Models. CPT
+#' Pharmacometrics Syst. Pharmacol., 9: 96-105.
+#' https://doi.org/10.1002/psp4.12487
+#'
+#' @source Generated using sup-0009 and sup-0010 from the reference.
+#'
+"vismodegib"
+
+#' An `xp_xtras` example of the proportional odds categorical vismodegib model
+#'
+#' The referenced work presents two alternative modeling approaches
+#' for muscle spasm response to vismodegib. This is a fit of the
+#' provided proportional odds model to the 50 participant mock data.
+#'
+#'
+#' @format ## `xp_xtras`
+#' An `xp_xtras` object.
+#'
+#' @references
+#' Lu, T., Yang, Y., Jin, J.Y. and Kågedal, M. (2020),
+#' Analysis of Longitudinal-Ordered Categorical Data for
+#' Muscle Spasm Adverse Event of Vismodegib: Comparison
+#' Between Different Pharmacometric Models. CPT
+#' Pharmacometrics Syst. Pharmacol., 9: 96-105.
+#' https://doi.org/10.1002/psp4.12487
+#'
+#' @source Derived from sup-0009 and sup-0010 from the reference.
+#'
+"vismo_pomod"
+
+#' An `xp_xtras` example of the discrete-time Markov model of categorical vismodegib data
+#'
+#' The referenced work presents two alternative modeling approaches
+#' for muscle spasm response to vismodegib. This is a fit of the
+#' provided discrete-time Markov model to the 50 participant mock data.
+#'
+#'
+#' @format ## `xp_xtras`
+#' An `xp_xtras` object.
+#'
+#' @references
+#' Lu, T., Yang, Y., Jin, J.Y. and Kågedal, M. (2020),
+#' Analysis of Longitudinal-Ordered Categorical Data for
+#' Muscle Spasm Adverse Event of Vismodegib: Comparison
+#' Between Different Pharmacometric Models. CPT
+#' Pharmacometrics Syst. Pharmacol., 9: 96-105.
+#' https://doi.org/10.1002/psp4.12487
+#'
+#' @source Derived from sup-0009 and sup-0010 from the reference.
+#'
+"vismo_dtmm"
