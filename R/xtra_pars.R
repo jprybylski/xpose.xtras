@@ -11,11 +11,15 @@
 #' `pmxcv`, but see examples for how associations can be
 #' described for other relationships.
 #'
+#' @rdname add_prm_association
 #'
 #' @param xpdb <`xp_xtras`> object
 #' @param ... ... <[`dynamic-dots`][rlang::dyn-dots]> One or more formulas that
-#' define associations between parameters.
-#' One list of formulas can also be used, but a warning is generated.
+#' define associations between parameters. One list of formulas can also be used,
+#' but a warning is generated.
+#'
+#' For `drop_prm_association`, this list should be selectors for which associations
+#' will be dropped.
 #' @param .problem <`numeric`> Problem number to apply this relationship.
 #' @param .subprob <`numeric`> Problem number to apply this relationship.
 #' @param .method <`numeric`> Problem number to apply this relationship.
@@ -25,8 +29,10 @@
 #' At time of writing, the built-in distributions for `pmxcv` are below.
 #' Those marked with an asterisk require a fixed effect parameter to calculate CV.
 #' \itemize{
-#'   \item `log` typical log-normal. Optional `exact` parameter (if `TRUE`, will not
-#'   calculate with integration); this is unrelated to the `cvtype` option.
+#'   \item `log` typical log-normal. Optional `exact` parameter (if `TRUE`, default, will not
+#'   calculate with integration); this is unrelated to the `cvtype` option. **Note**,
+#'   if `cvtype` is set to `"sqrt"`, log-normal `gte_prm` CVs will use the square root, not any integration
+#'   or analytical estimate, regardless of how this association is specified..
 #'   \item `logexp`* modified log-normal `log(1+X)`
 #'   \item `logit`* logit-normal
 #'   \item `arcsin`* arcsine-transform
@@ -83,14 +89,14 @@
 #'    add_prm_association(the1~log(IIVCL),V~log(IIVV))
 #'
 #'
-add_prm_association <- function( # TODO: add more examples of parameters, including custom
+add_prm_association <- function(
   xpdb,
   ...,
   .problem,
   .subprob,
   .method,
   quiet
-) {
+) { # TODO: add more examples of parameters, including custom
   if (!check_xpdb_x(xpdb, .warn = TRUE))
     cli::cli_abort("{cli::col_blue('xp_xtras')} object required.")
 
@@ -139,9 +145,8 @@ add_prm_association <- function( # TODO: add more examples of parameters, includ
 }
 
 
+#' @rdname add_prm_association
 #'
-#' @inheritParams add_prm_association
-#' @param ... <`character`> One or more selectors for associations to drop.
 #'
 #' @export
 drop_prm_association <- function(
@@ -156,7 +161,7 @@ drop_prm_association <- function(
     cli::cli_abort("{cli::col_blue('xp_xtras')} object required.")
 
   fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
-
+  # TODO: finish drop_prm_association function
 }
 
 builtin_asscs <- c("log","logexp","logit","arcsin","nmboxcox")
@@ -232,6 +237,7 @@ proc_assc <- function(assc_list,.problem,.subprob,.method) {
       rhfun <- deparse(.x[[3]][[1]])
       rhargs <- rlang::call_args(.x[[3]])
       omearg <- deparse(rhargs[[1]])
+      rhargus <- tail(rhargs, -1) %>% purrr::map(eval)
 
 
       # Create a tibble
@@ -239,7 +245,7 @@ proc_assc <- function(assc_list,.problem,.subprob,.method) {
         param = lhs,
         assoc = rhfun,
         omega = omearg,
-        argus = list(tail(rhargs, -1)),
+        argus = list(rhargus),
         problem = .problem,
         subprob = .subprob,
         method = .method
@@ -264,6 +270,7 @@ param_selector <- function(
   sel,
   prm_tbl
 ) {
+  if (length(sel)==0) return(integer())
   if (missing(prm_tbl) || !is.data.frame(prm_tbl)) {
     rlang::abort("This function requires a parameter table like that from `get_prm()")
   }
@@ -291,7 +298,7 @@ param_selector <- function(
     cli::cli_abort("Selector {.strong {sel}} does not match any valid, non-diagonal rows.")
   if (length(ret_val)>1)
     cli::cli_abort("Selector {.strong {sel}} does not unambiguously match any one row (matches {length(ret_val)}).")
-  ret_val
+  as.integer(ret_val)
 }
 
 
@@ -325,6 +332,12 @@ param_selector <- function(
 #' For log-normal, users may prefer to use the first-order CV% (\eqn{\sqrt{\omega^2}})
 #' instead of the exact. In such case, `xpdb <- set_option(xpdb, cvtype="sqrt")` will
 #' get that preferred form.
+#'
+#' **Note** the approach used to calculate CV% assumes an untransformed scale for the
+#' fitted parameter value (unrelated to `transform`=TRUE). That means, for example,
+#' that for a logit-normal fitted parameter value, it is expected the value will be
+#' something constrained between 0 and 1, not the unbounded, continuous transformed value.
+#' The function <[`mutate_prm`]> is intended to help where that might be an issue.
 #'
 #' @references
 #' Prybylski, J.P. Reporting Coefficient of Variation for Logit, Box-Cox and
@@ -400,13 +413,148 @@ get_prm.xp_xtras <- function(
 
   fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
 
+  # Get basic param table
   def_prm <- xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
                    .method = .method, digits = digits, transform = transform,
                    show_all = show_all, quiet=quiet)
+  # Get untransformed param table
+  untr_prm <- xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
+                            .method = .method, digits = digits, transform = FALSE,
+                            show_all = show_all, quiet=TRUE)
 
 
   # Use sqrt for lognormal? (change this later, it's just here as a reminder)
   sqrt_lnorm <- xpdb$options$cvtype=="sqrt"
 
-  # Get basic
+  # Parameter associations defined for object
+  par_asscs <- xpdb$pars %>%
+    # add selector numbers for param and omega
+    dplyr::mutate(
+      thnums = param_selector(param, def_prm),
+      omnums = param_selector(omega, def_prm)
+    ) %>%
+    dplyr::arrange(thnums)
+  impacted_omegas <- par_asscs$omnums
+  # Default function for missing (also overrides log)
+  v_distinv <- Vectorize(function(v,exact) pmxcv::dist.intcv("log", v = v, exact=exact)) # outside function for speed
+  lnorm_transform <- function(x, pmxcv.exact=TRUE) `if`(
+    xpdb$options$cvtype=="sqrt",
+    sqrt(x)*100,
+    # sqrt(exp(x) - 1) # < this is all pmxcv is doing if exact is true, but for consistency with other methods...
+    v_distinv(x,pmxcv.exact)
+  )
+
+  # Indexes of diagonal omega parameters to show cv
+  rel_ome_i <- which(!is.na(def_prm$diagonal) & def_prm$diagonal==TRUE & def_prm$type=="ome")
+
+  # prepopulated CV%
+  new_prm <- def_prm %>%
+    dplyr::mutate(
+      cv = ifelse(
+        any(duplicated(impacted_omegas)),
+        list(NA_real_),
+        NA_real_
+      )
+    )
+  for (om2cv in rel_ome_i) {
+    to_update <- new_prm$cv[om2cv]
+    if (!om2cv %in% impacted_omegas) {
+      new_cv <- lnorm_transform(untr_prm$value[om2cv])
+    } else {
+      # Do this generally so multiple the per ome can be covered
+      par_rows <- which(impacted_omegas==om2cv)
+      new_cv <- purrr::map_dbl(par_rows, function(row) {
+        assc_row <- par_asscs %>% dplyr::slice(row)
+        thnum <- assc_row$thnums
+        thval <- new_prm$value[thnum]
+        omval <- untr_prm$value[om2cv]
+        argus <- assc_row$argus[[1]]
+        if (assc_row$assoc=="log") return(
+          lnorm_transform(omval,
+                          pmxcv.exact = length(argus)==0 || argus[[1]]==TRUE)
+        )
+        if (par_asscs$assoc[row]=="nmboxcox") return(
+          pmxcv::dist.intcv("nmboxcox", u = thval, v = omval,
+                            lambda = argus[[1]])
+        )
+        if (par_asscs$assoc[row]=="custom") return(
+          pmxcv::intcv(u = thval, v = omval, pdist = argus$pdist,
+                       qdist = argus$qdist)
+        )
+        pmxcv::dist.intcv(assc_row$assoc, u = thval, v = omval)
+      })
+      if (length(new_cv)>1) new_cv <- as.list(new_cv)
+    }
+    if (is.list(to_update) && !is.list(new_cv)) new_cv <-list(new_cv)
+    new_prm <- new_prm %>%
+      dplyr::mutate(
+        cv = ifelse(
+          dplyr::row_number()==om2cv,
+          .env$new_cv %>%
+            .[!purrr::map_lgl(.,is.na)],
+          cv
+        )
+      )
+  }
+  new_prm
+}
+
+
+# Transform parameter values
+#' Transform parameter values in place
+#'
+#' @description
+#' Apply transformations to fitted parameter values.
+#'
+#' As fitted, sometimes parameter values are not as easy to communicate, but
+#' to transform them outside of the `xpose` ecosystem limits some available
+#' features. To have the best experience, this function can update the
+#' parameter values that are used by `xpose` `get_prm` functions. At this
+#' time these transformations are not applied to `param` vars, but that can
+#' already be done with the `mutate` method.
+#'
+#' This only works for theta parameters.
+#'
+#'
+#' @param xpdb <`xp_xtras`> object
+#' @param ... ... <[`dynamic-dots`][rlang::dyn-dots]> One or more formulas that
+#' define transformations to parameters. RHS of formulas can be function or a
+#' value. That value can be a function call like in `mutate()` (`the1~exp(the1)`).
+#' @param .autose <`logical`> If a function is used for the transform then simulation
+#' is used to transform the current SE to a new SE. Precision of this transformation
+#' is dependent on `.sesim`.
+#' @param .problem <`numeric`> Problem number to apply this relationship.
+#' @param .subprob <`numeric`> Problem number to apply this relationship.
+#' @param .method <`numeric`> Problem number to apply this relationship.
+#' @param .sesim <`numeric`> Length of simulated `rnorm` vector for `.autose`.
+#' @param quiet Silence extra output.
+#'
+#' @export
+#'
+#' @examples
+#'
+#' vismo_pomod %>%
+#'   # Function
+#'   mutate_prm(THETA11~exp) %>%
+#'   # Value (se will not be scaled); plogis = inverse logit
+#'   mutate_prm(THETA12~plogis(THETA12)) %>%
+#'   # For above, manually scale se (below is roughly how autose does it)
+#'   # Note the qlogis since the previously piped function updates THETA12
+#'   mutate_prm(se(THETA12)~sd(plogis(rnorm(1000,qlogis(THETA12),se(THETA12))))) %>%
+#'   get_prm()
+#'
+#'
+mutate_prm <- function(
+  xpdb,
+  ...,
+  .autose = TRUE, # simulation-based SE approximation
+  .problem = NULL,
+  .subprob = NULL,
+  .method = NULL,
+  .sesim = 100000,
+  quiet) {
+  # mutate_prm(xpdb, {selector} = fun|val) # fun to apply to selector, or value (value can be resolved function call)
+  # mutate_prm(xpdb, se({selector}) = fun|val) # fun to apply to se column of selector, or val
+  # rse is updated depending on either of these being used
+  # TODO: implement mutate_prm function
 }

@@ -2,16 +2,22 @@
 % Please edit documentation in R/xtra_pars.R
 \name{add_prm_association}
 \alias{add_prm_association}
+\alias{drop_prm_association}
 \title{Describe parameter associations}
 \usage{
 add_prm_association(xpdb, ..., .problem, .subprob, .method, quiet)
+
+drop_prm_association(xpdb, ..., .problem, .subprob, .method, quiet)
 }
 \arguments{
 \item{xpdb}{<\code{xp_xtras}> object}
 
 \item{...}{... <\code{\link[rlang:dyn-dots]{dynamic-dots}}> One or more formulas that
-define associations between parameters.
-One list of formulas can also be used, but a warning is generated.}
+define associations between parameters. One list of formulas can also be used,
+but a warning is generated.
+
+For \code{drop_prm_association}, this list should be selectors for which associations
+will be dropped.}
 
 \item{.problem}{<\code{numeric}> Problem number to apply this relationship.}
 

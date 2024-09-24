@@ -50,6 +50,12 @@ association is applicable update with \code{\link{add_prm_association}}.
 For log-normal, users may prefer to use the first-order CV\% (\eqn{\sqrt{\omega^2}})
 instead of the exact. In such case, \code{xpdb <- set_option(xpdb, cvtype="sqrt")} will
 get that preferred form.
+
+\strong{Note} the approach used to calculate CV\% assumes an untransformed scale for the
+fitted parameter value (unrelated to \code{transform}=TRUE). That means, for example,
+that for a logit-normal fitted parameter value, it is expected the value will be
+something constrained between 0 and 1, not the unbounded, continuous transformed value.
+The function <\code{\link{mutate_prm}}> is intended to help where that might be an issue.
 }
 \examples{
 

@@ -110,7 +110,9 @@ of the model 1 column values. Respects faceting.}
 <\code{xpose_plot}> object
 }
 \description{
-Specific waterfall plots
+Differences are second listed model minus first listed. Eg, in
+\code{eta_waterfall(run1,run2)}, the when etas in run2 are greater than
+those in run1, the difference will be positive.
 }
 \details{
 For type-based customization of plots:
