@@ -4,7 +4,7 @@
 \alias{get_shk}
 \title{Get shrinkage estimates from model summary}
 \usage{
-get_shk(xpdb, wh = "eta", .problem = NULL)
+get_shk(xpdb, wh = "eta", .problem = NULL, .subprob = NULL, .method = NULL)
 }
 \arguments{
 \item{xpdb}{An \code{xpose_data} object.}

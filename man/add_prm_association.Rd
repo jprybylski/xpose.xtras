@@ -40,8 +40,10 @@ described for other relationships.
 At time of writing, the built-in distributions for \code{pmxcv} are below.
 Those marked with an asterisk require a fixed effect parameter to calculate CV.
 \itemize{
-\item \code{log} typical log-normal. Optional \code{exact} parameter (if \code{TRUE}, will not
-calculate with integration); this is unrelated to the \code{cvtype} option.
+\item \code{log} typical log-normal. Optional \code{exact} parameter (if \code{TRUE}, default, will not
+calculate with integration); this is unrelated to the \code{cvtype} option. \strong{Note},
+if \code{cvtype} is set to \code{"sqrt"}, log-normal \code{gte_prm} CVs will use the square root, not any integration
+or analytical estimate, regardless of how this association is specified..
 \item \code{logexp}* modified log-normal \code{log(1+X)}
 \item \code{logit}* logit-normal
 \item \code{arcsin}* arcsine-transform

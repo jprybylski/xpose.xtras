@@ -396,14 +396,14 @@ get_prm.default <- function(
                  show_all = show_all, quiet=quiet)
 }
 
-#' @method get_prm default
+#' @method get_prm xp_xtras
 #' @export
 get_prm.xp_xtras <- function(
     xpdb,
     .problem = NULL,
     .subprob = NULL,
     .method = NULL,
-    digits = reportable_digits(xpdb),
+    digits = NULL,
     transform = TRUE,
     show_all = FALSE,
     quiet
@@ -413,18 +413,15 @@ get_prm.xp_xtras <- function(
 
   fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
 
+  if (is.null(digits)) digits <- reportable_digits(xpdb,.problem=.problem, .subprob=.subprob, .method=.method)
   # Get basic param table
   def_prm <- xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
                    .method = .method, digits = digits, transform = transform,
                    show_all = show_all, quiet=quiet)
   # Get untransformed param table
-  untr_prm <- xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
+  untr_prm <- suppressWarnings(xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
                             .method = .method, digits = digits, transform = FALSE,
-                            show_all = show_all, quiet=TRUE)
-
-
-  # Use sqrt for lognormal? (change this later, it's just here as a reminder)
-  sqrt_lnorm <- xpdb$options$cvtype=="sqrt"
+                            show_all = show_all, quiet=TRUE))
 
   # Parameter associations defined for object
   par_asscs <- xpdb$pars %>%
@@ -496,7 +493,33 @@ get_prm.xp_xtras <- function(
         )
       )
   }
-  new_prm
+
+  # Also add shrinkages while we're here
+  shk_wrap <- function(wh, n) rlang::try_fetch(
+    get_shk(xpdb, wh, .problem=.problem, .subprob=.subprob, .method=.method),
+    error = function(s) {
+      if (n==1) cli::cli_warn("Shrinkage missing for {cli::col_magenta(ifelse(wh=='eta','omega','sigma'))} estimates, if any are modeled. Using NA in this table.")
+      return(NA_real_)
+    })
+  eta_shk <- shk_wrap("eta", max(new_prm$m[new_prm$type=="ome"]))
+  eps_shk <- shk_wrap("eps", max(new_prm$m[new_prm$type=="sig"]))
+
+  new_prm %>%
+    dplyr::mutate(
+      shk = purrr::map2_dbl(type,purrr::map2(m,n,function(x,y) c(x,y)), ~{
+        if (is.na(.y[2]) || .y[1]!=.y[2]) return(NA_real_)
+        if (.x=="ome") return(eta_shk[.y[1]])
+        if (.x=="sig") return(eps_shk[.y[1]])
+      })
+    ) %>%
+    # Apply digits completely
+    dplyr::mutate(dplyr::across(c(m,n), as.integer)) %>%
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::where(is.double),
+        function(.x) tibble::num(.x, sigfig=digits)
+      )
+    )
 }
 
 
@@ -556,5 +579,120 @@ mutate_prm <- function(
   # mutate_prm(xpdb, {selector} = fun|val) # fun to apply to selector, or value (value can be resolved function call)
   # mutate_prm(xpdb, se({selector}) = fun|val) # fun to apply to se column of selector, or val
   # rse is updated depending on either of these being used
-  # TODO: implement mutate_prm function
+  # TODO: implement mutate_prm function. make sure to adjust off-diagonal elements in cov/cor matrices
+
+  # Make sure users did not do `=`
+  rlang::try_fetch(
+    rlang::check_dots_unnamed(),
+    error = function(s)
+      rlang::abort(paste("Only formula(e) are expected in the dots, not assignment.",
+                   "Was `=` used instead of `~`?"), parent=s)
+  )
+
+  ### Top part here is similar in behavior to xpose::get_prm
+  # Fill empty
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+  fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
+  # Use xpose::get_prm for other checks and to get untransformed values
+  base_df <- suppressWarnings(xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
+                            .method = .method, digits = 12, # absurd digits so no rounding
+                            transform = FALSE, show_all = FALSE, quiet=TRUE))
+  if (all(is.na(base_df$se))) {
+    rlang::warn("Covariance matrix is not available. Changes affecting SEs will not be implementable.")
+  }
+
+  ### Now different boilerplate
+  mutp_list <- rlang::list2(...) # List of formulas (hopefully)
+  # Allow a list to be passed to ... given add_relationship behavior
+  if (length(mutp_list)>=1 && is.list(mutp_list[[1]])) {
+    if (.warn) rlang::warn("List should not be used in dots, but is allowed; instead pass as arguments or pass list with !!!list.")
+    mutp_list <- mutp_list[[1]]
+  }
+
+  # Validate input
+  ## Return base object if no associations are provided
+  if (rlang::dots_n(...)==0) return(xpdb)
+  ## Check that formulas are valid
+  mutate_prm_check(mutp_list=mutp_list, xpdb=xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
+}
+
+# functions to check and process
+mutate_prm_check <- function(
+    mutp_list,
+    xpdb,
+    ...,
+    .problem,
+    .subprob,
+    .method
+) {
+  # Check that associations are valid
+
+  # Confirm list of formulas
+  if (
+    length(mutp_list)==0 ||
+    !is_formula_list(mutp_list)
+  ) {
+    rlang::abort("Mutations must be formulas.")
+  }
+
+  # Basic checks that should not be done in processing
+  for (fmla in mutp_list) {
+
+    # Check for non-empty lhs
+    if (!rlang::is_formula(fmla, lhs=TRUE))
+      cli::cli_abort("LHS of formula cannot be empty in `{cli::code_highlight(deparse(fmla))}`")
+
+    # Check that if lhs is a call, it is
+    if (class(fmla[[2]])=="call" && !deparse(fmla[[2]][[1]])=="se")
+      cli::cli_abort("LHS of formula must be a selector or in the form `se(selector)`, not `{deparse(fmla[[3]])}`")
+
+  }
+
+  # All symbols
+  sym_tab <- mutate_prm_proc(mutp_list, .problem=.problem, .subprob=.subprob,.method=.method)
+  par_tbl <- xpose::get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, quiet = TRUE)
+  rlang::try_fetch({
+    fepars <- sym_tab$param %>% param_selector(prm_tbl = par_tbl)
+    repars <- sym_tab$omega %>% param_selector(prm_tbl = par_tbl)
+  },
+  error = function(s)
+    rlang::abort("Non-valid selectors in association.", parent=s)
+  )
+  # Check for fepars repeats (repars is fine to repeat)
+  if (any(duplicated(fepars)))
+    cli::cli_abort("Cannot have multiple associations for the same (fixed effect) parameters. ({sym_tab$param[duplicated(fepars)]})")
+
+  return()
+}
+
+
+mutate_prm_proc <- function(mutp_list,.problem,.subprob,.method) {
+  purrr::map_dfr(
+    mutp_list,
+    ~ {
+      # Extract symbol(s) in lhs
+      lhs <- all.vars(.x[[2]])
+      is_se <- !identical(lhs, all.vars(.x[[2]], functions = TRUE))
+      # RHS may be
+      # value
+      # selector
+      # selector used as variable in call
+      # function name
+      # function declaration
+      # So best to just save quoted call
+      rhs <- .x[[3]]
+
+
+
+      # Create a tibble
+      tibble::tibble(
+        param = lhs,
+        is_se = is_se,
+        argus = list(rhs),
+        problem = .problem,
+        subprob = .subprob,
+        method = .method
+      )
+    }
+  )
 }

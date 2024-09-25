@@ -22,11 +22,16 @@
 #' get_shk(xpdb_ex_pk, wh = "eps")
 #'
 #'
-get_shk <- function(xpdb, wh = "eta", .problem = NULL) {
+get_shk <- function(xpdb, wh = "eta", .problem = NULL, .subprob = NULL, .method=NULL) {
+
+  fill_prob_subprob_method(xpdb, .problem = .problem, .subprob=.subprob, .method=.method)
+
   get_prop(
       xpdb = xpdb,
       prop = stringr::str_c(wh, "shk"),
-      .problem = .problem
+      .problem = .problem,
+      .subprob=.subprob,
+      .method=.method
     ) %>%
     stringr::str_split(" \\[\\d+\\],? ?") %>%
     purrr::list_c() %>%
