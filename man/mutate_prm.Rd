@@ -18,13 +18,14 @@ mutate_prm(
 \arguments{
 \item{xpdb}{<\code{xp_xtras}> object}
 
-\item{...}{... <\code{\link[rlang:dyn-dots]{dynamic-dots}}> One or more formulas that
+\item{...}{... <\code{\link[rlang:dyn-dots]{dynamic-dots}}> One or more formulae that
 define transformations to parameters. RHS of formulas can be function or a
 value. That value can be a function call like in \code{mutate()} (\code{the1~exp(the1)}).}
 
 \item{.autose}{<\code{logical}> If a function is used for the transform then simulation
 is used to transform the current SE to a new SE. Precision of this transformation
-is dependent on \code{.sesim}.}
+is dependent on \code{.sesim}. If parameter values are not assigned with a function,
+this option will simply scale SE to maintain the same RSE.}
 
 \item{.problem}{<\code{numeric}> Problem number to apply this relationship.}
 
@@ -43,10 +44,16 @@ As fitted, sometimes parameter values are not as easy to communicate, but
 to transform them outside of the \code{xpose} ecosystem limits some available
 features. To have the best experience, this function can update the
 parameter values that are used by \code{xpose} \code{get_prm} functions. At this
-time these transformations are not applied to \code{param} vars, but that can
+time these transformations are not applied to \code{param} vars (\code{\link{list_vars}}), but that can
 already be done with the \code{mutate} method.
 
 This only works for theta parameters.
+
+All valid mutations are applied sequentially, so a double call to \code{the2~the2^3}
+will result in effectively \code{the2~the2^9}, for example.
+
+RSE values will be updated at each transform. Any \emph{automatic} updates to SE will
+be implemented before RSE is updated.
 }
 \examples{
 

@@ -14,7 +14,7 @@ list_vars(xpdb, .problem = NULL, ...)
 \item{...}{Should be blank.}
 }
 \value{
-<\code{tibble}> of variables\code{cat()} of variables
+<\code{tibble}> of variables
 }
 \description{
 To accommodate changes made in \code{xpose.xtras},

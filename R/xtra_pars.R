@@ -533,19 +533,26 @@ get_prm.xp_xtras <- function(
 #' to transform them outside of the `xpose` ecosystem limits some available
 #' features. To have the best experience, this function can update the
 #' parameter values that are used by `xpose` `get_prm` functions. At this
-#' time these transformations are not applied to `param` vars, but that can
+#' time these transformations are not applied to `param` vars ([`list_vars`]), but that can
 #' already be done with the `mutate` method.
 #'
 #' This only works for theta parameters.
 #'
+#' All valid mutations are applied sequentially, so a double call to `the2~the2^3`
+#' will result in effectively `the2~the2^9`, for example.
+#'
+#' RSE values will be updated at each transform. Any *automatic* updates to SE will
+#' be implemented before RSE is updated.
+#'
 #'
 #' @param xpdb <`xp_xtras`> object
-#' @param ... ... <[`dynamic-dots`][rlang::dyn-dots]> One or more formulas that
+#' @param ... ... <[`dynamic-dots`][rlang::dyn-dots]> One or more formulae that
 #' define transformations to parameters. RHS of formulas can be function or a
 #' value. That value can be a function call like in `mutate()` (`the1~exp(the1)`).
 #' @param .autose <`logical`> If a function is used for the transform then simulation
 #' is used to transform the current SE to a new SE. Precision of this transformation
-#' is dependent on `.sesim`.
+#' is dependent on `.sesim`. If parameter values are not assigned with a function,
+#' this option will simply scale SE to maintain the same RSE.
 #' @param .problem <`numeric`> Problem number to apply this relationship.
 #' @param .subprob <`numeric`> Problem number to apply this relationship.
 #' @param .method <`numeric`> Problem number to apply this relationship.
@@ -596,7 +603,7 @@ mutate_prm <- function(
   # Use xpose::get_prm for other checks and to get untransformed values
   base_df <- suppressWarnings(xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
                             .method = .method, digits = 12, # absurd digits so no rounding
-                            transform = FALSE, show_all = FALSE, quiet=TRUE))
+                            transform = FALSE, show_all = TRUE, quiet=TRUE)) # Need show_all so cor and cov columns are same length as this
   if (all(is.na(base_df$se))) {
     rlang::warn("Covariance matrix is not available. Changes affecting SEs will not be implementable.")
   }
@@ -613,7 +620,91 @@ mutate_prm <- function(
   ## Return base object if no associations are provided
   if (rlang::dots_n(...)==0) return(xpdb)
   ## Check that formulas are valid
-  mutate_prm_check(mutp_list=mutp_list, xpdb=xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
+  mutp_tab <- mutate_prm_check(mutp_list=mutp_list, xpdb=xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
+
+  # Make environment in which to run the calls
+  calls_env <- new.env()
+  # Add all possible selectors as variables in the environment
+  only_theta <- base_df$type=="the"
+  type_sels <- paste0(base_df$type,base_df$m)[only_theta] # only theta parameters allowed
+  name_sels <- base_df$name[only_theta]
+  labl_sels <- base_df$label[only_theta]
+  sel_vals <- base_df$value[only_theta]
+  calls_env$base_df <- base_df
+  calls_env$se <- function(selval) base_df$se[param_selector(deparse(substitute(selval)), base_df)] # get se when function calls (se(sel))
+  for (toassign in 1:sum(only_theta)) { # for loop because assigning to environment
+    assign(type_sels[toassign], sel_vals[toassign], envir = calls_env)
+    assign(name_sels[toassign], sel_vals[toassign], envir = calls_env)
+    if (labl_sels[toassign]!="") rlang::try_fetch(
+      assign(labl_sels[toassign], sel_vals[toassign], envir = calls_env),
+      error = function(s) {
+        if (labl_sels[toassign] %in% mutp_tab$param) rlang::abort(paste("Label selector '",labl_sels[toassign],"' cannot be used as a selector in this function."), parent=s)
+        if (!quiet) rlang::warn(paste("Error downgraded to warning; label '",labl_sels[toassign],"' is not a valid selector, if used."), parent=s)
+      }
+    )
+  }
+
+  # Iterate through mutations
+  new_xpdb <- xpdb
+  new_val <- function(call_or) {
+    if (!class(call_or) %in% c("name","call")) return(as.numeric(call_or)) # it is the new value
+    f <- rlang::try_fetch(eval(call_or, envir = calls_env),
+                          error = function(s)
+                            rlang::abort(paste0("Cannot evaluate RHS expression `",deparse(call_or),"`. Was an omega or sigma selector used?"), parent=s)
+    )
+
+    f # either function or a value
+  }
+  refresh_calls_prms <- function(xpdb) # Same as call in beginning of function. Get updated parameters
+    calls_env$base_df <- suppressWarnings(xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
+                                                         .method = .method, digits = 12,
+                                                         transform = FALSE, show_all = TRUE, quiet=TRUE)) # show all is for off-diagonal of cor cov
+  for (mn in 1:nrow(mutp_tab)) { # For loop to apply changes initiated from mutp_tab to running updates in new_xpdb
+      new_value <- new_val(mutp_tab$argus[mn][[1]])
+      impacted_prm <- param_selector(mutp_tab$param[mn],base_df)
+      existing_value <- calls_env$base_df$value[impacted_prm]
+      # For fixed effects, implement
+      if (!mutp_tab$is_se[mn]) {
+        # Change to value in files
+        change_to <- new_value
+        if (is.function(new_value)) {
+          change_to <- rlang::try_fetch(evalq(new_value(existing_value),
+                                 envir = calls_env),
+                           error = function(s)
+                             rlang::abort(paste0("Cannot evaluate RHS expression `",
+                                                 stringr::str_trunc(paste(deparse(new_value), collapse=""), 18),
+                                                 "`. Was an omega or sigma selector used?"), parent=s)
+          )
+        }
+        # Change value in ext
+        new_xpdb$files <- mutate_in_file(
+          xpdb = new_xpdb,
+          val = change_to,
+          col = 1 + impacted_prm,
+          row = quote(ITERATION==-1000000000),
+          ext = "ext",
+          problem = .problem,
+          subprob = .subprob,
+          method = .method
+        )
+        new_xpdb <- as_xp_xtras(new_xpdb)
+        # Update base_df in calls_env
+        refresh_calls_prms(new_xpdb)
+      }
+      if (mutp_tab$is_se[mn] || .autose==TRUE) {
+        # a lot of same as above, but also diagonal and off-diagonal components of cov cor
+        # Doing one at a time for these should be fine. a benchmark of 30 changes was
+        # noticeably slow but not too bad; 20 was near-instant
+        # Remember to implement both scaled change (is auto-se) and functional change
+        # don't touch theta in any transformation here, but any change to se should change
+        # cov and cor
+        # If this ends up too slow, can change logic in mutate_in_file (for example, rowwise loops every
+        # time, and no allowance to multiply multiple values at once even in same column)
+      }
+      # for whatever the current theta and se are, update RSE (users turning off autose are aware of this consequence,
+      # and it is to be assumed users want this behavior)
+  }
+  new_xpdb
 }
 
 # functions to check and process
@@ -643,26 +734,29 @@ mutate_prm_check <- function(
       cli::cli_abort("LHS of formula cannot be empty in `{cli::code_highlight(deparse(fmla))}`")
 
     # Check that if lhs is a call, it is
-    if (class(fmla[[2]])=="call" && !deparse(fmla[[2]][[1]])=="se")
-      cli::cli_abort("LHS of formula must be a selector or in the form `se(selector)`, not `{deparse(fmla[[3]])}`")
+    if (class(fmla[[2]])=="call" && !deparse(fmla[[2]][[1]])=="se") {
+      if (deparse(fmla[[2]][[1]])=="+")
+        cli::cli_abort("Because of parsing complexities, RHSs cannot be shared in this function with `+` on LHS: `{deparse(fmla[[2]])}`")
+
+      cli::cli_abort("LHS of formula must be a selector or in the form `se(selector)`, not `{deparse(fmla[[2]])}`")
+    }
 
   }
 
   # All symbols
   sym_tab <- mutate_prm_proc(mutp_list, .problem=.problem, .subprob=.subprob,.method=.method)
-  par_tbl <- xpose::get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, quiet = TRUE)
+  par_tbl <- suppressWarnings(xpose::get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, quiet = TRUE))
   rlang::try_fetch({
-    fepars <- sym_tab$param %>% param_selector(prm_tbl = par_tbl)
-    repars <- sym_tab$omega %>% param_selector(prm_tbl = par_tbl)
+    pars <- sym_tab$param %>% param_selector(prm_tbl = par_tbl)
   },
   error = function(s)
     rlang::abort("Non-valid selectors in association.", parent=s)
   )
-  # Check for fepars repeats (repars is fine to repeat)
-  if (any(duplicated(fepars)))
-    cli::cli_abort("Cannot have multiple associations for the same (fixed effect) parameters. ({sym_tab$param[duplicated(fepars)]})")
+  if (any(pars>sum(par_tbl$type=="the"))) {
+    cli::cli_abort("Inappropriate selector {.strong {unique(sym_tab$param[pars>sum(par_tbl$type==\"the\")])}}. Only theta parameters can be used in this function.")
+  }
 
-  return()
+  return(sym_tab) # return the checked, processed list for this
 }
 
 
@@ -679,7 +773,7 @@ mutate_prm_proc <- function(mutp_list,.problem,.subprob,.method) {
       # selector used as variable in call
       # function name
       # function declaration
-      # So best to just save quoted call
+      # ... So best to just save quoted call
       rhs <- .x[[3]]
 
 
@@ -695,4 +789,45 @@ mutate_prm_proc <- function(mutp_list,.problem,.subprob,.method) {
       )
     }
   )
+}
+
+# Pulled out to isolate this logic.
+# Surgical update of enclosed file values.
+# Not intended to be used by end users, so can avoid some boilerplate
+mutate_in_file <- function(
+    xpdb,
+    val,
+    col,
+    row,
+    ext,
+    problem,
+    subprob,
+    method
+) {
+  use_col <- rlang::quo(col)
+
+  xpdb$files %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      data = if (
+        extension == ext &
+        problem==.env[["problem"]] & subprob==.env[["subprob"]] & method==.env[["method"]]
+      ) {
+        data %>%
+          dplyr::mutate(across(
+            {{ use_col}},
+            function(v)
+              ifelse(
+                eval(row, envir = environment()),
+                vctrs::vec_recycle(val, length(v)),
+                v
+              )
+          )) %>%
+          list()
+      } else {
+        data %>%
+          list()
+      }
+    ) %>%
+    dplyr::ungroup()
 }

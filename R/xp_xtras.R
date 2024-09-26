@@ -512,7 +512,7 @@ backfill_constants <- function(xpdb, ..., trans = 2) {}
 #' @param .problem <`numeric`> Problem number to use. Uses the all problems if `NULL`
 #' @param ... Should be blank.
 #'
-#' @return <`tibble`> of variables`cat()` of variables
+#' @return <`tibble`> of variables
 #' @export
 #'
 #'
