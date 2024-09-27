@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# xpose.xtras
+# xpose.xtras <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -61,8 +61,8 @@ use xpose-style VPC (ie, vpc::vpc) functionality extensively.
 - [ ] table of covariates (demographics)
   - [ ] Basic tibble
   - [ ] Nice output version (similar to nice output for prm_table)
-- [ ] Nice param table, incorporate pmxcv
-  - [ ] Need way to reference etas to fixed effects and state
+- [ ] Nice param table, incorporate ~~pmxcv~~
+  - [x] Need way to reference etas to fixed effects and state
     transformation
 - [ ] unit tests for all functions
 - [x] **De-scoped (add any needed features to tidyvpc directly)**

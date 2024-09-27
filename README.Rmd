@@ -12,8 +12,7 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 ```
-
-# xpose.xtras
+# xpose.xtras <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -57,8 +56,8 @@ Partially completed items have ~~strikethough~~ to "hide" the finished part. VPC
 - [ ] table of covariates (demographics)
   - [ ] Basic tibble
   - [ ] Nice output version (similar to nice output for prm_table)
-- [ ] Nice param table, incorporate pmxcv
-  - [ ] Need way to reference etas to fixed effects and state transformation
+- [ ] Nice param table, incorporate ~~pmxcv~~
+  - [x] Need way to reference etas to fixed effects and state transformation
 - [ ] unit tests for all functions
 - [x] **De-scoped (add any needed features to tidyvpc directly)** tidyvpc support?
   - [x] **De-scoped** Want vpc_tte ported over (even though this is not in xpose atm)
