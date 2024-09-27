@@ -562,7 +562,7 @@ get_prm.xp_xtras <- function(
   eta_shk <- shk_wrap("eta", max(new_prm$m[new_prm$type=="ome"]))
   eps_shk <- shk_wrap("eps", max(new_prm$m[new_prm$type=="sig"]))
 
-  new_prm %>%
+  new_prm<-new_prm %>%
     dplyr::mutate(
       shk = purrr::map2_dbl(type,purrr::map2(m,n,function(x,y) c(x,y)), ~{
         if (is.na(.y[2]) || .y[1]!=.y[2]) return(NA_real_)
@@ -657,7 +657,7 @@ get_prm.xp_xtras <- function(
 #'   get_prm()
 #'
 #'
-mutate_prm <- function( # TODO: sigfig not being applied probably because of NAs. Check why old example with function call for theta 12 doesnt work (maybe low value of rescaled se?)
+mutate_prm <- function( # TODO:  Check why old example with function call for theta 12 doesnt work (maybe low value of rescaled se?)
   xpdb,
   ...,
   .autose = TRUE, # simulation-based SE approximation
