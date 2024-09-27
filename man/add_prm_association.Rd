@@ -16,8 +16,8 @@ drop_prm_association(xpdb, ..., .problem, .subprob, .method, quiet)
 define associations between parameters. One list of formulas can also be used,
 but a warning is generated.
 
-For \code{drop_prm_association}, this list should be selectors for which associations
-will be dropped.}
+For \code{drop_prm_association}, these dots should be selectors for which associations
+will be dropped (\verb{the2, the3,...}). Fixed effect selectors only will work.}
 
 \item{.problem}{<\code{numeric}> Problem number to apply this relationship.}
 
@@ -54,13 +54,23 @@ Requires a \code{lambda} parameter.
 To pass a custom parameter, use \code{custom} transform, and pass \code{pdist} and \code{qdist} to
 that transform. See Examples.
 
+Reminder about \code{qdist} and \code{pdist}: Consider that \code{qlogis} transforms a proportion
+to a continuous, unbounded number; it is the \code{logit} transform. The \code{pdist} function
+converts a continuous, unbounded number to a proportion; it is the \emph{inverse} \code{logit}
+transform. Other R \code{stats} functions work similarly, and as such functions used as
+\code{qdist} and \code{pdist} values are expected to act similarly.
+
 Note that the functions used in describing associations are not real functions,
 it is just the syntax for this application. Based on examples, be mindful of
 where positional arguments would acceptable and where named arguments are
 required. Care has been given to provide a modest amount of flexibility
 with informative errors for fragile points, but not every error can be anticipated.
 If this function or downstream results from it seem wrong, the association syntax
-should be scrutinized.
+should be scrutinized. These "functions" are not processed like in \code{\link{mutate_prm}},
+so (eg) \code{the2} will not be substituted for the value of \code{the2}; if
+\code{lambda} is a fitted value (like \code{the2}), in that edge case the value of \code{the2} should be written
+explicitly in the association formula, and if any \code{mutate_prm} changes \code{the2} then users
+should be mindful of the new association needed. This may be updated in the future.
 
 Format for associations is:
 \code{LHS~fun(OMEGA, args...)}
@@ -83,12 +93,43 @@ are limited to 1, can be passed by position (eg, \code{lambda} for \code{nmboxco
 \code{exact} for \code{log}). For \code{custom()}, \code{qdist}, \code{pdist} and any arguments needed to
 pass to them should be named.
 }
+
+For the \code{nmboxcox} transformation, a lambda value (especially negative ones) may
+not work well with the integration-based CV estimation. This may occur even if
+the lambda is fitted and stable in that fitting, but it cannot be predicted which
+ones will be affected. This note is intended to forewarn that this might happen.
 }
 \examples{
 
 pheno_base \%>\%
-   add_prm_association(the1~log(IIVCL),V~log(IIVV))
+   add_prm_association(the1~log(IIVCL),V~log(IIVV)) \%>\%
+   get_prm() # get_prm is the only way to see the effect of associations
 
+# These values are not fitted as logit-normal, but
+# just to illustrate:
+pheno_final \%>\%
+   add_prm_association(the1~logit(IIVCL),Vpkg~logit(IIVV)) \%>\%
+   get_prm()
+
+# ... same for Box-Cox
+pheno_base \%>\%
+   add_prm_association(V~nmboxcox(IIVV, lambda=0.5)) \%>\%
+   # Naming the argument is optional
+   add_prm_association(CL~nmboxcox(IIVCL, -0.1)) \%>\%
+   get_prm()
+
+# A 'custom' use-case is when logexp, log(1+X), is
+# desired but 1 is too large.
+# Again, for this example, treating this like it applies here.
+pheno_base \%>\%
+  add_prm_association(V~custom(IIVV, qdist=function(x) log(0.001+x),
+        pdist=function(x) exp(x)-0.001)) \%>\%
+   get_prm()
+
+# Dropping association is easy
+bad_assoc <- pheno_final \%>\%
+   add_prm_association(the1~logit(IIVCL),Vpkg~logit(IIVV))
+bad_assoc
 
 }
 \references{
@@ -97,5 +138,5 @@ Other Non-log-normal Parameters. Clin Pharmacokinet 63, 133–135 (2024).
 https://doi.org/10.1007/s40262-023-01343-2
 }
 \seealso{
-\code{\link[pmxcv:dist.intcv]{pmxcv::dist.intcv()}}
+\code{\link[pmxcv:dist.intcv]{dist.intcv}}
 }

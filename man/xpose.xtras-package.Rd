@@ -6,6 +6,8 @@
 \alias{xpose.xtras-package}
 \title{xpose.xtras: Extra functionality for the xpose package}
 \description{
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
 Adding some at-present missing functionality (to-be-deprecated as they are added to xpose), or functions unlikely to be added to the base xpose package.
 }
 \author{

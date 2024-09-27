@@ -25,7 +25,7 @@ value. That value can be a function call like in \code{mutate()} (\code{the1~exp
 \item{.autose}{<\code{logical}> If a function is used for the transform then simulation
 is used to transform the current SE to a new SE. Precision of this transformation
 is dependent on \code{.sesim}. If parameter values are not assigned with a function,
-this option will simply scale SE to maintain the same RSE.}
+this option will simply scale SE to maintain the same RSE. See Details.}
 
 \item{.problem}{<\code{numeric}> Problem number to apply this relationship.}
 
@@ -52,8 +52,28 @@ This only works for theta parameters.
 All valid mutations are applied sequentially, so a double call to \code{the2~the2^3}
 will result in effectively \code{the2~the2^9}, for example.
 
-RSE values will be updated at each transform. Any \emph{automatic} updates to SE will
-be implemented before RSE is updated.
+RSE values are calculated at runtime within \code{get_prm}, so they are not updated (or
+updatable) with this function.
+}
+\details{
+\subsection{Important points about covariance and correlation}{
+
+Covariance and correlation parameters are adjusted when standard error (SE)
+values are changed directly or with \code{.autose}. When a transformation is applied
+as a function for the fixed effect parameter (eg, \code{~plogis}), the resulting SE may have
+an unexpected scale; this is because it is now reporting the standard deviation
+of a transformed and potentially non-normal distribution. If the parameter were fit
+in the transformed scale (constrained to any appropriate bounds), it would likely have a
+different SE given that most covariance estimation methods (excluding non-parametric and
+resampling-based) will treat the constrained parameter as continuous and unconstrained.
+
+The updates to variance-covariance values (and the correlation values, though that is mostly
+invariant) are applied to the entire matrices. When piped directly into
+\code{get_prm}, only the SE estimate is shown, but <\code{\link[xpose:get_file]{get_file}}> can be used
+to see the complete updated variance-covariance values. This could be useful if those
+matrices are being used to define priors for a Bayesian model fitting, as the re-scaling
+of off-diagonal elements is handled automatically.
+}
 }
 \examples{
 
@@ -62,9 +82,6 @@ vismo_pomod \%>\%
   mutate_prm(THETA11~exp) \%>\%
   # Value (se will not be scaled); plogis = inverse logit
   mutate_prm(THETA12~plogis(THETA12)) \%>\%
-  # For above, manually scale se (below is roughly how autose does it)
-  # Note the qlogis since the previously piped function updates THETA12
-  mutate_prm(se(THETA12)~sd(plogis(rnorm(1000,qlogis(THETA12),se(THETA12))))) \%>\%
   get_prm()
 
 

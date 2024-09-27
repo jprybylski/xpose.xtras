@@ -18,8 +18,8 @@
 #' define associations between parameters. One list of formulas can also be used,
 #' but a warning is generated.
 #'
-#' For `drop_prm_association`, this list should be selectors for which associations
-#' will be dropped.
+#' For `drop_prm_association`, these dots should be selectors for which associations
+#' will be dropped (`the2, the3,...`). Fixed effect selectors only will work.
 #' @param .problem <`numeric`> Problem number to apply this relationship.
 #' @param .subprob <`numeric`> Problem number to apply this relationship.
 #' @param .method <`numeric`> Problem number to apply this relationship.
@@ -43,13 +43,23 @@
 #' To pass a custom parameter, use `custom` transform, and pass `pdist` and `qdist` to
 #' that transform. See Examples.
 #'
+#' Reminder about `qdist` and `pdist`: Consider that `qlogis` transforms a proportion
+#' to a continuous, unbounded number; it is the `logit` transform. The `pdist` function
+#' converts a continuous, unbounded number to a proportion; it is the *inverse* `logit`
+#' transform. Other R `stats` functions work similarly, and as such functions used as
+#' `qdist` and `pdist` values are expected to act similarly.
+#'
 #' Note that the functions used in describing associations are not real functions,
 #' it is just the syntax for this application. Based on examples, be mindful of
 #' where positional arguments would acceptable and where named arguments are
 #' required. Care has been given to provide a modest amount of flexibility
 #' with informative errors for fragile points, but not every error can be anticipated.
 #' If this function or downstream results from it seem wrong, the association syntax
-#' should be scrutinized.
+#' should be scrutinized. These "functions" are not processed like in [`mutate_prm`],
+#' so (eg) `the2` will not be substituted for the value of `the2`; if
+#' `lambda` is a fitted value (like `the2`), in that edge case the value of `the2` should be written
+#' explicitly in the association formula, and if any `mutate_prm` changes `the2` then users
+#' should be mindful of the new association needed. This may be updated in the future.
 #'
 #' Format for associations is:
 #' `LHS~fun(OMEGA, args...)`
@@ -73,21 +83,52 @@
 #'   pass to them should be named.
 #' }
 #'
+#' For the `nmboxcox` transformation, a lambda value (especially negative ones) may
+#' not work well with the integration-based CV estimation. This may occur even if
+#' the lambda is fitted and stable in that fitting, but it cannot be predicted which
+#' ones will be affected. This note is intended to forewarn that this might happen.
+#'
 #'
 #' @references
 #' Prybylski, J.P. Reporting Coefficient of Variation for Logit, Box-Cox and
 #' Other Non-log-normal Parameters. Clin Pharmacokinet 63, 133–135 (2024).
 #' https://doi.org/10.1007/s40262-023-01343-2
 #'
-#' @seealso [pmxcv::dist.intcv()]
+#' @seealso [`dist.intcv`][pmxcv::dist.intcv()]
 #'
 #' @export
 #'
 #' @examples
 #'
 #' pheno_base %>%
-#'    add_prm_association(the1~log(IIVCL),V~log(IIVV))
+#'    add_prm_association(the1~log(IIVCL),V~log(IIVV)) %>%
+#'    get_prm() # get_prm is the only way to see the effect of associations
 #'
+#' # These values are not fitted as logit-normal, but
+#' # just to illustrate:
+#' pheno_final %>%
+#'    add_prm_association(the1~logit(IIVCL),Vpkg~logit(IIVV)) %>%
+#'    get_prm()
+#'
+#' # ... same for Box-Cox
+#' pheno_base %>%
+#'    add_prm_association(V~nmboxcox(IIVV, lambda=0.5)) %>%
+#'    # Naming the argument is optional
+#'    add_prm_association(CL~nmboxcox(IIVCL, -0.1)) %>%
+#'    get_prm()
+#'
+#' # A 'custom' use-case is when logexp, log(1+X), is
+#' # desired but 1 is too large.
+#' # Again, for this example, treating this like it applies here.
+#' pheno_base %>%
+#'   add_prm_association(V~custom(IIVV, qdist=function(x) log(0.001+x),
+#'         pdist=function(x) exp(x)-0.001)) %>%
+#'    get_prm()
+#'
+#' # Dropping association is easy
+#' bad_assoc <- pheno_final %>%
+#'    add_prm_association(the1~logit(IIVCL),Vpkg~logit(IIVV))
+#' bad_assoc
 #'
 add_prm_association <- function(
   xpdb,
@@ -96,7 +137,7 @@ add_prm_association <- function(
   .subprob,
   .method,
   quiet
-) { # TODO: add more examples of parameters, including custom
+) {
   if (!check_xpdb_x(xpdb, .warn = TRUE))
     cli::cli_abort("{cli::col_blue('xp_xtras')} object required.")
 
@@ -161,7 +202,20 @@ drop_prm_association <- function(
     cli::cli_abort("{cli::col_blue('xp_xtras')} object required.")
 
   fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
-  # TODO: finish drop_prm_association function
+
+  rlang::check_dots_unnamed()
+
+  remove_selectors <- rlang::dots_list(...)
+  current_selectors <- xpdb$pars %>%
+    dplyr::filter(
+      problem = .problem,
+      subprob = .subprob,
+      method = .method
+    )
+  if (nrow(current_selectors)==0) return(xpdb)
+
+  new_xpdb <- xpdb
+
 }
 
 builtin_asscs <- c("log","logexp","logit","arcsin","nmboxcox")
@@ -333,6 +387,12 @@ param_selector <- function(
 #' instead of the exact. In such case, `xpdb <- set_option(xpdb, cvtype="sqrt")` will
 #' get that preferred form.
 #'
+#' If a single omega parameter is associated with multiple fixed effect parameters,
+#' the `cv` column will be a list. For the `omega` row associated with multiple
+#' fixed effect parameters, there will be multiple CV values. This will be the case
+#' even if the transformation is log-normal and therefore scale-invariant, given
+#' the need for generality.
+#'
 #' **Note** the approach used to calculate CV% assumes an untransformed scale for the
 #' fitted parameter value (unrelated to `transform`=TRUE). That means, for example,
 #' that for a logit-normal fitted parameter value, it is expected the value will be
@@ -410,7 +470,7 @@ get_prm.xp_xtras <- function(
 ) {
   if (!check_xpdb_x(xpdb, .warn = TRUE))
     cli::cli_abort("{cli::col_blue('xp_xtras')} object required.")
-
+  if (missing(quiet)) quiet <- xpdb$options$quiet
   fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
 
   if (is.null(digits)) digits <- reportable_digits(xpdb,.problem=.problem, .subprob=.subprob, .method=.method)
@@ -454,7 +514,6 @@ get_prm.xp_xtras <- function(
       )
     )
   for (om2cv in rel_ome_i) {
-    to_update <- new_prm$cv[om2cv]
     if (!om2cv %in% impacted_omegas) {
       new_cv <- lnorm_transform(untr_prm$value[om2cv])
     } else {
@@ -472,7 +531,7 @@ get_prm.xp_xtras <- function(
         )
         if (par_asscs$assoc[row]=="nmboxcox") return(
           pmxcv::dist.intcv("nmboxcox", u = thval, v = omval,
-                            lambda = argus[[1]])
+                            lambda = eval(argus[[1]]))
         )
         if (par_asscs$assoc[row]=="custom") return(
           pmxcv::intcv(u = thval, v = omval, pdist = argus$pdist,
@@ -480,15 +539,14 @@ get_prm.xp_xtras <- function(
         )
         pmxcv::dist.intcv(assc_row$assoc, u = thval, v = omval)
       })
-      if (length(new_cv)>1) new_cv <- as.list(new_cv)
     }
-    if (is.list(to_update) && !is.list(new_cv)) new_cv <-list(new_cv)
     new_prm <- new_prm %>%
       dplyr::mutate(
         cv = ifelse(
           dplyr::row_number()==om2cv,
           .env$new_cv %>%
-            .[!purrr::map_lgl(.,is.na)],
+            .[!purrr::map_lgl(.,is.na)] %>%
+            ifelse(is.list(cv), list(.), .),
           cv
         )
       )
@@ -520,6 +578,14 @@ get_prm.xp_xtras <- function(
         function(.x) tibble::num(.x, sigfig=digits)
       )
     )
+
+  if (!quiet && length(impacted_omegas)>0) {
+    cli::cli_inform(cli::col_grey("Creating parameter table with the following associations:
+                    {.strong {stringr::str_c(def_prm$label[par_asscs$thnums],'~',
+                    par_asscs$assoc,'(',def_prm$label[par_asscs$omnums],')')}}"))
+  }
+
+  new_prm
 }
 
 
@@ -541,8 +607,8 @@ get_prm.xp_xtras <- function(
 #' All valid mutations are applied sequentially, so a double call to `the2~the2^3`
 #' will result in effectively `the2~the2^9`, for example.
 #'
-#' RSE values will be updated at each transform. Any *automatic* updates to SE will
-#' be implemented before RSE is updated.
+#' RSE values are calculated at runtime within `get_prm`, so they are not updated (or
+#' updatable) with this function.
 #'
 #'
 #' @param xpdb <`xp_xtras`> object
@@ -552,7 +618,7 @@ get_prm.xp_xtras <- function(
 #' @param .autose <`logical`> If a function is used for the transform then simulation
 #' is used to transform the current SE to a new SE. Precision of this transformation
 #' is dependent on `.sesim`. If parameter values are not assigned with a function,
-#' this option will simply scale SE to maintain the same RSE.
+#' this option will simply scale SE to maintain the same RSE. See Details.
 #' @param .problem <`numeric`> Problem number to apply this relationship.
 #' @param .subprob <`numeric`> Problem number to apply this relationship.
 #' @param .method <`numeric`> Problem number to apply this relationship.
@@ -561,6 +627,26 @@ get_prm.xp_xtras <- function(
 #'
 #' @export
 #'
+#' @details
+#' ### Important points about covariance and correlation
+#'
+#' Covariance and correlation parameters are adjusted when standard error (SE)
+#' values are changed directly or with `.autose`. When a transformation is applied
+#' as a function for the fixed effect parameter (eg, `~plogis`), the resulting SE may have
+#' an unexpected scale; this is because it is now reporting the standard deviation
+#' of a transformed and potentially non-normal distribution. If the parameter were fit
+#' in the transformed scale (constrained to any appropriate bounds), it would likely have a
+#' different SE given that most covariance estimation methods (excluding non-parametric and
+#' resampling-based) will treat the constrained parameter as continuous and unconstrained.
+#'
+#' The updates to variance-covariance values (and the correlation values, though that is mostly
+#' invariant) are applied to the entire matrices. When piped directly into
+#' `get_prm`, only the SE estimate is shown, but <[`get_file`][`xpose::get_file`]> can be used
+#' to see the complete updated variance-covariance values. This could be useful if those
+#' matrices are being used to define priors for a Bayesian model fitting, as the re-scaling
+#' of off-diagonal elements is handled automatically.
+#'
+#'
 #' @examples
 #'
 #' vismo_pomod %>%
@@ -568,13 +654,10 @@ get_prm.xp_xtras <- function(
 #'   mutate_prm(THETA11~exp) %>%
 #'   # Value (se will not be scaled); plogis = inverse logit
 #'   mutate_prm(THETA12~plogis(THETA12)) %>%
-#'   # For above, manually scale se (below is roughly how autose does it)
-#'   # Note the qlogis since the previously piped function updates THETA12
-#'   mutate_prm(se(THETA12)~sd(plogis(rnorm(1000,qlogis(THETA12),se(THETA12))))) %>%
 #'   get_prm()
 #'
 #'
-mutate_prm <- function(
+mutate_prm <- function( # TODO: sigfig not being applied probably because of NAs. Check why old example with function call for theta 12 doesnt work (maybe low value of rescaled se?)
   xpdb,
   ...,
   .autose = TRUE, # simulation-based SE approximation
@@ -583,11 +666,6 @@ mutate_prm <- function(
   .method = NULL,
   .sesim = 100000,
   quiet) {
-  # mutate_prm(xpdb, {selector} = fun|val) # fun to apply to selector, or value (value can be resolved function call)
-  # mutate_prm(xpdb, se({selector}) = fun|val) # fun to apply to se column of selector, or val
-  # rse is updated depending on either of these being used
-  # TODO: implement mutate_prm function. make sure to adjust off-diagonal elements in cov/cor matrices
-
   # Make sure users did not do `=`
   rlang::try_fetch(
     rlang::check_dots_unnamed(),
@@ -661,12 +739,12 @@ mutate_prm <- function(
                                                          transform = FALSE, show_all = TRUE, quiet=TRUE)) # show all is for off-diagonal of cor cov
   for (mn in 1:nrow(mutp_tab)) { # For loop to apply changes initiated from mutp_tab to running updates in new_xpdb
       new_value <- new_val(mutp_tab$argus[mn][[1]])
+      change_to <- new_value
       impacted_prm <- param_selector(mutp_tab$param[mn],base_df)
       existing_value <- calls_env$base_df$value[impacted_prm]
       # For fixed effects, implement
       if (!mutp_tab$is_se[mn]) {
         # Change to value in files
-        change_to <- new_value
         if (is.function(new_value)) {
           change_to <- rlang::try_fetch(evalq(new_value(existing_value),
                                  envir = calls_env),
@@ -700,9 +778,107 @@ mutate_prm <- function(
         # cov and cor
         # If this ends up too slow, can change logic in mutate_in_file (for example, rowwise loops every
         # time, and no allowance to multiply multiple values at once even in same column)
+        # Change to value in files
+
+        # If autose and *not* is_se, then update new_value before processing
+        exisiting_se <- calls_env$base_df$se[impacted_prm]
+        if (is.na(exisiting_se) || exisiting_se==0) next # no point in doing the rest if se is 0 or unknown
+        if (!mutp_tab$is_se[mn] && .autose==TRUE) {
+          if (is.function(new_value)) {
+            nv_fun <- new_value
+            new_value <- function(x,y=exisiting_se)
+              sd(
+                nv_fun(
+                  rnorm(.sesim, mean = x, sd = y) # distribution implied by current estimate and SE
+                  ),
+                na.rm = TRUE # in case original estimate was bounded and for some reason this function would still be used.
+                )
+          } else {
+            new_value <- exisiting_se*(new_value/existing_value)
+          }
+        }
+
+        change_to <- new_value
+        if (is.function(new_value)) {
+          change_to <- rlang::try_fetch(evalq(new_value(existing_value),
+                                              envir = calls_env),
+                                        error = function(s)
+                                          rlang::abort(paste0("Cannot evaluate RHS expression `",
+                                                              stringr::str_trunc(paste(deparse(new_value), collapse=""), 18),
+                                                              "`. Was an omega or sigma selector used?"), parent=s)
+          )
+        }
+        # Change value in ext (most times get_prm actually pulls from cov, but can happen here, too)
+        new_xpdb$files <- mutate_in_file(
+          xpdb = new_xpdb,
+          val = change_to,
+          col = 1 + impacted_prm,
+          row = quote(ITERATION==-1000000001),
+          ext = "ext",
+          problem = .problem,
+          subprob = .subprob,
+          method = .method
+        )
+        new_xpdb <- as_xp_xtras(new_xpdb)
+        # If Iteration -1...1 exists, there should be cor/cov, but just in case...
+        if ("cov" %in% new_xpdb$files$extension &&
+            "cor" %in% new_xpdb$files$extension) {
+          # Change value in cor (off-diagonal is invariant to scale; only need to change reporting diagonal)
+          new_xpdb$files <- mutate_in_file(
+            xpdb = new_xpdb,
+            val = change_to, # cor diagonal is SE, in NONMEM and others
+            col = 1 + impacted_prm,
+            row = parse(text=paste0("dplyr::row_number()==",impacted_prm)),
+            ext = "cor",
+            problem = .problem,
+            subprob = .subprob,
+            method = .method
+          )
+          # Change value in cov
+          new_variance <- change_to^2
+          orig_variance <- exisiting_se^2
+          new_xpdb <- as_xp_xtras(new_xpdb)
+          # Change values in cov off-diagonal + diagonal
+          cur_off_diag <- xpose::get_file(new_xpdb, ext="cov", .problem=.problem, .subprob = .subprob,
+                                          .method = .method, quiet=TRUE) %>%
+            dplyr::pull(1 + impacted_prm)
+          new_off_diag <- cur_off_diag*sqrt(new_variance/orig_variance)
+          new_off_diag[impacted_prm] <- new_variance
+          new_xpdb$files <- mutate_in_file( # change off-diag col
+            xpdb = new_xpdb,
+            val = new_off_diag,
+            col = 1 + impacted_prm,
+            row = quote(dplyr::row_number()),
+            ext = "cov",
+            problem = .problem,
+            subprob = .subprob,
+            method = .method
+          )
+          new_xpdb <- as_xp_xtras(new_xpdb)
+          new_xpdb$files <- mutate_in_file( # change off-diag row
+            xpdb = new_xpdb,
+            # This is clunky but seems to work
+            val = rlang::quo( # special handling for quosures now in mutate_in_file
+              new_off_diag[ # limit only to the value in this vector that matches...
+                which( # ... the TRUE values for...
+                  # when names for the current data frame is the current column
+                  names(dplyr::pick(everything()))==dplyr::cur_column()
+                  ) # This whole which(...) call is effectively just getting the current column index
+                -1] # Skip NAME column, since it is not counted in new_off_diag
+              ),
+            col = 2:(dplyr::last_col()),
+            row = parse(text=paste0("dplyr::row_number()==",impacted_prm)),
+            ext = "cov",
+            problem = .problem,
+            subprob = .subprob,
+            method = .method
+          )
+          new_xpdb <- as_xp_xtras(new_xpdb)
+        }
+        # Update base_df in calls_env
+        refresh_calls_prms(new_xpdb)
       }
-      # for whatever the current theta and se are, update RSE (users turning off autose are aware of this consequence,
-      # and it is to be assumed users want this behavior)
+      # for whatever the current theta and se are, RSE are updated by nature of the xpose::get_prm function
   }
   new_xpdb
 }
@@ -816,12 +992,12 @@ mutate_in_file <- function(
         data %>%
           dplyr::mutate(across(
             {{ use_col}},
-            function(v)
-              ifelse(
-                eval(row, envir = environment()),
-                vctrs::vec_recycle(val, length(v)),
-                v
-              )
+            function(v) {
+              row_picker <- eval(row, envir = environment())
+              if (rlang::is_quosure(val)) val <- eval(val, envir = environment())
+              v[row_picker] <- val
+              v
+            }
           )) %>%
           list()
       } else {

@@ -51,6 +51,12 @@ For log-normal, users may prefer to use the first-order CV\% (\eqn{\sqrt{\omega^
 instead of the exact. In such case, \code{xpdb <- set_option(xpdb, cvtype="sqrt")} will
 get that preferred form.
 
+If a single omega parameter is associated with multiple fixed effect parameters,
+the \code{cv} column will be a list. For the \code{omega} row associated with multiple
+fixed effect parameters, there will be multiple CV values. This will be the case
+even if the transformation is log-normal and therefore scale-invariant, given
+the need for generality.
+
 \strong{Note} the approach used to calculate CV\% assumes an untransformed scale for the
 fitted parameter value (unrelated to \code{transform}=TRUE). That means, for example,
 that for a logit-normal fitted parameter value, it is expected the value will be
