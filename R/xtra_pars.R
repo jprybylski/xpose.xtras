@@ -579,13 +579,33 @@ get_prm.xp_xtras <- function(
       )
     )
 
-  if (!quiet && length(impacted_omegas)>0) {
-    cli::cli_inform(cli::col_grey("Creating parameter table with the following associations:
-                    {.strong {stringr::str_c(def_prm$label[par_asscs$thnums],'~',
-                    par_asscs$assoc,'(',def_prm$label[par_asscs$omnums],')')}}"))
+  store_associations <- NULL
+  if (length(impacted_omegas)>0) {
+    store_associations <- stringr::str_c(def_prm$label[par_asscs$thnums],'~',
+                   par_asscs$assoc,'(',def_prm$label[par_asscs$omnums],')')
   }
 
-  new_prm
+  as_prm_tbl(new_prm, associations=store_associations)
+}
+
+#' @export
+as_prm_tbl <- function(tbl, ...) {
+  if (inherits(tbl, "prm_tbl")) return(tbl)
+  structure(
+    tbl,
+    class = c("prm_tbl", class(tbl)),
+    ...
+  )
+}
+
+#' @method print prm_tbl
+#' @export
+print.prm_tbl <- function(x, ...) {
+  NextMethod()
+  if (length(attr(x, "associations"))>0) {
+    cli::cli_inform(cli::col_grey("# Parameter table includes the following associations:
+                    {.strong {attr(x, 'associations')}}"))
+  }
 }
 
 
@@ -657,7 +677,7 @@ get_prm.xp_xtras <- function(
 #'   get_prm()
 #'
 #'
-mutate_prm <- function( # TODO:  Check why old example with function call for theta 12 doesnt work (maybe low value of rescaled se?)
+mutate_prm <- function(
   xpdb,
   ...,
   .autose = TRUE, # simulation-based SE approximation
@@ -754,6 +774,8 @@ mutate_prm <- function( # TODO:  Check why old example with function call for th
                                                  "`. Was an omega or sigma selector used?"), parent=s)
           )
         }
+        if (length(change_to)!=1)
+          cli::cli_abort("RHS must resolve to a length of {.strong 1}, not {.strong {length(change_to)}}")
         # Change value in ext
         new_xpdb$files <- mutate_in_file(
           xpdb = new_xpdb,
@@ -770,16 +792,6 @@ mutate_prm <- function( # TODO:  Check why old example with function call for th
         refresh_calls_prms(new_xpdb)
       }
       if (mutp_tab$is_se[mn] || .autose==TRUE) {
-        # a lot of same as above, but also diagonal and off-diagonal components of cov cor
-        # Doing one at a time for these should be fine. a benchmark of 30 changes was
-        # noticeably slow but not too bad; 20 was near-instant
-        # Remember to implement both scaled change (is auto-se) and functional change
-        # don't touch theta in any transformation here, but any change to se should change
-        # cov and cor
-        # If this ends up too slow, can change logic in mutate_in_file (for example, rowwise loops every
-        # time, and no allowance to multiply multiple values at once even in same column)
-        # Change to value in files
-
         # If autose and *not* is_se, then update new_value before processing
         exisiting_se <- calls_env$base_df$se[impacted_prm]
         if (is.na(exisiting_se) || exisiting_se==0) next # no point in doing the rest if se is 0 or unknown
@@ -789,7 +801,7 @@ mutate_prm <- function( # TODO:  Check why old example with function call for th
             new_value <- function(x,y=exisiting_se)
               sd(
                 nv_fun(
-                  rnorm(.sesim, mean = x, sd = y) # distribution implied by current estimate and SE
+                  rnorm(.sesim, mean = x, sd = abs(y)) # distribution implied by current estimate and SE
                   ),
                 na.rm = TRUE # in case original estimate was bounded and for some reason this function would still be used.
                 )
@@ -808,10 +820,12 @@ mutate_prm <- function( # TODO:  Check why old example with function call for th
                                                               "`. Was an omega or sigma selector used?"), parent=s)
           )
         }
+        if (length(change_to)!=1)
+          cli::cli_abort("RHS must resolve to a length of {.strong 1}, not {.strong {length(change_to)}}")
         # Change value in ext (most times get_prm actually pulls from cov, but can happen here, too)
         new_xpdb$files <- mutate_in_file(
           xpdb = new_xpdb,
-          val = change_to,
+          val = abs(change_to),
           col = 1 + impacted_prm,
           row = quote(ITERATION==-1000000001),
           ext = "ext",
@@ -826,7 +840,7 @@ mutate_prm <- function( # TODO:  Check why old example with function call for th
           # Change value in cor (off-diagonal is invariant to scale; only need to change reporting diagonal)
           new_xpdb$files <- mutate_in_file(
             xpdb = new_xpdb,
-            val = change_to, # cor diagonal is SE, in NONMEM and others
+            val = abs(change_to), # cor diagonal is SE, in NONMEM and others
             col = 1 + impacted_prm,
             row = parse(text=paste0("dplyr::row_number()==",impacted_prm)),
             ext = "cor",

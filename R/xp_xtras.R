@@ -551,7 +551,7 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
     x <- x[x$problem %in% .problem, ]
   }
 
-  order <- c('id', 'dv', 'catdv', 'idv', 'dvid', 'occ', 'amt', 'evid', 'mdv', 'pred', 'ipred',
+  order <- c('id', 'dv', 'catdv','dvprobs','expdv', 'idv', 'dvid', 'occ', 'amt', 'evid', 'mdv', 'pred', 'ipred',
              'param', 'eta', 'iofv', 'res', 'catcov', 'contcov', 'a', 'bin', 'na')
   cli::cli({
     if (rlang::is_interactive()) sp <- cli::make_spinner(default_spinner)
@@ -612,6 +612,8 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
                                      type == 'evid' ~ 'Event identifier',
                                      type == 'dv' ~ 'Dependent variable',
                                      type == 'catdv' ~ 'Categorical endpoint',
+                                     type == 'dvprobs' ~ 'DV Probabilities',
+                                     type == 'expdv' ~ 'Expected DV',
                                      type == 'catcov' ~ 'Categorical covariates',
                                      type == 'contcov' ~ 'Continuous covariates',
                                      type == 'param' ~ 'Model parameter',

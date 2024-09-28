@@ -56,7 +56,7 @@ Partially completed items have ~~strikethough~~ to "hide" the finished part. VPC
 - [ ] table of covariates (demographics)
   - [ ] Basic tibble
   - [ ] Nice output version (similar to nice output for prm_table)
-- [ ] Nice param table, incorporate ~~pmxcv~~
+- [x] Nice param table, incorporate ~~pmxcv~~ (**De-scoped** nice table, just make comprehensive tbl)
   - [x] Need way to reference etas to fixed effects and state transformation
 - [ ] unit tests for all functions
 - [x] **De-scoped (add any needed features to tidyvpc directly)** tidyvpc support?
