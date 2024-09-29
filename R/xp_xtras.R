@@ -27,12 +27,13 @@ as_xpdb_x <- function(x) {
   } else{
     # If it doesn't, fill info with empty versions of true
 
-    # Space for levels in index
+    # Space for levels and probs in index
     new_x$data <- new_x$data %>%
       # add nested levels to index
       mutate(
         index = purrr::map(index, ~{
-          mutate(.x, levels = list(tibble::tibble()))
+          mutate(.x, levels = list(tibble::tibble())) %>%
+            mutate(probs = list(tibble::tibble()))
         })
       )
 
@@ -90,6 +91,12 @@ check_xpdb_x <- function(x, .warn=TRUE) {
   ### check for "levels" in index
   if ("data" %in% names(x) &&
       !"levels" %in% names(x$data$index[[1]])
+  ) {
+    return(FALSE)
+  }
+  ### check for "probs" in index
+  if ("data" %in% names(x) &&
+      !"probs" %in% names(x$data$index[[1]])
   ) {
     return(FALSE)
   }
@@ -167,6 +174,7 @@ set_var_types <- function (xpdb, .problem = NULL, ..., auto_factor = TRUE, quiet
 #' @order 3
 #' @export
 set_var_types.default <- function (xpdb, .problem = NULL, ..., auto_factor = TRUE, quiet) {
+  if (check_xpdb_x(xpdb, .warn=FALSE)) return(set_var_types.xp_xtras(xpdb=xpdb, .problem = .problem, ..., auto_factor = auto_factor, quiet=quiet))
   xpose::set_var_types(xpdb=xpdb, .problem = .problem, ..., auto_factor = auto_factor, quiet=quiet)
 }
 
@@ -550,6 +558,9 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
     }
     x <- x[x$problem %in% .problem, ]
   }
+  
+  # Full dv probs data
+  full_probs <- dplyr::bind_rows(get_index(xpdb, .problem = .problem)$probs)
 
   order <- c('id', 'dv', 'catdv','dvprobs','expdv', 'idv', 'dvid', 'occ', 'amt', 'evid', 'mdv', 'pred', 'ipred',
              'param', 'eta', 'iofv', 'res', 'catcov', 'contcov', 'a', 'bin', 'na')
@@ -590,12 +601,25 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
                 ) %>% ifelse(.=="", ., paste0(" (",.,")"))
                 cols_c <- stringr::str_c(cols_c, cli::style_bold(tocols_c))
               }
-
+              
               # Add level count
               if (.$type2[1] %in% level_types) {
                 lvls_c <- .$levels[!duplicated(.$col)]
                 cols_c <- purrr::map2_chr(cols_c, lvls_c, ~{
                   paste0(.x, " [", cli::col_yellow(nrow(.y)),"]")
+                })
+              }
+              
+              # Add prob definition
+              if (.$type2[1]=="dvprobs" && nrow(full_probs)>0) {
+                prb_which <- match(unique(.$col), full_probs$prob)
+                cols_c <- purrr::map2_chr(cols_c, prb_which, ~{
+                  paste0(.x, " [P(",
+                         cli::col_blue(paste0("*.",
+                         ifelse(is.na(full_probs$qual[.y]), "eq", full_probs$qual[.y]),
+                         ".", ifelse(is.na(full_probs$value[.y]), "??", full_probs$value[.y])
+                         ) %>% paste(collapse="|")),
+                         ")]")
                 })
               }
 
