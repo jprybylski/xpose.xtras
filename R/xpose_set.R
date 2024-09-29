@@ -394,6 +394,9 @@ total_relationships <- function(xpdb_s) {
 #'
 #' @param xpdb_s <[`xpose_set`]> An xpose_set object
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more properties to expose
+#' @param .problem <`numeric`> Problem number to apply this relationship.
+#' @param .subprob <`numeric`> Problem number to apply this relationship.
+#' @param .method <`numeric`> Problem number to apply this relationship.
 #'
 #' @return An `xpose_set` object with the properties exposed
 #'
@@ -409,6 +412,8 @@ total_relationships <- function(xpdb_s) {
 #' needed and pulls from each `xpdb` default problem.
 #'
 #' @export
+#' 
+#' @seealso [expose_param()]
 #'
 #' @examples
 #'
@@ -418,11 +423,28 @@ total_relationships <- function(xpdb_s) {
 #' xpdb_set <- expose_property(xpdb_set, etashk)
 #' xpdb_set$mod1$..etashk
 #'
-expose_property <- function(xpdb_s, ...) {
+expose_property <- function(
+    xpdb_s, 
+    ..., 
+    .problem=NULL, 
+    .subprob=NULL, 
+    .method=NULL
+    ) {
+  rlang::check_dots_unnamed()
   # Consume dots
   props <- rlang::quos(..., .named = TRUE, .ignore_empty = "all") %>%
     names() %>%
     unique()
+  # check for strings and parse if so
+  props <- purrr::map_chr(props, ~{
+    if (grepl("^[\"'].*[\"']$", .x)) {
+      .x <- rlang::try_fetch(
+        eval(parse(text=.x)),
+        error= function(s) .x
+      )
+    }
+    .x
+  })
   # Default properties
   typical_summary <- (xpose::xpdb_ex_pk) %>%
     xpose::get_summary()
@@ -437,6 +459,16 @@ expose_property <- function(xpdb_s, ...) {
   if (!all(props %in% avail_props)) {
     cli::cli_abort("Properties not available in xpdb objects: {setdiff(props, avail_props)}")
   }
+  # problem subproblem check
+  for (item in xpdb_s) {
+    if (!is.null(.problem) && !.problem %in% xpose::all_data_problem(item$xpdb))
+      cli::cli_abort("Problem no. { .problem} not in at least one xpose_data object in set.")
+    if (!is.null(.problem) && !is.null(.subprob)) this_summ <- xpose::get_summary(item$xpdb)
+    if (!is.null(.problem) && !is.null(.subprob) &&
+        !.subprob %in% this_summ[this_summ$problem==.problem,]$subprob)
+      cli::cli_abort("Subproblem no. { .subprob} not not associated with problem no. { .problem} for
+                     at least one xpose_data object in set.")
+  }
 
   # Process
   ## Create functions to fetch the needed properties
@@ -444,21 +476,28 @@ expose_property <- function(xpdb_s, ...) {
       props,
       ~ {
         prop <- .x
-        function(xpdp) {
+        function(xpdb) {
           ret <- NULL
+          if (prop %in% prob_props) {
+            # fill problem etc info
+            fill_prob_subprob_method(
+              xpdb, .problem=.problem, .subprob=.subprob
+            )
+          }
+          
           if (prop == "etashk") {
-            ret <- get_shk(xpdp, wh="eta")
+            ret <- get_shk(xpdb, wh="eta", .problem = .problem, .subprob = .subprob, .method = .method)
           } else if (prop == "epsshk") {
-            ret <- get_shk(xpdp, wh="eps")
+            ret <- get_shk(xpdb, wh="eps", .problem = .problem, .subprob = .subprob, .method = .method)
           } else if (prop %in% nonprob_props) {
-            ret <- get_prop(xpdp, prop)
+            ret <- get_prop(xpdb, prop, .problem = 0)
           } else if (!is.na(
-              suppressWarnings(as.numeric(get_prop(xpdp, prop)))
+              suppressWarnings(as.numeric(get_prop(xpdb, prop, .problem = .problem, .subprob = .subprob, .method = .method)))
             )) {
-            ret <- as.numeric(get_prop(xpdp, prop))
+            ret <- as.numeric(get_prop(xpdb, prop, .problem = .problem, .subprob = .subprob, .method = .method))
           }
 
-          if (is.null(ret)) ret <- get_prop(xpdp, prop)
+          if (is.null(ret)) ret <- get_prop(xpdb, prop)
           if (length(ret)>1) ret <- list(ret)
 
           ret
@@ -469,15 +508,141 @@ expose_property <- function(xpdb_s, ...) {
 
   p_xpdb_s <- xpdb_s %>%
     reshape_set() %>%
-    # In grouped form, apply functions to individual xpdb objects
-    dplyr::group_by(label)
-
+    dplyr::rowwise()
+  
   for (prop in props)
-    p_xpdb_s <- dplyr::mutate(
-      p_xpdb_s,
-      !!rlang::sym(paste0("..", prop)) := get_funs[[prop]](xpdb[[1]])
+    p_xpdb_s <- p_xpdb_s %>%
+    dplyr::mutate(
+      !!rlang::sym(paste0("..", prop)) := get_funs[[prop]](.data[["xpdb"]])
     )
 
+  p_xpdb_s %>%
+    dplyr::ungroup() %>%
+    unreshape_set()
+}
+
+
+#' Expose a model parameter of xpdb objects in an xpose_set
+#'
+#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more parameter
+#' to expose, using selection rules from [`add_prm_association`].
+#' @param .problem <`numeric`> Problem number to apply this relationship.
+#' @param .subprob <`numeric`> Problem number to apply this relationship.
+#' @param .method <`numeric`> Problem number to apply this relationship.
+#'
+#' @return An `xpose_set` object with the parameter exposed
+#'
+#' @details
+#'
+#' The parameter returned will be top-level, and to avoid conflicting
+#' names will be preprended by `..` (e.g., `..ome1`). The selector
+#' used to fetch the parameter will be used in this `..` name. If
+#' a better name is preferred, there are convenient renaming functions
+#' from `dplyr` where needed.
+#' 
+#' When using parameter selectors, quotations should be used for more
+#' complex names, like `"OMEGA(1,1)"`, since these may be read incorrectly
+#' otherwise.
+#'
+#' The untransformed parameter is used for this exposure. The `get_prm`
+#' call uses `transform=FALSE`.
+#'
+#' @export
+#' 
+#' @seealso [expose_property()]
+#'
+#' @examples
+#'
+#' pheno_set %>%
+#'   expose_param(the1) %>%
+#'   reshape_set()
+#'
+#' 
+#' pheno_set %>%
+#'   expose_param(RUVADD, "OMEGA(1,1)") %>%
+#'   reshape_set()
+#'   
+#' # This function is useful for generating a model-building table
+#' pheno_set %>%
+#'   # Determine longest lineage
+#'   select(all_of(xset_lineage(.))) %>%
+#'   # Select key variability parameters
+#'   expose_param(RUVADD, "OMEGA(1,1)") %>%
+#'   # Extract description
+#'   expose_property(descr) %>%
+#'   # Transform to tibble
+#'   reshape_set() # %>% pipe into other processing
+#'
+expose_param <- function(
+    xpdb_s, 
+    ..., 
+    .problem=NULL, 
+    .subprob=NULL, 
+    .method=NULL
+    ) {
+  rlang::check_dots_unnamed()
+  # Consume dots
+  prms <- rlang::quos(..., .named = TRUE, .ignore_empty = "all") %>%
+    names() %>%
+    unique()
+  # check for strings and parse if so
+  prms <- purrr::map_chr(prms, ~{
+    if (grepl("^[\"'].*[\"']$", .x)) {
+      .x <- rlang::try_fetch(
+        eval(parse(text=.x)),
+        error= function(s) .x
+      )
+    }
+    .x
+  })
+  
+  # Validate input
+  ## Basic check
+  check_xpose_set(xpdb_s)
+  # problem subproblem check
+  for (item in xpdb_s) {
+    if (!is.null(.problem) && !.problem %in% xpose::all_data_problem(item$xpdb))
+      cli::cli_abort("Problem no. { .problem} not in at least one xpose_data object in set.")
+    if (!is.null(.problem) && !is.null(.subprob)) this_summ <- xpose::get_summary(item$xpdb)
+    if (!is.null(.problem) && !is.null(.subprob) &&
+        !.subprob %in% this_summ[this_summ$problem==.problem,]$subprob)
+      cli::cli_abort("Subproblem no. { .subprob} not not associated with problem no. { .problem} for
+                     at least one xpose_data object in set.")
+  }
+  
+  # Process
+  p_xpdb_s <- xpdb_s %>%
+    reshape_set() %>%
+    dplyr::rowwise()
+  
+  if (rlang::is_interactive()) sp <- cli::make_spinner(default_spinner)
+  if (rlang::is_interactive()) sp$spin()
+  pre_fetched_prms <- purrr::map(xpdb_s, ~{
+    if (rlang::is_interactive()) sp$spin()
+    get_prm(.x[["xpdb"]], .problem=.problem, .subprob=.subprob, transform=FALSE, quiet = TRUE)
+  }) %>%
+    setNames(names(xpdb_s))
+  for (prm in prms) {
+    p_xpdb_s <- p_xpdb_s %>%
+      dplyr::mutate(
+        !!rlang::sym(paste0("..", prm)) := {
+          if (rlang::is_interactive()) sp$spin()
+          all_prms <- pre_fetched_prms[[label]]
+          rlang::try_fetch(
+            pick_prm <- param_selector(prm,prm_tbl = all_prms),
+            error = function(s)
+              rlang::abort(paste0("Could not fetch parameter with selector `",prm,"` ",
+                                  "from `xpose_data` object labeled `",label,"`."),
+                           parent = s)
+          )
+          all_prms$value[pick_prm]
+        }
+      )
+  }
+  if (rlang::is_interactive()) sp$spin()
+  if (rlang::is_interactive()) sp$finish()
+  
   p_xpdb_s %>%
     dplyr::ungroup() %>%
     unreshape_set()

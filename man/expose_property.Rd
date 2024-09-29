@@ -4,12 +4,18 @@
 \alias{expose_property}
 \title{Expose a property of xpdb objects in an xpose_set}
 \usage{
-expose_property(xpdb_s, ...)
+expose_property(xpdb_s, ..., .problem = NULL, .subprob = NULL, .method = NULL)
 }
 \arguments{
 \item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
 
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> One or more properties to expose}
+
+\item{.problem}{<\code{numeric}> Problem number to apply this relationship.}
+
+\item{.subprob}{<\code{numeric}> Problem number to apply this relationship.}
+
+\item{.method}{<\code{numeric}> Problem number to apply this relationship.}
 }
 \value{
 An \code{xpose_set} object with the properties exposed
@@ -37,4 +43,7 @@ xpdb_set$mod1$..descr
 xpdb_set <- expose_property(xpdb_set, etashk)
 xpdb_set$mod1$..etashk
 
+}
+\seealso{
+\code{\link[=expose_param]{expose_param()}}
 }
