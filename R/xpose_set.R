@@ -412,7 +412,7 @@ total_relationships <- function(xpdb_s) {
 #' needed and pulls from each `xpdb` default problem.
 #'
 #' @export
-#' 
+#'
 #' @seealso [expose_param()]
 #'
 #' @examples
@@ -424,10 +424,10 @@ total_relationships <- function(xpdb_s) {
 #' xpdb_set$mod1$..etashk
 #'
 expose_property <- function(
-    xpdb_s, 
-    ..., 
-    .problem=NULL, 
-    .subprob=NULL, 
+    xpdb_s,
+    ...,
+    .problem=NULL,
+    .subprob=NULL,
     .method=NULL
     ) {
   rlang::check_dots_unnamed()
@@ -484,7 +484,7 @@ expose_property <- function(
               xpdb, .problem=.problem, .subprob=.subprob
             )
           }
-          
+
           if (prop == "etashk") {
             ret <- get_shk(xpdb, wh="eta", .problem = .problem, .subprob = .subprob, .method = .method)
           } else if (prop == "epsshk") {
@@ -509,7 +509,7 @@ expose_property <- function(
   p_xpdb_s <- xpdb_s %>%
     reshape_set() %>%
     dplyr::rowwise()
-  
+
   for (prop in props)
     p_xpdb_s <- p_xpdb_s %>%
     dplyr::mutate(
@@ -540,7 +540,7 @@ expose_property <- function(
 #' used to fetch the parameter will be used in this `..` name. If
 #' a better name is preferred, there are convenient renaming functions
 #' from `dplyr` where needed.
-#' 
+#'
 #' When using parameter selectors, quotations should be used for more
 #' complex names, like `"OMEGA(1,1)"`, since these may be read incorrectly
 #' otherwise.
@@ -549,7 +549,7 @@ expose_property <- function(
 #' call uses `transform=FALSE`.
 #'
 #' @export
-#' 
+#'
 #' @seealso [expose_property()]
 #'
 #' @examples
@@ -558,27 +558,29 @@ expose_property <- function(
 #'   expose_param(the1) %>%
 #'   reshape_set()
 #'
-#' 
+#'
 #' pheno_set %>%
 #'   expose_param(RUVADD, "OMEGA(1,1)") %>%
 #'   reshape_set()
-#'   
+#'
 #' # This function is useful for generating a model-building table
 #' pheno_set %>%
 #'   # Determine longest lineage
 #'   select(all_of(xset_lineage(.))) %>%
 #'   # Select key variability parameters
 #'   expose_param(RUVADD, "OMEGA(1,1)") %>%
+#'   # Make sure all models have descriptions
+#'   focus_qapply(desc_from_comments) %>%
 #'   # Extract description
 #'   expose_property(descr) %>%
 #'   # Transform to tibble
 #'   reshape_set() # %>% pipe into other processing
 #'
 expose_param <- function(
-    xpdb_s, 
-    ..., 
-    .problem=NULL, 
-    .subprob=NULL, 
+    xpdb_s,
+    ...,
+    .problem=NULL,
+    .subprob=NULL,
     .method=NULL
     ) {
   rlang::check_dots_unnamed()
@@ -596,7 +598,7 @@ expose_param <- function(
     }
     .x
   })
-  
+
   # Validate input
   ## Basic check
   check_xpose_set(xpdb_s)
@@ -610,12 +612,12 @@ expose_param <- function(
       cli::cli_abort("Subproblem no. { .subprob} not not associated with problem no. { .problem} for
                      at least one xpose_data object in set.")
   }
-  
+
   # Process
   p_xpdb_s <- xpdb_s %>%
     reshape_set() %>%
     dplyr::rowwise()
-  
+
   if (rlang::is_interactive()) sp <- cli::make_spinner(default_spinner)
   if (rlang::is_interactive()) sp$spin()
   pre_fetched_prms <- purrr::map(xpdb_s, ~{
@@ -642,7 +644,7 @@ expose_param <- function(
   }
   if (rlang::is_interactive()) sp$spin()
   if (rlang::is_interactive()) sp$finish()
-  
+
   p_xpdb_s %>%
     dplyr::ungroup() %>%
     unreshape_set()

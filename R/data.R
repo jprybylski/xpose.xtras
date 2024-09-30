@@ -139,3 +139,40 @@
 #' @source Derived from sup-0009 and sup-0010 from the reference.
 #'
 "vismo_dtmm"
+
+#' An `xp_xtras` example of an M3 model
+#'
+#' A representative PK/PD model with M3 fitting applied.
+#'
+#' @format ## `xp_xtras`
+#' An `xp_xtras` object.
+#'
+#' @references
+#' Beal, S.L. Ways to Fit a PK Model with Some Data
+#' Below the Quantification Limit. J Pharmacokinet
+#' Pharmacodyn 28, 481–504 (2001).
+#' https://doi.org/10.1023/A:1012299115260
+#'
+#' Prybylski JP. Indirect modeling of derived outcomes:
+#' Are minor prediction discrepancies a cause for concern?
+#' CPT Pharmacometrics Syst Pharmacol. 2024; 00: 1-9.
+#' doi:10.1002/psp4.13219
+#'
+#' @source https://doi.org/10.1002/psp4.13219
+"pkpd_m3"
+
+#' An `xp_xtras` example of an M3 model (dataset)
+#'
+#' The dataset used to fit the [`pkpd_m3`] model.
+#'
+#' @format ## `xp_xtras`
+#' An `xp_xtras` object.
+#'
+#' @references
+#' Prybylski JP. Indirect modeling of derived outcomes:
+#' Are minor prediction discrepancies a cause for concern?
+#' CPT Pharmacometrics Syst Pharmacol. 2024; 00: 1-9.
+#' doi:10.1002/psp4.13219
+#'
+#' @source https://doi.org/10.1002/psp4.13219
+"pkpd_m3_df"

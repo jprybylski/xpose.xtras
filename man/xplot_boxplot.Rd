@@ -58,7 +58,7 @@ xplot_boxplot(
 
 \item{quiet}{Silence extra debugging output}
 
-\item{jitter_seed}{A numeric optional seed to be used in jitters}
+\item{jitter_seed}{A numeric, optional seed to be used in jitters}
 
 \item{...}{}
 }
@@ -74,6 +74,7 @@ For type-based customization of plots:
 \item \code{o} outliers (show outliers)
 \item \code{l} line through 0 (or as indicated in \code{hline_yintercept} or
 \code{yline_xintercept})
+\item \code{s} smooth line (from \code{geom_smooth})
 \item \code{j} jitter points (from \code{geom_jitter})
 \item \code{c} connecting lines for jitter points  (from \code{geom_path})
 }

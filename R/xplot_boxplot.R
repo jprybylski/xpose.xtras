@@ -17,7 +17,7 @@
 #' @param xp_theme As in `xpose`
 #' @param opt Processing options for fetched data
 #' @param quiet Silence extra debugging output
-#' @param jitter_seed A numeric optional seed to be used in jitters
+#' @param jitter_seed A numeric, optional seed to be used in jitters
 #' @param ...
 #'
 #' @description Manually generate boxplots from an xpdb object.
@@ -31,6 +31,7 @@
 #'   \item `o` outliers (show outliers)
 #'   \item `l` line through 0 (or as indicated in `hline_yintercept` or
 #'   `yline_xintercept`)
+#'   \item `s` smooth line (from `geom_smooth`)
 #'   \item `j` jitter points (from `geom_jitter`)
 #'   \item `c` connecting lines for jitter points  (from `geom_path`)
 #' }
@@ -70,7 +71,7 @@ xplot_boxplot <- function(xpdb,
   }
 
   # Check type
-  allow_types <-  c('b', "p","v","o","l","j","c")
+  allow_types <-  c('b', "p","v","o","l","j","c","s")
   xpose::check_plot_type(type, allowed = allow_types)
   check_type <- purrr::map(allow_types, ~stringr::str_detect(type, stringr::fixed(.x, ignore_case = TRUE))) %>%
     setNames(allow_types)
@@ -142,6 +143,15 @@ xplot_boxplot <- function(xpdb,
                                name     = 'dotplot',
                                ggfun    = 'geom_dotplot',
                                dotplot_binaxis =ifelse(orientation=="x", "y","x"),
+                               ...)
+  }
+
+  # Add smooth line
+  if (check_type$s) {
+    xp <- xp + xpose::xp_geoms(mapping  = mapping,
+                               xp_theme = xpdb$xp_theme,
+                               name     = 'smooth',
+                               ggfun    = 'geom_smooth',
                                ...)
   }
 

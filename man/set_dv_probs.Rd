@@ -41,7 +41,7 @@ are those used in Perl, Fortran and many other languages. The function \code{eq(
 but it will be ignored either way; equivalence is implied with the base syntax.
 }
 \examples{
-pkpd_m3 \%>\% 
+pkpd_m3 \%>\%
  # Not necessary, but correct to set var type before using this
  set_var_types(.problem=1, catdv=BLQ, dvprobs=LIKE) \%>\%
  # Set var type. Warnings can be helpful unless an inverse likelihood column is available
@@ -49,23 +49,23 @@ pkpd_m3 \%>\%
  list_vars()
 
 # Same as above with demo of inverse column
-pkpd_m3 \%>\% 
+pkpd_m3 \%>\%
  xpose::mutate(INVLIKE = 1-LIKE) \%>\%
  set_var_types(.problem=1, catdv=BLQ, dvprobs=c(LIKE,INVLIKE)) \%>\%
  # Note no warning
  set_dv_probs(.problem=1, 1~LIKE, 0~INVLIKE, .dv_var = BLQ, .handle_missing = "warn")\%>\%
  list_vars()
- 
+
 # With categorical model
-vismo_pomod  \%>\% 
+vismo_pomod  \%>\%
  # Update var types
  set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\\\d+$")) \%>\%
  # Warning (as noted), does not recognize 3 is covered implicitly. That's ok!
  set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23, .handle_missing = "warn")\%>\%
  list_vars()
- 
+
 # Same as above, but...
-vismo_pomod  \%>\% 
+vismo_pomod  \%>\%
  set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\\\d+$")) \%>\%
  # Default is to not bother users with a warning
  set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)\%>\%

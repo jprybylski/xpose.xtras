@@ -288,10 +288,89 @@ set_option <- function(xpdb, ...) {
 
 }
 
-# TODO: more general extraction of model description from comments
-# add option to do this be default when converting to xp_xtra
-desc_from_comments <- function(xpdb, start_check = ".*description.*", end_check = "^\\$") {
+#' Backfill utility for descriptions
+#'
+#' @description
+#' A slightly more generic approach to getting model
+#' descriptions.
+#'
+#'
+#' @param xpdb <`xpose_data`> or <`xp_xtras`> object
+#' @param start_check Regular expression used to mark start of description.
+#' This is tested case-insensitively.
+#' @param maxlines If the number of lines after description to the first
+#' code block is more than 1, this allows a limit.
+#' @param remove By default, the start check and a colon, with optional whitespace.
+#' A regex.
+#' @param extra_proc Any extra processing that might be desired prior to
+#' collapsing the description lines. This should be a vectorized function.
+#' @param collapse Character to use when collapsing multiple lines.
+#'
+#' @return The description-updated <`xpose_data`) object
+#' @export
+#'
+#' @seealso [set_prop()]
+#'
+#' @examples
+#'
+#' # This has a description, but it's not visible by default
+#' pheno_base
+#'
+#' # It can be added with the following
+#' pheno_base %>%
+#'   desc_from_comments()
+#'
+#' # Extra processing for preference can also implemented
+#' pheno_base %>%
+#'   desc_from_comments(extra_proc = tolower)
+#'
+#' # If a run label ($PROB) would make a good description, use the
+#' # following instead:
+#' pkpd_m3 %>%
+#'   set_prop(descr=get_prop(pkpd_m3,"label"))
+#'
+#'
+desc_from_comments <- function(
+    xpdb,
+    start_check = ".*description",
+    maxlines=5,
+    remove = paste0(start_check,":\\s*"),
+    extra_proc = c,
+    collapse = " "
+    ) {
+  xpose::check_xpdb(xpdb, "code")
+  if (!is.function(extra_proc))
+    cli::cli_abort("`extra_proc` must be a function, not a {.strong {class(extra_proc)[1]}}")
 
+  code <- xpose::get_code(xpdb)
+  first_end <- which(code$subroutine!="oth")[1]-1 # line before end
+  first_start <- which(grepl(start_check, code$comment, ignore.case = TRUE))[1]
+  if (is.na(first_start) || is.na(first_end) || first_end<first_start) {
+    cli::cli_warn("Cannot find a valid description in code.")
+    return(xpdb)
+  }
+  # comments from first start to first end
+  start_end_comments <- code$comment[first_start:first_end] %>%
+    # strip comment character, if any
+    gsub("^;\\s*","", .)
+  # Action remove
+  start_end_comments[1] <- start_end_comments[1] %>%
+    stringr::str_replace(stringr::regex(remove, ignore_case = TRUE), "")
+  # Last processing
+  new_descr <- start_end_comments %>%
+    .[1:min(length(.),maxlines)] %>%
+    # Remove empty
+    .[!.==""] %>%
+    # extra
+    extra_proc() %>%
+    # Collapse
+    paste(collapse=collapse)
+  if (is.na(new_descr) || new_descr=="") {
+    cli::cli_warn("Cannot find a valid description in code.")
+    return(xpdb)
+  }
+
+  set_prop(xpdb, descr = new_descr)
 }
 
 

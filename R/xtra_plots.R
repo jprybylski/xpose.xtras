@@ -3,7 +3,7 @@
 #######
 
 # dv_ ipre_ and pred_ plot version with dvid
-dv_vs_idv_dvid <- function(dvid="a number") {}
+# dv_vs_idv_dvid <- function(dvid="a number") {}
 
 
 #####

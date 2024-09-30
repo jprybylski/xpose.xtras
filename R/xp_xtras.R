@@ -125,7 +125,7 @@ check_xp_xtras <- function(...) check_xpdb_x(...)
 #' @method print xp_xtras
 #' @export
 print.xp_xtras <- function(x, ...) {
-  package_flex <- cli::col_magenta(paste(cli::symbol$star, "xp_xtras"))
+  package_flex <- cli::col_magenta(paste(cli::style_bold("~"), "xp_xtras"))
   cli::cli({
     cli::cli_h3("{package_flex} object")
     cli::cli_text("{cli::style_bold('Model description')}: {get_prop(x, 'descr')}")
@@ -133,15 +133,31 @@ print.xp_xtras <- function(x, ...) {
   })
 }
 
-# This is not exported from xpose, so to avoid issues...
-# TODO: confirm this method can be removed
-# #' @method print xpose_data
-# #' @export
-# print.xpose_data <- function(x, ...) {
-#  if (suppressMessages(check_xp_xtras(x))) return(print.xp_xtras(x, ...))
-#
-#   xpose:::print.xpose_data(x, ...)
+#' Allow assignment without conversion to class uneval
+#'
+#' @description
+#' Based on a PR from Bill Denney to `xpose` ([see here][https://github.com/UUPharmacometrics/xpose/pull/153]).
+#'
+#' @param x object from which to extract element(s) or in which to replace element(s).
+#' @param i index specifying element to replace.
+#' @param value typically an array-like R object of a similar class as x.
+#' @return The object with the value replaced.
+#'
+#' @method `[[<-` xp_xtras
+#' @export
+#'
+#' @noRd
+NULL
+# `[[<-.xp_xtras` <- function(x, i, value) {
+#   x <- unclass(x)
+#   x[[i]] <- value
+#   as_xp_xtras(x)
 # }
+
+#' @method `$<-` xp_xtras
+#' @export
+NULL
+# `$<-.xp_xtras` <- `[[<-.xp_xtras`
 
 # New functions
 
@@ -558,7 +574,7 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
     }
     x <- x[x$problem %in% .problem, ]
   }
-  
+
   # Full dv probs data
   full_probs <- dplyr::bind_rows(get_index(xpdb, .problem = .problem)$probs)
 
@@ -601,7 +617,7 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
                 ) %>% ifelse(.=="", ., paste0(" (",.,")"))
                 cols_c <- stringr::str_c(cols_c, cli::style_bold(tocols_c))
               }
-              
+
               # Add level count
               if (.$type2[1] %in% level_types) {
                 lvls_c <- .$levels[!duplicated(.$col)]
@@ -609,7 +625,7 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
                   paste0(.x, " [", cli::col_yellow(nrow(.y)),"]")
                 })
               }
-              
+
               # Add prob definition
               if (.$type2[1]=="dvprobs" && nrow(full_probs)>0) {
                 prb_which <- match(unique(.$col), full_probs$prob)

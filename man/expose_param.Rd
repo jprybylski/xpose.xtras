@@ -48,13 +48,15 @@ pheno_set \%>\%
 pheno_set \%>\%
   expose_param(RUVADD, "OMEGA(1,1)") \%>\%
   reshape_set()
-  
+
 # This function is useful for generating a model-building table
 pheno_set \%>\%
   # Determine longest lineage
   select(all_of(xset_lineage(.))) \%>\%
   # Select key variability parameters
   expose_param(RUVADD, "OMEGA(1,1)") \%>\%
+  # Make sure all models have descriptions
+  focus_qapply(desc_from_comments) \%>\%
   # Extract description
   expose_property(descr) \%>\%
   # Transform to tibble

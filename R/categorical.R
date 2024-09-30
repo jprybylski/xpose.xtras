@@ -23,13 +23,190 @@
 # and numb at zero number at other (and same
 # for higher cutpoints)
 
+#' Non-simulation based likelihood model diagnostic
+#'
+#' @description
+#' These plots attempt to provide a means of verifying that the
+#' estimated likelihoods and probabilities for categorical outcomes
+#' are captured within the model.
+#'
+#' When the smooth spline is included (`type` includes `"s"`), it is
+#' expected that the overall trend is up and to the right; a relatively
+#' flat trend suggests that the modeled likelihood is inconsistent with the
+#' observed outcome.
+#'
+#'
+#' @inheritParams xplot_boxplot
+#' @param cutpoint <`numeric`> Of defined probabilities, which one to
+#' use in plots.
+#' @param xlab Either use the typical basic x-axis label (the cutpoint-defined
+#' column name) or label it based on the probability/likelihood it is estimating.
+#'
+#' @export
+#'
+#' @examples
+#'
+#' # Test M3 model
+#' pkpd_m3 %>%
+#'   # Need to ensure var types are set
+#'   set_var_types(catdv=BLQ,dvprobs=LIKE) %>%
+#'   # Set probs
+#'   set_dv_probs(1, 1~LIKE, .dv_var = BLQ) %>%
+#'   # Optional, but useful to set levels
+#'   set_var_levels(1, BLQ = lvl_bin()) %>%
+#'   # Plot with basic xlab makes no assumptions
+#'   catdv_vs_dvprobs(xlab = "basic")
+#'
+#' # Test categorical model
+#' vismo_xpdb <- vismo_pomod  %>%
+#'   set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\d+$")) %>%
+#'   set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)
+#'
+#' # Various cutpoints (note axes labels and texts)
+#' vismo_xpdb %>%
+#'   catdv_vs_dvprobs(xlab = "basic")
+#' vismo_xpdb %>%
+#'   catdv_vs_dvprobs(cutpoint = 2, xlab = "basic")
+#' vismo_xpdb %>%
+#'   catdv_vs_dvprobs(cutpoint = 3, xlab = "basic")
+#'
+#' # Latter is arguably clearer with default xlab
+#' vismo_xpdb %>%
+#'   catdv_vs_dvprobs(cutpoint = 3)
+#'
+catdv_vs_dvprobs <- function(xpdb,
+                             mapping  = NULL,
+                             cutpoint = 1,
+                             type     = 'vbs',
+                             title    = '@y vs. @x | @run',
+                             subtitle = 'Ofv: @ofv, Number of individuals: @nind',
+                             caption  = '@dir',
+                             tag      = NULL,
+                             xlab = c("probability","basic"),
+                             facets,
+                             .problem,
+                             quiet,
+                             ...) {
+  # Check input
+  xpose::check_xpdb(xpdb, check = 'data')
+  if (missing(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet))   quiet <- xpdb$options$quiet
+  if (missing(facets))  facets <- xpdb$xp_theme$facets
+  xlab <- rlang::arg_match(xlab, c("basic", "probability"))
+
+  # Extra processing
+
+  # Get relevant columns (or throw error)
+  dvprob_cols <- xp_var(xpdb, .problem, type = 'dvprobs')$col
+  catdv_cols <- xp_var(xpdb, .problem, type = 'catdv')$col
+  if (length(catdv_cols)>1) {
+    cli::cli_warn("Only one categorical DV will be used ({catdv_cols[1]}).")
+    catdv_cols <- catdv_cols[1]
+  }
+
+  # Translate cutpoint
+  # Cutpoint = row number of probs
+  indexx <- get_index(xpdb, .problem)
+  dv_levels <- indexx %>%
+    dplyr::filter(col == catdv_cols) %>%
+    {dplyr::pull(.,levels)[[1]]}
+  dv_probs <- indexx %>%
+    dplyr::filter(col == catdv_cols) %>%
+    {dplyr::pull(.,probs)[[1]]}
+  if (nrow(dv_probs)==0) {
+    rlang::abort("Relationship between probabiliy column and at least one categorical DV level should be defined.")
+  }
+  if (nrow(dv_probs)<cutpoint) {
+    cli::cli_abort("`cutpoint` is the row number of established probability formulae.
+                   There are only {nrow(dv_probs)} rows available, so `cutpoint` {cutpoint} is too high.")
+  }
+  cutpoint_row <- dv_probs[cutpoint,]
+  # Change if any level associated with cutpoint value
+  cp_val_label <- paste(cutpoint_row$value)
+  if (nrow(dv_levels)>0 && cutpoint_row$value %in% dv_levels$value)
+    cp_val_label <- dv_levels$level[match(cutpoint_row$value, dv_levels$value)][1] # first-listed in case level is used multiple times
+  # Full cutpoint label
+  cp_label <- ifelse(
+    is.na(cutpoint_row$qual),  "EQ",
+    toupper(cutpoint_row$qual)
+  ) %>%
+    sprintf("%s(%s)", ., cp_val_label)
+  # opposite label
+  cp_olabel <- dplyr::case_when(
+    is.na(cutpoint_row$qual) ~  "NE",
+    cutpoint_row$qual == "ne" ~ "EQ",
+    cutpoint_row$qual == "ge" ~ "LT",
+    cutpoint_row$qual == "gt" ~ "LE",
+    cutpoint_row$qual == "le" ~ "GT",
+    cutpoint_row$qual == "lt" ~ "GE"
+  ) %>%
+    sprintf("%s(%s)", ., cp_val_label)
+
+  # Comparator from qual
+  qual_c <- `==`
+  if (!is.na(cutpoint_row$qual))
+    qual_c <- switch(
+      cutpoint_row$qual,
+      ne = `!=`,
+      ge = `>=`,
+      gt = `>`,
+      le = `<=`,
+      lt = `<`
+    )
+
+  post_processing <- function(df) {
+    df %>%
+      dplyr::mutate(
+        !!catdv_cols := ifelse(
+          qual_c(.data[[catdv_cols]], cutpoint_row$value),
+          1,
+          0
+        ) %>%
+          forcats::as_factor() %>%
+          forcats::fct_inseq() %>%
+          forcats::fct_relabel(~ifelse(.x=="1", cp_label, cp_olabel))
+      )
+  }
+
+
+
+  xplot_boxplot(
+    xpdb = xpdb, group = NULL, quiet = quiet,
+    opt = xpose::data_opt(
+      .problem = .problem,
+      filter = xpose::only_obs(xpdb, .problem, quiet),
+      post_processing = post_processing
+      ),
+    mapping = xpose::aes_c(aes(x = .data[[cutpoint_row$prob]],
+                        y = .data[[catdv_cols]],
+                        smooth_group = NA,
+                        smooth_method = "loess"),
+                        mapping),
+    type = type, facets = facets,
+    xscale = "continuous",
+    yscale = "discrete",
+    orientation = "y",
+    title = title, subtitle = subtitle, caption = caption,
+    tag = tag, plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
+    ...
+  ) +
+    ggplot2::labs(
+      x = ifelse(
+        xlab=="basic",
+        cutpoint_row$prob,
+        sprintf("Probability %s %s", catdv_cols, cp_label)
+      )
+    )
+}
+
 #' Set probability columns for categorical endpoints
-#' 
+#'
 #' @description
 #' For categorical DVs or similar endpoints (such as censoring
 #' flag columns, like `BLQ`), this function allows probability
 #' columns to be defined for each level.
-#' 
+#'
 #'
 #' @param xpdb <`xp_xtras`> object
 #' @param .problem <`numeric`> Problem number to use. Uses the all problems if `NULL`
@@ -41,50 +218,50 @@
 #'
 #' @return <`xp_xtras`> object with updated probabilities
 #' @export
-#' 
+#'
 #' @details
 #' The same probability cannot be assigned to multiple values. Pseudo-functions can be used, or
 #' new columns can be created to overcome this limitation. The available pseudo-functions should
 #' be written like `ge(value)` (for `>=`), `gt(value)` (for `>`), etc. These comparison names
 #' are those used in Perl, Fortran and many other languages. The function `eq()` should not be used,
 #' but it will be ignored either way; equivalence is implied with the base syntax.
-#' 
+#'
 #'
 #' @examples
-#' pkpd_m3 %>% 
+#' pkpd_m3 %>%
 #'  # Not necessary, but correct to set var type before using this
 #'  set_var_types(.problem=1, catdv=BLQ, dvprobs=LIKE) %>%
 #'  # Set var type. Warnings can be helpful unless an inverse likelihood column is available
 #'  set_dv_probs(.problem=1, 1~LIKE, .dv_var = BLQ, .handle_missing = "warn") %>%
 #'  list_vars()
-#' 
+#'
 #' # Same as above with demo of inverse column
-#' pkpd_m3 %>% 
+#' pkpd_m3 %>%
 #'  xpose::mutate(INVLIKE = 1-LIKE) %>%
 #'  set_var_types(.problem=1, catdv=BLQ, dvprobs=c(LIKE,INVLIKE)) %>%
 #'  # Note no warning
 #'  set_dv_probs(.problem=1, 1~LIKE, 0~INVLIKE, .dv_var = BLQ, .handle_missing = "warn")%>%
 #'  list_vars()
-#'  
+#'
 #' # With categorical model
-#' vismo_pomod  %>% 
+#' vismo_pomod  %>%
 #'  # Update var types
 #'  set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\d+$")) %>%
 #'  # Warning (as noted), does not recognize 3 is covered implicitly. That's ok!
 #'  set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23, .handle_missing = "warn")%>%
 #'  list_vars()
-#'  
+#'
 #' # Same as above, but...
-#' vismo_pomod  %>% 
+#' vismo_pomod  %>%
 #'  set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\d+$")) %>%
 #'  # Default is to not bother users with a warning
 #'  set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)%>%
 #'  list_vars()
-#' 
+#'
 set_dv_probs <- function(
-    xpdb, 
-    .problem = NULL, 
-    ..., 
+    xpdb,
+    .problem = NULL,
+    ...,
     .dv_var = NULL, # default is first DV var
     .handle_missing = c("quiet","warn","error")
     ) {
@@ -95,19 +272,19 @@ set_dv_probs <- function(
   # c( ge(2)~P23  ). Requires function parsing.
   # No convenience functions like lvl_Px(),
   # as this should be more straightforward than leveling (which can require long strings)
-  # 
-  
+  #
+
   #### Top part is similar to set_var_levels
   # Basic check
   if (!check_xpdb_x(xpdb)) rlang::abort("xp_xtras object required.")
   xpose::check_xpdb(xpdb, check = "data")
   xp_d <- xpdb$data
   if (!is.null(.problem) && !.problem %in% xp_d$problem) cli::cli_abort("Problem number { .problem} not valid.")
-  
-  
+
+
   # Arg process
   .handle_missing = rlang::arg_match0(arg = .handle_missing, values = c("quiet","warn","error"))
-  
+
   # Relevant index
   full_index <- get_index(xpdb, .problem=.problem)
   # Relevant data
@@ -118,21 +295,21 @@ set_dv_probs <- function(
       .dv_var <- xp_var(xpdb, .problem = .problem, type = "catdv")$col[1],
       error = function(s)
         rlang::abort("No categorical DV in data. Perhaps DV var type should be changed?",
-                     parent - s)
+                     parent = s)
     )
   } else {
     .dv_var <- dplyr::select(full_data, {{.dv_var}}) %>%
       names()
   }
-  
+
   # Consume dots
   prb_list <- rlang::dots_list(..., .ignore_empty = "all", .homonyms = "keep")
   prb_tab <- check_probs(prb_list, full_index, .dv_var)
   # Add all probs
-  
+
   new_x <- xpdb
   new_index <- full_index
-  
+
   # make sure lhs are in data
   dv_col <- full_data %>% dplyr::pull(!!.dv_var)
   lev_vals <- prb_tab$value
@@ -144,14 +321,14 @@ set_dv_probs <- function(
   if (!all(dv_col %in% lev_vals)) {
     msg_txt <- "{cli::col_cyan(.dv_var)} values are missing in probabilities: {setdiff(.dv_var,lev_vals)}."
     if (.handle_missing=="warn") {
-      cli::cli_warn(paste(msg_txt,"If other probabilities don't add up 1, the 
+      cli::cli_warn(paste(msg_txt,"If other probabilities don't add up 1, the
                           inverse will apply to uncounted levels."))
-      cli::cli_warn("This check does not consider qualifiers that may implicitly include 
+      cli::cli_warn("This check does not consider qualifiers that may implicitly include
                      uncounted levels (eg, {.code lt(1)}).")
     }
     if (.handle_missing=="error") cli::cli_abort(msg_txt)
   }
-  
+
   # put processed levels in the index tibble
   new_index <- new_index %>%
     dplyr::rowwise() %>%
@@ -164,31 +341,31 @@ set_dv_probs <- function(
     ) %>%
     dplyr::ungroup()
   new_x <- set_index(new_x, new_index)
-  
+
   new_x
 }
 
 check_probs <- function(prb_list, index, dvcol) {
   # Basic check
   if (!is_formula_list(prb_list)) rlang::abort("List of formulas required.")
-  
+
   # process
   rlang::try_fetch(
     prb_tab <- proc_probs(prb_list),
-    error = function(s) 
+    error = function(s)
       rlang::abort("Formulas contain invalid syntax. Error below may be helpful.",
                    parent = s)
   )
-  
+
   # Make sure all names on RHS are in index
   if (!all(prb_tab$prob %in% index$col))
     cli::cli_abort("Probability columns indicated are not in data: {setdiff(prb_tab$prob, index$col)}")
-  
+
   # Error if one probability for multiple
   if (any(duplicated(prb_tab$prob)))
-    cli::cli_abort("Cannot use same probability for multiple endpoints ({unique(prb_tab$prob[duplicated(prb_tab$prob)])}). 
+    cli::cli_abort("Cannot use same probability for multiple endpoints ({unique(prb_tab$prob[duplicated(prb_tab$prob)])}).
                    Consider mutating a new column with the same value or using a comparison pseudo-function (eg {.code ge()}).")
-  
+
   # Make sure any pseudo functions used are valid
   valid_psefun <- c("lt","le","gt","ge","ne",NA,"eq")
   if ("eq" %in% prb_tab$qual) {
@@ -198,21 +375,21 @@ check_probs <- function(prb_list, index, dvcol) {
   }
   if (!all(prb_tab$qual %in% valid_psefun))
     cli::cli_abort("No available method to handle at least one pseudo-function: {setdiff(prb_tab$qual, valid_psefun)}")
-  
+
   # Warn if probability column is not a dvprob type
   valid_index <- dplyr::filter(index, type %in% "dvprobs")
   if (!all(prb_tab$prob %in% valid_index$col)) {
-    cli::cli_warn("Var types not properly assigned as `dvprobs`, but probabilities will still 
+    cli::cli_warn("Var types not properly assigned as `dvprobs`, but probabilities will still
                   be applied: {setdiff(prb_tab$prob, valid_index$col)}")
   }
-  
+
   # Warn if dv column is not a catdv type
   valid_dvs <- dplyr::filter(index, type %in% "catdv")
   if (!dvcol %in% valid_dvs$col) {
     cli::cli_warn("Var type for DV not properly assigned as `catdv`,
                   but probabilities will still be applied: {setdiff(dvcol, valid_dvs$col)}")
   }
-  
+
   prb_tab
 }
 
@@ -225,7 +402,7 @@ proc_probs <-  function(prb_list) {
       lhs <- .x[[2]]
       fun <- NA
       if (class(lhs)=="call") {
-        fun <- deparse(lhs[[1]])
+        fun <- tolower(deparse(lhs[[1]]))
         lhs <-  rlang::call_args(lhs)[[1]]
       }
       rhs <- deparse(.x[[3]])
@@ -237,4 +414,54 @@ proc_probs <-  function(prb_list) {
       )
     }
   )
+}
+
+#' For a categorical DV variable, show associated probabilities
+#'
+#' @description
+#' A convenient quick check for how probabilities are currently
+#' assigned, based on [`set_dv_probs`].
+#'
+#' @inheritParams set_dv_probs
+#'
+#' @return <`tibble`> of probabilities
+#' @export
+#'
+#' @examples
+#'
+#' pkpd_m3 %>%
+#'   set_dv_probs(1, 1~LIKE, .dv_var = BLQ) %>%
+#'   list_dv_probs(.dv_var=BLQ)
+#'
+list_dv_probs <- function(
+  xpdb,
+  .problem = NULL,
+  .dv_var = NULL
+) {
+  # Basic check
+  if (!check_xpdb_x(xpdb)) rlang::abort("xp_xtras object required.")
+  xpose::check_xpdb(xpdb, check = "data")
+  xp_d <- xpdb$data
+  if (!is.null(.problem) && !.problem %in% xp_d$problem) cli::cli_abort("Problem number { .problem} not valid.")
+
+  # Relevant index
+  full_index <- get_index(xpdb, .problem=.problem)
+  # Relevant data
+  full_data <- xpose::get_data(xpdb, .problem=.problem, quiet = TRUE)
+  # Set null dvvar
+  if (rlang::quo_is_null(rlang::enquo(.dv_var))) {
+    rlang::try_fetch(
+      .dv_var <- xp_var(xpdb, .problem = .problem, type = "catdv")$col[1],
+      error = function(s)
+        rlang::abort("No categorical DV in data. Perhaps DV var type should be changed?",
+                     parent = s)
+    )
+  } else {
+    .dv_var <- dplyr::select(full_data, {{.dv_var}}) %>%
+      names()
+  }
+
+  full_index %>%
+    filter(col==.dv_var) %>%
+    {dplyr::pull(.,probs)[[1]]}
 }
