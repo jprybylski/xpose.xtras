@@ -101,6 +101,29 @@ test_that("set_* functions works", {
     set_option(xpdb_ex_pk, quiet = !current_quiet)$options$quiet,
     !current_quiet
   )
+
+
+  expect_error(
+    set_prop(pheno_saem,descr="good description", .subprob = 2),
+    "\\.problem.*is needed if.*subprob"
+  )
+  expect_error(
+    set_prop(pheno_saem,descr="good description", .problem = 1:3, .subprob = 1:2),
+    "subprob.*should be recyclable"
+  )
+  expect_error(
+    set_prop(pheno_saem,descr="good description", .problem = 1:2, .subprob = 1:3),
+    "problem.*should be recyclable"
+  )
+  expect_identical(
+    set_prop(pheno_saem,method="different method label", .problem=1, .subprob = 0:1)$summary,
+    set_prop(pheno_saem,method="different method label", .problem=1)$summary
+  )
+  expect_failure(expect_identical(
+    set_prop(pheno_saem,method="different method label", .problem=1, .subprob = 1)$summary,
+    set_prop(pheno_saem,method="different method label", .problem=1, .subprob = 0)$summary
+  ))
+
 })
 
 test_that("get-set index works", {
@@ -214,4 +237,56 @@ test_that("reportable digits works", {
     new_digs
   )
 
+})
+
+test_that("description can be pulled from commments generically", {
+  expect_false(identical(
+    get_prop(pheno_base, "descr"),
+    get_prop(pheno_base %>% desc_from_comments(), "descr")
+  ))
+  # Weird code example
+  pkpd_m3x <- pkpd_m3b <- pkpd_m3a <- pkpd_m3
+  pkpd_m3b$code$comment[6] <- "; Description: late description in file"
+  pkpd_m3b <- as_xp_xtras(pkpd_m3b)
+  pkpd_m3a$code$comment[1] <- "; Description: correct description in file"
+  pkpd_m3a <- as_xp_xtras(pkpd_m3a)
+  pkpd_m3x$code$comment[1] <- "; Description:" # empty
+  pkpd_m3x <- as_xp_xtras(pkpd_m3x)
+  expect_warning(
+    desc_from_comments(pkpd_m3),
+    "Cannot find a valid"
+  )
+  expect_warning(
+    desc_from_comments(pkpd_m3b),
+    "Cannot find a valid"
+  )
+  expect_warning(
+    desc_from_comments(pkpd_m3x),
+    "Cannot find a valid"
+  )
+  expect_no_warning(
+    desc_from_comments(pkpd_m3a),
+    message="Cannot find a valid"
+  )
+
+  expect_false(
+    desc_from_comments(pkpd_m3a) %>%
+      get_prop("descr") %>%
+      grepl(";")
+  )
+  expect_false(
+    desc_from_comments(pkpd_m3a) %>%
+      get_prop("descr") %>%
+      grepl("^description",.,ignore.case = TRUE)
+  )
+  expect_true(
+    desc_from_comments(pkpd_m3a, remove="^\\W") %>%
+      get_prop("descr") %>%
+      grepl("^description",.,ignore.case = TRUE)
+  )
+  expect_true(
+    desc_from_comments(pkpd_m3a, extra_proc = toupper) %>%
+      get_prop("descr") %>%
+      grepl("CORRECT",.,ignore.case = FALSE)
+  )
 })

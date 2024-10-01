@@ -463,10 +463,11 @@ expose_property <- function(
   for (item in xpdb_s) {
     if (!is.null(.problem) && !.problem %in% xpose::all_data_problem(item$xpdb))
       cli::cli_abort("Problem no. { .problem} not in at least one xpose_data object in set.")
-    if (!is.null(.problem) && !is.null(.subprob)) this_summ <- xpose::get_summary(item$xpdb)
-    if (!is.null(.problem) && !is.null(.subprob) &&
-        !.subprob %in% this_summ[this_summ$problem==.problem,]$subprob)
-      cli::cli_abort("Subproblem no. { .subprob} not not associated with problem no. { .problem} for
+    if (!is.null(.subprob)) this_summ <- xpose::get_summary(item$xpdb)
+    use_prob_for_check <- dplyr::coalesce(.problem, xpose::all_data_problem(item$xpdb))
+    if (!is.null(.subprob) &&
+        !.subprob %in% this_summ[this_summ$problem%in%use_prob_for_check,]$subprob)
+      cli::cli_abort("Subproblem no. { .subprob} not associated with problem no(s). { use_prob_for_check} for
                      at least one xpose_data object in set.")
   }
 
@@ -606,10 +607,11 @@ expose_param <- function(
   for (item in xpdb_s) {
     if (!is.null(.problem) && !.problem %in% xpose::all_data_problem(item$xpdb))
       cli::cli_abort("Problem no. { .problem} not in at least one xpose_data object in set.")
-    if (!is.null(.problem) && !is.null(.subprob)) this_summ <- xpose::get_summary(item$xpdb)
-    if (!is.null(.problem) && !is.null(.subprob) &&
-        !.subprob %in% this_summ[this_summ$problem==.problem,]$subprob)
-      cli::cli_abort("Subproblem no. { .subprob} not not associated with problem no. { .problem} for
+    if (!is.null(.subprob)) this_summ <- xpose::get_summary(item$xpdb)
+    use_prob_for_check <- dplyr::coalesce(.problem, xpose::all_data_problem(item$xpdb))
+    if (!is.null(.subprob) &&
+        !.subprob %in% this_summ[this_summ$problem%in%use_prob_for_check,]$subprob)
+      cli::cli_abort("Subproblem no. { .subprob} not associated with problem no(s). { use_prob_for_check} for
                      at least one xpose_data object in set.")
   }
 

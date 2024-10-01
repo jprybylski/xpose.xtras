@@ -61,6 +61,14 @@ test_that("set_var_types is class-dependent", {
     set_var_types(xpdb__ex_pk2)
   ))
 
+  # "disguised" xp_xtras object gets correct method
+  xpdb__ex_pk2a <- as_xpdb_x(xpdb_ex_pk) %>%
+    xpose::set_var_labels(1, AGE = "age")
+  expect_failure(expect_identical(
+    set_var_types(xpdb__ex_pk2a),
+    set_var_types(xpdb__ex_pk2)
+  ))
+
 })
 
 test_that("levels can be set for categories", {
@@ -302,6 +310,22 @@ test_that("list_vars extension behaves as expected", {
     list_vars(xpdb_x, 1),
     message="problem no\\. 2 "
   ))
+
+
+  ex_m3 <- pkpd_m3 %>%
+    set_var_types(.problem=1, catdv=BLQ, dvprobs=LIKE) %>%
+    set_dv_probs(.problem=1, 1~LIKE, .dv_var = BLQ)
+  expect_message(
+    list_vars(ex_m3),
+    "LIKE.*\\[P.*eq.*1.*\\]"
+  )
+  ex_m3 <- pkpd_m3 %>%
+    set_var_types(.problem=1, catdv=BLQ, dvprobs=LIKE) %>%
+    set_dv_probs(.problem=1, gt(0)~LIKE, .dv_var = BLQ)
+  expect_message(
+    list_vars(ex_m3),
+    "LIKE.*\\[P.*gt.*0.*\\]"
+  )
 })
 
 test_that("xp_var methods work", {
@@ -356,6 +380,68 @@ test_that("xp_var methods work", {
   expect_error(
     xp_var(xpdb_x, type = c("contcov","hhh")),
     "hhh.*not available"
+  )
+
+
+})
+
+test_that("iofv can be backfilled", {
+  # Error checks
+  expect_error(
+    set_prop(pheno_base, software="fakesoftware") %>%
+      backfill_iofv(),
+    "only works for nonmem.*fakesoftware"
+  )
+  pheno_base2 <- pheno_base
+  pheno_base2$files <- pheno_base2$files %>%
+    dplyr::filter(extension!="phi")
+  pheno_base2 <- as_xp_xtras(pheno_base2)
+  expect_error(
+    backfill_iofv(pheno_base2),
+    "phi table not found"
+  )
+  expect_error(
+    backfill_iofv(xpdb_x, .problem = 1) %>% xp_var(2,type="iofv"),
+    "not available in data.*problem.*2"
+  )
+  expect_no_error(
+    backfill_iofv(xpdb_x, .problem = 1:2) %>% xp_var(2,type="iofv"),
+    message="not available in data.*problem.*2"
+  )
+
+  # Behavior
+  expect_equal(
+    formals(backfill_iofv)$.label,
+    "iOFV"
+  )
+  expect_false(
+    formals(backfill_iofv)$.label %in%
+      names(xpose::get_data(pheno_base, quiet = TRUE))
+  )
+  pheno_iofv <- backfill_iofv(pheno_base)
+  expect_in(
+    formals(backfill_iofv)$.label,
+    names(xpose::get_data(pheno_iofv, quiet = TRUE))
+  )
+  expect_equal(
+    formals(backfill_iofv)$.label,
+    xp_var(pheno_iofv,1,type="iofv")$col
+  )
+  expect_failure(expect_identical(
+    backfill_iofv(pheno_saem, .subprob = 1) %>%
+      xpose::get_data(quiet=TRUE) %>%
+      dplyr::select(all_of(formals(backfill_iofv)$.label)),
+    backfill_iofv(pheno_saem, .subprob = 2) %>%
+      xpose::get_data(quiet=TRUE) %>%
+      dplyr::select(all_of(formals(backfill_iofv)$.label))
+  ))
+  expect_identical(
+    backfill_iofv(pheno_saem) %>%
+      xpose::get_data(quiet=TRUE) %>%
+      dplyr::select(all_of(formals(backfill_iofv)$.label)),
+    backfill_iofv(pheno_saem, .subprob = 2) %>%
+      xpose::get_data(quiet=TRUE) %>%
+      dplyr::select(all_of(formals(backfill_iofv)$.label))
   )
 
 

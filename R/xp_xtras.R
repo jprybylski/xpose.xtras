@@ -464,8 +464,7 @@ lvl_inord <- function(x, .start_index = 1) {
 #' Add individual objective function to data
 #'
 #' @param xpdb <`xpose_data`> or <`xp_xtras`> object
-#' @param .label The name of the new column. `iOFV` is the default,
-#' but as long as <[`set_var_type`]> is called there is no problem.
+#' @param .label The name of the new column. `iOFV` is the default.
 #'
 #' @details
 #' This function will only work for objects with software listed as
@@ -497,6 +496,10 @@ backfill_iofv <- function(xpdb, .problem=NULL, .subprob=NULL, .label = "iOFV") {
     dplyr::filter(extension=="phi", problem==.problem, subprob==.subprob) %>%
     dplyr::pull(data) %>%
     .[[1]]
+  # Change any objective function to the default (for labeling purposes)
+  if (any(
+    stringr::str_detect(names(phi_df), "^.+OBJ$")
+    )) phi_df <- dplyr::rename_with(phi_df, ~"OBJ", .cols=dplyr::matches("^.+OBJ$"))
   match_obj <- function(id) {
     phi_df$OBJ[match(id,phi_df$ID)]
   }
@@ -521,7 +524,7 @@ backfill_iofv <- function(xpdb, .problem=NULL, .subprob=NULL, .label = "iOFV") {
 # Calculate constants for N-CMT model (under some assumptions) given trans-dependent input prms
 # dots are which prms are what, like for trans=2, dots should be CL=TCL, V=Vd, etc, so
 # if the excpected prms are not named as expected
-backfill_constants <- function(xpdb, ..., trans = 2) {}
+#backfill_constants <- function(xpdb, ..., trans = 2) {}
 
 #### Slight updates to list_vars
 
@@ -552,7 +555,7 @@ list_vars <- function (xpdb, .problem = NULL, ...) {
 
 #' @export
 list_vars.default <- function (xpdb, .problem = NULL, ...) {
-  if (suppressMessages(check_xp_xtras(xpdb)))
+  if (check_xp_xtras(xpdb, .warn=FALSE))
     return(list_vars.xp_xtras(xpdb, .problem = NULL, ...))
 
   xpose::list_vars(xpdb = xpdb, .problem = .problem)

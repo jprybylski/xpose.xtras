@@ -9,8 +9,7 @@ backfill_iofv(xpdb, .problem = NULL, .subprob = NULL, .label = "iOFV")
 \arguments{
 \item{xpdb}{<\code{xpose_data}> or <\code{xp_xtras}> object}
 
-\item{.label}{The name of the new column. \code{iOFV} is the default,
-but as long as <\code{\link{set_var_type}}> is called there is no problem.}
+\item{.label}{The name of the new column. \code{iOFV} is the default.}
 }
 \value{
 <\code{xp_xtras}> object with new column in the data and a

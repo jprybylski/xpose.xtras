@@ -68,3 +68,110 @@ test_that('irep works properly', {
 
 })
 
+
+test_that("edit_xpose_data is essentially the same as in xpose, with some improvement", {
+  ## Some basic behavior tests and trivial error checking, to cover all bases and get desired coverage
+
+  expect_identical(
+    edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = pheno_base,
+                    NEWCOLUMN = 1),
+    xpose::edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = pheno_base,
+                           NEWCOLUMN = 1) %>% as_xp_xtras()
+  )
+  expect_identical(
+    edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = xpose::xpdb_ex_pk,
+                    NEWCOLUMN = 1),
+    xpose::edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = xpose::xpdb_ex_pk,
+                           NEWCOLUMN = 1)
+  )
+  dynamic_column <- "TIME"
+  expect_error(
+    xpose::edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = pheno_base,
+                           NEWCOLUMN = .data[[dynamic_column]]/24),
+    "missing.*\\.data"
+  )
+  expect_no_error(
+    edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = pheno_base,
+                    NEWCOLUMN = .data[[dynamic_column]]/24),
+    message="missing.*\\.data"
+  )
+  expect_error(
+    edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = pheno_base,
+                    NEWCOLUMN = .data[[dynamic_column]]/24, check_quos = TRUE),
+    "missing.*\\.data"
+  )
+  expect_error(
+    edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = pheno_base,
+                    NEWCOLUMN = .data[[dynamic_column]]/24, .problem=99),
+    "99"
+  )
+  expect_error(
+    edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = pheno_base,
+                    NEWCOLUMN = .data[[dynamic_column]]/24, .source=letters),
+    "length 1"
+  )
+
+  expect_identical(
+    mutate_x(pheno_base, NEWCOLUMN = 1),
+    xpose::mutate(pheno_base, NEWCOLUMN = 1) %>% as_xp_xtras()
+  )
+
+  expect_identical(
+    group_by_x(pkpd_m3, DOSE),
+    xpose::group_by(pkpd_m3, DOSE) %>% as_xp_xtras()
+  )
+  # bug in ungroup?
+  expect_failure(expect_identical(
+    group_by_x(pkpd_m3, DOSE) %>% ungroup_x(),
+    xpose::group_by(pkpd_m3, DOSE) %>% xpose::ungroup() %>% as_xp_xtras()
+  ))
+  expect_failure(expect_false(
+    xpose::group_by(pkpd_m3, DOSE) %>% xpose::ungroup() %>%
+      xpose::get_data(quiet = TRUE) %>% dplyr::is_grouped_df()
+  ))
+  expect_false( # xtra version does not fail this
+    group_by_x(pkpd_m3, DOSE) %>% ungroup_x() %>%
+      xpose::get_data(quiet = TRUE) %>% dplyr::is_grouped_df()
+  )
+
+  special_xpdb <- xpdb_x
+  special_xpdb$special <- special_xpdb$data %>%
+    dplyr::mutate(method="vpc")
+  special_xpdb <- as_xp_xtras(special_xpdb)
+  suppressWarnings(suppressMessages(expect_warning(
+    edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = special_xpdb,
+                    NEWCOLUMN = 1, .source = "special", .where="data"),
+    "elements data not found"
+  )))
+  expect_error(
+    edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = special_xpdb,
+                    NEWCOLUMN = 1, .source = "special", .where="data", .problem=99),
+    "99"
+  )
+  special_xpdb$special <- special_xpdb$data %>%
+    dplyr::mutate(method="fakemethod")
+  special_xpdb <- as_xp_xtras(special_xpdb)
+  suppressMessages(expect_error(
+    edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = special_xpdb,
+                    NEWCOLUMN = 1, .source = "special", .where="data"),
+    "fakemethod"
+  ))
+
+  expect_no_error(
+    edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = pheno_base,
+                    NEWCOLUMN = OBJ, .source = "phi")
+  )
+  expect_error(
+    edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = pheno_base,
+                    NEWCOLUMN = OBJ, .source = "fake")
+  )
+  expect_error(
+    edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = pheno_base,
+                    NEWCOLUMN = OBJ, .source = "phi", .problem = 99)
+  )
+  expect_error(
+    edit_xpose_data(.fun = dplyr::mutate, .fname = 'mutate', .data = pheno_base,
+                    NEWCOLUMN = .data[["OBJ"]], .source = "phi", check_quos = TRUE)
+  )
+
+})

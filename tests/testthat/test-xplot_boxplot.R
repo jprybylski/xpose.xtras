@@ -47,6 +47,21 @@ test_that("xplot_boxplot", {
     geoms_lists(xplot_boxplot(xpdb_x, aes(MED1,ETA1), type= "p", quiet = TRUE)),
     c("GeomDotplot")
   )
+  # s should have smooth
+  expect_setequal(
+    geoms_lists(xplot_boxplot(xpdb_x, aes(MED1,ETA1), type= "s", quiet = TRUE)),
+    c("GeomSmooth")
+  )
+  # j should have jitter
+  expect_setequal(
+    geoms_lists(xplot_boxplot(xpdb_x, aes(MED1,ETA1), type= "j", quiet = TRUE)),
+    c("GeomPoint")
+  )
+  # c should have connecting lines for jitter
+  expect_setequal(
+    geoms_lists(xplot_boxplot(xpdb_x, aes(MED1,ETA1), type= "c", quiet = TRUE)),
+    c("GeomPath")
+  )
 
 
   # test orientation effects

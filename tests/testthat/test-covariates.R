@@ -27,6 +27,11 @@ test_that("grid plots appear as expected", {
     names(both_p$data),
     xp_var(xpdb_x, type=c("contcov","catcov"))$col
   )
+  cont_p <- cov_grid(xpdb_x, cols = c(SEX,CLCR))
+  expect_setequal(
+    names(cont_p$data),
+    c("SEX","CLCR")
+  )
 
   labl_x <- xpdb_x %>%
     xpose::set_var_labels(AGE="Age", MED1 = "Digoxin", .problem = 1) %>%
@@ -87,6 +92,29 @@ test_that("grid plots appear as expected", {
   expect_setequal(
     names(etacont_p$data),
     xp_var(xpdb_x, type=c("contcov","catcov","eta"))$col %>%
+      transform_eta()
+  )
+  etacont_p <- eta_vs_cov_grid(xpdb_x, etavar = ETA1)
+  expect_setequal(
+    names(etacont_p$data),
+    c(xp_var(xpdb_x, type=c("contcov","catcov"))$col, "ETA1") %>%
+      transform_eta()
+  )
+  etacont_p <- eta_vs_cov_grid(xpdb_x, cols = CLCR, etavar = ETA1)
+  expect_setequal(
+    names(etacont_p$data),
+    c("CLCR", "ETA1") %>%
+      transform_eta()
+  )
+  expect_identical(
+    names(etacont_p$data),
+    c("CLCR", "ETA1") %>%
+      transform_eta()
+  )
+  etacont_p <- eta_vs_cov_grid(xpdb_x, cols = CLCR, etavar = ETA1, etacov = FALSE)
+  expect_identical(
+    names(etacont_p$data),
+    c("ETA1","CLCR") %>%
       transform_eta()
   )
 
@@ -162,5 +190,65 @@ test_that("individual eta-cov plots", {
     eta_vs_catcov(xpdb_x, etavar=ETA1),
     eta_vs_catcov(xpdb_x, etavar=ETA1, orientation = "y")
   ))
+
+})
+
+test_that("errors and special plot circumstances are correctly caught", {
+  expect_error(
+    vismo_pomod %>% eta_grid(etavar = P1, quiet = TRUE),
+    "should only include etas.*P1"
+  )
+  expect_error(
+    vismo_pomod %>%
+      set_var_types(catcov=COHORT,contcov=AGE) %>%
+      eta_vs_cov_grid(etavar = P1, quiet = TRUE, drop_fixed = FALSE),
+    "should only include etas.*P1"
+  )
+  expect_error(
+    vismo_pomod %>%
+      set_var_types(catcov=COHORT,contcov=AGE) %>%
+      eta_vs_contcov(etavar = P1, quiet = TRUE, drop_fixed = FALSE),
+    "should only include etas.*P1"
+  )
+  expect_error(
+    vismo_pomod %>%
+      set_var_types(catcov=COHORT,contcov=AGE) %>%
+      eta_vs_catcov(etavar = P1, quiet = TRUE, drop_fixed = FALSE),
+    "should only include etas.*P1"
+  )
+  expect_error(
+    pheno_base %>% cov_grid(covtypes = "bbb", quiet=TRUE),
+    "Invalid.*bbb"
+  )
+  expect_error(
+    pheno_base %>% eta_vs_cov_grid(covtypes = "bbb", quiet=TRUE),
+    "Invalid.*bbb"
+  )
+  expect_error(
+    pheno_base %>% cov_grid(cols=WT,covtypes = "cat", quiet=TRUE),
+    "should only include.*cat.*WT"
+  )
+  expect_error(
+    pheno_base %>% cov_grid(cols=APGR,covtypes = "cont", quiet=TRUE),
+    "should only include.*cont.*APGR"
+  )
+  expect_error(
+    pheno_base %>% eta_vs_cov_grid(cols=WT,covtypes = "cat", quiet=TRUE),
+    "should only include.*cat.*WT"
+  )
+  suppressMessages(expect_message(
+    xpose::xpdb_ex_pk %>% cov_grid(),
+    "Cannot show N"
+  ))
+  suppressMessages(expect_message(
+    xpose::xpdb_ex_pk %>% eta_vs_cov_grid(),
+    "Cannot show N"
+  ))
+  suppressMessages(expect_no_message(
+    xpose::xpdb_ex_pk %>% cov_grid(show_n = FALSE),
+    message="Cannot show N"
+  ))
+
+
 
 })

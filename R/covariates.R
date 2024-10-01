@@ -184,7 +184,8 @@ cov_grid <- function(xpdb,
   # Set cov factor to label and units, if relevant
   lvld_cov <- cov_col[cov_col %in% xp_var(xpdb, .problem, type = "catcov")$col]
   if (!check_xpdb_x(xpdb, .warn=FALSE)) {
-    post_processing_cov <- apply_lul_wide(xpdb = xpdb, cols=cov_col, .problem = .problem)
+    post_processing_cov <- apply_lul_wide(xpdb = xpdb, cols=cov_col,
+                                          lvl_cols=lvld_cov, .problem = .problem)
     if (show_n && !quiet) cli::cli_inform("Cannot show N unless xpdb is converted to a cross-compatible xp_xtras object. `as_xpdb_x()` should do this.")
   } else {
     post_processing_cov <- apply_lul_wide(xpdb = xpdb, cols=cov_col,

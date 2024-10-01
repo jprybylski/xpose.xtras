@@ -174,6 +174,10 @@ test_that("properties can be exposed", {
     .[[1]] %>%
     names() %>%
     expect_contains("..ofv")
+  expose_property(xpdb_set, "ofv") %>% # quotes are handled graciously
+    .[[1]] %>%
+    names() %>%
+    expect_contains("..ofv")
 
   expose_property(xpdb_set, ofv, descr) %>%
     .[[1]] %>%
@@ -196,7 +200,47 @@ test_that("properties can be exposed", {
     get_shk(xpdb_set[[1]]$xpdb, wh="eps")
   )
 
+  expect_error(
+    xpose_set(xpdb_x,pheno_base) %>%
+      expose_property(ofv, .problem = 2),
+    "Problem.*2.* not in at least one.*in set"
+  )
+  expect_error(
+    xpose_set(pheno_saem,pheno_base) %>%
+      expose_property(ofv, .subprob = 2),
+    "Subproblem.*2.* not.*with problem.*1.* at least one.*in set"
+  )
+  expect_error(
+    expose_param(pheno_set, CL),
+    "Could not.*CL.*labeled.*run16"
+  )
 
+})
+
+test_that("parameters can be exposed", {
+  expect_error(
+    expose_param(pheno_set, CL = the1),
+    "must be passed by position"
+  )
+  expect_no_error(
+    expose_param(pheno_set, the1),
+    message="must be passed by position"
+  )
+  expect_identical(
+    expose_param(pheno_set, the1),
+    expose_param(pheno_set, "the1")
+  )
+
+  expect_error(
+    xpose_set(xpdb_x,pheno_base) %>%
+      expose_param(the1, .problem = 2),
+    "Problem.*2.* not in at least one.*in set"
+  )
+  expect_error(
+    xpose_set(pheno_saem,pheno_base) %>%
+      expose_param(the1, .subprob = 2),
+    "Subproblem.*2.* not.*with problem.*1.* at least one.*in set"
+  )
 })
 
 
@@ -209,6 +253,7 @@ test_that("methods work", {
   expect_message(print(xpdb_set))
   expect_message(print(big_set), regexp = "truncated")
   suppressMessages(expect_no_message(print(xpdb_set), message = "truncated"))
+  expect_message(print(focus_xpdb(big_set,everything())), regexp = "Focused.*truncated")
   expect_message(print(xpdb_set[FALSE]), regexp = "No xpdb objects")
   expect_message(print(exp_set), regexp = "(ofv|runtime)")
   suppressMessages(expect_no_message(print(xpdb_set), message = "(ofv|runtime)"))
@@ -400,6 +445,15 @@ test_that("focusing works", {
     foc_set %>% rename(time=TIME) %>% {.$mod1$xpdb}
   )
 
+  # quick apply (from examples)
+  expect_identical(
+    pheno_set %>%
+      focus_xpdb(everything()) %>%
+      focus_function(backfill_iofv) %>%
+      unfocus_xpdb(),
+    pheno_set %>%
+      focus_qapply(backfill_iofv)
+  )
 
 })
 

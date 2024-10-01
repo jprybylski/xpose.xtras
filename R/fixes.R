@@ -248,7 +248,9 @@ edit_xpose_data <- function(.fun, .fname, .data, ..., .problem, .source, .where,
     xpdb[['files']] <- xpdb[['files']] %>%
       dplyr::mutate(modified = dplyr::if_else(.$problem %in% .problem & .$extension %in% .source, TRUE, .$modified))
   }
-  xpose::as.xpdb(xpdb)
+  xpdb <- xpose::as.xpdb(xpdb)
+  if (check_xpdb_x(xpdb, .warn = FALSE)) return(as_xp_xtras(xpdb))
+  xpdb
 }
 
 #' Add, remove or rename variables in an xpdb
