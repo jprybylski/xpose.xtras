@@ -265,21 +265,19 @@ set_dv_probs <- function(
     .dv_var = NULL, # default is first DV var
     .handle_missing = c("quiet","warn","error")
     ) {
-  # Like set_var_levels, but it is expected that
-  # variables listed as dvprobs, these represent
-  # the probabilities of certain DV values.
-  # Can be as simple as c(0~P0) or complex as
-  # c( ge(2)~P23  ). Requires function parsing.
-  # No convenience functions like lvl_Px(),
-  # as this should be more straightforward than leveling (which can require long strings)
-  #
-
   #### Top part is similar to set_var_levels
   # Basic check
   if (!check_xpdb_x(xpdb)) rlang::abort("xp_xtras object required.")
   xpose::check_xpdb(xpdb, check = "data")
   xp_d <- xpdb$data
   if (!is.null(.problem) && !.problem %in% xp_d$problem) cli::cli_abort("Problem number { .problem} not valid.")
+  # Make sure users did not do `=`
+  rlang::try_fetch(
+    rlang::check_dots_unnamed(),
+    error = function(s)
+      rlang::abort(paste("Only formula(e) are expected in the dots, not assignment.",
+                         "Was `=` used instead of `~`?"), parent=s)
+  )
 
 
   # Arg process
@@ -400,7 +398,7 @@ proc_probs <-  function(prb_list) {
     ~ {
       # Extract symbols
       lhs <- .x[[2]]
-      fun <- NA
+      fun <- NA_character_
       if (class(lhs)=="call") {
         fun <- tolower(deparse(lhs[[1]]))
         lhs <-  rlang::call_args(lhs)[[1]]
@@ -443,6 +441,7 @@ list_dv_probs <- function(
   xpose::check_xpdb(xpdb, check = "data")
   xp_d <- xpdb$data
   if (!is.null(.problem) && !.problem %in% xp_d$problem) cli::cli_abort("Problem number { .problem} not valid.")
+  if (is.null(.problem)) fill_prob_subprob_method(xpdb)
 
   # Relevant index
   full_index <- get_index(xpdb, .problem=.problem)

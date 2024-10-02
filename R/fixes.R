@@ -270,6 +270,13 @@ mutate_x <- function(.data, ..., .problem, .source, .where) {
                   .problem = .problem, .source = .source, .where = .where, ...)
 }
 
+#' @name modify_xpdb
+#' @export
+rename_x <- function(.data, ..., .problem, .source, .where) {
+  edit_xpose_data(.fun = dplyr::rename, .fname = 'rename', .data = .data,
+                  .problem = .problem, .source = .source, .where = .where, ...)
+}
+
 #' Group/ungroup and summarize variables in an xpdb
 #'
 #' @description \code{group_by_x()} takes an existing table and converts it into a

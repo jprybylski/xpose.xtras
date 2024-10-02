@@ -3,9 +3,12 @@
 \name{modify_xpdb}
 \alias{modify_xpdb}
 \alias{mutate_x}
+\alias{rename_x}
 \title{Add, remove or rename variables in an xpdb}
 \usage{
 mutate_x(.data, ..., .problem, .source, .where)
+
+rename_x(.data, ..., .problem, .source, .where)
 }
 \arguments{
 \item{.data}{An xpose database object.}

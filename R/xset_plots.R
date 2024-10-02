@@ -1,7 +1,6 @@
 ########
 # Simple Plots (these may spin into their own script like shark_plots)
 ########
-# TODO: unit test all of these xset plot and helper functions, and generic functions
 
 #' Objective function changes across models
 #'
@@ -658,7 +657,7 @@ dv_vs_ipred_modavg <- function(
     weight_basis = c("ofv","aic","res"),
     res_col = "RES",
     quiet) {
-  modavg_xpdb(
+  plotfun_modavg(
     xpdb_s=xpdb_s,
     ...,
     .lineage = .lineage,
@@ -668,14 +667,9 @@ dv_vs_ipred_modavg <- function(
     auto_backfill = auto_backfill,
     weight_basis = weight_basis,
     res_col = res_col,
+    .fun = xpose::dv_vs_ipred,
     quiet=quiet
-  ) %>%
-    xpose::dv_vs_ipred(
-      title = paste(
-        "Model averaged",
-        formals(xpose::dv_vs_ipred)$title
-      )
-    )
+  )
 }
 #' @rdname modavg_plots
 #' @export
@@ -689,7 +683,7 @@ dv_vs_pred_modavg <- function(
     weight_basis = c("ofv","aic","res"),
     res_col = "RES",
     quiet) {
-  modavg_xpdb(
+  plotfun_modavg(
     xpdb_s=xpdb_s,
     ...,
     .lineage = .lineage,
@@ -699,14 +693,9 @@ dv_vs_pred_modavg <- function(
     auto_backfill = auto_backfill,
     weight_basis = weight_basis,
     res_col = res_col,
+    .fun = xpose::dv_vs_pred,
     quiet=quiet
-  ) %>%
-    xpose::dv_vs_pred(
-      title = paste(
-        "Model averaged",
-        formals(xpose::dv_vs_pred)$title
-      ) # TODO: make these subtitles etc better. Maybe just wrap around plotfun_ if this gets too complex
-    )
+  )
 }
 #' @rdname modavg_plots
 #' @export
@@ -720,7 +709,7 @@ ipred_vs_idv_modavg <- function(
     weight_basis = c("ofv","aic","res"),
     res_col = "RES",
     quiet) {
-  modavg_xpdb(
+  plotfun_modavg(
     xpdb_s=xpdb_s,
     ...,
     .lineage = .lineage,
@@ -730,14 +719,9 @@ ipred_vs_idv_modavg <- function(
     auto_backfill = auto_backfill,
     weight_basis = weight_basis,
     res_col = res_col,
+    .fun = xpose::ipred_vs_idv,
     quiet=quiet
-  ) %>%
-    xpose::ipred_vs_idv(
-      title = paste(
-        "Model averaged",
-        formals(xpose::ipred_vs_idv)$title
-      )
-    )
+  )
 }
 #' @rdname modavg_plots
 #' @export
@@ -751,7 +735,7 @@ pred_vs_idv_modavg <- function(
     weight_basis = c("ofv","aic","res"),
     res_col = "RES",
     quiet) {
-  modavg_xpdb(
+  plotfun_modavg(
     xpdb_s=xpdb_s,
     ...,
     .lineage = .lineage,
@@ -761,13 +745,8 @@ pred_vs_idv_modavg <- function(
     auto_backfill = auto_backfill,
     weight_basis = weight_basis,
     res_col = res_col,
+    .fun = xpose::pred_vs_idv,
     quiet=quiet
-  ) %>%
-    xpose::pred_vs_idv(
-      title = paste(
-        "Model averaged",
-        formals(xpose::pred_vs_idv)$title
-        )
     )
 }
 
@@ -802,15 +781,38 @@ plotfun_modavg <- function(
     res_col = res_col,
     quiet=quiet
   )
-  do.call(
-    .fun,
-    modifyList(list(
-      xpdb = maXPDB,
+  if (!missing(quiet)) .funargs$quiet <- quiet
+  approach_that_works <- function(...) {
+    .fun(
+      maXPDB,
       title = paste(
         "Model averaged",
         formals(.fun)$title
-      )
-    ), .funargs)
+      ),
+      ...
+    )
+  }
+  # works but doesn't have the same flexibility
+  # .fun(
+  #   maXPDB,
+  #   title = paste(
+  #     "Model averaged",
+  #     formals(.fun)$title
+  #   )
+  # )
+  # Along with do.call, seemingly doesn't work
+  # rlang::exec(
+  #   .fun,
+  #   xpdb = maXPDB,
+  #   title = paste(
+  #     "Model averaged",
+  #     formals(.fun)$title
+  #   ),
+  #   !!!.funargs
+  # )
+  rlang::exec(
+    approach_that_works,
+    !!!.funargs
   )
 }
 
@@ -957,7 +959,8 @@ franken_xpdb <-  function(
     db <- xpdb_list[[index]]
     xpose::check_xpdb(db, check="data")
 
-    for (prob in problem) {
+    for (probi in seq_along(problem)) {
+      prob <- problem[probi]
       if (!prob %in% xpose::all_data_problem(db))
         cli::cli_abort("No prob no.{prob} in {.strong {get_prop(db, 'run')}}")
 
@@ -975,7 +978,7 @@ franken_xpdb <-  function(
 
 
       # Get data
-      this_data <- xpose::get_data(db, .problem = problem, quiet=quiet)
+      this_data <- xpose::get_data(db, .problem = prob, quiet=quiet)
       # nrow check
       prev_nrow <- nrow(this_data)
       if (index>1) prev_nrow <- prob_data[[prob]] %>% .[[index-1]] %>% nrow()
@@ -1004,7 +1007,7 @@ franken_xpdb <-  function(
         })
 
       # Fill data
-      prob_data[[prob]][[index]] <- cols_set
+      prob_data[[probi]][[index]] <- cols_set
 
     }
   }

@@ -43,6 +43,7 @@ test_that("xplot_pairs", {
 
   #### vdiffr tests to skip on CRAN
   skip_on_cran()
+  skip_if(!is.null(getOption("ignore_vdiff")) && getOption("ignore_vdiff"))
   #skip_on_covr()
   #skip()
   library(vdiffr)

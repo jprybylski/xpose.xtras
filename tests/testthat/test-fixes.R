@@ -117,6 +117,11 @@ test_that("edit_xpose_data is essentially the same as in xpose, with some improv
   )
 
   expect_identical(
+    rename_x(pheno_base, DV2 = DV),
+    xpose::rename(pheno_base, DV2 = DV) %>% as_xp_xtras()
+  )
+
+  expect_identical(
     group_by_x(pkpd_m3, DOSE),
     xpose::group_by(pkpd_m3, DOSE) %>% as_xp_xtras()
   )
