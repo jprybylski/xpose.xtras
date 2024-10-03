@@ -40,11 +40,11 @@
 #'
 #' pheno_set %>%
 #'   modavg_xpdb(
-#'   avg_cols = "IPRED",
-#'   auto_backfill = TRUE,
-#'   algorithm = "maa",
-#'   weight_basis = "aic"
-#'  )
+#'     avg_cols = "IPRED",
+#'     auto_backfill = TRUE,
+#'     algorithm = "maa",
+#'     weight_basis = "aic"
+#'   )
 #'
 modavg_xpdb <- function(
     xpdb_s,
@@ -52,103 +52,130 @@ modavg_xpdb <- function(
     .lineage = FALSE,
     avg_cols = NULL,
     avg_by_type = NULL,
-    algorithm = c("maa","msa"),
-    weight_type = c("individual","population"),
+    algorithm = c("maa", "msa"),
+    weight_type = c("individual", "population"),
     auto_backfill = FALSE,
-    weight_basis = c("ofv","aic","res"),
+    weight_basis = c("ofv", "aic", "res"),
     res_col = "RES",
-    quiet
-) {
-
+    quiet) {
   check_xpose_set(xpdb_s)
 
   # Make sure dots are unnamed
-  rlang::check_dots_unnamed
+  rlang::check_dots_unnamed()
 
-  if (.lineage==TRUE) {
+  tidyselect_check <- FALSE
+  try_tidy <- try(select_subset(xpdb_s, ...))
+  if (!"try-error" %in% class(try_tidy)) tidyselect_check <- TRUE
+
+  if (.lineage == TRUE) {
     mods <- xset_lineage(xpdb_s, ..., .spinner = FALSE)
     if (is.list(mods)) {
-      rlang::abort(paste("`xset_lineage()` returned a list.",
-                         "If requesting to process `...` as a lineage, cannot request multiple lineages.",
-                         "Specifically, `...` should be empty or a single model name."))
+      rlang::abort(paste(
+        "`xset_lineage()` returned a list.",
+        "If requesting to process `...` as a lineage, cannot request multiple lineages.",
+        "Specifically, `...` should be empty or a single model name."
+      ))
     }
-  } else if (rlang::dots_n(...)==0) {
+  } else if (rlang::dots_n(...) == 0) {
     mods <- names(xpdb_s)
-  } else if (rlang::dots_n(...)==1 && is_formula_list(rlang::dots_list(...))) {
+  } else if (rlang::dots_n(...) == 1 && suppressWarnings(is_formula_list(rlang::dots_list(...)))) {
+    # Warning is meaningless for this case, is using tidyselect in dots (eg, all_of(charcater list))
     mods <- all.vars(rlang::dots_list(...)[[1]])
   } else {
     mods <- select_subset(xpdb_s, ...) %>% names()
   }
-  if (any(!mods %in% names(xpdb_s))) {
+  if (any(!mods %in% names(xpdb_s)) && !tidyselect_check) {
     cli::cli_abort("Selected models not in set: {.strong {setdiff(mods, names(xpdb_s))}}")
   }
 
   pre_process <- function(x) unfocus_xpdb(x)
-  if (auto_backfill==TRUE) pre_process <- function(x) focus_qapply(x,backfill_iofv)
-  xpose_subset <- xpdb_s %>% pre_process() %>% select(!!mods)
+  if (auto_backfill == TRUE) pre_process <- function(x) focus_qapply(x, backfill_iofv)
+  xpose_subset <- xpdb_s %>%
+    pre_process() %>%
+    select(!!mods)
 
   # extra checks
-  if (missing(quiet))
+  if (missing(quiet)) {
     quiet <- xpose_subset[[1]]$xpdb$options$quiet
+  }
   if (rlang::quo_is_null(rlang::enquo(avg_cols)) && is.null(avg_by_type)) {
     rlang::abort("Columns to average are required. Provide argument `avg_cols`.")
   }
-  algorithm <- rlang::arg_match(algorithm, values = c("maa","msa"))
-  weight_type <- rlang::arg_match(weight_type, values = c("population","individual"))
-  weight_basis <- rlang::arg_match(weight_basis, values = c("ofv","aic","res"))
-  if (length(res_col)>1 && weight_basis=="res")
+  algorithm <- rlang::arg_match(algorithm, values = c("maa", "msa"))
+  weight_type <- rlang::arg_match(weight_type, values = c("population", "individual"))
+  weight_basis <- rlang::arg_match(weight_basis, values = c("ofv", "aic", "res"))
+  if (length(res_col) > 1 && weight_basis == "res") {
     rlang::abort("Only one residual column can be used as the weighting basis.")
+  }
 
-  xpdb_l <- purrr::map(xpose_subset, ~.x$xpdb)
-  if (!is.null(avg_by_type)) avg_cols <- xp_var(xpdb_l[[1]], type=avg_by_type, silent=TRUE)$col %>%
-    {rlang::quo(dplyr::any_of(.))}
+  xpdb_l <- purrr::map(xpose_subset, ~ .x$xpdb)
+
+  if (!is.null(avg_by_type)) {
+    avg_cols <- xp_var(xpdb_l[[1]], type = avg_by_type, silent = TRUE)$col %>%
+      {
+        rlang::quo(dplyr::any_of(.))
+      }
+  }
 
   # Get combined xpdb
-  xpdb_f <- franken_xpdb(
-    !!!xpdb_l,
-    .types = c("iofv"),
-    .cols = c({{avg_cols}}, any_of(res_col)) # TODO: update franken_props here
+
+  rlang::try_fetch(
+    xpdb_f <- franken_xpdb(
+      !!!xpdb_l,
+      .types = c("iofv"),
+      .cols = c({{ avg_cols }}, dplyr::all_of(res_col)) # TODO: update franken_props here
+    ),
+    error = function(s) {
+      rlang::abort(paste0(
+        "Failed to combine `xpose_data` objects. ",
+        "Individual OFV is required in data even if not used for averaging. ",
+        "Setting `auto_backfill=TRUE` may help."
+      ), parent = s)
+    }
   )
   # To make working with new columns easier
-  ofv_cols <- purrr::map_chr(xpdb_l,
-                             ~xp_var(.x, type="iofv", silent=TRUE)$col[1])
-  ofv_frk_cols <- paste0(ofv_cols,"_",seq_along(ofv_cols))
-  res_cols <- paste0(res_col,"_",seq_along(xpdb_l))
+  ofv_cols <- purrr::map_chr(
+    xpdb_l,
+    ~ xp_var(.x, type = "iofv", silent = TRUE)$col[1]
+  )
+  ofv_frk_cols <- paste0(ofv_cols, "_", seq_along(ofv_cols))
+  res_cols <- paste0(res_col, "_", seq_along(xpdb_l))
   avgd_cols <- get_index(xpdb_f) %>% # < can do it like this because all cols have to be same
     dplyr::pull(col) %>%
-    setNames(.,.) %>%
-    tidyselect::eval_select({{avg_cols}}, .) %>%
+    setNames(., .) %>%
+    tidyselect::eval_select({{ avg_cols }}, .) %>%
     names()
-  avgd_cols_num <- purrr::map(avgd_cols, ~ paste0(.x,"_",seq_along(xpdb_l)))
+  avgd_cols_num <- purrr::map(avgd_cols, ~ paste0(.x, "_", seq_along(xpdb_l)))
   avgd_frk_cols <- purrr::list_c(avgd_cols_num)
   # Add AIC
-  aic_cols <- paste0("AIC_",seq_along(xpdb_l))
-  if (weight_basis=="aic") {
+  aic_cols <- paste0("AIC_", seq_along(xpdb_l))
+  if (weight_basis == "aic") {
     for (prob in xpose::all_data_problem(xpdb_f)) {
       for (i in seq_along(xpdb_l)) {
         xpdb <- xpdb_l[[i]]
         new_col <- aic_cols[i]
         ofv_col <- ofv_frk_cols[i]
         id_col <- xp_var(xpdb_f, .problem = prob, type = "id", silent = TRUE)$col
-        npars <- xpose::get_prm(xpdb, .problem=prob, quiet = TRUE) %>%
-          dplyr::pull(fixed) %>% `!`() %>% sum()
+        npars <- xpose::get_prm(xpdb, .problem = prob, quiet = TRUE) %>%
+          dplyr::pull(fixed) %>%
+          `!`() %>%
+          sum()
         xpdb_f <- xpdb_f %>%
           `if`(
-            weight_type=="individual",
-            group_by_x(., across(any_of(id_col)), .problem=prob),
+            weight_type == "individual",
+            group_by_x(., across(any_of(id_col)), .problem = prob),
             .
           ) %>%
           mutate_x(
-            !!new_col := sum(.data[[ofv_col]][!duplicated(.data[[id_col]])]) + 2*.env$npars,
-            .problem=prob
+            !!new_col := sum(.data[[ofv_col]][!duplicated(.data[[id_col]])]) + 2 * .env$npars,
+            .problem = prob
           ) %>%
           `if`(
-            weight_type=="individual",
-            ungroup_x(., .problem=prob),
+            weight_type == "individual",
+            ungroup_x(., .problem = prob),
             .
           )
       }
-
     }
   } else {
     for (i in seq_along(xpdb_l)) {
@@ -173,76 +200,77 @@ modavg_xpdb <- function(
       # drop any columns that will be values pivot
       dplyr::select(-any_of(
         unlist(macols, use.names = FALSE)
-      ), -{{avg_cols}}) %>%
+      ), -{{ avg_cols }}) %>%
       # Rename to ensure consistency
-      dplyr::rename_with(~{
+      dplyr::rename_with(~ {
         dplyr::case_when(
-          .x %in% ofv_frk_cols ~ stringr::str_replace(.x, "^.+_(\\d+)$", paste0(macols$ofv,"_\\1")),
-          .x %in% res_cols ~ stringr::str_replace(.x, "^.+_(\\d+)$", paste0(macols$res,"_\\1")),
-          .x %in% aic_cols ~ stringr::str_replace(.x, "^.+_(\\d+)$", paste0(macols$aic,"_\\1")),
+          .x %in% ofv_frk_cols ~ stringr::str_replace(.x, "^.+_(\\d+)$", paste0(macols$ofv, "_\\1")),
+          .x %in% res_cols ~ stringr::str_replace(.x, "^.+_(\\d+)$", paste0(macols$res, "_\\1")),
+          .x %in% aic_cols ~ stringr::str_replace(.x, "^.+_(\\d+)$", paste0(macols$aic, "_\\1")),
           TRUE ~ .x
         )
       }) %>%
       # Pivot
       tidyr::pivot_longer(
         cols = c(
-          avgd_frk_cols,
+          dplyr::all_of(avgd_frk_cols),
           dplyr::starts_with(macols$ofv),
           dplyr::starts_with(macols$res),
           dplyr::starts_with(macols$aic)
         ),
-        names_to = c(".value","model"),
+        names_to = c(".value", "model"),
         names_sep = "_"
       ) %>%
       dplyr::arrange(model)
     # Some basis column transformations to directly exponentiate
     basis_col <- macols[[weight_basis]]
-    if (weight_basis %in% c("ofv","aic"))
+    if (weight_basis %in% c("ofv", "aic")) {
       df_new <- df_new %>%
-      dplyr::mutate(!!basis_col := -0.5*.data[[basis_col]])
+        dplyr::mutate(!!basis_col := -0.5 * .data[[basis_col]])
+    }
     if (weight_basis %in% c("res")) {
       df_new_x <- df_new %>%
         dplyr::group_by(model, .add = dplyr::is_grouped_df(.)) %>%
         # This will be biased if it doesn't ignore dosing
         # TODO: check best way to only consider obs here
-        dplyr::mutate(!!basis_col := -0.5*sum(.data[[basis_col]])) %>%
+        dplyr::mutate(!!basis_col := -0.5 * sum(.data[[basis_col]])) %>%
         dplyr::ungroup()
       df_new <- df_new %>%
         dplyr::mutate(!!basis_col := df_new_x[[basis_col]][dplyr::cur_group_rows()])
     }
     # Final algorith implementation
-    if (algorithm=="maa") {
+    if (algorithm == "maa") {
       df_new <- df_new %>%
         dplyr::mutate(across(
-          {{avg_cols}}, function(.x) {
+          {{ avg_cols }}, function(.x) {
             modnum <- as.numeric(.data$model)
             basis_val <- (exp(.data[[basis_col]][!duplicated(model)]))
             basis_vals <- basis_val %>%
-              rep(each=sum(modnum==1))
+              rep(each = sum(modnum == 1))
 
-            new_vals <- .x*basis_vals/
-              sum( basis_val )
-            matrix(new_vals, ncol=max(modnum)) %>%
+            new_vals <- .x * basis_vals /
+              sum(basis_val)
+            matrix(new_vals, ncol = max(modnum)) %>%
               rowSums() %>%
               rep(max(modnum))
           }
         ))
-    } else if ( algorithm=="msa" ) {
+    } else if (algorithm == "msa") {
       df_new <- df_new %>%
         dplyr::mutate(across(
-          {{avg_cols}}, function(.x) {
+          {{ avg_cols }}, function(.x) {
             modnum <- as.numeric(.data$model)
-            .x[.data[[basis_col]]==min(.data[[basis_col]])] %>%
+            .x[.data[[basis_col]] == min(.data[[basis_col]])] %>%
               # if multiple minimums, just pick first
-              .[1:sum(modnum==1)] %>%
+              .[1:sum(modnum == 1)] %>%
               rep(max(modnum))
           }
         ))
     }
     df_new %>%
       `if`(dplyr::is_grouped_df(.), dplyr::ungroup(.), .) %>%
-      dplyr::filter(model==1) %>%
-      dplyr::select({{avg_cols}})
+      dplyr::filter(model == 1) %>%
+      dplyr::select({{ avg_cols }})
   }
 
   for (prob in xpose::all_data_problem(xpdb_f)) {
@@ -250,14 +278,14 @@ modavg_xpdb <- function(
     # get data
     modav_dat <- xpose::get_data(xpdb_f, .problem = prob, quiet = TRUE) %>%
       # group as needed
-      `if`(weight_type=="individual", dplyr::group_by(., across(any_of(id_col))), .) %>%
+      `if`(weight_type == "individual", dplyr::group_by(., across(any_of(id_col))), .) %>%
       # get model averaged value
       mod_ave_fn()
 
     # use mutate_x to replace value in xpdb object
     xpdb_f <- xpdb_f %>%
       mutate_x(across(
-        {{avg_cols}}, ~ modav_dat[[dplyr::cur_column()]]
+        {{ avg_cols }}, ~ modav_dat[[dplyr::cur_column()]]
       ), .problem = prob)
   }
   xpdb_f

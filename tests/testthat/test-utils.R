@@ -186,6 +186,9 @@ test_that("convenience functions return expected", {
   expect_true(
     is_formula_list(list(a~b))
   )
+  expect_false(
+    is_formula_list(rlang::quos(1+1,1+2,1+3))
+  )
 })
 
 test_that("reportable digits works", {

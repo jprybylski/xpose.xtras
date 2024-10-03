@@ -768,9 +768,25 @@ plotfun_modavg <- function(
     quiet) {
   if (!is.function(.fun))
     cli::cli_abort("`.fun` must be a function, not a {.emphasis {class(.fun)[1]}}")
-  maXPDB <- modavg_xpdb(
+  # Prevent potentially common partial_match confusion
+  if ("xpdb" %in% rlang::call_args_names(rlang::frame_call())) {
+    if (xpose::is.xpdb(xpdb_s))
+      rlang::abort("An `xpose_set` is required, not an `xpose_data` item.")
+  }
+  # Any .funargs in dots?
+  dots_args <- rlang::enquos(..., .ignore_empty = "all", .unquote_names = TRUE)
+  dots_names <- names(dots_args)
+  ignore_check <- dots_names %in% c("xpdb","...",".")
+  funarg_check <- dots_names %in% names(formals(.fun))
+  funarg_dots <- dots_args[funarg_check]# & !ignore_check]
+  if (length(funarg_dots)>0) .funargs <- modifyList(
+    .funargs,
+    purrr::map(funarg_dots, rlang::eval_tidy)
+  )
+  select_dots <- dots_args[!funarg_check]# & !ignore_check]
+  maXPDB <- rlang::inject(modavg_xpdb(
     xpdb_s=xpdb_s,
-    ...,
+    !!!select_dots,
     .lineage = .lineage,
     avg_cols = avg_cols,
     avg_by_type = avg_by_type,
@@ -780,15 +796,15 @@ plotfun_modavg <- function(
     weight_basis = weight_basis,
     res_col = res_col,
     quiet=quiet
-  )
+  ))
   if (!missing(quiet)) .funargs$quiet <- quiet
+  if (!"title" %in% names(.funargs)) .funargs$title <- paste(
+    "Model averaged",
+    formals(.fun)$title
+  )
   approach_that_works <- function(...) {
     .fun(
       maXPDB,
-      title = paste(
-        "Model averaged",
-        formals(.fun)$title
-      ),
       ...
     )
   }
@@ -942,6 +958,12 @@ franken_xpdb <-  function(
 
   if (is.null(.types) && rlang::quo_is_null(rlang::enquo(.cols)))
     rlang::abort("Need `.cols` and/or `.types` to add into new object.")
+  # See if .cols is character
+  char_cols_check <- suppressWarnings(try(.cols,silent = TRUE))
+  if (!rlang::quo_is_null(rlang::enquo(.cols)) &&
+      !"try-error" %in% class(char_cols_check)) {
+    .cols <- rlang::sym(.cols)
+  }
 
   xpdb_list <- rlang::dots_list(...)
 
@@ -998,7 +1020,7 @@ franken_xpdb <-  function(
 
       # cols extract
       cols_set <- rlang::try_fetch(
-        dplyr::select(this_data, {{.cols}}, !!tcols),
+        dplyr::select(this_data, c({{.cols}}, dplyr::any_of(tcols))),
         error = function(s) {
           rlang::abort(
             paste("Error with `xpose_data` for prob no.",prob,"in",get_prop(db, 'run')),
