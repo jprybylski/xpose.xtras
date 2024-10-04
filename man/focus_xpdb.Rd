@@ -25,6 +25,8 @@ focus_qapply(xpdb_s, fn, ..., .mods = everything())
 
 \item{.add}{<\code{\link{logical}}> Should the focus be added to the existing focus? (default: \code{FALSE})}
 
+\item{fn}{<\code{function}> to apply to focused \code{xpose_data} objects}
+
 \item{.mods}{<\code{tidyselect}> Model names in set to quick-apply a function. See Details.}
 }
 \value{

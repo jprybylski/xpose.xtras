@@ -345,5 +345,118 @@ test_that("model averaged plots are consistent with manually-implemented", {
 })
 
 test_that("pred comparison plots work", {
+  expect_no_error(
+    xpose_set(pheno_base,pheno_final) %>%
+      ipred_vs_ipred(quiet=TRUE)
+  )
+  expect_no_error(
+    xpose_set(pheno_base,pheno_final) %>%
+      pred_vs_pred(quiet=TRUE)
+  )
+  expect_no_error(
+    pheno_set %>%
+      ipred_vs_ipred(run6,run8,quiet=TRUE)
+  )
+  expect_no_error(
+    pheno_set %>%
+      pred_vs_pred(run6,run8,quiet=TRUE)
+  )
 
+  example_xpdbs <- list(a=pheno_base,b=pheno_final)
+  test_iplot <- xpose_set(!!!example_xpdbs) %>%
+    ipred_vs_ipred(quiet=TRUE)
+  test_plot <- xpose_set(!!!example_xpdbs) %>%
+    pred_vs_pred(quiet=TRUE)
+  test_data <- purrr::map(example_xpdbs,
+                          xpose::get_data, quiet=TRUE)
+  ipred_labs <- sprintf("%s (%s)",
+                        purrr::map_chr(
+                          example_xpdbs,
+                          ~ xp_var(.x,.problem = 1,type="ipred")$col
+                        ),
+                        purrr::map_chr(
+                          example_xpdbs,
+                          ~ get_prop(.x, "run")
+                        ))
+  pred_labs <- sprintf("%s (%s)",
+                        purrr::map_chr(
+                          example_xpdbs,
+                          ~ xp_var(.x,.problem = 1,type="pred")$col
+                        ),
+                        purrr::map_chr(
+                          example_xpdbs,
+                          ~ get_prop(.x, "run")
+                        ))
+  for (i in seq_along(example_xpdbs)) {
+    expect_in( # in because plot only contains obs data
+      test_iplot$data[[ipred_labs[[i]]]],
+      test_data[[i]][[xp_var(example_xpdbs[[i]],.problem = 1,type="ipred")$col]]
+    )
+    expect_in(
+      test_plot$data[[pred_labs[[i]]]],
+      test_data[[i]][[xp_var(example_xpdbs[[i]],.problem = 1,type="pred")$col]]
+    )
+  }
+
+})
+
+test_that("waterfall plots produce expected errors", {
+  # most core parts of waterfall plots are a separate script
+
+  expect_error(
+    pheno_set %>%
+      iofv_waterfall(run8,run13),
+    "No.*iOFV.*set_var_type.*iofv"
+  )
+  expect_no_error(
+    pheno_set %>%
+      focus_qapply(backfill_iofv) %>%
+      iofv_waterfall(run8,run13,quiet=TRUE)
+  )
+  expect_no_error(
+    pheno_set %>%
+      eta_waterfall(run8,run13,quiet=TRUE)
+  )
+  expect_error(
+    pheno_set %>%
+      prm_waterfall(run8,run13,quiet=TRUE),
+    "No.*parameters.*set_var_type.*param"
+  )
+  expect_no_error(
+    pheno_set %>%
+      focus_qapply(set_var_types,param=c(CL,V)) %>%
+      prm_waterfall(run8,run13,quiet=TRUE)
+  )
+})
+
+test_that("iofv trends can be shown in a boxplot", {
+  expect_error(
+    pheno_set %>%
+      iofv_vs_mod(),
+    "auto_backfill"
+  )
+  expect_no_error(
+    pheno_set %>%
+      focus_qapply(backfill_iofv) %>%
+      iofv_vs_mod(quiet=TRUE)
+  )
+  expect_no_error(
+    pheno_set %>%
+      iofv_vs_mod(auto_backfill = TRUE, quiet=TRUE)
+  )
+
+
+  expect_no_error(
+    pheno_set %>%
+      iofv_vs_mod(run3, .lineage = TRUE, auto_backfill = TRUE, quiet=TRUE)
+  )
+
+  expect_no_error(
+    pheno_set %>%
+      iofv_vs_mod(run15~run7+run6, auto_backfill = TRUE, quiet=TRUE)
+  )
+  expect_no_error(
+    pheno_set %>%
+      iofv_vs_mod(run5:run8, auto_backfill = TRUE, quiet=TRUE)
+  )
 })

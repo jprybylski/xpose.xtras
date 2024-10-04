@@ -341,8 +341,8 @@ waterfall_helper <- function(
   }
 
   rlang::try_fetch({
-    m1col <- xp_var(mod1$xpdb, .problem = .problem, type = type, silent=TRUE)$col
-    m2col <- xp_var(mod2$xpdb, .problem = .problem, type = type, silent=TRUE)$col
+    m1col <- xp_var(mod1$xpdb, .problem = .problem, type = type)$col
+    m2col <- xp_var(mod2$xpdb, .problem = .problem, type = type)$col
   },
   error = function(s) {
     rlang::abort(paste0("No ", mid_sentence_label, "s appear to be available for at least one model.",

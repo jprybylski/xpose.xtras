@@ -146,7 +146,7 @@ diff.xpose_set <- function(xpdb_s, ...) {
 #' xset_lineage(xpdb_set, fix1)
 #'
 #' }
-xset_lineage <- function(xpdb_s, ..., .spinner=NULL) { # TODO: test with more complex hierarchy
+xset_lineage <- function(xpdb_s, ..., .spinner=NULL) {
   check_xpose_set(xpdb_s, .warn = FALSE)
 
   # Check for base model
@@ -162,7 +162,7 @@ xset_lineage <- function(xpdb_s, ..., .spinner=NULL) { # TODO: test with more co
   if (rlang::dots_n(...)>=1) {
     out_list <- select_subset(xpdb_s, ...) %>%
       purrr::map(~{
-        if (rlang::is_interactive()) sp$spin()
+        if (spinner_test) sp$spin()
         set_base_model(xpdb_s, all_of(.x)) %>%
           xset_lineage(.spinner = FALSE)
       })

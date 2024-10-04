@@ -65,21 +65,30 @@ iofv_vs_mod <- function(
   # Make sure dots are unnamed
   rlang::check_dots_unnamed()
 
+  # TODO: replace with n_set_dots after unit tests
+  # n_set_dots(xpdb_s, ..., .lineage=.lineage) # makes `mods`
+  tidyselect_check <- FALSE
+  try_tidy <- try(select_subset(xpdb_s, ...), silent = TRUE)
+  if (!"try-error" %in% class(try_tidy)) tidyselect_check <- TRUE
+
   if (.lineage==TRUE) {
     mods <- xset_lineage(xpdb_s, ..., .spinner = FALSE)
     if (is.list(mods)) {
-      rlang::abort(paste("`xset_lineage()` returned a list.",
-                         "If requesting to process `...` as a lineage, cannot request multiple lineages.",
-                         "Specifically, `...` should be empty or a single model name."))
+      rlang::abort(paste(
+        "`xset_lineage()` returned a list.",
+        "If requesting to process `...` as a lineage, cannot request multiple lineages.",
+        "Specifically, `...` should be empty or a single model name."
+      ))
     }
   } else if (rlang::dots_n(...)==0) {
     mods <- names(xpdb_s)
-  } else if (rlang::dots_n(...)==1 && is_formula_list(rlang::dots_list(...))) {
+  } else if (rlang::dots_n(...) == 1 && !tidyselect_check && suppressWarnings(is_formula_list(rlang::dots_list(...)))) {
+    # Warning is meaningless for this case, is using tidyselect in dots (eg, all_of(charcater list))
     mods <- all.vars(rlang::dots_list(...)[[1]])
   } else {
     mods <- select_subset(xpdb_s, ...) %>% names()
   }
-  if (any(!mods %in% names(xpdb_s))) {
+  if (any(!mods %in% names(xpdb_s)) && !tidyselect_check) {
     cli::cli_abort("Selected models not in set: {.strong {setdiff(mods, names(xpdb_s))}}")
   }
 
@@ -99,8 +108,17 @@ iofv_vs_mod <- function(
 
 
   xpdb_l <- purrr::map(xpose_subset, ~.x$xpdb)
-  ofv_cols <- purrr::map_chr(xpdb_l,
-                             ~xp_var(.x, type="iofv", silent=TRUE)$col[1])
+  rlang::try_fetch(
+    ofv_cols <- purrr::map_chr(xpdb_l,
+                               ~xp_var(.x, type="iofv", silent=TRUE)$col[1]),
+    error = function(s) {
+      rlang::abort(paste0(
+        "Failed to combine `xpose_data` objects. ",
+        "Individual OFV is required in data even if not used for averaging. ",
+        "Setting `auto_backfill=TRUE` may help."
+      ), parent = s)
+    }
+  )
   ofv_frk_cols <- paste0(ofv_cols,"_",seq_along(ofv_cols))
   nicer_labs <- purrr::map_chr(xpdb_l,~xpose::parse_title(axis.text,.x, .problem))
 
@@ -108,7 +126,7 @@ iofv_vs_mod <- function(
   xpdb_f <- franken_xpdb(
     !!!xpdb_l,
     .types = "iofv",
-    problem = .problem # TODO: can probably franken_prop first and last ofvs and first and last dirs (can easily now with indices argument)
+    problem = .problem
   )
 
   post_processing <- function(df) {
@@ -345,7 +363,6 @@ iofv_waterfall <- function(
 
   # Get values
   waterfall_helper("iofv", "iOFV")
-
   xset_waterfall(
     xpdb_s = xpdb_s,
     ...,
@@ -496,6 +513,7 @@ ipred_vs_ipred <- function(
     subtitle = subtitle,
     caption = caption,
     tag = tag,
+    quiet = quiet,
     plot_name = stringr::str_remove(deparse(match.call()[[1]]),"(\\w+\\.*)+::")
   )
 }
@@ -596,6 +614,7 @@ pred_vs_pred <- function(
     subtitle = subtitle,
     caption = caption,
     tag = tag,
+    quiet = quiet,
     plot_name = stringr::str_remove(deparse(match.call()[[1]]),"(\\w+\\.*)+::")
   )
 }
@@ -962,7 +981,7 @@ franken_xpdb <-  function(
   char_cols_check <- suppressWarnings(try(.cols,silent = TRUE))
   if (!rlang::quo_is_null(rlang::enquo(.cols)) &&
       !"try-error" %in% class(char_cols_check)) {
-    .cols <- rlang::sym(.cols)
+    .cols <- suppressWarnings(all_of(.cols))
   }
 
   xpdb_list <- rlang::dots_list(...)

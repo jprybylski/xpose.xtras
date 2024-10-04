@@ -719,6 +719,7 @@ NULL
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more xpdb objects to focus on
 #' @param .add <[`logical`]> Should the focus be added to the existing focus? (default: `FALSE`)
 #' @param .mods <`tidyselect`> Model names in set to quick-apply a function. See Details.
+#' @param fn <`function`> to apply to focused `xpose_data` objects
 #'
 #' @description
 #' For piping, set is passed, but with S3 method transformations are applied to the focused `xpdb` object.

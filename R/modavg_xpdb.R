@@ -40,7 +40,7 @@
 #'
 #' pheno_set %>%
 #'   modavg_xpdb(
-#'     avg_cols = "IPRED",
+#'     avg_cols = IPRED,
 #'     auto_backfill = TRUE,
 #'     algorithm = "maa",
 #'     weight_basis = "aic"
@@ -63,8 +63,10 @@ modavg_xpdb <- function(
   # Make sure dots are unnamed
   rlang::check_dots_unnamed()
 
+  # TODO: replace with n_set_dots after unit tests
+  # n_set_dots(xpdb_s, ..., .lineage=.lineage) # makes `mods`
   tidyselect_check <- FALSE
-  try_tidy <- try(select_subset(xpdb_s, ...))
+  try_tidy <- try(select_subset(xpdb_s, ...), silent = TRUE)
   if (!"try-error" %in% class(try_tidy)) tidyselect_check <- TRUE
 
   if (.lineage == TRUE) {
@@ -78,7 +80,7 @@ modavg_xpdb <- function(
     }
   } else if (rlang::dots_n(...) == 0) {
     mods <- names(xpdb_s)
-  } else if (rlang::dots_n(...) == 1 && suppressWarnings(is_formula_list(rlang::dots_list(...)))) {
+  } else if (rlang::dots_n(...) == 1 && !tidyselect_check && suppressWarnings(is_formula_list(rlang::dots_list(...)))) {
     # Warning is meaningless for this case, is using tidyselect in dots (eg, all_of(charcater list))
     mods <- all.vars(rlang::dots_list(...)[[1]])
   } else {
@@ -118,7 +120,6 @@ modavg_xpdb <- function(
   }
 
   # Get combined xpdb
-
   rlang::try_fetch(
     xpdb_f <- franken_xpdb(
       !!!xpdb_l,
@@ -143,7 +144,9 @@ modavg_xpdb <- function(
   avgd_cols <- get_index(xpdb_f) %>% # < can do it like this because all cols have to be same
     dplyr::pull(col) %>%
     setNames(., .) %>%
-    tidyselect::eval_select({{ avg_cols }}, .) %>%
+    as.list() %>%
+    tibble::as_tibble() %>%
+    dplyr::select({{ avg_cols }}) %>%
     names()
   avgd_cols_num <- purrr::map(avgd_cols, ~ paste0(.x, "_", seq_along(xpdb_l)))
   avgd_frk_cols <- purrr::list_c(avgd_cols_num)

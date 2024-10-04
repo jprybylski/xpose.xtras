@@ -61,11 +61,11 @@ to match and extend from the cited prior work.
 
 pheno_set \%>\%
   modavg_xpdb(
-  avg_cols = "IPRED",
-  auto_backfill = TRUE,
-  algorithm = "maa",
-  weight_basis = "aic"
- )
+    avg_cols = IPRED,
+    auto_backfill = TRUE,
+    algorithm = "maa",
+    weight_basis = "aic"
+  )
 
 }
 \references{
