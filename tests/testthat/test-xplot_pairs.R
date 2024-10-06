@@ -1,5 +1,4 @@
 test_that("xplot_pairs", {
-  library(vdiffr)
 
   data("xpdb_ex_pk", package = "xpose", envir = environment())
 

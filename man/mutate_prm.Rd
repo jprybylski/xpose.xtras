@@ -73,6 +73,9 @@ invariant) are applied to the entire matrices. When piped directly into
 to see the complete updated variance-covariance values. This could be useful if those
 matrices are being used to define priors for a Bayesian model fitting, as the re-scaling
 of off-diagonal elements is handled automatically.
+
+A function to transform parameters will result in a more accurate \code{autose} result. If a call
+(\code{the1~exp(the)}) or a value (\code{the1~2}) are used, the standard error will be simply scaled.
 }
 }
 \examples{

@@ -76,7 +76,9 @@
 #'   effect selector. Can be `ome{m}`, `{name}` or `{label}`, limited to diagonal
 #'   elements. Should *not* be quoted. `OMEGA` is not a named argument (`OMEGA={selector}`
 #'   should **not** be considered valid); whatever is used as the first argument to the
-#'   "function" will be considered an OMEGA selector.
+#'   "function" will be considered an OMEGA selector. **NOTE**, if selecting an OMEGA parameter
+#'   by name (eg, `OMEGA(2,2)`), backticks (eg \code{`OMEGA(2,2)`}) must be used or else the selection will throw
+#'   an error.
 #'   \item RHS args: Applies when the distribution has extra arguments. If these
 #'   are limited to 1, can be passed by position (eg, `lambda` for `nmboxcox` and
 #'   `exact` for `log`). For `custom()`, `qdist`, `pdist` and any arguments needed to
@@ -146,7 +148,7 @@ add_prm_association <- function(
   assc_list <- rlang::list2(...) # List of formulas (hopefully)
   # Allow a list to be passed to ... given add_relationship behavior
   if (length(assc_list)>=1 && is.list(assc_list[[1]])) {
-    if (.warn) rlang::warn("List should not be used in dots, but is allowed; instead pass as arguments or pass list with !!!list.")
+    rlang::warn("List should not be used in dots, but is allowed; instead pass as arguments or pass list with !!!list.")
     assc_list <- assc_list[[1]]
   }
 
@@ -158,8 +160,15 @@ add_prm_association <- function(
 
   # Process
   assoc_proc <- proc_assc(assc_list, .problem=.problem, .subprob=.subprob,.method=.method)
-  got_prm <- xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob=.subprob,.method=.method, quiet=TRUE)
-
+  rlang::try_fetch(
+    got_prm <- xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob=.subprob,.method=.method, quiet=TRUE),
+    error = function(s)
+      rlang::abort(
+        paste0("Error getting current available parameters. If using SAEM or Monte Carlo methods, ",
+        "this is a known issue in the base `xpose` package."),
+        parent = s
+      )
+  )
   ## Make sure any existing param associations that would be overwritten are overwritten
   if (nrow(xpdb$pars)>0) {
     subpars <- xpdb$pars %>% dplyr::filter(problem==.problem,subprob==.subprob,method==.method)
@@ -205,17 +214,43 @@ drop_prm_association <- function(
 
   rlang::check_dots_unnamed()
 
-  remove_selectors <- rlang::dots_list(...)
+  remove_selectors <- rlang::exprs(...) %>%
+    purrr::map_chr(~{
+      out <- try(eval(.x), silent=TRUE)
+      if ("try-error" %in% class(out)) out <- deparse(.x)
+      out
+    })
   current_selectors <- xpdb$pars %>%
     dplyr::filter(
-      problem = .problem,
-      subprob = .subprob,
-      method = .method
+      problem == .problem,
+      subprob == .subprob,
+      method == .method
     )
   if (nrow(current_selectors)==0) return(xpdb)
+  par_tbl <- xpose::get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, transform = FALSE, quiet = TRUE)
+  current_pars <- param_selector(current_selectors$param, prm_tbl = par_tbl)
+  rlang::try_fetch({
+    todrop <- param_selector(remove_selectors, prm_tbl = par_tbl)
+  },
+  error = function(s)
+    rlang::abort("Non-valid selectors in association.", parent=s)
+  )
+  if (!any(todrop %in% current_pars)) {
+    return(xpdb)
+  }
 
   new_xpdb <- xpdb
+  new_xpdb$pars <- new_xpdb$pars %>%
+    dplyr::filter(
+      magrittr::not(
+        current_pars %in% todrop &
+          problem == .problem &
+          subprob == .subprob &
+          method == .method
 
+      )
+    )
+  as_xpdb_x(new_xpdb)
 }
 
 builtin_asscs <- c("log","logexp","logit","arcsin","nmboxcox")
@@ -264,7 +299,15 @@ check_associations <- function(
 
   # All symbols
   sym_tab <- proc_assc(assc_list, .problem=.problem, .subprob=.subprob,.method=.method)
-  par_tbl <- xpose::get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, quiet = TRUE)
+  rlang::try_fetch(
+    par_tbl <- xpose::get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, transform = FALSE, quiet = TRUE),
+    error = function(s)
+      rlang::abort(
+        paste0("Error getting current available parameters. If using SAEM or Monte Carlo methods, ",
+               "this is a known issue in the base `xpose` package."),
+        parent = s
+      )
+  )
   rlang::try_fetch({
     fepars <- sym_tab$param %>% param_selector(prm_tbl = par_tbl)
     repars <- sym_tab$omega %>% param_selector(prm_tbl = par_tbl)
@@ -666,6 +709,8 @@ print.prm_tbl <- function(x, ...) {
 #' matrices are being used to define priors for a Bayesian model fitting, as the re-scaling
 #' of off-diagonal elements is handled automatically.
 #'
+#' A function to transform parameters will result in a more accurate `autose` result. If a call
+#' (`the1~exp(the)`) or a value (`the1~2`) are used, the standard error will be simply scaled.
 #'
 #' @examples
 #'
@@ -710,7 +755,7 @@ mutate_prm <- function(
   mutp_list <- rlang::list2(...) # List of formulas (hopefully)
   # Allow a list to be passed to ... given add_relationship behavior
   if (length(mutp_list)>=1 && is.list(mutp_list[[1]])) {
-    if (.warn) rlang::warn("List should not be used in dots, but is allowed; instead pass as arguments or pass list with !!!list.")
+    rlang::warn("List should not be used in dots, but is allowed; instead pass as arguments or pass list with !!!list.")
     mutp_list <- mutp_list[[1]]
   }
 
@@ -806,7 +851,8 @@ mutate_prm <- function(
                 na.rm = TRUE # in case original estimate was bounded and for some reason this function would still be used.
                 )
           } else {
-            new_value <- exisiting_se*(new_value/existing_value)
+            if (!quiet) cli::cli_warn("Since a function was not provided, `autose` will be scaled to maintain the same RSE.")
+            new_value <- exisiting_se*abs(new_value/existing_value)
           }
         }
 
@@ -994,8 +1040,6 @@ mutate_in_file <- function(
     subprob,
     method
 ) {
-  use_col <- rlang::quo(col)
-
   xpdb$files %>%
     dplyr::rowwise() %>%
     dplyr::mutate(
@@ -1005,7 +1049,7 @@ mutate_in_file <- function(
       ) {
         data %>%
           dplyr::mutate(across(
-            {{ use_col}},
+            {{ col}},
             function(v) {
               row_picker <- eval(row, envir = environment())
               if (rlang::is_quosure(val)) val <- eval(val, envir = environment())

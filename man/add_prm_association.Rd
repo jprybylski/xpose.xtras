@@ -87,7 +87,9 @@ format and everything should be fine.
 effect selector. Can be \verb{ome\{m\}}, \code{{name}} or \code{{label}}, limited to diagonal
 elements. Should \emph{not} be quoted. \code{OMEGA} is not a named argument (\code{OMEGA={selector}}
 should \strong{not} be considered valid); whatever is used as the first argument to the
-"function" will be considered an OMEGA selector.
+"function" will be considered an OMEGA selector. \strong{NOTE}, if selecting an OMEGA parameter
+by name (eg, \code{OMEGA(2,2)}), backticks (eg \code{`OMEGA(2,2)`}) must be used or else the selection will throw
+an error.
 \item RHS args: Applies when the distribution has extra arguments. If these
 are limited to 1, can be passed by position (eg, \code{lambda} for \code{nmboxcox} and
 \code{exact} for \code{log}). For \code{custom()}, \code{qdist}, \code{pdist} and any arguments needed to
