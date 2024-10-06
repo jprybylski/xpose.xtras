@@ -450,6 +450,11 @@ test_that("iofv trends can be shown in a boxplot", {
     pheno_set %>%
       iofv_vs_mod(run3, .lineage = TRUE, auto_backfill = TRUE, quiet=TRUE)
   )
+  expect_error(
+    pheno_set %>%
+      iofv_vs_mod(run3, run6, .lineage = TRUE, auto_backfill = TRUE, quiet=TRUE),
+    "list.*lineage.*multiple.*empty.*single.*"
+  )
 
   expect_no_error(
     pheno_set %>%

@@ -454,7 +454,7 @@ expose_property <- function(
 
   # Validate input
   ## Basic check
-  check_xpose_set(xpdb_s)
+  check_xpose_set(xpdb_s, .warn = FALSE)
   ## Make sure properties can be found
   if (!all(props %in% avail_props)) {
     cli::cli_abort("Properties not available in xpdb objects: {setdiff(props, avail_props)}")

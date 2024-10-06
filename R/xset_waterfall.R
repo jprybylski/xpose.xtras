@@ -78,6 +78,7 @@ xset_waterfall <- function(
     .method <- xpose::last_file_method(mod1$xpdb, ext = "ext", .problem = .problem,
                                        .subprob = .subprob)
   if (missing(quiet)) quiet <- mod1$xpdb$options$quiet
+  if (rlang::quo_is_null(rlang::enquo(.cols))) rlang::abort("Must select at least one column.")
 
   # Get combined xpdb
   xpdb_f <- franken_xpdb(
@@ -95,7 +96,6 @@ xset_waterfall <- function(
   )
 
   # Selected column
-  if (rlang::quo_is_null(rlang::enquo(.cols))) rlang::abort("Must select at least one column.")
   sel_cols <- dplyr::select(
     xpose::get_data(xpdb_f, .problem = .problem, quiet = TRUE),
     {{.cols}}
@@ -121,11 +121,17 @@ xset_waterfall <- function(
   # post-processing
   id_var <- xp_var(xpdb_f, .problem = .problem, type = "id", silent = TRUE)$col
   nind_filter <- function(df) {
-    if (max_nind<1) return(
-      df %>% dplyr::filter(abs(value)>quantile(abs(value), max_nind))
-    )
-    # slice() here doesn't seem to filter correctly, so...
-    df %>% dplyr::filter(dplyr::row_number() <= min(floor(max_nind),dplyr::n()))
+    out <- df %>%
+      dplyr::group_modify(~{
+        if (nrow(.x)<=1) return(.x)
+        if (max_nind<1) .x <- .x %>%
+            dplyr::filter(abs(value)>quantile(abs(value), max_nind))
+        if (max_nind>=1) .x <- .x %>%
+            dplyr::filter(dplyr::row_number() <= min(floor(max_nind),dplyr::n()))
+        .x
+      })
+    if (nrow(out)==0) rlang::abort("Current `max_nind` filters out all data. Consider a different value")
+    out
   }
   labeller_fn <- apply_labels_units(xpdb_f, .problem = .problem)
   post_processing <- function(df) {
@@ -139,13 +145,14 @@ xset_waterfall <- function(
     col1_regex <- paste(sel_cols,collapse="|") %>%
       paste0("^(",.,")_1$")
 
-    if (any(is.na(df$value)))
+    if (any(is.na(df$value))) {
       cli::cli_warn(
-        "NA values in columns {.bold {df$variable(is.na(df$value))}} will be removed."
+        "NA values in columns {.bold {unique(df$variable[is.na(df$value)])}} will be removed."
       )
+    }
 
     df %>%
-      dplyr::filter(!is.na(value)) %>%
+      dplyr::filter(!.data[[id_var]] %in% .data[[id_var]][is.na(value)]) %>%
       dplyr::mutate(
         new_variable = stringr::str_extract(variable, "(^.*)_\\d+$", group=1)
       ) %>%
@@ -205,7 +212,7 @@ xset_waterfall <- function(
                             filter = def_opt$filter, tidy = def_opt$tidy, index_col = NULL,
                             value_col = def_opt$value_col, post_processing = def_opt$post_processing)
   if (!is.null(data) && all(data$value==0))
-    cli::cli_warn(paste("All individual parameter values are 0.",
+    cli::cli_warn(paste("All individual value differences are 0.",
                         "This is unlikely to be an informative plot,",
                         "since these are probably the same model."))
   if (is.null(data) || nrow(data) == 0) {
@@ -331,7 +338,7 @@ waterfall_helper <- function(
     envir = parent.frame()
 ) {
   mod1 <- envir$mod1
-  mod2 <- envir$mod1
+  mod2 <- envir$mod2
   .problem <- envir$.problem
 
   mid_sentence_label <- label
@@ -349,6 +356,7 @@ waterfall_helper <- function(
                         "Make sure to `set_var_type(", type, " = *)` if they are available in the data."),
                  parent = s)
   })
+
   if (!dplyr::setequal(m1col,m2col)) {
     a_notin_b <- setdiff(m1col,m2col)
     b_notin_a <- setdiff(m2col,m1col)

@@ -65,32 +65,7 @@ iofv_vs_mod <- function(
   # Make sure dots are unnamed
   rlang::check_dots_unnamed()
 
-  # TODO: replace with n_set_dots after unit tests
-  # n_set_dots(xpdb_s, ..., .lineage=.lineage) # makes `mods`
-  tidyselect_check <- FALSE
-  try_tidy <- try(select_subset(xpdb_s, ...), silent = TRUE)
-  if (!"try-error" %in% class(try_tidy)) tidyselect_check <- TRUE
-
-  if (.lineage==TRUE) {
-    mods <- xset_lineage(xpdb_s, ..., .spinner = FALSE)
-    if (is.list(mods)) {
-      rlang::abort(paste(
-        "`xset_lineage()` returned a list.",
-        "If requesting to process `...` as a lineage, cannot request multiple lineages.",
-        "Specifically, `...` should be empty or a single model name."
-      ))
-    }
-  } else if (rlang::dots_n(...)==0) {
-    mods <- names(xpdb_s)
-  } else if (rlang::dots_n(...) == 1 && !tidyselect_check && suppressWarnings(is_formula_list(rlang::dots_list(...)))) {
-    # Warning is meaningless for this case, is using tidyselect in dots (eg, all_of(charcater list))
-    mods <- all.vars(rlang::dots_list(...)[[1]])
-  } else {
-    mods <- select_subset(xpdb_s, ...) %>% names()
-  }
-  if (any(!mods %in% names(xpdb_s)) && !tidyselect_check) {
-    cli::cli_abort("Selected models not in set: {.strong {setdiff(mods, names(xpdb_s))}}")
-  }
+  n_set_dots(xpdb_s, ..., .lineage=.lineage) # makes `mods`
 
   pre_process <- function(x) unfocus_xpdb(x)
   if (auto_backfill==TRUE) pre_process <- function(x) focus_qapply(x, backfill_iofv)
@@ -112,11 +87,7 @@ iofv_vs_mod <- function(
     ofv_cols <- purrr::map_chr(xpdb_l,
                                ~xp_var(.x, type="iofv", silent=TRUE)$col[1]),
     error = function(s) {
-      rlang::abort(paste0(
-        "Failed to combine `xpose_data` objects. ",
-        "Individual OFV is required in data even if not used for averaging. ",
-        "Setting `auto_backfill=TRUE` may help."
-      ), parent = s)
+      rlang::abort(auto_backfill_suggestion, parent = s)
     }
   )
   ofv_frk_cols <- paste0(ofv_cols,"_",seq_along(ofv_cols))
@@ -936,6 +907,41 @@ two_set_dots <- function(
     }
     cli::cli_abort()
   }
+}
+
+# Generalization of two_set_dots, only used in a few functions
+n_set_dots <- function(
+    xpdb_s,
+    ...,
+    .lineage=FALSE,
+    envir = parent.frame()
+) {
+  tidyselect_check <- FALSE
+  try_tidy <- try(select_subset(xpdb_s, ...), silent = TRUE)
+  if (!"try-error" %in% class(try_tidy)) tidyselect_check <- TRUE
+
+  if (.lineage == TRUE) {
+    mods <- xset_lineage(xpdb_s, ..., .spinner = FALSE)
+    if (is.list(mods)) {
+      rlang::abort(paste(
+        "`xset_lineage()` returned a list.",
+        "If requesting to process `...` as a lineage, cannot request multiple lineages.",
+        "Specifically, `...` should be empty or a single model name."
+      ))
+    }
+  } else if (rlang::dots_n(...) == 0) {
+    mods <- names(xpdb_s)
+  } else if (rlang::dots_n(...) == 1 && !tidyselect_check && suppressWarnings(is_formula_list(rlang::dots_list(...)))) {
+    # Warning is meaningless for this case, is using tidyselect in dots (eg, all_of(charcater list))
+    mods <- all.vars(rlang::dots_list(...)[[1]])
+  } else {
+    mods <- select_subset(xpdb_s, ...) %>% names()
+  }
+  if (any(!mods %in% names(xpdb_s)) && !tidyselect_check) {
+    cli::cli_abort("Selected models not in set: {.strong {setdiff(mods, names(xpdb_s))}}")
+  }
+  assign("mods",mods,envir = envir)
+  NULL
 }
 
 #' Combine several `xpose_data` objects into one

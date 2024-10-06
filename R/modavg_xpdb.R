@@ -58,37 +58,12 @@ modavg_xpdb <- function(
     weight_basis = c("ofv", "aic", "res"),
     res_col = "RES",
     quiet) {
-  check_xpose_set(xpdb_s)
+  check_xpose_set(xpdb_s, .warn = FALSE)
 
   # Make sure dots are unnamed
   rlang::check_dots_unnamed()
 
-  # TODO: replace with n_set_dots after unit tests
-  # n_set_dots(xpdb_s, ..., .lineage=.lineage) # makes `mods`
-  tidyselect_check <- FALSE
-  try_tidy <- try(select_subset(xpdb_s, ...), silent = TRUE)
-  if (!"try-error" %in% class(try_tidy)) tidyselect_check <- TRUE
-
-  if (.lineage == TRUE) {
-    mods <- xset_lineage(xpdb_s, ..., .spinner = FALSE)
-    if (is.list(mods)) {
-      rlang::abort(paste(
-        "`xset_lineage()` returned a list.",
-        "If requesting to process `...` as a lineage, cannot request multiple lineages.",
-        "Specifically, `...` should be empty or a single model name."
-      ))
-    }
-  } else if (rlang::dots_n(...) == 0) {
-    mods <- names(xpdb_s)
-  } else if (rlang::dots_n(...) == 1 && !tidyselect_check && suppressWarnings(is_formula_list(rlang::dots_list(...)))) {
-    # Warning is meaningless for this case, is using tidyselect in dots (eg, all_of(charcater list))
-    mods <- all.vars(rlang::dots_list(...)[[1]])
-  } else {
-    mods <- select_subset(xpdb_s, ...) %>% names()
-  }
-  if (any(!mods %in% names(xpdb_s)) && !tidyselect_check) {
-    cli::cli_abort("Selected models not in set: {.strong {setdiff(mods, names(xpdb_s))}}")
-  }
+  n_set_dots(xpdb_s, ..., .lineage=.lineage) # makes `mods`
 
   pre_process <- function(x) unfocus_xpdb(x)
   if (auto_backfill == TRUE) pre_process <- function(x) focus_qapply(x, backfill_iofv)
@@ -127,11 +102,7 @@ modavg_xpdb <- function(
       .cols = c({{ avg_cols }}, dplyr::all_of(res_col)) # TODO: update franken_props here
     ),
     error = function(s) {
-      rlang::abort(paste0(
-        "Failed to combine `xpose_data` objects. ",
-        "Individual OFV is required in data even if not used for averaging. ",
-        "Setting `auto_backfill=TRUE` may help."
-      ), parent = s)
+      rlang::abort(auto_backfill_suggestion, parent = s)
     }
   )
   # To make working with new columns easier
@@ -154,14 +125,14 @@ modavg_xpdb <- function(
   aic_cols <- paste0("AIC_", seq_along(xpdb_l))
   if (weight_basis == "aic") {
     for (prob in xpose::all_data_problem(xpdb_f)) {
+      id_col <- xp_var(xpdb_f, .problem = prob, type = "id", silent = TRUE)$col
       for (i in seq_along(xpdb_l)) {
         xpdb <- xpdb_l[[i]]
         new_col <- aic_cols[i]
         ofv_col <- ofv_frk_cols[i]
-        id_col <- xp_var(xpdb_f, .problem = prob, type = "id", silent = TRUE)$col
         npars <- xpose::get_prm(xpdb, .problem = prob, quiet = TRUE) %>%
           dplyr::pull(fixed) %>%
-          `!`() %>%
+          magrittr::not() %>%
           sum()
         xpdb_f <- xpdb_f %>%
           `if`(
@@ -187,6 +158,20 @@ modavg_xpdb <- function(
         mutate_x(
           !!new_col := 0
         )
+    }
+  }
+  # make sure ofv is full data ofv when population
+  if (weight_basis == "ofv" && weight_type=="population") {
+    for (prob in xpose::all_data_problem(xpdb_f)) {
+      id_col <- xp_var(xpdb_f, .problem = prob, type = "id", silent = TRUE)$col
+      for (i in seq_along(xpdb_l)) {
+        ofv_col <- ofv_frk_cols[i]
+        xpdb_f <- xpdb_f %>%
+          mutate_x(
+            !!ofv_col := sum(.data[[ofv_col]][!duplicated(.data[[id_col]])]),
+            .problem = prob
+          )
+      }
     }
   }
 
@@ -229,6 +214,8 @@ modavg_xpdb <- function(
     basis_col <- macols[[weight_basis]]
     if (weight_basis %in% c("ofv", "aic")) {
       df_new <- df_new %>%
+        # keep original basis
+        dplyr::mutate(compare_basis = .data[[basis_col]]) %>%
         dplyr::mutate(!!basis_col := -0.5 * .data[[basis_col]])
     }
     if (weight_basis %in% c("res")) {
@@ -236,10 +223,13 @@ modavg_xpdb <- function(
         dplyr::group_by(model, .add = dplyr::is_grouped_df(.)) %>%
         # This will be biased if it doesn't ignore dosing
         # TODO: check best way to only consider obs here
+        # keep original basis sum
+        dplyr::mutate(compare_basis = sum(.data[[basis_col]])) %>%
         dplyr::mutate(!!basis_col := -0.5 * sum(.data[[basis_col]])) %>%
         dplyr::ungroup()
       df_new <- df_new %>%
-        dplyr::mutate(!!basis_col := df_new_x[[basis_col]][dplyr::cur_group_rows()])
+        dplyr::mutate(!!basis_col := df_new_x[[basis_col]][dplyr::cur_group_rows()]) %>%
+        dplyr::mutate(compare_basis = df_new_x$compare_basis[dplyr::cur_group_rows()])
     }
     # Final algorith implementation
     if (algorithm == "maa") {
@@ -263,7 +253,7 @@ modavg_xpdb <- function(
         dplyr::mutate(across(
           {{ avg_cols }}, function(.x) {
             modnum <- as.numeric(.data$model)
-            .x[.data[[basis_col]] == min(.data[[basis_col]])] %>%
+            .x[.data$compare_basis == min(.data$compare_basis)] %>%
               # if multiple minimums, just pick first
               .[1:sum(modnum == 1)] %>%
               rep(max(modnum))
@@ -293,3 +283,9 @@ modavg_xpdb <- function(
   }
   xpdb_f
 }
+
+auto_backfill_suggestion <- paste0(
+  "Failed to combine `xpose_data` objects. ",
+  "Individual OFV is required in data even if not used for averaging. ",
+  "Setting `auto_backfill=TRUE` may help."
+)
