@@ -6,7 +6,7 @@
 #' of the `xpose_set` object.
 #'
 #' `dofv_vs_id` is an alias of the function `shark_plot`,
-#' for ease of use.
+#' for recognition.
 #'
 #'
 #' @rdname shark_plot
@@ -17,7 +17,7 @@
 #' @param .inorder See <[`two_set_dots`]>
 #' @param type See Details.
 #' @param alpha alpha for LRT
-#' @param df df for LRT. If `"guess"` (default), then
+#' @param df degrees of freedom for LRT. If `"guess"` (default), then
 #' use the difference in the number of unfixed parameters.
 #' @param text_cutoff If less than 1, the percentile of absolute
 #' individual dOFV values above which to show labels of IDs.
@@ -53,16 +53,16 @@
 #' not be valid, but it is suggested that `df` or `alpha` be adjusted
 #' to meet the desired `sig.drop`.
 #'
-#' ```
-#'
+#' ``` r
 #' my_alpha <- 0.05
 #' my_df <- 1.34 # fractional, perhaps to account for different IIVs
 #'
 #' my_sigdrop <- -stats::qchisq(1-my_alpha, my_df)
-#'
+#' my_sigdrop
+#' #> [1] -4.633671
 #' # Then use alpha=my_alpha, df=my_df in `shark_plot` call.
-#'
 #' ```
+#'
 #'
 #' @export
 #'
@@ -124,9 +124,15 @@ shark_plot <- function(
   if (missing(quiet)) quiet <- mod1$xpdb$options$quiet
 
   # Make sure both models have iofv
-  iofv1 <- xp_var(mod1$xpdb, .problem = .problem, type = "iofv")$col
-  iofv2 <- xp_var(mod2$xpdb, .problem = .problem, type = "iofv")$col
-
+  rlang::try_fetch({
+    iofv1 <- xp_var(mod1$xpdb, .problem = .problem, type = "iofv")$col
+    iofv2 <- xp_var(mod2$xpdb, .problem = .problem, type = "iofv")$col
+  },
+  error = function(s)
+    rlang::abort(paste("Individual OFV is required in data for this function.",
+                       "There is no `auto_backfill` option for this function,",
+                       "so please see documentation for alternative approaches."), parent=s)
+  )
   # Get combined xpdb
   xpdb_f <- franken_xpdb(
     mod1$xpdb,
@@ -228,7 +234,7 @@ shark_plot <- function(
     1
   })
   if (df<=0) {
-    cli::cli_warn(paste("df for LRT must be greater than 0. UUsing a value of 1."))
+    cli::cli_warn(paste("df for LRT must be greater than 0. Using a value of 1."))
     df <- 1
   }
   sigOFV <- -stats::qchisq(1-alpha, df)

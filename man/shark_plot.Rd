@@ -60,7 +60,7 @@ dofv_vs_id(
 
 \item{alpha}{alpha for LRT}
 
-\item{df}{df for LRT. If \code{"guess"} (default), then
+\item{df}{degrees of freedom for LRT. If \code{"guess"} (default), then
 use the difference in the number of unfixed parameters.}
 
 \item{text_cutoff}{If less than 1, the percentile of absolute
@@ -102,7 +102,7 @@ This is intended to match the overall behavior of
 of the \code{xpose_set} object.
 
 \code{dofv_vs_id} is an alias of the function \code{shark_plot},
-for ease of use.
+for recognition.
 }
 \details{
 For type-based customization of plots:
@@ -118,14 +118,13 @@ ratio test. It is acknowledged there are situations where this may
 not be valid, but it is suggested that \code{df} or \code{alpha} be adjusted
 to meet the desired \code{sig.drop}.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{
-my_alpha <- 0.05
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{my_alpha <- 0.05
 my_df <- 1.34 # fractional, perhaps to account for different IIVs
 
 my_sigdrop <- -stats::qchisq(1-my_alpha, my_df)
-
+my_sigdrop
+#> [1] -4.633671
 # Then use alpha=my_alpha, df=my_df in `shark_plot` call.
-
 }\if{html}{\out{</div>}}
 }
 \examples{

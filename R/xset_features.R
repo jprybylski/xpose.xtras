@@ -134,6 +134,7 @@ diff.xpose_set <- function(xpdb_s, ...) {
 #' As such, for larger sets this function and, more importantly,
 #' functions that use it may take some time.
 #'
+#' @importFrom rlang is_interactive
 #'
 #' @examples
 #' \dontrun{
@@ -152,10 +153,11 @@ xset_lineage <- function(xpdb_s, ..., .spinner=NULL) {
   # Check for base model
   basemod <- get_base_model(xpdb_s)
 
-  spinner_test <- rlang::is_interactive() && !isFALSE(.spinner)
+  spinner_test <- is_interactive() && !isFALSE(.spinner)
+  sp <- FALSE
+  if (is.null(.spinner)) sp <- NULL
   if (spinner_test && is.null(.spinner)) sp <- cli::make_spinner(default_spinner)
   if (spinner_test && !is.null(.spinner)) sp <- .spinner
-  if (isFALSE(.spinner)) sp <- FALSE
   if (spinner_test) sp$spin()
 
   # Process dots
@@ -195,6 +197,7 @@ xset_lineage <- function(xpdb_s, ..., .spinner=NULL) {
 
   return(out)
 }
+interactive <- NULL
 
 child_finder <- function(xpdb_s) {
   parent_list <- reshape_set(xpdb_s)$parent

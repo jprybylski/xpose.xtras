@@ -961,7 +961,8 @@ c.xpose_set <- function(..., .relationships = NULL) {
   # Add relationships
   .relationships <- .rel_saved  # Method workaround
   if (!is.null(.relationships)) {
-    basic_c <- add_relationship(basic_c, .relationships)
+    if (is.list(.relationships)) basic_c <- add_relationship(basic_c, !!!.relationships)
+    if (!is.list(.relationships)) basic_c <- add_relationship(basic_c, .relationships)
   }
 
   basic_c
