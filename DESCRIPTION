@@ -1,6 +1,6 @@
 Package: xpose.xtras
 Title: Extra functionality for the xpose package
-Version: 0.0.1
+Version: 0.0.1.9000
 Authors@R: 
     person("John", "Prybylski", , "john.prybylski@pfizer.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5802-0539"))
