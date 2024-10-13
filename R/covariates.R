@@ -4,6 +4,14 @@
 
 #' Grid plots
 #'
+#' @description
+#' This is essentially a wrapper around [`ggpairs`][GGally::ggpairs],
+#' except it uses `xpose` motifs and styling. Note that this function
+#' produces a lot of repetitive output if `quiet=FALSE`; this may not
+#' be an issue, but it could look like an error has occurred if many covariates
+#' and individual parameter estimates are included.
+#'
+#'
 #' @rdname grid_plots
 #'
 #' @param xpdb <`xp_xtras> or  <`xpose_data`> object

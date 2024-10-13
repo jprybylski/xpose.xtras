@@ -95,7 +95,11 @@ give an \code{x} orientation to covariate relationships.}
 \code{xp_tras_plot} object
 }
 \description{
-Grid plots
+This is essentially a wrapper around \code{\link[GGally:ggpairs]{ggpairs}},
+except it uses \code{xpose} motifs and styling. Note that this function
+produces a lot of repetitive output if \code{quiet=FALSE}; this may not
+be an issue, but it could look like an error has occurred if many covariates
+and individual parameter estimates are included.
 }
 \examples{
 \dontrun{

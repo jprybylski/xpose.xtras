@@ -255,7 +255,11 @@ apply_lul_wide <- function(xpdb, cols=NULL, lvl_cols=NULL, .problem=NULL, show_n
      tidyr::pivot_wider(
        names_from = "variable",
        values_from = "value"
-     )
+     ) %>%
+     dplyr::mutate(dplyr::across(
+       where(is.factor),
+       forcats::fct_drop
+     ))
 
    new_name_order[match(lvl_cols, new_name_order)] <- new_cols2
 

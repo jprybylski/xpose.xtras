@@ -40,8 +40,6 @@
 #' a subset.
 #'
 #'
-#' @importFrom GGally ggpairs
-#'
 #' @return specified pair plot
 #' @export
 #'
@@ -239,7 +237,7 @@ xplot_pairs <- function(
   }
 
   xp <-
-    ggpairs(
+    GGally::ggpairs(
       data,
       diag = list(continuous = wrapped_dist, discrete = wrap_xp_ggally("barDiag", xp_theme = xpdb$xp_theme), na = "naDiag"),
       lower = list(continuous = wrapped_scatter, combo = wrapped_box, discrete = wrap_xp_ggally("facetbar", xp_theme = xpdb$xp_theme), na =
