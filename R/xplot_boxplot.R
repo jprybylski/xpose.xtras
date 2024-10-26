@@ -123,7 +123,9 @@ xplot_boxplot <- function(xpdb,
                                xp_theme = xpdb$xp_theme,
                                name     = 'boxplot', # TODO: add defaults to xp_xtas xp_theme
                                ggfun    = 'geom_boxplot',
-                               boxplot_outliers = check_type$o && !check_type$j,
+                               boxplot_outlier.shape = ifelse(
+                                 check_type$o && !check_type$j, xpdb$xp_theme$boxplot_outlier.shape,
+                                 NA),
                                ...)
   }
 

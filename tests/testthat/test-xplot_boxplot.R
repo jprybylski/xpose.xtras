@@ -9,8 +9,8 @@ test_that("xplot_boxplot", {
   # test desired geoms are included
   # wrapper function to get geom type and outliers
   geoms_lists <- function(gg) purrr::map_chr(gg$layers, ~class(.x$geom)[1])
-  has_outliers <- function(gg) any(purrr::map_lgl(gg$layers, ~"outliers" %in% names(.x$geom_params) &&
-                                                   .x$geom_params$outliers))
+  has_outliers <- function(gg) any(purrr::map_lgl(gg$layers, ~"outlier.shape" %in% names(.x$geom_params) &&
+                                                   !is.na(.x$geom_params$outlier.shape)))
 
   # bo is default
   def_bp <- xplot_boxplot(xpdb_x, aes(MED1,ETA1), quiet = TRUE)
