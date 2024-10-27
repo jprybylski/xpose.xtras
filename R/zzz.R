@@ -1,13 +1,13 @@
 # breaks test_coverage. comment for now
-# .onAttach <- function(...) {
-#   if (!is_attached("xpose")) {
-#     cli::cli_alert_info(paste("{.strong {cli::col_blue('xpose')}} is not currently attached."))
-#   }
-#
-#   if (!is_loading_for_tests()) {
-#     conflicted::conflict_prefer_all("xpose.xtras", "xpose", quiet=TRUE)
-#   }
-# }
+.onAttach <- function(...) {
+  if (!is_attached("xpose")) {
+    cli::cli_alert_info(paste("{.strong {cli::col_blue('xpose')}} is not currently attached."))
+  }
+
+  if (!is_loading_for_tests()) {
+    conflicted::conflict_prefer_all("xpose.xtras", "xpose", quiet=TRUE)
+  }
+}
 
 # These functions are from tidyverse
 is_attached <- function(x) {
@@ -15,7 +15,7 @@ is_attached <- function(x) {
 }
 
 is_loading_for_tests <- function() {
-  !interactive() && identical(Sys.getenv("DEVTOOLS_LOAD"), "xpose.xtras")
+  !rlang::is_interactive() && identical(Sys.getenv("DEVTOOLS_LOAD"), "xpose.xtras")
 }
 
 

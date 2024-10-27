@@ -20,7 +20,7 @@
 #' be overwritten.
 #' @param algorithm <`character`> Model selection or model averaging
 #' @param weight_type <`character`> Individual-level averaging or by full dataset.
-#' @param auto_backfill <`logical`> If true, <[`backfill_ofv`]> is automatically
+#' @param auto_backfill <`logical`> If true, <[`backfill_iofv`]> is automatically
 #' applied.
 #' @param weight_basis <`character`> Weigh by OFV (default), AIC or residual.
 #' @param res_col <`character`> Column to weight by if `"res"` weight basis.

@@ -556,7 +556,7 @@ list_vars <- function (xpdb, .problem = NULL, ...) {
 #' @export
 list_vars.default <- function (xpdb, .problem = NULL, ...) {
   if (check_xp_xtras(xpdb, .warn=FALSE))
-    return(list_vars.xp_xtras(xpdb, .problem = NULL, ...))
+    return(list_vars.xp_xtras(xpdb, .problem = .problem, ...))
 
   xpose::list_vars(xpdb = xpdb, .problem = .problem)
 }

@@ -85,7 +85,7 @@ which will just be processed with \code{all.vars()}.}
 
 \item{weight_type}{<\code{character}> Individual-level averaging or by full dataset.}
 
-\item{auto_backfill}{<\code{logical}> If true, <\code{\link{backfill_ofv}}> is automatically
+\item{auto_backfill}{<\code{logical}> If true, <\code{\link{backfill_iofv}}> is automatically
 applied.}
 
 \item{weight_basis}{<\code{character}> Weigh by OFV (default), AIC or residual.}

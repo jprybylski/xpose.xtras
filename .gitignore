@@ -7,3 +7,4 @@ lamb.r
 .DS_Store
 .quarto
 _*.txt
+inst/doc

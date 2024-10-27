@@ -81,7 +81,7 @@ pheno_final \%>\%
 }
 \references{
 Prybylski, J.P. Reporting Coefficient of Variation for Logit, Box-Cox and
-Other Non-log-normal Parameters. Clin Pharmacokinet 63, 133–135 (2024).
+Other Non-log-normal Parameters. Clin Pharmacokinet 63, 133-135 (2024).
 https://doi.org/10.1007/s40262-023-01343-2
 }
 \seealso{
