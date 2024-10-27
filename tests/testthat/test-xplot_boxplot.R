@@ -101,7 +101,7 @@ test_that("xplot_boxplot", {
   ))
   expect_error(
     print(xplot_boxplot(xpdb_x, aes(MED1,ETA1), orientation = "y", quiet=TRUE)),
-    "Discrete values supplied to continuous scale"
+    "Discrete value(s)? supplied to continuous scale"
   )
 
   # test facet effects
