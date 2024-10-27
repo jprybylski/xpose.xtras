@@ -19,7 +19,7 @@ Imports:
     dplyr,
     forcats,
     GGally,
-    ggplot2 (>= 3.5.1),
+    ggplot2,
     glue,
     lifecycle,
     magrittr,
