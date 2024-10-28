@@ -22,7 +22,7 @@ A representative PK/PD model with M3 fitting applied.
 \references{
 Beal, S.L. Ways to Fit a PK Model with Some Data
 Below the Quantification Limit. J Pharmacokinet
-Pharmacodyn 28, 481–504 (2001).
+Pharmacodyn 28, 481-504 (2001).
 https://doi.org/10.1023/A:1012299115260
 
 Prybylski JP. Indirect modeling of derived outcomes:
