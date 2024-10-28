@@ -8,7 +8,7 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Adding some at-present missing functionality (to-be-deprecated as they are added to xpose), or functions unlikely to be added to the base xpose package.
+Adding some at-present missing functionality, or functions unlikely to be added to the base xpose package.
 }
 \author{
 \strong{Maintainer}: John Prybylski \email{john.prybylski@pfizer.com} (\href{https://orcid.org/0000-0001-5802-0539}{ORCID})

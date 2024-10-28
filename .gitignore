@@ -8,3 +8,5 @@ lamb.r
 .quarto
 _*.txt
 inst/doc
+/doc/
+/Meta/

@@ -592,7 +592,7 @@ pred_vs_pred <- function(
 
 # This would also just be an in situ xpdb, but there may need to be a function
 # for model-averaging
-#' Model averageg plots
+#' Model average plots
 #'
 #' @description
 #' `r lifecycle::badge("experimental")`

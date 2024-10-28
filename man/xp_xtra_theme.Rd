@@ -16,7 +16,7 @@ package.
 \details{
 This package attempts to generate a consistent
 theme even if users are working with a highly
-cutomized \code{xp_theme}. There is are only a few
+customized \code{xp_theme}. There is are only a few
 hard-coded aesthetics, and the rest are derived from
 existing aesthetics in \code{base_on}, which defaults to
 the default from \code{xpose}.

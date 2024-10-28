@@ -25,7 +25,7 @@ Expose a property of xpdb objects in an xpose_set
 }
 \details{
 The property returned will be top-level, and to avoid conflicting
-names will be preprended by \code{..} (e.g., \code{..descr}).
+names will be prepended by \code{..} (e.g., \code{..descr}).
 
 For some properties, transformations are applied automatically to
 make them more useful. This includes:

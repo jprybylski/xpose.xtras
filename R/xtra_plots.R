@@ -22,7 +22,7 @@
 #' @details
 #' This package attempts to generate a consistent
 #' theme even if users are working with a highly
-#' cutomized `xp_theme`. There is are only a few
+#' customized `xp_theme`. There is are only a few
 #' hard-coded aesthetics, and the rest are derived from
 #' existing aesthetics in `base_on`, which defaults to
 #' the default from `xpose`.

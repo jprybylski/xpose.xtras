@@ -10,7 +10,7 @@
 
 #' An example `xp_xtras` object
 #'
-#' The <[`xpdb_ex_pk`][xpose::xpdb_ex_pk]> object coverted to `xp_xtras`. For examples.
+#' The <[`xpdb_ex_pk`][xpose::xpdb_ex_pk]> object converted to `xp_xtras`. For examples.
 #'
 #' @format ## `xp_xtras`
 #' An `xp_xtras` object with no extra data filled.

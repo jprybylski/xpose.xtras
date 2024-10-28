@@ -152,7 +152,7 @@ pheno_final %>% get_prop("descr")
 
 `xpose` has certain expectations around how model descriptions are included in model code. At time of writing, it is expected the be something like "; 2. Description: (something)". To add some flexibility, users can either use `set_prop()` to change description directly, or pull it from a more generic scan of the model code comments.
 
-```{r get_props}
+```{r describer}
 pheno_final %>% desc_from_comments() %>% get_prop("descr")
 ```
 

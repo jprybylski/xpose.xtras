@@ -26,7 +26,7 @@ Expose a model parameter of xpdb objects in an xpose_set
 }
 \details{
 The parameter returned will be top-level, and to avoid conflicting
-names will be preprended by \code{..} (e.g., \code{..ome1}). The selector
+names will be prepended by \code{..} (e.g., \code{..ome1}). The selector
 used to fetch the parameter will be used in this \code{..} name. If
 a better name is preferred, there are convenient renaming functions
 from \code{dplyr} where needed.

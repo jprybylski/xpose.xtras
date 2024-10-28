@@ -6,7 +6,7 @@
 \alias{ipred_vs_idv_modavg}
 \alias{pred_vs_idv_modavg}
 \alias{plotfun_modavg}
-\title{Model averageg plots}
+\title{Model average plots}
 \usage{
 dv_vs_ipred_modavg(
   xpdb_s,

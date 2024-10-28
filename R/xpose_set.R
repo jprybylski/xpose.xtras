@@ -403,7 +403,7 @@ total_relationships <- function(xpdb_s) {
 #' @details
 #'
 #' The property returned will be top-level, and to avoid conflicting
-#' names will be preprended by `..` (e.g., `..descr`).
+#' names will be prepended by `..` (e.g., `..descr`).
 #'
 #' For some properties, transformations are applied automatically to
 #' make them more useful. This includes:
@@ -537,7 +537,7 @@ expose_property <- function(
 #' @details
 #'
 #' The parameter returned will be top-level, and to avoid conflicting
-#' names will be preprended by `..` (e.g., `..ome1`). The selector
+#' names will be prepended by `..` (e.g., `..ome1`). The selector
 #' used to fetch the parameter will be used in this `..` name. If
 #' a better name is preferred, there are convenient renaming functions
 #' from `dplyr` where needed.
@@ -733,7 +733,7 @@ NULL
 #' of the set so should only be used in the case where a quick application
 #' suffices. Otherwise, focusing with a sequence of `focus_function` calls
 #' (or a monolithic single `focus_function` call with a custom function)
-#' should be prefered.
+#' should be preferred.
 #'
 #' @return An `xpose_set` object with the focused xpdb object(s)
 #' @export
@@ -987,7 +987,7 @@ duplicated.xpose_set <- function(xpdb_s, ...) {
 #'
 #' @description
 #'
-#' This amounts to a convenience function for tidy manupulations.
+#' This amounts to a convenience function for tidy manipulations.
 #'
 #' @param x <[`xpose_set`]> An xpose_set object
 #' @param y <[`tibble`][`tibble::tibble`]> A nested table from an xpose_set

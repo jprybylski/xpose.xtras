@@ -90,12 +90,12 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
 #'
 #' Bugfix for \code{\link[xpose]{irep}}.
 #'
-#' @description Add a column containing a simulation counter (irep). A new simulation is counted everytime
+#' @description Add a column containing a simulation counter (irep). A new simulation is counted every time
 #' a value in x is different than its previous value and is a duplicate.
 #'
 #' This version of the function does not require IDs be ascending, but does not work for
 #' datasets where IDs are repeated (not in sequence). Both cases are read as separate
-#' individuals for NONMEM, but NONMEM does not need to detect repition of ID sequences (for NONMEM,
+#' individuals for NONMEM, but NONMEM does not need to detect repetition of ID sequences (for NONMEM,
 #' \code{1,1,2,2,3,3,1,1,2,2,3,3} is 6 individuals, regardless of being 2 repeats of 3 individuals).
 #' Given the vast majority of datasets use 1 individual per ID, (which cannot be said about IDs
 #' always being ascending), only one of these corrections is implemented.

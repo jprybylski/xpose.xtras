@@ -18,7 +18,7 @@ unreshape_set(y)
 <\code{\link[tibble:tibble]{tibble}}> Nested list, or <\code{\link{xpose_set}}>
 }
 \description{
-This amounts to a convenience function for tidy manupulations.
+This amounts to a convenience function for tidy manipulations.
 }
 \examples{
 

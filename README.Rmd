@@ -12,63 +12,58 @@ knitr::opts_chunk$set(
   out.width = "100%"
 )
 ```
+
+```{r setup, echo=FALSE, include = FALSE}
+library(dplyr)
+library(xpose)
+library(xpose.xtras)
+```
 # xpose.xtras <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of xpose.xtras is to add some at-present missing functionality (to-be-deprecated if they are added to xpose), or functions unlikely to be added to the base xpose package.
+## Introduction
 
-# Todo
-Partially completed items have ~~strikethough~~ to "hide" the finished part. VPC-related tasks have been **de-scoped** because I don't plan to use xpose-style VPC (ie, vpc::vpc) functionality extensively. 
+This package adds some extra functionality and plots to the **xpose** framework. This includes some plots that have been missing in translation from **xpose4**, but also some useful features that truly extend the capabilities of what can be done with **xpose**.
 
-- [x] Extend xpose_data class or add a new class with additional structures.
-  - [x] Add support for defining catcov, dvid, occ and dv levels
-    - [x] Add related plots
-  - [ ] Add ~~support for categorical dv~~ (and corresponding diagnostics) (catdv added, no support yet)
-  - [ ] Binned time var type
-- [x] Add new class for set of xpdb objects
-  - [ ] Read from directory
-  - [x] diff() method
-  - [x] Ability to add child-parent relationships
-  - [x] Ability to **drop** child-parent relationships
-  - [ ] tabulate dofv (and related)
-  - [x] apply transformations to one or multiple xpdbs in a set (done with `focus`)
-  - [x] model comparison functions from xpose4
-  - [x] **De-scoped** model averaging VPC
-- [x] set_var_type changes
-    - [x] accept vector for continuous and categorical variables (*already present*)
-    - [x] set_var_type to accept tidyselect syntax
-- [x] import irepl fix
-- [ ] micro/macro and derived constant convenience functions, as well as un-flip flop suggestions for up to 3 compartments
-- [ ] Ability to import bbr model (bbr::read_model %>% xpose.xtras::import_bbr())
-- [x] **De-scoped** Ability to import/export xpose4 model (xpdb <- xpose.xtras::import_xp4(xpdb4); xpdb4 <- xpose.xtras::export_xp4(xpdb))
-- [x] Getter and setter for description ("descr") in xpose_data (get/set any summary property)
-- [ ] When joining firstonly, rows are getting duplicated
-- [ ] Option to set 0s to NA for select columns
-- [x] Add support to grab xpose_plot objects
-- [x] Built-in support for contcov and catcov plots
-- [x] Built-in implementation of GGally::ggpairs
-- [ ] Correct filter() (filter on xpdb_data breaks some columns, eg ETA)
-	- [ ] Happens if ETAs are only in firstonly join, which adds them as NA in the main data object
-- [ ] Beef up DVID support (check for it when doing dv_vs and ind plots since it would impact interpretation)
-- [ ] Visualize colinearity
-- [ ] table of covariates (demographics)
-  - [ ] Basic tibble
-  - [ ] Nice output version (similar to nice output for prm_table)
-- [x] Nice param table, incorporate ~~pmxcv~~ (**De-scoped** nice table, just make comprehensive tbl)
-  - [x] Need way to reference etas to fixed effects and state transformation
-- [ ] unit tests for all functions
-- [x] **De-scoped (add any needed features to tidyvpc directly)** tidyvpc support?
-  - [x] **De-scoped** Want vpc_tte ported over (even though this is not in xpose atm)
-- [ ] options-defined default set of diagnostics
-- [ ] template-based reporting?
-- [ ] patchwork integration?
-- [ ] vignette
-- [ ] examples
-- [ ] pkgdown
-- [ ] devtools::spell_check
-- [ ] Custom examples (eg, phenobarbital model building, xpose_xtra for each and together xpose_set)
-- [ ] nlmixr2.xpose tests
-- [ ] *re-run* data-raw files prior to build
-  
+There are a few bugfixes here and functionality which could easily be suggested as pull requests to the parent package. Given the size and broad use of **xpose**, it appears even minor pull requests take some time to implement. As such, this package implements those features directly and if at any point in the future these are added (perhaps in a better state) to the parent package, they will be deprecated if this package is in active use. For those wondering, **conflicted** is used to manage bugfix conflicts, so users should be comfortable loading packages in any order.
+
+## Installation
+
+This package is currently only available here, but submission to CRAN is planned.
+
+The typical github installation will work. At time of writing, this is a private repo, so access to this organization and proper token credential are required.
+
+```{r install, eval=FALSE}
+devtools::install_github("pfizer-rd/xpose.xtras")
+```
+
+## Preview
+
+The grandparent package, **xpose4**, has a lovely collection of figures and documentation that is referred to as a "bestiary". The **pkgdown** site for this package serves as a complete bestiary, but see the uncommented examples below as a sort of menagerie. There is no assumption that these examples are self-explanatory, but hopefully users familiar with **xpose** will recognize the new (and *re*newed) tools made available by this package.
+
+```{r eta_vs, fig.width=unit(6,"in"), fig.height=unit(3,"in"), fig.align='center'}
+described <- xpdb_x %>%
+  set_var_labels(AGE="Age", MED1 = "Digoxin", .problem = 1) %>%
+  set_var_units(AGE="yrs")  %>%
+  set_var_levels(SEX=lvl_sex(), MED1 = lvl_bin())
+eta_vs_contcov(described,etavar=ETA1, quiet=TRUE)
+eta_vs_catcov(described,etavar=ETA1, quiet=TRUE)
+```
+
+
+```{r shark, fig.width=unit(7,"in"), fig.height=unit(5,"in"), fig.align='center'}
+pheno_set %>%
+  focus_qapply(backfill_iofv) %>%
+  dofv_vs_id(run6, run9, quiet = TRUE)
+```
+
+
+```{r m3, fig.width=unit(7,"in"), fig.height=unit(5,"in"), fig.align='center'}
+pkpd_m3 %>%
+  set_var_types(catdv=BLQ,dvprobs=LIKE) %>%
+  set_dv_probs(1, 1~LIKE, .dv_var = BLQ) %>%
+  set_var_levels(1, BLQ = lvl_bin()) %>%
+  catdv_vs_dvprobs(quiet=TRUE)
+```

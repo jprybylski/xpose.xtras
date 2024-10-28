@@ -17,6 +17,6 @@ Assembled from the \code{xpdb_ex_pk} object in the \code{xpose} package.
 xpdb_x
 }
 \description{
-The <\code{\link[xpose:xpdb_ex_pk]{xpdb_ex_pk}}> object coverted to \code{xp_xtras}. For examples.
+The <\code{\link[xpose:xpdb_ex_pk]{xpdb_ex_pk}}> object converted to \code{xp_xtras}. For examples.
 }
 \keyword{datasets}

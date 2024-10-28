@@ -2,7 +2,7 @@
 title: "Using xpose sets"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Using sets}
+  %\VignetteIndexEntry{Using xpose sets}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -76,7 +76,7 @@ None of the examples can be used to demonstrate this easily, but these plots can
 
 ## Waterfall and objective function trends
 
-The more common needs for an `xpose_set` include model-building tables, covariate testing and visualization. However, there are occassions where a visual description of what can be shown in these tables can be useful.
+The more common needs for an `xpose_set` include model-building tables, covariate testing and visualization. However, there are occasions where a visual description of what can be shown in these tables can be useful.
 
 The default waterfall plot compares scales the change in parameter values, which is intended to make relative comparisons the focus. This is especially beneficial in comparing changes in empirical Bayes estimates (EBEs).
 

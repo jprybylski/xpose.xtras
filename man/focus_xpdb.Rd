@@ -44,7 +44,7 @@ address common uses.
 of the set so should only be used in the case where a quick application
 suffices. Otherwise, focusing with a sequence of \code{focus_function} calls
 (or a monolithic single \code{focus_function} call with a custom function)
-should be prefered.
+should be preferred.
 }
 \examples{
 
