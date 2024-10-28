@@ -1,0 +1,175 @@
+---
+title: "Using xpose sets"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using sets}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align='center'
+)
+```
+
+```{r setup, echo=FALSE, include = FALSE}
+library(dplyr)
+library(xpose)
+library(xpose.xtras)
+```
+
+## Introduction
+
+A powerful new object building upon the `xpose` framework is the `xpose_set`. Much like how `xpose_data` is in essence a list of information and data about the fitted model, `xpose_set` is a list of `xpose_data` (or `xp_xtra`) objects with information about how these models relate to one another.
+
+Creating a set is easy. An important point to remember about usage is that each set item must have a label. Depending on how the set is created, the default is to use the name of the `xpose_data` object, but if an unnamed list is spliced or any objects share the same label, an error will occur. Note, however, that duplicate `xpose_data` objects can be used, as long as they have different labels. In the example below, three example models fitting the same dataset are made into a set, and alternative labels are used for one version of the set.
+
+```{r set_setup}
+xpose_set(pheno_base, pheno_final, pheno_saem)
+xpose_set(base=pheno_base, reparam=pheno_final, reparam_saem=pheno_saem)
+
+```
+
+The `print` output hints at features that will be explored in this vignette. A few example sets are in the package that can be used to test some of the elements discussed here. One relatively complex one explores typical model-building steps for the common phenobarbital in neonates dataset, called `pheno_set`, diagrammed below.
+
+```{r pheno_set_diagram}
+diagram_lineage(pheno_set) %>%
+  DiagrammeR::render_graph(layout="tree")
+```
+
+
+## Relationships
+
+Relationships between models in a set can be declares with formula notation, where one or more child models is dependent on one or more parents (`child1+... ~ parent1+...`). To demonstrate, parts of `pheno_set` can be reproduced.
+
+```{r pheno_decon}
+phrun3 <- pheno_set$run3$xpdb
+phrun5 <- pheno_set$run5$xpdb
+phrun6 <- pheno_set$run6$xpdb
+phrun7 <- pheno_set$run7$xpdb
+phrun8 <- pheno_set$run8$xpdb
+phrun9 <- pheno_set$run9$xpdb
+pheno_stem <- xpose_set(phrun3,phrun5,phrun6, .as_ordered = TRUE)
+pheno_stem
+diagram_lineage(pheno_stem) %>%
+  DiagrammeR::render_graph(layout="tree")
+pheno_branch <- xpose_set(phrun6,phrun7,phrun8,phrun9, .relationships = c(phrun7+phrun8+phrun9~phrun6))
+pheno_branch
+diagram_lineage(pheno_branch) %>%
+  DiagrammeR::render_graph(layout="tree")
+```
+
+Trees can also be concatenated, using typical R/tidyverse syntax.
+
+```{r pheno_concat}
+pheno_tree <- pheno_stem %>% 
+  # drop phrun6 from stem
+  select(-phrun6) %>%
+  c(
+    pheno_branch,
+    .relationships = c(phrun6~phrun5)
+  )
+pheno_tree
+diagram_lineage(pheno_tree) %>%
+  DiagrammeR::render_graph(layout="tree")
+```
+
+The documentation for `add_relationship` contains more information about declaring and removing relationships. Users should be aware that model lineage is actually used by some functions that process `xpose_set` objects to generate output, so declaring parentage should be done only when it is valid. This does not mean necessarily that the child should be nested in the parent(s), but lineage is considered relevant in functions that compare models.
+
+## Comparing models in sets
+
+Models in a set can be compared with a few functions and plots. The functions for comparison include a `diff()` method.
+
+```{r diff}
+diff(pheno_set)
+```
+
+The method above limits the comparison to the longest lineage in the provided set, starting at a base model if one is declared. The models included can be examined by probing the `xset_lineage` function.
+
+```{r diff_lineage}
+tbl_diff <- function(set) tibble(
+  models = xset_lineage(set),
+  diff = c(0,diff(set))
+)
+tbl_diff(pheno_set)
+pheno_set %>%
+  remove_relationship(run9~run6) %>%
+  tbl_diff()
+pheno_set %>%
+  set_base_model(run6) %>%
+  tbl_diff()
+tibble(
+  models = xset_lineage(pheno_set,run6),
+  diff = c(0,diff(pheno_set,run6))
+)
+```
+
+`xset_lineage()` and `diff()` can also generate lists if multiple models are passed to `...`, which treats those as base models.
+
+```{r diff_list}
+diff(pheno_set, run10,run9)
+xset_lineage(pheno_set, run10,run9)
+```
+
+Models can also be compared through various plots. Many that use individual objective function values (iOFVs) require these values to be in the `xpdb` data. If these are missing and the `xpose_data` object is generated based on a NONMEM run, these can be added with the `backfill_iofv` function. We discuss focusing in another section, but it is useful here,
+
+Two models can be compared using an updated version of a `xpose4` function; this is referred to in some cases as a "shark plot", and it is called `dOFV.vs.id()` in `xpose4`. As such, it is called `shark_plot` or `dofv_vs_id` in `xpose.xtras`.
+
+```{r shark, fig.width=unit(7,"in"), fig.height=unit(5,"in")}
+pheno_set %>%
+  focus_qapply(backfill_iofv) %>%
+  shark_plot(run6, run9, quiet = TRUE)
+```
+
+There are also functions to use an `xpose_set` for model-averaging and other ways to visually explore the impact of model changes on individual fits, which are all documented within the package. Many of these are considered experimental, but are facilitate further improvements.
+
+## Manipulating a set
+
+We have already explored a few ways to manipulate a set. These manipulations are distinctly designed so that a user can change the overall set or `xpose_data` elements within the set using fairly intuitive functionality.
+
+Information from `xpose_data` summary or parameter values (properties) can be "exposed", which means they become associated with the set item on the top level. To view these as a table, the function `reshape_set` can be used. Note the exposed properties are denoted by prefixed `..` in their column names.
+
+```{r exposed}
+pheno_set %>%
+  expose_property(ofv) %>%
+  expose_param(ome1) %>%
+  reshape_set() %>%
+  head()
+```
+
+There are methods for the popular `dplyr` verbs which attempt to produce the expected results despite the underlying structure of an `xpose_set` not being tabular.
+
+```{r verbs}
+pheno_set %>%
+  select(run3,run15) %>%
+  names()
+pheno_set %>%
+  # Note renaming can affect parentage.
+  # For simplicity, this method does not change 
+  # parent automatically in child
+  rename(NewName = run3) %>%
+  names()
+pheno_set %>%
+  expose_property(ofv) %>%
+  filter(..ofv < 700) %>%
+  names()
+pheno_set %>%
+  expose_param(ome1) %>%
+  pull(..ome1)
+```
+
+These verbs are also defined for `xpose_data` objects, and it may be desired to "forward" the function to the `xpose_data` objects in a set instead of applying them to the set object. That functionality is available through focusing. Focused elements in the set automatically forward functions to the `xpose_data` objects in the element, and do nothing to unfocused elements.
+
+```{r focus}
+focus_test <- pheno_set %>%
+  focus_xpdb(run3,run15) %>%
+  mutate(test_col = 1) %>%
+  unfocus_xpdb()
+tail(names(get_data(focus_test$run6$xpdb, quiet=TRUE)))
+tail(names(get_data(focus_test$run3$xpdb, quiet=TRUE)))
+```
+
+Any function can be passed to focused `xpose_data` objects with `focus_function()`. A shortcut for selecting everything, applying a function and unfocusing everything is available in the form of `focus_qapply()`.

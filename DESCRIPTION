@@ -4,8 +4,7 @@ Version: 0.0.1.9000
 Authors@R: 
     person("John", "Prybylski", , "john.prybylski@pfizer.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5802-0539"))
-Description: Adding some at-present missing functionality
-    (to-be-deprecated as they are added to xpose), or functions unlikely
+Description: Adding some at-present missing functionality, or functions unlikely
     to be added to the base xpose package.
 License: MIT + file LICENSE
 Encoding: UTF-8

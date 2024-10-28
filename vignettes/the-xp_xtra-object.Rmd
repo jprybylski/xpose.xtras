@@ -10,7 +10,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.align='center'
 )
 ```
 
@@ -20,7 +21,7 @@ library(xpose)
 library(xpose.xtras)
 ```
 
-## How to make one
+## How to get the object
 
 The `xpose_data` object (aka: `xpdb`) gets a few extensions in this package. Many of these are added to accommodate the added plots and features included, but in many cases these new features are cross-compatible with a typical `xpose_data` object as well. The extended version of `xpose_data` has the class `xp_xtra`, and is also referred to as `xpdb_x`.
 
@@ -124,15 +125,35 @@ There is a fair amount of complexity in the `get_prm` extensions, including abil
 
 In various warning messages, the `xp_xtras` object is referred to as "cross-compatible". This word choice is intended to highlight that many functions developed for `xp_xtras` objects will still work (perhaps with some diminished functionality) for `xpose_data` objects, and that the inverse is of course true.
 
-Another way this cross-compatability is maintained is via custom themes. There may be `xpose` users concerned about adopting `xpose.xtras` because with the new plot elements they would have to declare new aesthetic defaults. Conveniently, the `xp_xtra` theme is derived in a way such that aesthetics for defined plot elements are re-used for similar new elements, meaning there is less (if any) updates needed to update a class beyond using something like the following.
+Another way this cross-compatability is maintained is via custom themes. There may be `xpose` users concerned about adopting `xpose.xtras` because with the new plot elements they would have to declare new aesthetic defaults. Conveniently, the `xp_xtra` theme is derived in a way such that aesthetics for defined plot elements are re-used for similar new elements, meaning there is less (if any) updates needed to use a custom theme beyond using something like the following.
 
 ```{r xp_themes, fig.width=unit(6,"in"), fig.height=unit(3,"in")}
-favorite_theme <- theme_xp_xpose4()
+favorite_theme <- xpose::theme_xp_xpose4() # stand-in for "custom" theme
 
 eta_vs_catcov(w_levels,etavar=ETA1, quiet=TRUE)
-
 eta_vs_catcov(w_levels,etavar=ETA1, quiet=TRUE, xp_theme = favorite_theme)
 
 ```
 
-Note that worked even though `boxplot_fill` is not defined in the `theme_xp_xpose4()`, and that function is not masked by `xpose.xtras`. To update an existing theme object to one for the extension pack (instead of using the old theme in the `xp_theme` argument), simply use `updated_theme <- xp_xtra_theme(old_theme)`.
+Note that worked even though `boxplot_fill` is not defined in the `theme_xp_xpose4()`. To update an existing theme object to one for the extension package (instead of using the old theme in the `xp_theme` argument), simply use `updated_theme <- xp_xtra_theme(old_theme)`.
+
+## Convenience
+
+`xpose` has a collection of getter and setter functions to interact with parts of an `xpose_data` object, but these tend to be lower level and not exported. To add this convenience and make it user-friendly, a few functions have been added.
+
+Properties from a model summary can now be pulled without using `get_summary()`.
+
+```{r get_props}
+pheno_final %>% get_shk()
+pheno_final %>% get_shk("eps")
+pheno_final %>% get_prop("ofv")
+pheno_final %>% get_prop("descr")
+```
+
+`xpose` has certain expectations around how model descriptions are included in model code. At time of writing, it is expected the be something like "; 2. Description: (something)". To add some flexibility, users can either use `set_prop()` to change description directly, or pull it from a more generic scan of the model code comments.
+
+```{r get_props}
+pheno_final %>% desc_from_comments() %>% get_prop("descr")
+```
+
+It can be helpful to add information to the model data that is available elsewhere in the `xpose_data` object, such as individual objective functions. Currently, those can be added using `backfill_iofv()`, which is most often used in the context of `xpose_set` objects. Theoretically more backfill functions can be made available.
