@@ -2,17 +2,23 @@
 % Please edit documentation in R/xp_xtras.R
 \name{as_xpdb_x}
 \alias{as_xpdb_x}
+\alias{as_xp_xtras}
 \alias{check_xpdb_x}
+\alias{check_xp_xtras}
 \title{Convert an object to an \code{xpose_data} and \code{xp_xtras} object}
 \usage{
 as_xpdb_x(x)
 
+as_xp_xtras(x)
+
 check_xpdb_x(x, .warn = TRUE)
+
+check_xp_xtras(...)
 }
 \arguments{
 \item{x}{Suspected \code{xp_xtras} object}
 
-\item{warn}{<\code{logical}> Whether to warn if \code{xpose_data} but not \code{xp_xtras}}
+\item{.warn}{<\code{logical}> Whether to warn if \code{xpose_data} but not \code{xp_xtras}}
 }
 \value{
 <\code{\link[xpose:xpose_data]{xpose_data}}> and <\code{xp_xtras}> object

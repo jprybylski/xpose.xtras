@@ -1,4 +1,4 @@
-#' Individual contributions to ΔOFV
+#' Individual contributions to dOFV
 #'
 #' @description
 #' This is intended to match the overall behavior of
@@ -96,11 +96,11 @@ shark_plot <- function(
     alpha = 0.05,
     df = "guess",
     text_cutoff = 0.8,
-    title    = 'Individual contributions to ΔOFV | @run',
+    title    = 'Individual contributions to dOFV | @run',
     subtitle = 'Based on @nind individuals, OFVs: @ofv',
     caption  = '@dir',
     tag      = NULL,
-    ylab = "ΔOFV",
+    ylab = "dOFV",
     xlab = "Number of individuals removed",
     opt,
     facets = NULL,
@@ -365,11 +365,11 @@ dofv_vs_id <- function(
     alpha = 0.05,
     df = "guess",
     text_cutoff = 0.8,
-    title    = 'Individual contributions to ΔOFV | @run',
+    title    = 'Individual contributions to dOFV | @run',
     subtitle = 'Based on @nind individuals, OFVs: @ofv',
     caption  = '@dir',
     tag      = NULL,
-    ylab = "ΔOFV",
+    ylab = "dOFV",
     xlab = "Number of individuals removed",
     opt,
     facets = NULL,

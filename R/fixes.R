@@ -287,7 +287,6 @@ rename_x <- function(.data, ..., .problem, .source, .where) {
 #' the same as <[`xpose::group_by`]>.
 #'
 #' @inheritParams edit_xpose_data
-#' @param x Same as .data (used for consistency with dplyr functions).
 #'
 #' @name summarise_xpdb
 #' @export

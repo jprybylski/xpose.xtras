@@ -60,7 +60,7 @@ xplot_boxplot(
 
 \item{jitter_seed}{A numeric, optional seed to be used in jitters}
 
-\item{...}{}
+\item{...}{Any additional aesthetics.}
 }
 \description{
 Manually generate boxplots from an xpdb object.

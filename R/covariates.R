@@ -398,7 +398,7 @@ eta_vs_cov_grid <- function(xpdb,
 #' @param facets Additional facets
 #' @param .problem Problem number
 #' @param quiet Silence output
-#' @param ...
+#' @param ... Any additional aesthetics.
 #'
 #' @export
 #'
@@ -547,7 +547,7 @@ eta_vs_contcov <- function(xpdb,
 #' @param facets Additional facets
 #' @param .problem Problem number
 #' @param quiet Silence output
-#' @param ...
+#' @param ... Any additional aesthetics.
 #'
 #' @export
 #'

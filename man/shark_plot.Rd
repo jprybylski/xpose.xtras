@@ -3,7 +3,7 @@
 \name{shark_plot}
 \alias{shark_plot}
 \alias{dofv_vs_id}
-\title{Individual contributions to ΔOFV}
+\title{Individual contributions to dOFV}
 \usage{
 shark_plot(
   xpdb_s,
@@ -13,11 +13,11 @@ shark_plot(
   alpha = 0.05,
   df = "guess",
   text_cutoff = 0.8,
-  title = "Individual contributions to ΔOFV | @run",
+  title = "Individual contributions to dOFV | @run",
   subtitle = "Based on @nind individuals, OFVs: @ofv",
   caption = "@dir",
   tag = NULL,
-  ylab = "ΔOFV",
+  ylab = "dOFV",
   xlab = "Number of individuals removed",
   opt,
   facets = NULL,
@@ -35,11 +35,11 @@ dofv_vs_id(
   alpha = 0.05,
   df = "guess",
   text_cutoff = 0.8,
-  title = "Individual contributions to ΔOFV | @run",
+  title = "Individual contributions to dOFV | @run",
   subtitle = "Based on @nind individuals, OFVs: @ofv",
   caption = "@dir",
   tag = NULL,
-  ylab = "ΔOFV",
+  ylab = "dOFV",
   xlab = "Number of individuals removed",
   opt,
   facets = NULL,

@@ -126,6 +126,7 @@ xp_xtra_theme <- function(base_on = NULL) {
     xpose::as.xpose.theme()
 }
 
+#' Updated version of the xpose4 theme
 #' @export
 xp4_xtra_theme <- function() xp_xtra_theme(xpose::theme_xp_xpose4())
 
@@ -306,9 +307,9 @@ grab_xpose_plot <- function(plot) {
     rlang::abort("Use built-in xpose pagination rather than grab function.")
   }
   if (class(plot)[1]=="list") return(purrr::map(plot, grab_xpose_plot))
-  pdf(file = NULL)
-  out <- xpose:::print.xpose_plot(plot)
-  dev.off()
+  grDevices::pdf(file = NULL)
+  out <- print(plot)
+  grDevices::dev.off()
   out
 }
 
@@ -317,7 +318,6 @@ grab_xpose_plot <- function(plot) {
 #'
 #' @param fn <`character`> name of `GGally` function
 #' @param ... <`any`> additional arguments to pass to `GGally` function
-#' @param mapping <`ggplot2::aes`> mapping
 #' @param xp_theme theme to use
 #'
 #' @return `ggplot2` function

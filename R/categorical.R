@@ -41,6 +41,8 @@
 #' use in plots.
 #' @param xlab Either use the typical basic x-axis label (the cutpoint-defined
 #' column name) or label it based on the probability/likelihood it is estimating.
+#' @param facets Additional facets
+#' @param .problem Problem number
 #'
 #' @export
 #'
@@ -399,7 +401,7 @@ proc_probs <-  function(prb_list) {
       # Extract symbols
       lhs <- .x[[2]]
       fun <- NA_character_
-      if (class(lhs)=="call") {
+      if (inherits(lhs, "call")) {
         fun <- tolower(deparse(lhs[[1]]))
         lhs <-  rlang::call_args(lhs)[[1]]
       }

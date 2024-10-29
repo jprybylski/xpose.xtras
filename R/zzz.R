@@ -1,7 +1,7 @@
 # breaks test_coverage. comment for now
 .onAttach <- function(...) {
   if (!is_attached("xpose")) {
-    cli::cli_alert_info(paste("{.strong {cli::col_blue('xpose')}} is not currently attached."))
+    cli::cli_inform(c("i"="{.strong {cli::col_blue('xpose')}} is not currently attached."), class = "packageStartupMessage")
   }
 
   if (!is_loading_for_tests()) {
@@ -20,4 +20,62 @@ is_loading_for_tests <- function() {
 
 
 # Remove CRAN note on no visible binding for global variable
-utils::globalVariables('.')
+utils::globalVariables(c(
+  '.',
+  "problem",
+  "subprob",
+  "method",
+  ".env",
+  ".data",
+  "variable",
+  "rn",
+  "this_lvls",
+  "value",
+  "old_name",
+  "everything",
+  "where",
+  "index",
+  "extension",
+  "data",
+  ":=",
+  "type",
+  "xpdb_set",
+  "na.omit",
+  "label",
+  "ofv",
+  "..ofv",
+  "mod1",
+  "mod2",
+  "m1col",
+  "m2col",
+  "focus",
+  "param",
+  "omega",
+  "thnums",
+  "cv",
+  "m",
+  "n",
+  "pdf",
+  "dev.off",
+  "mods",
+  "fixed",
+  "across",
+  "model",
+  "extension",
+  "modifyList",
+  "sd",
+  "value",
+  "variable",
+  "value_weight",
+  "id_order",
+  "probs",
+  "xpdb",
+  "dOFV",
+  "total_dOFV",
+  "nind",
+  "OFV",
+  "parent",
+  "nn",
+  "grp_key",
+  "new_variable"
+))

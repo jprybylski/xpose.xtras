@@ -7,6 +7,8 @@
 \method{mutate}{xpose_set}(.data, ..., .force = FALSE, .retest = !.force, .rowwise = FALSE)
 }
 \arguments{
+\item{.data}{<\code{\link{xpose_set}}> An xpose_set object}
+
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Mutations to apply to the xpose_set (passed through to <\code{\link[dplyr:mutate]{dplyr::mutate}}>)}
 
 \item{.force}{<\code{\link{logical}}> Should top-level elements be allowed to be manipulated? (default: \code{FALSE})}
@@ -14,8 +16,6 @@
 \item{.retest}{<\code{\link{logical}}> Should the xpose_set be retested after mutation? (default: \code{!force})}
 
 \item{.rowwise}{<\code{\link{logical}}> Should the mutation be applied rowwise? (default: \code{FALSE})}
-
-\item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
 }
 \description{
 Mutation method for xpose_set

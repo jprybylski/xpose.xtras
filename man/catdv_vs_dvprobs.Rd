@@ -41,9 +41,13 @@ use in plots.}
 \item{xlab}{Either use the typical basic x-axis label (the cutpoint-defined
 column name) or label it based on the probability/likelihood it is estimating.}
 
+\item{facets}{Additional facets}
+
+\item{.problem}{Problem number}
+
 \item{quiet}{Silence extra debugging output}
 
-\item{...}{}
+\item{...}{Any additional aesthetics.}
 }
 \description{
 These plots attempt to provide a means of verifying that the

@@ -12,8 +12,6 @@ wrap_xp_ggally(fn, xp_theme, ...)
 \item{xp_theme}{theme to use}
 
 \item{...}{<\code{any}> additional arguments to pass to \code{GGally} function}
-
-\item{mapping}{<\code{ggplot2::aes}> mapping}
 }
 \value{
 \code{ggplot2} function

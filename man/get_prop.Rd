@@ -12,6 +12,10 @@ get_prop(xpdb, prop, .problem = NULL, .subprob = NULL, .method = NULL)
 \item{prop}{<\code{character}> Property to extract}
 
 \item{.problem}{<\code{numeric}> Problem number to use. Uses the xpose default if not provided.}
+
+\item{.subprob}{<\code{numeric}> Subproblem number to use. Uses the xpose default if not provided.}
+
+\item{.method}{<\code{character}> Method to use. Uses the xpose default if not provided.}
 }
 \value{
 Exact value for the property

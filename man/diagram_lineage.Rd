@@ -4,7 +4,7 @@
 \alias{diagram_lineage}
 \title{Visualize \code{xpose_set}}
 \usage{
-diagram_lineage(xpdb_s)
+diagram_lineage(xpdb_s, ...)
 }
 \arguments{
 \item{xpdb_s}{<\code{xpose_set}> object}

@@ -84,7 +84,7 @@ unset_base_model <- function(xpdb_s) {
 #' the first model in the `xpose_set` is used as the base model.
 #'
 #'
-#' @param xpdb_s <`xpose_set`> object
+#' @param x <`xpose_set`> object
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Passed to <[`xset_lineage`]>.
 #' `.spinner=FALSE` can also be set here.
 #'
@@ -95,7 +95,8 @@ unset_base_model <- function(xpdb_s) {
 #' @examples
 #'
 #' c()
-diff.xpose_set <- function(xpdb_s, ...) {
+diff.xpose_set <- function(x, ...) {
+  xpdb_s <- x
   lineage <- xset_lineage(xpdb_s, ...)
 
   exposed_ofv <- expose_property(xpdb_s, ofv)

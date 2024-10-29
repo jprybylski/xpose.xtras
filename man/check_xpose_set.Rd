@@ -12,7 +12,11 @@ check_xpose_set_item(xpdb_s_i, .example = xpdb_set)
 \arguments{
 \item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
 
+\item{.warn}{<\code{logical}> Display a warning on failure.}
+
 \item{xpdb_s_i}{<\code{\link[=xpose_set]{xpose_set_item}}> An xpose_set_item object (element of an xpose_set)}
+
+\item{.example}{<\code{xpose_set}> Basis of comparison for \code{xpose_s_i}}
 }
 \value{
 TRUE or error thrown

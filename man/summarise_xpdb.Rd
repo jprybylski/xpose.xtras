@@ -22,8 +22,6 @@ file extension e.g. 'phi'.}
 
 \item{.where}{A vector of element names to be edited in special (e.g.
 \code{.where = c('vpc_dat', 'aggr_obs')} with vpc).}
-
-\item{x}{Same as .data (used for consistency with dplyr functions).}
 }
 \description{
 \code{group_by_x()} takes an existing table and converts it into a

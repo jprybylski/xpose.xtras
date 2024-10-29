@@ -150,6 +150,8 @@ xpose_set <- function(..., .relationships = NULL, .as_ordered = FALSE) {
 #'
 #' @param xpdb_s <[`xpose_set`]> An xpose_set object
 #' @param xpdb_s_i <[`xpose_set_item`][xpose_set]> An xpose_set_item object (element of an xpose_set)
+#' @param .warn <`logical`> Display a warning on failure.
+#' @param .example <`xpose_set`> Basis of comparison for `xpose_s_i`
 #'
 #' @return TRUE or error thrown
 #' @export
@@ -861,9 +863,6 @@ focus_qapply <- function(xpdb_s,
   )
 }
 
-#' Handling xpose_set objects with common methods
-#' @rdname namespace_methods
-#' @order 1
 #' @method print xpose_set
 #' @export
 print.xpose_set <- function(x, ..., n=5) {
@@ -911,8 +910,6 @@ print.xpose_set <- function(x, ..., n=5) {
   })
 }
 
-#' @rdname namespace_methods
-#' @order 2
 #' @method print xpose_set_item
 #' @export
 print.xpose_set_item <- function(x, ...) {
@@ -942,8 +939,6 @@ print.xpose_set_item <- function(x, ...) {
 
 
 
-#' @rdname namespace_methods
-#' @order 3
 #' @method c xpose_set
 #' @export
 c.xpose_set <- function(..., .relationships = NULL) {
@@ -969,15 +964,20 @@ c.xpose_set <- function(..., .relationships = NULL) {
 }
 
 #' Check if any xpose_data objects are repeated in xpose_set
-#' @rdname duplicated.xpose_set
+#'
+#' @param x <`xpose_set`>
+#' @param incomparables `FALSE`
+#' @param ... Must be empty
+#'
 #' @method duplicated xpose_set
 #' @export
-duplicated.xpose_set <- function(xpdb_s, ...) {
+duplicated.xpose_set <- function(x, incomparables=FALSE, ...) {
   rlang::check_dots_empty()
+  xpdb_s <- x
 
   # Check
   purrr::map(xpdb_s, ~.x$xpdb) %>%
-    duplicated()
+    duplicated(incomparables=incomparables)
 }
 
 #' @rdname reshape_set
@@ -1068,7 +1068,7 @@ unreshape_set <- function(y) {
 
 #' @title Mutation method for xpose_set
 #'
-#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param .data <[`xpose_set`]> An xpose_set object
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Mutations to apply to the xpose_set (passed through to <[`dplyr::mutate`]>)
 #' @param .force <[`logical`]> Should top-level elements be allowed to be manipulated? (default: `FALSE`)
 #' @param .retest <[`logical`]> Should the xpose_set be retested after mutation? (default: `!force`)
@@ -1124,7 +1124,7 @@ mutate.xpose_set <- function(.data, ..., .force = FALSE, .retest = !.force, .row
 
 #' @title Selection method for xpose_set
 #'
-#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param .data <[`xpose_set`]> An xpose_set object
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> (passed through to <[`select_subset`]>)
 #'
 #' @examples
@@ -1162,7 +1162,7 @@ select.xpose_set <- function(.data, ...) {
 
 #' @title Filtration method for xpose_set
 #'
-#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param .data <[`xpose_set`]> An xpose_set object
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> (passed through to <[`dplyr::filter`]>)
 #' @param .rowwise <[`logical`]> Should the mutation be applied rowwise? (default: `FALSE`)
 #'
@@ -1203,7 +1203,7 @@ filter.xpose_set <- function(.data, ..., .rowwise = FALSE) {
 
 #' @title Renaming method for xpose_set
 #'
-#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param .data <[`xpose_set`]> An xpose_set object
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> (passed indirectly to <[`dplyr::mutate`]>)
 #'
 #' @examples
@@ -1244,7 +1244,7 @@ rename.xpose_set <- function(.data, ...) {
 
 #' @title Pulling method for xpose_set
 #'
-#' @param xpdb_s <[`xpose_set`]> An xpose_set object
+#' @param .data <[`xpose_set`]> An xpose_set object
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> (passed through to <[`pull`][dplyr::pull]>)
 #'
 #' @examples

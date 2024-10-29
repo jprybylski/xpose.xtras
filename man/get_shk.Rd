@@ -12,6 +12,10 @@ get_shk(xpdb, wh = "eta", .problem = NULL, .subprob = NULL, .method = NULL)
 \item{wh}{The shrinkage to extract (\code{"eta"} or \code{"eps"})}
 
 \item{.problem}{Problem number to use. Uses the xpose default if not provided.}
+
+\item{.subprob}{<\code{numeric}> Subproblem number to use. Uses the xpose default if not provided.}
+
+\item{.method}{<\code{character}> Method to use. Uses the xpose default if not provided.}
 }
 \value{
 A numeric vector of shrinkage estimates.

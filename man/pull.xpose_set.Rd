@@ -7,9 +7,9 @@
 \method{pull}{xpose_set}(.data, ...)
 }
 \arguments{
-\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> (passed through to <\code{\link[dplyr:pull]{pull}}>)}
+\item{.data}{<\code{\link{xpose_set}}> An xpose_set object}
 
-\item{xpdb_s}{<\code{\link{xpose_set}}> An xpose_set object}
+\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> (passed through to <\code{\link[dplyr:pull]{pull}}>)}
 }
 \description{
 Pulling method for xpose_set

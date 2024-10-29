@@ -10,6 +10,12 @@ reportable_digits(xpdb, .default = 3, .problem, .subprob, .method)
 \item{xpdb}{<\code{xpose_data}\link[xpose:xpose_data]{xpose::xpose_data}> object}
 
 \item{.default}{<\code{numeric}> Default number of digits to return if not found}
+
+\item{.problem}{<\code{numeric}> Problem number to use. Uses all problem if not provided.}
+
+\item{.subprob}{<\code{numeric}> Subproblem number to use. Uses the xpose default if not provided.}
+
+\item{.method}{<\code{character}> Method to use. Uses the xpose default if not provided.}
 }
 \value{
 Number of reportable digits

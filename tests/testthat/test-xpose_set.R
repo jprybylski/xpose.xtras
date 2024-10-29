@@ -276,7 +276,7 @@ test_that("methods work", {
   xpose_set(a=xpdb_ex_pk, b=xpdb_ex_pk, c=xpose::filter(xpdb_ex_pk, TIME>2)) %>%
     duplicated() %>%
     expect_setequal(c(FALSE, TRUE, FALSE))
-  expect_error(duplicated(xpdb_set, 1))
+  expect_error(duplicated(xpdb_set, FALSE, 1))
 
   # mutate
   expect_error(mutate(xpdb_set, label="bad"))

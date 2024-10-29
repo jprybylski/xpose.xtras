@@ -51,7 +51,7 @@ eta_vs_catcov(
 
 \item{quiet}{Silence output}
 
-\item{...}{}
+\item{...}{Any additional aesthetics.}
 }
 \description{
 Eta categorical covariate plots (typical)

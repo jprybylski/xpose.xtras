@@ -54,7 +54,7 @@ eta_vs_contcov(
 
 \item{quiet}{Silence output}
 
-\item{...}{}
+\item{...}{Any additional aesthetics.}
 }
 \description{
 Eta continuous covariate plots (typical)

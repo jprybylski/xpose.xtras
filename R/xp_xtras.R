@@ -55,15 +55,17 @@ as_xpdb_x <- function(x) {
   new_x
 }
 
+#' @rdname xp_xtras
+#' @order 2
 #' @export
 as_xp_xtras <- function(x) as_xpdb_x(x)
 
 #'
 #' @rdname xp_xtras
-#' @order 2
+#' @order 3
 #'
 #' @param x Suspected `xp_xtras` object
-#' @param warn <`logical`> Whether to warn if `xpose_data` but not `xp_xtras`
+#' @param .warn <`logical`> Whether to warn if `xpose_data` but not `xp_xtras`
 #'
 #'
 #' @export
@@ -116,12 +118,12 @@ check_xpdb_x <- function(x, .warn=TRUE) {
 }
 
 # Alias for name consistency
+#' @rdname xp_xtras
+#' @order 4
 #' @export
 check_xp_xtras <- function(...) check_xpdb_x(...)
 
 # Methods
-#' @rdname namespace_methods
-#' @order 11
 #' @method print xp_xtras
 #' @export
 print.xp_xtras <- function(x, ...) {
@@ -129,7 +131,7 @@ print.xp_xtras <- function(x, ...) {
   cli::cli({
     cli::cli_h3("{package_flex} object")
     cli::cli_text("{cli::style_bold('Model description')}: {get_prop(x, 'descr')}")
-    cli::cli_verbatim(capture.output(xpose:::print.xpose_data(x, ...)))
+    cli::cli_verbatim(capture.output(NextMethod()))
   })
 }
 
@@ -465,6 +467,8 @@ lvl_inord <- function(x, .start_index = 1) {
 #'
 #' @param xpdb <`xpose_data`> or <`xp_xtras`> object
 #' @param .label The name of the new column. `iOFV` is the default.
+#' @param .problem Problem number
+#' @param .subprob Subproblem number
 #'
 #' @details
 #' This function will only work for objects with software listed as

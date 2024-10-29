@@ -4,10 +4,10 @@
 \alias{diff.xpose_set}
 \title{Display deltaOFV values across \code{xpose_set}}
 \usage{
-\method{diff}{xpose_set}(xpdb_s, ...)
+\method{diff}{xpose_set}(x, ...)
 }
 \arguments{
-\item{xpdb_s}{<\code{xpose_set}> object}
+\item{x}{<\code{xpose_set}> object}
 
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Passed to <\code{\link{xset_lineage}}>.
 \code{.spinner=FALSE} can also be set here.}

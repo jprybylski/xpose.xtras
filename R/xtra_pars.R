@@ -280,7 +280,7 @@ check_associations <- function(
       cli::cli_abort("LHS of formula cannot be empty in `{cli::code_highlight(deparse(fmla))}`")
 
     # Check that rhs is a function call
-    if (class(fmla[[3]])!="call")
+    if (!inherits(fmla[[3]],"call"))
       cli::cli_abort("RHS of formula must be a function call, not a {.strong {class(fmla[[3]])}}")
 
     # Check that rhs is a simple* function call
@@ -631,7 +631,7 @@ get_prm.xp_xtras <- function(
   as_prm_tbl(new_prm, associations=store_associations)
 }
 
-#' @export
+#' @noRd
 as_prm_tbl <- function(tbl, ...) {
   if (inherits(tbl, "prm_tbl")) return(tbl)
   structure(
@@ -970,7 +970,7 @@ mutate_prm_check <- function(
       cli::cli_abort("LHS of formula cannot be empty in `{cli::code_highlight(deparse(fmla))}`")
 
     # Check that if lhs is a call, it is
-    if (class(fmla[[2]])=="call" && !deparse(fmla[[2]][[1]])=="se") {
+    if (inherits(fmla[[2]],"call") && !deparse(fmla[[2]][[1]])=="se") {
       if (deparse(fmla[[2]][[1]])=="+")
         cli::cli_abort("Because of parsing complexities, RHSs cannot be shared in this function with `+` on LHS: `{deparse(fmla[[2]])}`")
 

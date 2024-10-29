@@ -8,6 +8,8 @@
 #' @param xpdb An \code{xpose_data} object.
 #' @param wh The shrinkage to extract (`"eta"` or `"eps"`)
 #' @param .problem Problem number to use. Uses the xpose default if not provided.
+#' @param .subprob <`numeric`> Subproblem number to use. Uses the xpose default if not provided.
+#' @param .method <`character`> Method to use. Uses the xpose default if not provided.
 #'
 #' @return A numeric vector of shrinkage estimates.
 #' @export
@@ -45,6 +47,8 @@ get_shk <- function(xpdb, wh = "eta", .problem = NULL, .subprob = NULL, .method=
 #' @param xpdb <`xpose_data`[xpose::xpose_data]> object
 #' @param prop <`character`> Property to extract
 #' @param .problem <`numeric`> Problem number to use. Uses the xpose default if not provided.
+#' @param .subprob <`numeric`> Subproblem number to use. Uses the xpose default if not provided.
+#' @param .method <`character`> Method to use. Uses the xpose default if not provided.
 #'
 #' @return Exact value for the property
 #' @export
@@ -80,6 +84,7 @@ get_prop <- function(xpdb, prop, .problem = NULL, .subprob=NULL, .method=NULL) {
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> defining which properties to transform.
 #' Argument should be valid label.
 #' @param .problem <`numeric`> Problem number to use. Uses all problem if not provided.
+#' @param .subprob <`numeric`> Subproblem number to use. Uses the xpose default if not provided.
 #'
 #' @return `xp_xtras` object
 #' @export
@@ -233,6 +238,9 @@ is_formula_list <- function(x) {
 #'
 #' @param xpdb <`xpose_data`[xpose::xpose_data]> object
 #' @param .default <`numeric`> Default number of digits to return if not found
+#' @param .problem <`numeric`> Problem number to use. Uses all problem if not provided.
+#' @param .subprob <`numeric`> Subproblem number to use. Uses the xpose default if not provided.
+#' @param .method <`character`> Method to use. Uses the xpose default if not provided.
 #'
 #' @return Number of reportable digits
 #' @export

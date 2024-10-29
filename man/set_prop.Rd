@@ -13,6 +13,8 @@ set_prop(xpdb, ..., .problem = NULL, .subprob = NULL)
 Argument should be valid label.}
 
 \item{.problem}{<\code{numeric}> Problem number to use. Uses all problem if not provided.}
+
+\item{.subprob}{<\code{numeric}> Subproblem number to use. Uses the xpose default if not provided.}
 }
 \value{
 \code{xp_xtras} object

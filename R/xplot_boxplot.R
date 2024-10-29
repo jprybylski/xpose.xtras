@@ -18,7 +18,7 @@
 #' @param opt Processing options for fetched data
 #' @param quiet Silence extra debugging output
 #' @param jitter_seed A numeric, optional seed to be used in jitters
-#' @param ...
+#' @param ... Any additional aesthetics.
 #'
 #' @description Manually generate boxplots from an xpdb object.
 #'

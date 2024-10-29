@@ -9,6 +9,10 @@ backfill_iofv(xpdb, .problem = NULL, .subprob = NULL, .label = "iOFV")
 \arguments{
 \item{xpdb}{<\code{xpose_data}> or <\code{xp_xtras}> object}
 
+\item{.problem}{Problem number}
+
+\item{.subprob}{Subproblem number}
+
 \item{.label}{The name of the new column. \code{iOFV} is the default.}
 }
 \value{

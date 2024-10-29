@@ -4,7 +4,14 @@
 \alias{duplicated.xpose_set}
 \title{Check if any xpose_data objects are repeated in xpose_set}
 \usage{
-\method{duplicated}{xpose_set}(xpdb_s, ...)
+\method{duplicated}{xpose_set}(x, incomparables = FALSE, ...)
+}
+\arguments{
+\item{x}{<\code{xpose_set}>}
+
+\item{incomparables}{\code{FALSE}}
+
+\item{...}{Must be empty}
 }
 \description{
 Check if any xpose_data objects are repeated in xpose_set
