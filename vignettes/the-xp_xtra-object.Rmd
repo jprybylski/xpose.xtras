@@ -23,7 +23,7 @@ library(xpose.xtras)
 
 ## How to get the object
 
-The `xpose_data` object (aka: `xpdb`) gets a few extensions in this package. Many of these are added to accommodate the added plots and features included, but in many cases these new features are cross-compatible with a typical `xpose_data` object as well. The extended version of `xpose_data` has the class `xp_xtra`, and is also referred to as `xpdb_x`.
+The `xpose_data` object (aka: `xpdb`) gets a few extensions in this package. Many of these are added to accommodate new plots and features, but in many cases these features are cross-compatible with a typical `xpose_data` object as well. The extended version of `xpose_data` has the class `xp_xtra`, and is also referred to as `xpdb_x`.
 
 Conversion of an `xpose_data` object is simple.
 
@@ -36,7 +36,7 @@ xpdb_ex_pk
 xpdb_converted
 ```
 
-As shown, there are some minor changes to the output for `print()` to help confirm if an object is the extended version. However, this is implemented merely as an S3 class, so all `xpose` functions will continue to work with this new object; the current package is also written in a way to work even if the `xp_xtra` object looses that upgraded class.
+As shown, there are some minor changes to the output for `print()` to help confirm if an object is the extended version. However, this is implemented merely as an S3 class, so all `xpose` functions will continue to work with this new object; the current package is also written in a way to work even if the `xp_xtra` object loses that class.
 
 Notably, there is no convenience function to read a model output directly to an `xp_xtra` object, so all objects labelled as `xp_xtra` start as `xpose_data`.
 
@@ -70,7 +70,7 @@ Tidyselection is used fairly heavily in the `xpose.xtras` package where it seems
 
 ### Labels, units and (also) levels
 
-Another feature includes a visual confirmation of variable units, labels and (new to this package) levels. In `xpose`, users are able to add units and labels to any variable, which are stored in the object and are theoretically used somewhere but once set appear to be largely unused. This package attempts to use these communication features more liberally in plots and for the user, but broader implementation (some of which requires changes to existing `xpose` functions) is not complete just yet.
+Another feature includes a few visual confirmations of variable units, labels and (new to this package) levels. In `xpose`, users are able to add units and labels to any variable, which are stored in the object and are theoretically used somewhere. This package attempts to use these communication features more liberally in plots and for the user, but broader implementation (some of which require changes to existing `xpose` functions) is not complete just yet.
 
 With labels and units, these are applied using the conventional `xpose` functions. However, unlike in `xpose`, these can be confirmed using `list_var()` in `xpose.xtras`.
 
@@ -81,7 +81,7 @@ w_unit_labs <- xpdb_x %>%
 list_vars(w_unit_labs, .problem = 1)
 ```
 
-Levels can also be added to any column, but can be especially useful for categorical covariates (`catcov`) and categorical DVs (type `catdv`, added by this package). The documentation for `set_var_levels()` can be referenced for more information about this, but the example below shows how this feature can be used and checked.
+Levels can also be added to any variable, but can be especially useful for categorical covariates (`catcov`) and categorical DVs (type `catdv`, added by this package). The documentation for `set_var_levels()` can be referenced for more information about this, but the example below shows how this feature can be used and checked.
 
 ```{r set_levels}
 w_levels <- w_unit_labs  %>%
