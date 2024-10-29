@@ -1,4 +1,6 @@
 url: https://scaling-adventure-v7o6lwm.pages.github.io/
 template:
+  light-switch: true
   bootstrap: 5
+  bootswatch: minty
 

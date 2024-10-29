@@ -10,6 +10,14 @@
 
 Adding some at-present missing functionality, or functions unlikely to be added to the base xpose package.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://scaling-adventure-v7o6lwm.pages.github.io/}
+  \item \url{https://github.com/pfizer-rd/xpose.xtras}
+}
+
+}
 \author{
 \strong{Maintainer}: John Prybylski \email{john.prybylski@pfizer.com} (\href{https://orcid.org/0000-0001-5802-0539}{ORCID})
 

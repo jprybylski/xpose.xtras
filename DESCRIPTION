@@ -45,4 +45,4 @@ Depends:
     R (>= 2.10)
 LazyData: true
 VignetteBuilder: knitr
-URL: https://scaling-adventure-v7o6lwm.pages.github.io/
+URL: https://scaling-adventure-v7o6lwm.pages.github.io/, https://github.com/pfizer-rd/xpose.xtras

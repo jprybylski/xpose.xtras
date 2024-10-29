@@ -29,7 +29,7 @@ The `xpose.xtras` package attempts to bring old favorites back to the `xpose` fr
 
 Model-averaging can be useful when two or more models can describe different aspects of the data or the pharmacology, but for various reasons a mixture model or other population approach would be inadequate. It can also be helpful when multiple models have been developed for various populations and a new population being fit does not necessarily consist entirely of any previously fitted population.
 
-This package facilitates the generation of model-averaged diagnostics. The approach is rudimentary and experimental, merely creating an averaged version of an `xpose_data` object from an `xpose_set`. As referenced in the documentation, the Model Selection and Model Averaged Algorithms from Uster et al. are implemented to do this averaging. Because both algorithms require individual objective functions, there is an argument to automatically apply `backfill_iofv()`. 
+This package facilitates the generation of model-averaged diagnostics. The approach is rudimentary and experimental, merely creating an averaged version of an `xpose_data` object from an `xpose_set`. As referenced in the documentation, the Model Selection and Model Averaged Algorithms used by Uster et al. are implemented to do this averaging (`?modavg_xpdb`). Because both algorithms require individual objective functions, there is an argument to automatically apply `backfill_iofv()`. 
 
 ```{r modavg, fig.width=unit(7,"in"), fig.height=unit(5,"in")}
 pheno_set %>%
@@ -72,7 +72,7 @@ vismo_xpdb %>%
   catdv_vs_dvprobs(cutpoint = 3, quiet=TRUE)
 ```
 
-None of the examples can be used to demonstrate this easily, but these plots can also be model-averaged using the generic `plotfun_modavg` function.
+None of the examples can be used to demonstrate this easily, but these plots can also be model-averaged using the generic `plotfun_modavg()` function.
 
 ## Waterfall and objective function trends
 

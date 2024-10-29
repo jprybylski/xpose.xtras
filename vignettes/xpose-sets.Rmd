@@ -23,17 +23,16 @@ library(xpose.xtras)
 
 ## Introduction
 
-A powerful new object building upon the `xpose` framework is the `xpose_set`. Much like how `xpose_data` is in essence a list of information and data about the fitted model, `xpose_set` is a list of `xpose_data` (or `xp_xtra`) objects with information about how these models relate to one another.
+A powerful new object building upon the `xpose` framework is the `xpose_set`. Much like how `xpose_data` is in essence a list of information and data about the fitted model, `xpose_set` is a list of `xpose_data` (or `xp_xtras`) objects with information about how these models relate to one another.
 
-Creating a set is easy. An important point to remember about usage is that each set item must have a label. Depending on how the set is created, the default is to use the name of the `xpose_data` object, but if an unnamed list is spliced or any objects share the same label, an error will occur. Note, however, that duplicate `xpose_data` objects can be used, as long as they have different labels. In the example below, three example models fitting the same dataset are made into a set, and alternative labels are used for one version of the set.
+Creating a set is easy. An important point to remember about usage is that each set item must have a label. Depending on how the set is created, the default is to use the name of the `xpose_data` object, but if an unnamed list is spliced or any objects share the same label, an error will occur. Note, however, that duplicate `xpose_data` objects can be used, as long as they have different labels. In the `xpose_set()` example below, three example models fitting the same dataset are made into a set, and alternative labels are used for one version of the set.
 
 ```{r set_setup}
 xpose_set(pheno_base, pheno_final, pheno_saem)
 xpose_set(base=pheno_base, reparam=pheno_final, reparam_saem=pheno_saem)
-
 ```
 
-The `print` output hints at features that will be explored in this vignette. A few example sets are in the package that can be used to test some of the elements discussed here. One relatively complex one explores typical model-building steps for the common phenobarbital in neonates dataset, called `pheno_set`, diagrammed below.
+The `print` output hints at features that will be explored in this vignette. A few example sets are in the package that can be used to test some of the elements discussed here. A relatively complex example explores typical model-building steps for the common phenobarbital in neonates dataset, called `pheno_set`, diagrammed below.
 
 ```{r pheno_set_diagram}
 diagram_lineage(pheno_set) %>%
@@ -77,7 +76,7 @@ diagram_lineage(pheno_tree) %>%
   DiagrammeR::render_graph(layout="tree")
 ```
 
-The documentation for `add_relationship` contains more information about declaring and removing relationships. Users should be aware that model lineage is actually used by some functions that process `xpose_set` objects to generate output, so declaring parentage should be done only when it is valid. This does not mean necessarily that the child should be nested in the parent(s), but lineage is considered relevant in functions that compare models.
+The documentation for `?add_relationship` contains more information about declaring and removing relationships. Users should be aware that model lineage is actually used by some functions that process `xpose_set` objects to generate output, so declaring parentage should be done only when it is valid. This does not mean necessarily that the child should be nested in the parent(s), but lineage is considered relevant in functions that compare models.
 
 ## Comparing models in sets
 
@@ -87,7 +86,7 @@ Models in a set can be compared with a few functions and plots. The functions fo
 diff(pheno_set)
 ```
 
-The method above limits the comparison to the longest lineage in the provided set, starting at a base model if one is declared. The models included can be examined by probing the `xset_lineage` function.
+The method above limits the comparison to the longest lineage in the provided set, starting at a base model if one is declared. The models included can be examined by probing with the `xset_lineage()` function.
 
 ```{r diff_lineage}
 tbl_diff <- function(set) tibble(
@@ -114,9 +113,9 @@ diff(pheno_set, run10,run9)
 xset_lineage(pheno_set, run10,run9)
 ```
 
-Models can also be compared through various plots. Many that use individual objective function values (iOFVs) require these values to be in the `xpdb` data. If these are missing and the `xpose_data` object is generated based on a NONMEM run, these can be added with the `backfill_iofv` function. We discuss focusing in another section, but it is useful here,
+Models can also be compared through various plots. Many that use individual objective function values (iOFVs) require these values to be in the `xpdb` data. If these are missing and the `xpose_data` object is generated based on a NONMEM run, these can be added with the `backfill_iofv()` function. We discuss focusing in another section, but it is useful here,
 
-Two models can be compared using an updated version of a `xpose4` function; this is referred to in some cases as a "shark plot", and it is called `dOFV.vs.id()` in `xpose4`. As such, it is called `shark_plot` or `dofv_vs_id` in `xpose.xtras`.
+Two models can be compared using an updated version of a `xpose4` function; this is referred to in some cases as a "shark plot", and it is called `xpose4::dOFV.vs.id()` in `xpose4`. As such, it is called `shark_plot()` or `dofv_vs_id()` in `xpose.xtras`.
 
 ```{r shark, fig.width=unit(7,"in"), fig.height=unit(5,"in")}
 pheno_set %>%
@@ -130,7 +129,7 @@ There are also functions to use an `xpose_set` for model-averaging and other way
 
 We have already explored a few ways to manipulate a set. These manipulations are distinctly designed so that a user can change the overall set or `xpose_data` elements within the set using fairly intuitive functionality.
 
-Information from `xpose_data` summary or parameter values (properties) can be "exposed", which means they become associated with the set item on the top level. To view these as a table, the function `reshape_set` can be used. Note the exposed properties are denoted by prefixed `..` in their column names.
+Information from `xpose_data` summary or parameter values (properties) can be "exposed", which means they become associated with the set item on the top level. To view these as a table, the function `reshape_set()` can be used. Note the exposed properties are denoted by the prefix `..` (two dots) in their column names.
 
 ```{r exposed}
 pheno_set %>%

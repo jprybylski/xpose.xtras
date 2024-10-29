@@ -72,7 +72,7 @@ Tidyselection is used fairly heavily in the `xpose.xtras` package where it seems
 
 Another feature includes a few visual confirmations of variable units, labels and (new to this package) levels. In `xpose`, users are able to add units and labels to any variable, which are stored in the object and are theoretically used somewhere. This package attempts to use these communication features more liberally in plots and for the user, but broader implementation (some of which require changes to existing `xpose` functions) is not complete just yet.
 
-With labels and units, these are applied using the conventional `xpose` functions. However, unlike in `xpose`, these can be confirmed using `list_var()` in `xpose.xtras`.
+With labels and units, these are applied using the conventional `xpose` functions. However, unlike in `xpose`, these can be confirmed using `list_vars()` in `xpose.xtras`.
 
 ```{r set_labels_units}
 w_unit_labs <- xpdb_x %>%
@@ -103,7 +103,7 @@ Note in the categorical plots, the number of individuals represented by each cat
 
 ### Parameter tables
 
-The `get_prm` function in `xpose` has been extended to output coefficient of variation percent (CV%) for $\omega^2$ parameters and shrinkages where relevant.
+The `get_prm()` function in `xpose` has been extended to output coefficient of variation percent (CV%) for $\omega^2$ parameters and shrinkages where relevant.
 
 ```{r get_prm}
 get_prm(pheno_final) %>%
@@ -119,13 +119,13 @@ pheno_final %>%
   select(-c(fixed,m,n))
 ```
 
-There is a fair amount of complexity in the `get_prm` extensions, including ability to change parameter value while also changing standard error and relevant variance-covariance (in position for the `.cov` and `.cor` files). See documentation for `add_prm_association` and `mutate_prm`.
+There is a fair amount of complexity in the `get_prm()` extensions, including ability to change parameter value while also changing standard error and relevant variance-covariance (in position for the `.cov` and `.cor` files). See `?add_prm_association` and `?mutate_prm`.
 
-## Cross-compatability
+## Cross-compatibility
 
 In various warning messages, the `xp_xtras` object is referred to as "cross-compatible". This word choice is intended to highlight that many functions developed for `xp_xtras` objects will still work (perhaps with some diminished functionality) for `xpose_data` objects, and that the inverse is of course true.
 
-Another way this cross-compatability is maintained is via custom themes. There may be `xpose` users concerned about adopting `xpose.xtras` because with the new plot elements they would have to declare new aesthetic defaults. Conveniently, the `xp_xtra` theme is derived in a way such that aesthetics for defined plot elements are re-used for similar new elements, meaning there is less (if any) updates needed to use a custom theme beyond using something like the following.
+Another way this cross-compatibility is maintained is via custom themes. There may be `xpose` users concerned about adopting `xpose.xtras` because with the new plot elements they would have to declare new aesthetic defaults. Conveniently, the `xp_xtra` theme is derived in a way such that aesthetics for defined plot elements are re-used for similar new elements, meaning there is less (if any) updates needed to use a custom theme beyond using something like the following.
 
 ```{r xp_themes, fig.width=unit(6,"in"), fig.height=unit(3,"in")}
 favorite_theme <- xpose::theme_xp_xpose4() # stand-in for "custom" theme
@@ -135,13 +135,13 @@ eta_vs_catcov(w_levels,etavar=ETA1, quiet=TRUE, xp_theme = favorite_theme)
 
 ```
 
-Note that worked even though `boxplot_fill` is not defined in the `theme_xp_xpose4()`. To update an existing theme object to one for the extension package (instead of using the old theme in the `xp_theme` argument), simply use `updated_theme <- xp_xtra_theme(old_theme)`.
+Note that worked even though `boxplot_fill` is not defined in the `xpose::theme_xp_xpose4()`. To update an existing theme object to one for the extension package (instead of using the old theme in the `xp_theme` argument), simply use `updated_theme <- xp_xtra_theme(old_theme)`.
 
 ## Convenience
 
 `xpose` has a collection of getter and setter functions to interact with parts of an `xpose_data` object, but these tend to be lower level and not exported. To add this convenience and make it user-friendly, a few functions have been added.
 
-Properties from a model summary can now be pulled without using `get_summary()`.
+Properties from a model summary can now be pulled without using `xpose::get_summary()`.
 
 ```{r get_props}
 pheno_final %>% get_shk()
@@ -150,7 +150,7 @@ pheno_final %>% get_prop("ofv")
 pheno_final %>% get_prop("descr")
 ```
 
-`xpose` has certain expectations around how model descriptions are included in model code. At time of writing, it is expected the be something like "; 2. Description: (something)". To add some flexibility, users can either use `set_prop()` to change description directly, or pull it from a more generic scan of the model code comments.
+`xpose` has certain expectations around how model descriptions are included in model code. At time of writing, it is expected the format is something like "; 2. Description: (text)". To add some flexibility, users can either use `set_prop()` to change description directly, or pull it from a more generic scan of the model code comments using `desc_from_comments()`.
 
 ```{r describer}
 pheno_final %>% desc_from_comments() %>% get_prop("descr")
