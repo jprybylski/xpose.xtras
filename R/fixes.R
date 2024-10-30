@@ -32,7 +32,7 @@
 #'   contcov = c(CLCR,AGE)
 #'   )
 #'
-#' @name set_var_types
+#' @name set_var_types_x
 set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quiet) {
   # xpose.xtras :: Same beginning to the existing function, as that is necessary
 

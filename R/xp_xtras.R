@@ -182,23 +182,23 @@ is_xp_xtras <- function(x) {
 }
 
 #' @rdname set_var_types
-#' @order 2
+#' @inherit set_var_types_x
 #' @export
 set_var_types <- function (xpdb, .problem = NULL, ..., auto_factor = TRUE, quiet) {
   UseMethod("set_var_types")
 }
 
 
-#' @rdname set_var_types
-#' @order 3
+#' @rdname set_var_types.default
+#' @inherit set_var_types_x
 #' @export
 set_var_types.default <- function (xpdb, .problem = NULL, ..., auto_factor = TRUE, quiet) {
   if (check_xpdb_x(xpdb, .warn=FALSE)) return(set_var_types.xp_xtras(xpdb=xpdb, .problem = .problem, ..., auto_factor = auto_factor, quiet=quiet))
   xpose::set_var_types(xpdb=xpdb, .problem = .problem, ..., auto_factor = auto_factor, quiet=quiet)
 }
 
-#' @rdname set_var_types
-#' @order 4
+#' @rdname set_var_types.xp_xtra
+#' @inherit set_var_types_x
 #' @export
 set_var_types.xp_xtras <- function (xpdb, .problem = NULL, ..., auto_factor = TRUE, quiet) {
   set_var_types_x(xpdb=xpdb, .problem = .problem, ..., auto_factor = auto_factor, quiet=quiet)
@@ -546,7 +546,7 @@ backfill_iofv <- function(xpdb, .problem=NULL, .subprob=NULL, .label = "iOFV") {
 #'
 #' @return <`tibble`> of variables
 #' @export
-#'
+#' @rdname list_vars
 #'
 #' @examples
 #'
@@ -558,6 +558,7 @@ list_vars <- function (xpdb, .problem = NULL, ...) {
   UseMethod("list_vars")
 }
 
+#' @rdname list_vars
 #' @export
 list_vars.default <- function (xpdb, .problem = NULL, ...) {
   if (check_xp_xtras(xpdb, .warn=FALSE))
@@ -566,6 +567,7 @@ list_vars.default <- function (xpdb, .problem = NULL, ...) {
   xpose::list_vars(xpdb = xpdb, .problem = .problem)
 }
 
+#' @rdname list_vars
 #' @export
 list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
   #### xpose.xtras ::: Most of the default function can be copied.

@@ -2,9 +2,15 @@
 % Please edit documentation in R/xp_xtras.R
 \name{list_vars}
 \alias{list_vars}
+\alias{list_vars.default}
+\alias{list_vars.xp_xtras}
 \title{Updates to \code{list_vars}}
 \usage{
 list_vars(xpdb, .problem = NULL, ...)
+
+\method{list_vars}{default}(xpdb, .problem = NULL, ...)
+
+\method{list_vars}{xp_xtras}(xpdb, .problem = NULL, ...)
 }
 \arguments{
 \item{xpdb}{<\code{xpose_data}> or <\code{xp_xtras}> object}
