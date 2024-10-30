@@ -120,6 +120,7 @@ check_xpdb_x <- function(x, .warn=TRUE) {
 # Alias for name consistency
 #' @rdname xp_xtras
 #' @order 4
+#' @param ... Forwarded
 #' @export
 check_xp_xtras <- function(...) check_xpdb_x(...)
 

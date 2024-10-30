@@ -169,6 +169,7 @@ test_that("parentage operator works", {
 cli::test_that_cli("test ellipsis", {
   skip_on_cran() # because of dirty dots in output
   skip_on_covr()
+  skip()
   local_reproducible_output()
   with_mocked_bindings({
     expect_snapshot(

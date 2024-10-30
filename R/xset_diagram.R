@@ -25,6 +25,8 @@
 #'   DiagrammeR::render_graph(layout="tree")
 #'
 diagram_lineage <- function(xpdb_s, ...) {
+  rlang::check_installed("DiagrammeR")
+
   base_diag <- DiagrammeR::create_graph() %>%
     DiagrammeR::add_n_nodes(length(xpdb_s)) %>%
     DiagrammeR::set_node_attrs(

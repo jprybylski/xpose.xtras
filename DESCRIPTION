@@ -15,13 +15,11 @@ Imports:
     cli,
     colorspace,
     conflicted,
-    DiagrammeR,
     dplyr (>= 1.1.2),
     forcats (>= 1.0.0),
     GGally,
     ggplot2 (>= 3.4.2),
     glue,
-    grDevices,
     lifecycle,
     magrittr,
     pmxcv,
@@ -37,6 +35,8 @@ Imports:
     vctrs,
     xpose
 Suggests: 
+    DiagrammeR,
+    grDevices,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
