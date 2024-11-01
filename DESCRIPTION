@@ -1,5 +1,5 @@
 Package: xpose.xtras
-Title: Extra functionality for the xpose package
+Title: Extra Functionality for the Xpose Package
 Version: 0.0.2
 Authors@R: 
     person("John", "Prybylski", , "john.prybylski@pfizer.com", role = c("aut", "cre"),

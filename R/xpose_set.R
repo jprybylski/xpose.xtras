@@ -885,7 +885,7 @@ print.xpose_set <- function(x, ..., n=5) {
     if (length(fnames)<=n) cli::cli_li("Focused xpdb objects: {if (length(fnames)>0) fnames else 'none'}")
     if (length(fnames)>n)  cli::cli_li("Focused xpdb objects (truncated): {fnames[1:n]} (...)")
     if (spinner_test) sp$spin()
-    dotnames <- purrr::map(xpdb_s, \(xpdb_s_i) {
+    dotnames <- purrr::map(xpdb_s, function(xpdb_s_i) {
         if (spinner_test) sp$spin()
         names(xpdb_s_i)[startsWith(names(xpdb_s_i), "..")]
       }) %>%
