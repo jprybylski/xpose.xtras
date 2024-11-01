@@ -1,6 +1,5 @@
 .Rproj.user
 lamb.r
-*.Rproj
 .Rhistory
 .Rdata
 .httr-oauth
