@@ -4,7 +4,7 @@
 \name{xpose.xtras-package}
 \alias{xpose.xtras}
 \alias{xpose.xtras-package}
-\title{xpose.xtras: Extra functionality for the xpose package}
+\title{xpose.xtras: Extra Functionality for the Xpose Package}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
@@ -13,8 +13,7 @@ Adding some at-present missing functionality, or functions unlikely to be added 
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://scaling-adventure-v7o6lwm.pages.github.io/}
-  \item \url{https://github.com/pfizer-rd/xpose.xtras}
+  \item \url{https://jprybylski.github.io/xpose.xtras/}
 }
 
 }
