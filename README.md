@@ -5,7 +5,7 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/pfizer-rd/xpose.xtras/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/pfizer-rd/xpose.xtras/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/jprybylski/xpose.xtras/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jprybylski/xpose.xtras/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 ## Introduction
@@ -32,14 +32,12 @@ packages in any order.
 ## Installation
 
 This package is currently only available here, but submission to CRAN is
-planned.
+planned soon.
 
-The typical github installation will work. At time of writing, this is a
-private repo, so access to this organization and proper token credential
-are required.
+The typical github installation will work.
 
 ``` r
-devtools::install_github("pfizer-rd/xpose.xtras")
+devtools::install_github("jprybylski/xpose.xtras")
 ```
 
 ## Preview
