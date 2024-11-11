@@ -6,6 +6,8 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/jprybylski/xpose.xtras/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jprybylski/xpose.xtras/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/jprybylski/xpose.xtras/graph/badge.svg)](https://app.codecov.io/gh/jprybylski/xpose.xtras)
 <!-- badges: end -->
 
 ## Introduction
