@@ -42,7 +42,7 @@ diagram_lineage(pheno_set) %>%
 
 ## Relationships
 
-Relationships between models in a set can be declares with formula notation, where one or more child models is dependent on one or more parents (`child1+... ~ parent1+...`). To demonstrate, parts of `pheno_set` can be reproduced.
+Relationships between models in a set can be declared with formula notation, where one or more child models is dependent on one or more parents (`child1+... ~ parent1+...`). To demonstrate, parts of `pheno_set` can be reproduced.
 
 ```{r pheno_decon}
 phrun3 <- pheno_set$run3$xpdb
@@ -115,7 +115,7 @@ xset_lineage(pheno_set, run10,run9)
 
 Models can also be compared through various plots. Many that use individual objective function values (iOFVs) require these values to be in the `xpdb` data. If these are missing and the `xpose_data` object is generated based on a NONMEM run, these can be added with the `backfill_iofv()` function. We discuss focusing in another section, but it is useful here,
 
-Two models can be compared using an updated version of a `xpose4` function; this is referred to in some cases as a "shark plot", and it is called `xpose4::dOFV.vs.id()` in `xpose4`. As such, it is called `shark_plot()` or `dofv_vs_id()` in `xpose.xtras`.
+Two models can be compared one way using an updated version of a `xpose4` function; this is referred to in some places as a "shark plot", and it is called `xpose4::dOFV.vs.id()` in `xpose4`. As such, it is called `shark_plot()` or `dofv_vs_id()` in `xpose.xtras`.
 
 ```{r shark, fig.width=unit(7,"in"), fig.height=unit(5,"in")}
 pheno_set %>%
@@ -123,13 +123,13 @@ pheno_set %>%
   shark_plot(run6, run9, quiet = TRUE)
 ```
 
-There are also functions to use an `xpose_set` for model-averaging and other ways to visually explore the impact of model changes on individual fits, which are all documented within the package. Many of these are considered experimental, but are facilitate further improvements.
+There are also functions to use an `xpose_set` for model-averaging and other ways to visually explore the impact of model changes on individual fits which are all documented within the package. Many of these are considered experimental, but all facilitate further improvements.
 
 ## Manipulating a set
 
 We have already explored a few ways to manipulate a set. These manipulations are distinctly designed so that a user can change the overall set or `xpose_data` elements within the set using fairly intuitive functionality.
 
-Information from `xpose_data` summary or parameter values (properties) can be "exposed", which means they become associated with the set item on the top level. To view these as a table, the function `reshape_set()` can be used. Note the exposed properties are denoted by the prefix `..` (two dots) in their column names.
+Information from `xpose_data` summary or parameter values can be "exposed", which means they become associated with the set item on the top level. To view these as a table, the function `reshape_set()` can be used. Note the exposed data are denoted by the prefix `..` (two dots) in their column names.
 
 ```{r exposed}
 pheno_set %>%
@@ -171,4 +171,4 @@ tail(names(get_data(focus_test$run6$xpdb, quiet=TRUE)))
 tail(names(get_data(focus_test$run3$xpdb, quiet=TRUE)))
 ```
 
-Any function can be passed to focused `xpose_data` objects with `focus_function()`. A shortcut for selecting everything, applying a function and unfocusing everything is available in the form of `focus_qapply()`.
+Any function can be passed to focused `xpose_data` objects with `focus_function()`. A shortcut for focusing everything, applying a function and unfocusing everything is available in the form of `focus_qapply()`.

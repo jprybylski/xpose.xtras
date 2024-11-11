@@ -23,7 +23,7 @@ library(xpose.xtras)
 
 ## How to get the object
 
-The `xpose_data` object (aka: `xpdb`) gets a few extensions in this package. Many of these are added to accommodate new plots and features, but in many cases these features are cross-compatible with a typical `xpose_data` object as well. The extended version of `xpose_data` has the class `xp_xtra`, and is also referred to as `xpdb_x`.
+The `xpose_data` object (aka: `xpdb`) gets a few extensions in this package. Many of these are added to accommodate new plots and features, but in most cases these features are cross-compatible with a typical `xpose_data` object as well. The extended version of `xpose_data` has the class `xp_xtra`, and is also referred to as `xpdb_x`.
 
 Conversion of an `xpose_data` object is simple.
 
@@ -99,7 +99,7 @@ eta_vs_contcov(w_unit_labs,etavar=ETA1, quiet=TRUE)
 eta_vs_catcov(w_levels,etavar=ETA1, quiet=TRUE)
 ```
 
-Note in the categorical plots, the number of individuals represented by each category is underneath the value. This is similar to the presentation in the package `pmplots`, but uses the existing `xpose` framework. This option requires the use of an `xp_xtra` object, and can be disabled with the argument `show_n=FALSE`.
+Note in the categorical plots, the number of individuals represented by each category is underneath the value. This is similar to the presentation in the package [`pmplots`](https://metrumresearchgroup.github.io/pmplots/), but uses the existing `xpose` framework. This option requires the use of an `xp_xtra` object, and can be disabled with the argument `show_n=FALSE`.
 
 ### Parameter tables
 
@@ -110,7 +110,7 @@ get_prm(pheno_final) %>%
   select(-c(fixed,m,n))
 ```
 
-There are a few options to change CV% where an opinion might conflict with the default. One such option is to add a description of how the parameter is used, which results in an exact CV% determined through integration to be used. For example, if variability on the weight-normalized clearance and volume of distribution parameters in one of the toy models was logit-normally distributed, it could be described as follows.
+There are a few options to change CV% where an opinion might conflict with the default. One such option is to add a description of how the parameter is used, which results in an exact CV% determined through integration to be used. For example, if variability on the weight-normalized clearance and volume of distribution parameters in one of the example models was logit-normally distributed, it could be described as follows.
 
 ```{r get_prm2}
 pheno_final %>%

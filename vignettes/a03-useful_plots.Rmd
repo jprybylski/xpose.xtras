@@ -23,7 +23,7 @@ library(xpose.xtras)
 
 ## Introduction
 
-The `xpose.xtras` package attempts to bring old favorites back to the `xpose` framework from its predecessor `xpose4`, and those are named as such to allow easy access to documentation. This vignette brings focus to the visualizations in this package that are unlikely to be used for most projects, but are still helpful to have when they are needed. The underlying functionality for these plots are also useful to generalize to similar use cases that will continue to have the benefit of being within the `xpose` framework.
+The `xpose.xtras` package attempts to bring old favorites back to the `xpose` framework from its predecessor `xpose4`, and those are named as such to allow easy access to documentation. This vignette brings focus to the visualizations in this package that are unlikely to be used for most projects, but are still helpful to have when they are needed. The underlying tools built for these functions are also powerful and supportive of greater extension of the `xpose` framework.
 
 ## Model-averaged plots
 
