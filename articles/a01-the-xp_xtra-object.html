@@ -60,7 +60,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>The extended xpose data object</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jprybylski/xpose.xtras/blob/pre-CRAN/vignettes/a01-the-xp_xtra-object.Rmd" class="external-link"><code>vignettes/a01-the-xp_xtra-object.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jprybylski/xpose.xtras/blob/master/vignettes/a01-the-xp_xtra-object.Rmd" class="external-link"><code>vignettes/a01-the-xp_xtra-object.Rmd</code></a></small>
       <div class="d-none name"><code>a01-the-xp_xtra-object.Rmd</code></div>
     </div>
 
@@ -71,7 +71,7 @@
 </h2>
 <p>The <code>xpose_data</code> object (aka: <code>xpdb</code>) gets a
 few extensions in this package. Many of these are added to accommodate
-new plots and features, but in many cases these features are
+new plots and features, but in most cases these features are
 cross-compatible with a typical <code>xpose_data</code> object as well.
 The extended version of <code>xpose_data</code> has the class
 <code>xp_xtra</code>, and is also referred to as
@@ -230,10 +230,10 @@ implemented, but the plan is to have it be universal eventually.</p>
 <p><img src="a01-the-xp_xtra-object_files/figure-html/plot_cat-1.png" width="576inches" style="display: block; margin: auto;"></p>
 <p>Note in the categorical plots, the number of individuals represented
 by each category is underneath the value. This is similar to the
-presentation in the package <code>pmplots</code>, but uses the existing
-<code>xpose</code> framework. This option requires the use of an
-<code>xp_xtra</code> object, and can be disabled with the argument
-<code>show_n=FALSE</code>.</p>
+presentation in the package <a href="https://metrumresearchgroup.github.io/pmplots/" class="external-link"><code>pmplots</code></a>,
+but uses the existing <code>xpose</code> framework. This option requires
+the use of an <code>xp_xtra</code> object, and can be disabled with the
+argument <code>show_n=FALSE</code>.</p>
 </div>
 <div class="section level3">
 <h3 id="parameter-tables">Parameter tables<a class="anchor" aria-label="anchor" href="#parameter-tables"></a>
@@ -261,8 +261,8 @@ with the default. One such option is to add a description of how the
 parameter is used, which results in an exact CV% determined through
 integration to be used. For example, if variability on the
 weight-normalized clearance and volume of distribution parameters in one
-of the toy models was logit-normally distributed, it could be described
-as follows.</p>
+of the example models was logit-normally distributed, it could be
+described as follows.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pheno_final</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>   <span class="fu"><a href="../reference/add_prm_association.html">add_prm_association</a></span><span class="op">(</span><span class="va">CLpkg</span><span class="op">~</span><span class="fu">logit</span><span class="op">(</span><span class="va">IIVCL</span><span class="op">)</span>,<span class="va">Vpkg</span><span class="op">~</span><span class="fu">logit</span><span class="op">(</span><span class="va">IIVV</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
