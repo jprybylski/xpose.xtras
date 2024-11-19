@@ -1,11 +1,11 @@
 Package: xpose.xtras
-Title: Extra Functionality for the Xpose Package
+Title: Extra Functionality for the 'xpose' Package
 Version: 0.0.2
 Authors@R: 
     person("John", "Prybylski", , "john.prybylski@pfizer.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5802-0539"))
 Description: Adding some at-present missing functionality, or functions unlikely
-    to be added to the base xpose package.
+    to be added to the base 'xpose' package.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
