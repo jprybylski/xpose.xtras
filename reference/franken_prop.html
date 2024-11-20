@@ -101,11 +101,11 @@ functions is not intended.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="co"># This is designed to be called in a function environment which</span></span></span>
 <span class="r-in"><span><span class="co"># would provide something like the following:</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">xpdb_f</span> <span class="op">&lt;-</span> <span class="fu">xpose.xtras</span><span class="fu">:::</span><span class="fu"><a href="franken_xpdb.html">franken_xpdb</a></span><span class="op">(</span><span class="va">pheno_base</span>, <span class="va">pheno_final</span>, .types<span class="op">=</span><span class="st">"catcov"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">xpdb_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="franken_xpdb.html">franken_xpdb</a></span><span class="op">(</span><span class="va">pheno_base</span>, <span class="va">pheno_final</span>, .types<span class="op">=</span><span class="st">"catcov"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">xpdb_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">pheno_base</span>, <span class="va">pheno_final</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -113,6 +113,19 @@ functions is not intended.</p>
 <span class="r-in"><span><span class="va">xpdb_f</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu">franken_prop</span><span class="op">(</span><span class="va">xpdb_list</span>, <span class="st">"run"</span>,</span></span>
 <span class="r-in"><span>    glue_cmd <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">x</span>, collapse<span class="op">=</span><span class="st">"+"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ── <span style="color: #BB00BB; font-weight: bold;">~</span><span style="color: #BB00BB;"> xp_xtras</span> object </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Model description</span>: na</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> run6.lst overview: </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Software: nonmem 7.5.0 </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Attached files (memory usage 503.7 Kb): </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    + obs tabs: $prob no.1 (modified): na, run6tab </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    + sim tabs: &lt;none&gt; </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    + output files: run6.cor, run6.cov, run6.ext, run6.grd, run6.phi, run6.shk </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>    + special: &lt;none&gt; </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>  - gg_theme: theme_readable </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>  - xp_theme: xp_xtra_theme new_x$xp_theme </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Options: dir = ~/Step 3/Step 5/Step 6, quiet = FALSE, manual_import = NULL, cvtype = exact</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># xpdb_f may have to be written to a few times if</span></span></span>
 <span class="r-in"><span><span class="co"># and problem-specific combinations are needed:</span></span></span>
@@ -127,7 +140,7 @@ functions is not intended.</p>
 <span class="r-in"><span><span class="va">updated</span> <span class="op">&lt;-</span> <span class="va">updated</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu">franken_prop</span><span class="op">(</span><span class="va">xpdb_list</span>, <span class="st">"ofv"</span>,  problem<span class="op">=</span><span class="va">problem</span>,</span></span>
 <span class="r-in"><span>    glue_cmd <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">x</span>, collapse<span class="op">=</span><span class="st">"&amp;"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

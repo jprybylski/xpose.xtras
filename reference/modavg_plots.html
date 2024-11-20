@@ -182,34 +182,62 @@ quosures might be needed. See Examples.</p></dd>
 
 </dl></div>
     <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    <p>The desired plot</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="modavg_xpdb.html">modavg_xpdb()</a></code></p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">pheno_set</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu">dv_vs_ipred_modavg</span><span class="op">(</span><span class="va">run8</span>,<span class="va">run9</span>,<span class="va">run10</span>, auto_backfill <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using data from $prob no.1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Filtering data by EVID == 0</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> `geom_smooth()` using formula = 'y ~ x'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> `geom_smooth()` using formula = 'y ~ x'</span>
+<span class="r-plt img"><img src="modavg_plots-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">pheno_set</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu">dv_vs_pred_modavg</span><span class="op">(</span><span class="va">run8</span>,<span class="va">run9</span>,<span class="va">run10</span>, auto_backfill <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using data from $prob no.1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Filtering data by EVID == 0</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> `geom_smooth()` using formula = 'y ~ x'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> `geom_smooth()` using formula = 'y ~ x'</span>
+<span class="r-plt img"><img src="modavg_plots-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">pheno_set</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu">ipred_vs_idv_modavg</span><span class="op">(</span><span class="va">run8</span>,<span class="va">run9</span>,<span class="va">run10</span>, auto_backfill <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using data from $prob no.1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Filtering data by EVID == 0</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> `geom_smooth()` using formula = 'y ~ x'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> `geom_smooth()` using formula = 'y ~ x'</span>
+<span class="r-plt img"><img src="modavg_plots-3.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">pheno_set</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu">pred_vs_idv_modavg</span><span class="op">(</span><span class="va">run8</span>,<span class="va">run9</span>,<span class="va">run10</span>, auto_backfill <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using data from $prob no.1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Filtering data by EVID == 0</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> `geom_smooth()` using formula = 'y ~ x'</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> `geom_smooth()` using formula = 'y ~ x'</span>
+<span class="r-plt img"><img src="modavg_plots-4.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Model averaged ETA covariates</span></span></span>
 <span class="r-in"><span><span class="va">pheno_set</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu">plotfun_modavg</span><span class="op">(</span><span class="va">run8</span>,<span class="va">run9</span>,<span class="va">run10</span>, auto_backfill <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>     avg_by_type <span class="op">=</span> <span class="st">"eta"</span>,.fun <span class="op">=</span> <span class="va">eta_vs_catcov</span>,</span></span>
-<span class="r-in"><span>     <span class="co"># Note quosure</span></span></span>
-<span class="r-in"><span>     .funargs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>etavar<span class="op">=</span><span class="fu">rlang</span><span class="fu">::</span><span class="fu"><a href="https://rlang.r-lib.org/reference/defusing-advanced.html" class="external-link">quo</a></span><span class="op">(</span><span class="va">ETA1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>     <span class="co"># Note quoting</span></span></span>
+<span class="r-in"><span>     .funargs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>etavar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/substitute.html" class="external-link">quote</a></span><span class="op">(</span><span class="va">ETA1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Using data from $prob no.1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Removing duplicated rows based on: ID</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Tidying data by ID, TIME, AMT, WT, MDV ... and 31 more variables</span>
+<span class="r-plt img"><img src="modavg_plots-5.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
