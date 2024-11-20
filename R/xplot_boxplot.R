@@ -36,6 +36,7 @@
 #'   \item `c` connecting lines for jitter points  (from `geom_path`)
 #' }
 #'
+#' @returns The desired plot
 #'
 #' @export
 xplot_boxplot <- function(xpdb,

@@ -74,6 +74,9 @@ will be used.}
 
 \item{quiet}{Silence extra debugging output}
 }
+\value{
+The desired plot
+}
 \description{
 Generic function primarily used with wrappers targeting
 types of values changed between two models.

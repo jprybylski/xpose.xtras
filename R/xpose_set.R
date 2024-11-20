@@ -534,7 +534,7 @@ expose_property <- function(
 #' @param .subprob <`numeric`> Problem number to apply this relationship.
 #' @param .method <`numeric`> Problem number to apply this relationship.
 #'
-#' @return An `xpose_set` object with the parameter exposed
+#' @returns An `xpose_set` object with the parameter exposed
 #'
 #' @details
 #'
@@ -660,19 +660,22 @@ expose_param <- function(
 #'
 #' This is intended for use as an internal function to select a subset of xpdb objects from an xpose_set.
 #'
+#' It is a lower level version of <[`select.xpose_set`]>
+#'
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more tidyselect selectors
 #' @param xpdb_s <[`xpose_set`]> An xpose_set object
 #'
 #' @return <[`numeric`]> vector of indices for selected xpdb objects
 #'
 #' @keywords internal
+#' @export
 #'
 #' @examples
 #'
 #'
-#' xpose.xtras:::select_subset(mod2, xpdb_s=xpdb_set)
+#' select_subset(mod2, xpdb_s=xpdb_set)
 #'
-#' xpose.xtras:::select_subset(dplyr::starts_with("fix"), xpdb_s=xpdb_set)
+#' select_subset(dplyr::starts_with("fix"), xpdb_s=xpdb_set)
 #'
 #'
 select_subset <- function(xpdb_s, ...) {
@@ -699,7 +702,7 @@ select_subset <- function(xpdb_s, ...) {
 #'
 #' @examples
 #'
-#' xpose.xtras:::select_subset(where_xp(~"fix1" %in% parent), xpdb_s=xpdb_set)
+#' select_subset(where_xp(~"fix1" %in% parent), xpdb_s=xpdb_set)
 NULL
 # where_xp <- function(fn) {
 #   predicate <- rlang::as_function(fn)
@@ -969,6 +972,8 @@ c.xpose_set <- function(..., .relationships = NULL) {
 #' @param incomparables `FALSE`
 #' @param ... Must be empty
 #'
+#' @returns A logical vector or list of logical vectors
+#'
 #' @method duplicated xpose_set
 #' @export
 duplicated.xpose_set <- function(x, incomparables=FALSE, ...) {
@@ -1083,6 +1088,7 @@ unreshape_set <- function(y) {
 #'   reshape_set()
 #'
 #' @importFrom dplyr mutate
+#' @returns A set with updated top-level data (unless focused)
 #' @rdname mutate.xpose_set
 #' @export
 mutate.xpose_set <- function(.data, ..., .force = FALSE, .retest = !.force, .rowwise = FALSE) {
@@ -1135,6 +1141,7 @@ mutate.xpose_set <- function(.data, ..., .force = FALSE, .retest = !.force, .row
 #'   select(mod1, fix1)
 #'
 #' @importFrom dplyr select
+#' @returns Subset of `xpose` set
 #' @rdname select.xpose_set
 #' @export
 select.xpose_set <- function(.data, ...) {
@@ -1173,6 +1180,7 @@ select.xpose_set <- function(.data, ...) {
 #' xpdb_set %>%
 #'   filter(length(parent)>1, .rowwise=TRUE)
 #'
+#' @returns A filtered `xpose_set`
 #'
 #' @importFrom dplyr filter
 #' @rdname filter.xpose_set
@@ -1212,6 +1220,7 @@ filter.xpose_set <- function(.data, ..., .rowwise = FALSE) {
 #'
 #'
 #' @importFrom dplyr rename
+#' @returns Re-labeled set
 #' @rdname rename.xpose_set
 #' @export
 rename.xpose_set <- function(.data, ...) {
@@ -1251,6 +1260,8 @@ rename.xpose_set <- function(.data, ...) {
 #'
 #' xpdb_set %>%
 #'   pull(xpdb)
+#'
+#' @returns The top-level information for a set requested.
 #'
 #' @importFrom dplyr pull
 #' @rdname pull.xpose_set

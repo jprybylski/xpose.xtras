@@ -128,7 +128,7 @@ my_sigdrop
 }\if{html}{\out{</div>}}
 }
 \examples{
-\dontrun{
+\donttest{
 
 pheno_set \%>\%
   # Make sure set has iofv var types defined

@@ -69,7 +69,7 @@
 #' @seealso [shark_colors()]
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'
 #' pheno_set %>%
 #'   # Make sure set has iofv var types defined
@@ -417,7 +417,7 @@ dofv_vs_id <- function(
 #' @seealso [shark_plot()]
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'
 #' # Where this would fit in a particular workflow
 #' xpose_set(pheno_base, pheno_final) %>%

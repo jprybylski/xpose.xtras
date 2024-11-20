@@ -45,11 +45,11 @@ This is a \emph{low-level} function, so its use outside of internal
 functions is not intended.
 }
 \examples{
-\dontrun{
+\donttest{
 # This is designed to be called in a function environment which
 # would provide something like the following:
 
-xpdb_f <- xpose.xtras:::franken_xpdb(pheno_base, pheno_final, .types="catcov")
+xpdb_f <- franken_xpdb(pheno_base, pheno_final, .types="catcov")
 
 xpdb_list <- list(pheno_base, pheno_final)
 

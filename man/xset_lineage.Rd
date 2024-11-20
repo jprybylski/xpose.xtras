@@ -32,7 +32,7 @@ As such, for larger sets this function and, more importantly,
 functions that use it may take some time.
 }
 \examples{
-\dontrun{
+\donttest{
 
 xset_lineage(xpdb_set)
 

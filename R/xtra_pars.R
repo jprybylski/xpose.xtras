@@ -100,6 +100,8 @@
 #'
 #' @export
 #'
+#' @returns An updated `xp_xtras` object
+#'
 #' @examples
 #'
 #' pheno_base %>%
@@ -711,6 +713,8 @@ print.prm_tbl <- function(x, ...) {
 #'
 #' A function to transform parameters will result in a more accurate `autose` result. If a call
 #' (`the1~exp(the)`) or a value (`the1~2`) are used, the standard error will be simply scaled.
+#'
+#' @returns An updated `xp_xtras` object with mutated parameters
 #'
 #' @examples
 #'

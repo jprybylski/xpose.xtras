@@ -13,6 +13,9 @@
 
 \item{.rowwise}{<\code{\link{logical}}> Should the mutation be applied rowwise? (default: \code{FALSE})}
 }
+\value{
+A filtered \code{xpose_set}
+}
 \description{
 Filtration method for xpose_set
 }
@@ -22,6 +25,5 @@ xpdb_set \%>\%
 
 xpdb_set \%>\%
   filter(length(parent)>1, .rowwise=TRUE)
-
 
 }

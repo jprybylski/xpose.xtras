@@ -215,8 +215,10 @@ set_index <- function(xpdb, index, ...) {
 
 #' Convenience functions used in package
 #'
-#' @rdname convience
+#' @rdname convenience
 #' @order 1
+#'
+#' @returns `<logical>` `TRUE` if is a list of formulas
 #'
 #' @param x object to test
 #'

@@ -404,6 +404,8 @@ proc_levels <-  function(lvl_list) {
 #' @param vals vector of values associated with levels in `lvl_tbl`
 #' @param lvl_tbl tibble of levels
 #'
+#' @returns A vector of levels corresponding to the input vector.
+#'
 #' @export
 val2lvl <- function(vals, lvl_tbl = NULL) {
   if (is.null(lvl_tbl)) return(forcats::as_factor(vals))
@@ -570,8 +572,8 @@ list_vars.default <- function (xpdb, .problem = NULL, ...) {
 #' @rdname list_vars
 #' @export
 list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
-  #### xpose.xtras ::: Most of the default function can be copied.
-  #### xpose.xtras ::: There are some minimal changes throughout for style and new var types
+  #### xpose.xtras +++ Most of the default function can be copied.
+  #### xpose.xtras +++ There are some minimal changes throughout for style and new var types
 
   # Check input
   xpose::check_xpdb(xpdb, check = 'data')
@@ -696,7 +698,7 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
 #' this method was created.
 #'
 #' @rdname xp_var
-#'
+#' @returns A tibble of identified variables.
 #'
 #' @inheritParams xpose::xp_var
 #'

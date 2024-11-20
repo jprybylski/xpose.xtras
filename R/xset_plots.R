@@ -26,9 +26,10 @@
 #' @param quiet Silence output
 #'
 #' @export
+#' @returns The desired plot
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'
 #' pheno_set %>%
 #'   focus_qapply(backfill_iofv) %>%
@@ -489,6 +490,7 @@ ipred_vs_ipred <- function(
   )
 }
 #' @rdname pred_vs_pred
+#' @returns The desired plot
 #' @export
 pred_vs_pred <- function(
     xpdb_s,
@@ -610,12 +612,13 @@ pred_vs_pred <- function(
 #' quosures might be needed. See Examples.
 #'
 #' @seealso [modavg_xpdb()]
+#' @returns The desired plot
 #'
 #' @rdname modavg_plots
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'
 #' pheno_set %>%
 #'   dv_vs_ipred_modavg(run8,run9,run10, auto_backfill = TRUE)
@@ -633,8 +636,8 @@ pred_vs_pred <- function(
 #' pheno_set %>%
 #'   plotfun_modavg(run8,run9,run10, auto_backfill = TRUE,
 #'      avg_by_type = "eta",.fun = eta_vs_catcov,
-#'      # Note quosure
-#'      .funargs = list(etavar=rlang::quo(ETA1)))
+#'      # Note quoting
+#'      .funargs = list(etavar=quote(ETA1)))
 #'
 #' }
 dv_vs_ipred_modavg <- function(
@@ -771,7 +774,7 @@ plotfun_modavg <- function(
   funarg_dots <- dots_args[funarg_check]# & !ignore_check]
   if (length(funarg_dots)>0) .funargs <- modifyList(
     .funargs,
-    purrr::map(funarg_dots, rlang::eval_tidy)
+    purrr::map(funarg_dots, rlang::eval_tidy)#, env = environment())
   )
   select_dots <- dots_args[!funarg_check]# & !ignore_check]
   maXPDB <- rlang::inject(modavg_xpdb(
@@ -838,7 +841,7 @@ plotfun_modavg <- function(
 #' as base or parent.
 #' @param envir Where to assign `mod1` and `mod2` <`xpose_set_item`>s
 #'
-#' @return Into environment specified by `envir`, <`xpose_set_item`> `mod1` and `mod2`
+#' @returns Into environment specified by `envir`, <`xpose_set_item`> `mod1` and `mod2`
 #' @keywords internal
 #'
 #' @details
@@ -848,7 +851,8 @@ plotfun_modavg <- function(
 #'
 #'
 two_set_dots <- function(
-    xpdb_s, ...,
+    xpdb_s,
+    ...,
     .inorder=FALSE,
     envir = parent.frame()
     ) {
@@ -857,6 +861,8 @@ two_set_dots <- function(
   if (length(xpdb_s)<2) {
     cli::cli_abort("Need at least two models in set.")
   }
+
+  #if (identical(envir,.GlobalEnv)) rlang::abort("`two_set_dots` must be run inside a non-global environment")
 
   tidyselect_check <- xpdb_s %>% select_subset(...) %>% length()
 
@@ -920,6 +926,8 @@ n_set_dots <- function(
   try_tidy <- try(select_subset(xpdb_s, ...), silent = TRUE)
   if (!"try-error" %in% class(try_tidy)) tidyselect_check <- TRUE
 
+  #if (identical(envir,.GlobalEnv)) rlang::abort("`n_set_dots` must be run inside a non-global environment")
+
   if (.lineage == TRUE) {
     mods <- xset_lineage(xpdb_s, ..., .spinner = FALSE)
     if (is.list(mods)) {
@@ -960,11 +968,12 @@ n_set_dots <- function(
 #'
 #' @return The first `xpose_data` object with new data columns
 #' @keywords internal
+#' @export
 #'
 #' @examples
 #'
 #'
-#' xpose.xtras:::franken_xpdb(pheno_base, pheno_final, .types="catcov") %>%
+#' franken_xpdb(pheno_base, pheno_final, .types="catcov") %>%
 #'   xpose::get_data() %>%
 #'   select(starts_with("APGR"))
 #'
@@ -1103,13 +1112,14 @@ franken_xpdb <-  function(
 #'
 #' @return Same as `xpdb_f` with new properties.
 #' @keywords internal
+#' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # This is designed to be called in a function environment which
 #' # would provide something like the following:
 #'
-#' xpdb_f <- xpose.xtras:::franken_xpdb(pheno_base, pheno_final, .types="catcov")
+#' xpdb_f <- franken_xpdb(pheno_base, pheno_final, .types="catcov")
 #'
 #' xpdb_list <- list(pheno_base, pheno_final)
 #'

@@ -11,6 +11,9 @@ irep(x, quiet = FALSE)
 
 \item{quiet}{Logical, if \code{FALSE} messages are printed to the console.}
 }
+\value{
+\verb{<numeric>} vector tracking the number of simulations based on unique subject IDs.
+}
 \description{
 Add a column containing a simulation counter (irep). A new simulation is counted every time
 a value in x is different than its previous value and is a duplicate.

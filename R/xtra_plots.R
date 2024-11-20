@@ -34,6 +34,8 @@
 #' `label_both` to `label_value`, but any labeller can be provided as
 #' `pairs_labeller`.
 #'
+#' @returns An `xpose` theme object
+#'
 #' @export
 xp_xtra_theme <- function(base_on = NULL) {
   if (is.null(base_on)) base_on <- xpose::theme_xp_default()
@@ -127,6 +129,7 @@ xp_xtra_theme <- function(base_on = NULL) {
 }
 
 #' Updated version of the xpose4 theme
+#' @returns An `xpose` theme object with `xpose4` color palette
 #' @export
 xp4_xtra_theme <- function() xp_xtra_theme(xpose::theme_xp_xpose4())
 

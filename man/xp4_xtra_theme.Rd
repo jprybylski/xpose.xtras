@@ -6,6 +6,9 @@
 \usage{
 xp4_xtra_theme()
 }
+\value{
+An \code{xpose} theme object with \code{xpose4} color palette
+}
 \description{
 Updated version of the xpose4 theme
 }

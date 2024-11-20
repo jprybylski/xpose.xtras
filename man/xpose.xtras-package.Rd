@@ -4,16 +4,17 @@
 \name{xpose.xtras-package}
 \alias{xpose.xtras}
 \alias{xpose.xtras-package}
-\title{xpose.xtras: Extra Functionality for the Xpose Package}
+\title{xpose.xtras: Extra Functionality for the 'xpose' Package}
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Adding some at-present missing functionality, or functions unlikely to be added to the base xpose package.
+Adding some at-present missing functionality, or functions unlikely to be added to the base 'xpose' package. This includes some diagnostic plots that have been missing in translation from 'xpose4', but also some useful features that truly extend the capabilities of what can be done with 'xpose'. These extensions include the concept of a set of 'xpose' objects, and diagnostics for likelihood-based models.
 }
 \seealso{
 Useful links:
 \itemize{
   \item \url{https://jprybylski.github.io/xpose.xtras/}
+  \item \url{https://github.com/jprybylski/xpose.xtras}
 }
 
 }

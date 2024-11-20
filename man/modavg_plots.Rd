@@ -109,6 +109,9 @@ function.}
 If passing \code{tidyselect} arguments, be mindful of where
 quosures might be needed. See Examples.}
 }
+\value{
+The desired plot
+}
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 
@@ -116,7 +119,7 @@ This is for use when the model averaging of a set
 is planned.
 }
 \examples{
-\dontrun{
+\donttest{
 
 pheno_set \%>\%
   dv_vs_ipred_modavg(run8,run9,run10, auto_backfill = TRUE)
@@ -134,8 +137,8 @@ pheno_set \%>\%
 pheno_set \%>\%
   plotfun_modavg(run8,run9,run10, auto_backfill = TRUE,
      avg_by_type = "eta",.fun = eta_vs_catcov,
-     # Note quosure
-     .funargs = list(etavar=rlang::quo(ETA1)))
+     # Note quoting
+     .funargs = list(etavar=quote(ETA1)))
 
 }
 }

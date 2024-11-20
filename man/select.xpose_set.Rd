@@ -11,6 +11,9 @@
 
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> (passed through to <\code{\link{select_subset}}>)}
 }
+\value{
+Subset of \code{xpose} set
+}
 \description{
 Selection method for xpose_set
 }

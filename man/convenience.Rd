@@ -9,6 +9,9 @@ is_formula_list(x)
 \arguments{
 \item{x}{object to test}
 }
+\value{
+\verb{<logical>} \code{TRUE} if is a list of formulas
+}
 \description{
 Convenience functions used in package
 }

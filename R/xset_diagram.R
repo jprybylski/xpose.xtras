@@ -19,6 +19,8 @@
 #'
 #' @export
 #'
+#' @returns A DiagrammeR-compliant graph object.
+#'
 #' @examples
 #'
 #' diagram_lineage(pheno_set) %>%

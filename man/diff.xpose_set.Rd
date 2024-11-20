@@ -19,7 +19,3 @@
 If no base model is provided, and if lineage is unclear,
 the first model in the \code{xpose_set} is used as the base model.
 }
-\examples{
-
-c()
-}

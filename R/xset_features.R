@@ -88,13 +88,10 @@ unset_base_model <- function(xpdb_s) {
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Passed to <[`xset_lineage`]>.
 #' `.spinner=FALSE` can also be set here.
 #'
-#' @return <`numeric`> vector of deltaOFV values
+#' @returns <`numeric`> vector of deltaOFV values
 #' @export
 #' @exportS3Method base::diff
 #'
-#' @examples
-#'
-#' c()
 diff.xpose_set <- function(x, ...) {
   xpdb_s <- x
   lineage <- xset_lineage(xpdb_s, ...)
@@ -138,7 +135,7 @@ diff.xpose_set <- function(x, ...) {
 #' @importFrom rlang is_interactive
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'
 #' xset_lineage(xpdb_set)
 #'
@@ -221,6 +218,8 @@ child_finder <- function(xpdb_s) {
 #' @param possible_child  ... <`xpose_set_item`> object suspected child
 #'
 #' @export
+#'
+#' @returns `<logical>` `TRUE` if LHS is parent of RHS
 #'
 #' @examples
 #'

@@ -9,6 +9,9 @@ xp_xtra_theme(base_on = NULL)
 \arguments{
 \item{base_on}{\code{xp_theme} object to extend}
 }
+\value{
+An \code{xpose} theme object
+}
 \description{
 Adds aesthetics for plot components used in this
 package.

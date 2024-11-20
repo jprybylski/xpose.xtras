@@ -23,6 +23,9 @@ file extension e.g. 'phi'.}
 \item{.where}{A vector of element names to be edited in special (e.g.
 \code{.where = c('vpc_dat', 'aggr_obs')} with vpc).}
 }
+\value{
+Group data in an \code{xpose} data object
+}
 \description{
 \code{group_by_x()} takes an existing table and converts it into a
 grouped table where operations are performed "by group". \code{ungroup()} removes grouping.

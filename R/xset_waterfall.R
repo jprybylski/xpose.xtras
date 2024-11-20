@@ -40,6 +40,7 @@
 #'   \item `t` text of change value (from `geom_text`)
 #' }
 #'
+#' @returns The desired plot
 #'
 #' @export
 #'

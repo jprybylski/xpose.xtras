@@ -53,6 +53,9 @@ eta_vs_catcov(
 
 \item{...}{Any additional aesthetics.}
 }
+\value{
+The desired plot
+}
 \description{
 Eta categorical covariate plots (typical)
 }
@@ -62,7 +65,7 @@ by the package \code{pmplots}, but is implements here within
 the \code{xpose} ecosystem for consistency.
 }
 \examples{
-\dontrun{
+\donttest{
 
 eta_vs_catcov(xpdb_x)
 

@@ -37,6 +37,9 @@ this option will simply scale SE to maintain the same RSE. See Details.}
 
 \item{quiet}{Silence extra output.}
 }
+\value{
+An updated \code{xp_xtras} object with mutated parameters
+}
 \description{
 Apply transformations to fitted parameter values.
 

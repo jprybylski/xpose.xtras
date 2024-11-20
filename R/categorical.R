@@ -46,6 +46,8 @@
 #'
 #' @export
 #'
+#' @returns The desired plot
+#'
 #' @examples
 #'
 #' # Test M3 model

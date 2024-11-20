@@ -27,6 +27,9 @@ will be dropped (\verb{the2, the3,...}). Fixed effect selectors only will work.}
 
 \item{quiet}{Silence extra output.}
 }
+\value{
+An updated \code{xp_xtras} object
+}
 \description{
 The relationship between structural parameters and
 omega parameters can be described. This is useful if

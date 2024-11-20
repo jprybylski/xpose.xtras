@@ -56,11 +56,14 @@ eta_vs_contcov(
 
 \item{...}{Any additional aesthetics.}
 }
+\value{
+The desired plot
+}
 \description{
 Eta continuous covariate plots (typical)
 }
 \examples{
-\dontrun{
+\donttest{
 
 eta_vs_contcov(xpdb_x)
 

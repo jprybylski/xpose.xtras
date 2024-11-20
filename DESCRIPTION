@@ -4,8 +4,12 @@ Version: 0.0.2
 Authors@R: 
     person("John", "Prybylski", , "john.prybylski@pfizer.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5802-0539"))
-Description: Adding some at-present missing functionality, or functions unlikely
-    to be added to the base 'xpose' package.
+Description: Adding some at-present missing functionality, or functions 
+    unlikely to be added to the base 'xpose' package.  This includes some 
+    diagnostic plots that have been missing in translation from 'xpose4', 
+    but also some useful features that truly extend the capabilities of what 
+    can be done with 'xpose'. These extensions include the concept of a set of
+    'xpose' objects, and diagnostics for likelihood-based models.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

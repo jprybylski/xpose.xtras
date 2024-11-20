@@ -39,6 +39,9 @@ These arguments are automatically quoted and evaluated in the
 context of the data frame. They support unquoting and splicing.
 See the dplyr vignette("programming") for an introduction to these concepts.}
 }
+\value{
+The modified \code{xpose_data} object
+}
 \description{
 Generic function used to build dedicated editing functions
 }

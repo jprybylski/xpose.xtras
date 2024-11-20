@@ -103,6 +103,7 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
 #' @param x The column to be used for computing simulation number, usually the ID column.
 #' @param quiet Logical, if \code{FALSE} messages are printed to the console.
 #'
+#' @returns `<numeric>` vector tracking the number of simulations based on unique subject IDs.
 #' @examples
 #' data("xpdb_ex_pk", package = "xpose")
 #'
@@ -151,6 +152,8 @@ irep <- function(x, quiet = FALSE) {
 #' context of the data frame. They support unquoting and splicing.
 #' See the dplyr vignette("programming") for an introduction to these concepts.
 #' @keywords internal
+#'
+#' @returns The modified `xpose_data` object
 #' @export
 edit_xpose_data <- function(.fun, .fname, .data, ..., .problem, .source, .where, check_quos = FALSE) {
 
@@ -262,6 +265,7 @@ edit_xpose_data <- function(.fun, .fname, .data, ..., .problem, .source, .where,
 #' the same as <[`xpose::mutate`]>.
 #'
 #' @inheritParams edit_xpose_data
+#' @returns An updated `xpose` data object
 #'
 #' @name modify_xpdb
 #' @export
@@ -287,6 +291,7 @@ rename_x <- function(.data, ..., .problem, .source, .where) {
 #' the same as <[`xpose::group_by`]>.
 #'
 #' @inheritParams edit_xpose_data
+#' @returns Group data in an `xpose` data object
 #'
 #' @name summarise_xpdb
 #' @export

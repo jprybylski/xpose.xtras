@@ -37,7 +37,7 @@
 #'
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'
 #' eta_grid(xpdb_x)
 #' cov_grid(xpdb_x)
@@ -401,9 +401,10 @@ eta_vs_cov_grid <- function(xpdb,
 #' @param ... Any additional aesthetics.
 #'
 #' @export
+#' @returns The desired plot
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'
 #' eta_vs_contcov(xpdb_x)
 #'
@@ -551,6 +552,8 @@ eta_vs_contcov <- function(xpdb,
 #'
 #' @export
 #'
+#' @returns The desired plot
+#'
 #' @details
 #' The ability to show number per covariate level is inspired
 #' by the package `pmplots`, but is implements here within
@@ -558,7 +561,7 @@ eta_vs_contcov <- function(xpdb,
 #'
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'
 #' eta_vs_catcov(xpdb_x)
 #'

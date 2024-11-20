@@ -16,13 +16,15 @@ select_subset(xpdb_s, ...)
 }
 \description{
 This is intended for use as an internal function to select a subset of xpdb objects from an xpose_set.
+
+It is a lower level version of <\code{\link{select.xpose_set}}>
 }
 \examples{
 
 
-xpose.xtras:::select_subset(mod2, xpdb_s=xpdb_set)
+select_subset(mod2, xpdb_s=xpdb_set)
 
-xpose.xtras:::select_subset(dplyr::starts_with("fix"), xpdb_s=xpdb_set)
+select_subset(dplyr::starts_with("fix"), xpdb_s=xpdb_set)
 
 
 }

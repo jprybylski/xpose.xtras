@@ -102,7 +102,7 @@ be an issue, but it could look like an error has occurred if many covariates
 and individual parameter estimates are included.
 }
 \examples{
-\dontrun{
+\donttest{
 
 eta_grid(xpdb_x)
 cov_grid(xpdb_x)

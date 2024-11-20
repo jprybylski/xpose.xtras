@@ -17,6 +17,9 @@
 
 \item{.rowwise}{<\code{\link{logical}}> Should the mutation be applied rowwise? (default: \code{FALSE})}
 }
+\value{
+A set with updated top-level data (unless focused)
+}
 \description{
 Mutation method for xpose_set
 }

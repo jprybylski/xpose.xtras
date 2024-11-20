@@ -23,6 +23,9 @@ file extension e.g. 'phi'.}
 \item{.where}{A vector of element names to be edited in special (e.g.
 \code{.where = c('vpc_dat', 'aggr_obs')} with vpc).}
 }
+\value{
+An updated \code{xpose} data object
+}
 \description{
 \code{mutate_x()} adds new variables and preserves existing ones.
 \code{select()} keeps only the listed variables; \code{rename()} keeps all variables.

@@ -11,6 +11,9 @@
 
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> (passed through to <\code{\link[dplyr:pull]{pull}}>)}
 }
+\value{
+The top-level information for a set requested.
+}
 \description{
 Pulling method for xpose_set
 }

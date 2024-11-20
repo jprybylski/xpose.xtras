@@ -23,6 +23,9 @@ xp_var(xpdb, .problem, col = NULL, type = NULL, silent = FALSE)
 
 \item{silent}{Should the function be silent or return errors.}
 }
+\value{
+A tibble of identified variables.
+}
 \description{
 To add a small amount of functionality to <\code{\link[xpose:xp_var]{xp_var}}>,
 this method was created.

@@ -64,6 +64,9 @@ pred_vs_pred(
 
 \item{quiet}{Silence output}
 }
+\value{
+The desired plot
+}
 \description{
 For two models in an \code{xpose_set}, these functions are useful in comparing individual
 and population predictions

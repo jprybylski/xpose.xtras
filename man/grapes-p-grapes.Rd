@@ -11,6 +11,9 @@ possible_parent \%p\% possible_child
 
 \item{possible_child}{... <\code{xpose_set_item}> object suspected child}
 }
+\value{
+\verb{<logical>} \code{TRUE} if LHS is parent of RHS
+}
 \description{
 Binary check if LHS is parent of LHS
 }

@@ -49,6 +49,9 @@ column name) or label it based on the probability/likelihood it is estimating.}
 
 \item{...}{Any additional aesthetics.}
 }
+\value{
+The desired plot
+}
 \description{
 These plots attempt to provide a means of verifying that the
 estimated likelihoods and probabilities for categorical outcomes

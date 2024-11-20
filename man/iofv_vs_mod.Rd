@@ -58,12 +58,15 @@ basis.}
 
 \item{quiet}{Silence output}
 }
+\value{
+The desired plot
+}
 \description{
 Another visualization of how individual objective functions change over
 the course of model development.
 }
 \examples{
-\dontrun{
+\donttest{
 
 pheno_set \%>\%
   focus_qapply(backfill_iofv) \%>\%

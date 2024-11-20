@@ -11,6 +11,9 @@
 
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> (passed indirectly to <\code{\link[dplyr:mutate]{dplyr::mutate}}>)}
 }
+\value{
+Re-labeled set
+}
 \description{
 Renaming method for xpose_set
 }

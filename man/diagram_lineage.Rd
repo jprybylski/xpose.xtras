@@ -11,6 +11,9 @@ diagram_lineage(xpdb_s, ...)
 
 \item{...}{For later expansion. Will be ignored.}
 }
+\value{
+A DiagrammeR-compliant graph object.
+}
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 

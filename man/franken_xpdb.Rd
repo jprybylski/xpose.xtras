@@ -36,7 +36,7 @@ of specific plotting functions
 \examples{
 
 
-xpose.xtras:::franken_xpdb(pheno_base, pheno_final, .types="catcov") \%>\%
+franken_xpdb(pheno_base, pheno_final, .types="catcov") \%>\%
   xpose::get_data() \%>\%
   select(starts_with("APGR"))
 

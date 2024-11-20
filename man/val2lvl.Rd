@@ -11,6 +11,9 @@ val2lvl(vals, lvl_tbl = NULL)
 
 \item{lvl_tbl}{tibble of levels}
 }
+\value{
+A vector of levels corresponding to the input vector.
+}
 \description{
 This is intended to be used as a convenience function
 in plotting where levels are set for some variable.

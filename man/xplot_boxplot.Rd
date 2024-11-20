@@ -62,6 +62,9 @@ xplot_boxplot(
 
 \item{...}{Any additional aesthetics.}
 }
+\value{
+The desired plot
+}
 \description{
 Manually generate boxplots from an xpdb object.
 }
