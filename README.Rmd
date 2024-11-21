@@ -35,12 +35,16 @@ For those wondering, [`conflicted`](https://conflicted.r-lib.org/) is used to ma
 
 ## Installation
 
-This package is currently only available here, but submission to CRAN is planned soon.
+The package can be installed from CRAN:
 
-The typical github installation will work.
+```{r install_cran, eval=FALSE}
+install.packages("xpose.xtras")
+```
+
+The typical github installation will also work.
 
 ```{r install, eval=FALSE}
-devtools::install_github("jprybylski/xpose.xtras")
+remotes::install_github("jprybylski/xpose.xtras")
 ```
 
 ## Preview

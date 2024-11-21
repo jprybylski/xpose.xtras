@@ -33,13 +33,16 @@ packages in any order.
 
 ## Installation
 
-This package is currently only available here, but submission to CRAN is
-planned soon.
-
-The typical github installation will work.
+The package can be installed from CRAN:
 
 ``` r
-devtools::install_github("jprybylski/xpose.xtras")
+install.packages("xpose.xtras")
+```
+
+The typical github installation will also work.
+
+``` r
+remotes::install_github("jprybylski/xpose.xtras")
 ```
 
 ## Preview
