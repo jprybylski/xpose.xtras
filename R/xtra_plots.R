@@ -328,7 +328,7 @@ grab_xpose_plot <- function(plot) {
 #'
 #'
 wrap_xp_ggally <- function(fn, xp_theme, ...) {
-  assertthat::is.string(fn)
+  checkmate::assertString(fn)
   ggally_fun <- utils::getFromNamespace(paste0("ggally_",fn), "GGally")
   theme_name <- paste0("gga",fn)
   function(data = NULL, mapping = NULL) {
