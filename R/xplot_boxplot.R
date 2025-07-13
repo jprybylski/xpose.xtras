@@ -160,18 +160,23 @@ xplot_boxplot <- function(xpdb,
 
   # Add jitter
   if (missing(jitter_seed) || !is.numeric(jitter_seed)) jitter_seed <- sample(1:1000, 1)
+  jitter_dims <- if(orientation=="x") c(0.2,0) else c(0,0.2) # width, height
   if (check_type$j) {
     xp <- xp + xpose::xp_geoms(mapping  = mapping,
                                xp_theme = xpdb$xp_theme,
                                name     = 'jitter',
                                ggfun    = 'geom_point',
-                               jitter_position = ggplot2::position_jitter(seed = jitter_seed, width = 0.2),
+                               jitter_position = ggplot2::position_jitter(seed = jitter_seed,
+                                                                          width = jitter_dims[1],
+                                                                          height = jitter_dims[2]),
                                ...)
   }
 
   # Add connecting lines for jitter
   if (check_type$c) {
-    this_pos <- if (check_type$j) ggplot2::position_jitter(seed = jitter_seed, width = 0.2) else ggplot2::position_identity()
+    this_pos <- if (check_type$j) ggplot2::position_jitter(seed = jitter_seed,
+                                                           width = jitter_dims[1],
+                                                           height = jitter_dims[2]) else ggplot2::position_identity()
     xp <- xp + xpose::xp_geoms(mapping  = c(mapping, aes(line_group = .data[[group]])),
                                xp_theme = xpdb$xp_theme,
                                name     = 'line',
