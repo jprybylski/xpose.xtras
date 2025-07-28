@@ -25,9 +25,6 @@
 #'
 #'
 get_shk <- function(xpdb, wh = "eta", .problem = NULL, .subprob = NULL, .method=NULL) {
-
-  fill_prob_subprob_method(xpdb, .problem = .problem, .subprob=.subprob, .method=.method)
-
   get_prop(
       xpdb = xpdb,
       prop = stringr::str_c(wh, "shk"),
@@ -49,6 +46,7 @@ get_shk <- function(xpdb, wh = "eta", .problem = NULL, .subprob = NULL, .method=
 #' @param .problem <`numeric`> Problem number to use. Uses the xpose default if not provided.
 #' @param .subprob <`numeric`> Subproblem number to use. Uses the xpose default if not provided.
 #' @param .method <`character`> Method to use. Uses the xpose default if not provided.
+#' @param .tail <`numeric`> Length of terminal values to pull when there are more than 1 result
 #'
 #' @return Exact value for the property
 #' @export
@@ -58,24 +56,66 @@ get_shk <- function(xpdb, wh = "eta", .problem = NULL, .subprob = NULL, .method=
 #' data("xpdb_ex_pk", package = "xpose")
 #'
 #' get_prop(xpdb_ex_pk, "descr")
-get_prop <- function(xpdb, prop, .problem = NULL, .subprob=NULL, .method=NULL) {
-
-  fill_prob_subprob_method(xpdb, .problem = .problem, .subprob=.subprob, .method=.method)
+get_prop <- function(xpdb, prop, .problem = NULL, .subprob=NULL, .method=NULL, .tail=1) {
+  rlang::try_fetch(
+    checkmate::assert_scalar(.problem, null.ok = TRUE),
+    error = \(s) rlang::abort("", parent=s)
+  )
+  rlang::try_fetch(
+    checkmate::assert_scalar(.subprob, null.ok = TRUE),
+    error = \(s) rlang::abort("", parent=s)
+  )
+  rlang::try_fetch(
+    checkmate::assert_scalar(.method, null.ok = TRUE),
+    error = \(s) rlang::abort("", parent=s)
+  )
+  rlang::try_fetch(
+    checkmate::assert_scalar(prop),
+    error = \(s) rlang::abort("Request one property at a time from the xpdb model summary.", parent=s)
+  )
 
   summ <- xpose::get_summary(xpdb)
 
-  if (length(prop)>1) {
-    rlang::abort("Request one property at a time from the xpdb model summary.")
+  # If subprob is NULL and method is not, determine subprob for method
+  # TODO: Consider if this should be moved to fill_prob_subprob_method
+  if (is.null(.subprob) && !is.null(.method)) {
+    # Find the summary column that matches the method argument
+    all_methods <- summ %>%
+      dplyr::filter(label=="method") %>%
+      dplyr::filter(stringr::str_detect(value, tolower(.method)))
+    # If .problem is not null, also filter on that
+    if (!is.null(.problem)) all_methods <- dplyr::filter(all_methods, problem==.problem)
+    if (nrow(all_methods)==0)
+      cli::cli_abort("No method {.method} found in summary.")
+    # Pick last subprob
+    .subprob <- tail(all_methods$subprob, 1)
   }
+
+  fill_prob_subprob_method(xpdb, .problem = .problem, .subprob=.subprob, .method=.method, for_summary = TRUE)
+
   if (!prop %in% summ$label) {
     cli::cli_abort("{cli::col_cyan(prop)} not in xpdb model summary.")
   }
 
-  summ %>%
-    dplyr::filter(label==prop) %>%
-    # Include 0 for non-problem values
-    dplyr::filter(problem %in% c(0,.problem), subprob  %in% c(0,.subprob)) %>%
-    dplyr::pull(value)
+  # Pull subset of summary with the prop
+  prop_ <- summ %>%
+    dplyr::filter(label==prop)
+
+
+  # If all problem and subprob numbers are 0, return value
+  if (all(prop_$problem==0) && all(prop_$subprob==0))
+    return(prop_$value)
+
+  # If not, return property value(s) that match.
+  # Include 0 as some properties (eg, for simulations) will have NA subprob
+  prop_ %>%
+    dplyr::filter(problem == .problem, subprob %in% c(0,.subprob)) %>%
+    {
+      if (nrow(.)==0) cli::cli_abort("No summary item matching .problem { .problem}, .subprob { .subprob} and .method { .method}")
+      .
+    } %>%
+    dplyr::pull(value) %>%
+    tail(.tail)
 }
 
 #' Set a summary property
@@ -254,7 +294,7 @@ is_formula_list <- function(x) {
 reportable_digits <- function(xpdb, .default = 3, .problem, .subprob, .method) {
   xpose::check_xpdb(xpdb, "summary")
 
-  fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob, .method=.method)
+  fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob, .method=.method, for_summary = TRUE)
 
   digs <- rlang::try_fetch(
     floor(
@@ -396,10 +436,11 @@ desc_from_comments <- function(
 #' @param .subprob `NULL` or missing
 #' @param .method `NULL` or missing
 #' @param envir <`environment`> in which to assign the problem info.
+#' @param for_summary <`logical`> If used for summary functions, subprob needs to be adjusted for zero-indexing
 #'
 #' @keywords Internal
 #'
-fill_prob_subprob_method <- function(xpdb, .problem, .subprob, .method, envir=parent.frame()) {
+fill_prob_subprob_method <- function(xpdb, .problem, .subprob, .method, envir=parent.frame(), for_summary = FALSE) {
   # Do generic checks for .problem, .subprob and .method, push to envir
   xpose::check_xpdb(xpdb, check = "files")
 
@@ -407,16 +448,21 @@ fill_prob_subprob_method <- function(xpdb, .problem, .subprob, .method, envir=pa
     rlang::abort("File extension `ext` needed and is missing.")
   }
 
+
   if (missing(.problem) || is.null(.problem))
     .problem <- xpose::last_file_problem(xpdb, ext = "ext")
-  if (missing(.subprob) || is.null(.subprob))
+  if (missing(.subprob) || is.null(.subprob)) {
     .subprob <- xpose::last_file_subprob(xpdb, ext = "ext", .problem = .problem)
+    return_subprob <- .subprob - as.integer(for_summary) # If this function interacts with xpose summary (as usual), .subprob needs to be 0-indexed instead of 1-indexed
+  } else {
+    return_subprob <- .subprob
+  }
   if (missing(.method) || is.null(.method))
     .method <- xpose::last_file_method(xpdb, ext = "ext", .problem = .problem,
                                        .subprob = .subprob)
 
   assign(".problem", .problem, envir = envir)
-  assign(".subprob", .subprob, envir = envir)
+  assign(".subprob", return_subprob, envir = envir)
   assign(".method", .method, envir = envir)
   return()
 }

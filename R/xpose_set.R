@@ -484,7 +484,8 @@ expose_property <- function(
           if (prop %in% prob_props) {
             # fill problem etc info
             fill_prob_subprob_method(
-              xpdb, .problem=.problem, .subprob=.subprob
+              xpdb, .problem=.problem, .subprob=.subprob,
+              for_summary = TRUE
             )
           }
 

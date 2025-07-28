@@ -494,6 +494,7 @@ backfill_iofv <- function(xpdb, .problem=NULL, .subprob=NULL, .label = "iOFV") {
     cli::cli_abort("This backfill function only works for nonmem-based objects, not those from {.strong {cli::col_yellow(xpose::software(xpdb))}}")
 
   xpose::check_xpdb(xpdb, "data")
+  is_subprob_null <- is.null(.subprob)
   fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob) # fills in .problem and .subprob if missing
 
   if (!"phi" %in% xpdb$files$extension) rlang::abort("phi table not found in files.")
