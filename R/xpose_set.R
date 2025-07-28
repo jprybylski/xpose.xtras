@@ -817,6 +817,7 @@ focused_xpdbs <- function(xpdb_s) {
 focus_function <- function(xpdb_s, fn, ...) {
   focused <- focused_xpdbs(xpdb_s)
   if (length(focused)==0) rlang::abort("No xpdb objects are focused.")
+  fn <- purrr::as_mapper(fn)
 
   out <- reshape_set(xpdb_s) %>%
     dplyr::rowwise() %>%
