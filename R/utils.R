@@ -441,9 +441,39 @@ desc_from_comments <- function(
 #' @keywords Internal
 #'
 fill_prob_subprob_method <- function(xpdb, .problem, .subprob, .method, envir=parent.frame(), for_summary = FALSE) {
+
+  # If not nonmem, just use reasonable defaults that are consistent with nonmem approach
+  if (xpose::software(xpdb)!="nonmem") {
+    summ <- xpose::get_summary(xpdb) %>%
+      # nonmem approach only selects estimations
+      dplyr::filter(label=="method")
+
+    if (nrow(summ)==0) {
+      cli::cli_warn("Model from {xpose::software(xpdb)} may not be compatible with {package_flex}.")
+      ssign(".problem", 0, envir = envir)
+      assign(".subprob", 0, envir = envir)
+      assign(".method", "", envir = envir)
+      return()
+    }
+
+    if (missing(.problem) || is.null(.problem))
+      .problem <- tail(summ$problem,1)
+    if (missing(.subprob) || is.null(.subprob))
+      .subprob <- tail(summ$subprob,1)
+    if (missing(.method) || is.null(.method))
+      .method <- tail(summ$value,1)
+
+    assign(".problem", .problem, envir = envir)
+    assign(".subprob", .subprob, envir = envir)
+    assign(".method", .method, envir = envir)
+
+    return()
+  }
+
   # Do generic checks for .problem, .subprob and .method, push to envir
   xpose::check_xpdb(xpdb, check = "files")
 
+  # Proceed for nonmem
   if (!any(xpdb$files$extension == "ext")) {
     rlang::abort("File extension `ext` needed and is missing.")
   }

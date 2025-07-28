@@ -8,6 +8,8 @@
 [![R-CMD-check](https://github.com/jprybylski/xpose.xtras/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jprybylski/xpose.xtras/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
 coverage](https://codecov.io/gh/jprybylski/xpose.xtras/graph/badge.svg)](https://app.codecov.io/gh/jprybylski/xpose.xtras)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/xpose.xtras)](https://CRAN.R-project.org/package=xpose.xtras)
 <!-- badges: end -->
 
 ## Introduction

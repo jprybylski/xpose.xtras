@@ -132,7 +132,10 @@
 #' # Dropping association is easy
 #' bad_assoc <- pheno_final %>%
 #'    add_prm_association(the1~logit(IIVCL),Vpkg~logit(IIVV))
-#' bad_assoc
+#' bad_assoc %>% get_prm()
+#' bad_assoc %>%
+#'   drop_prm_association(the1) %>%
+#'   get_prm()
 #'
 add_prm_association <- function(
   xpdb,
@@ -517,6 +520,8 @@ get_prm.xp_xtras <- function(
     cli::cli_abort("{cli::col_blue('xp_xtras')} object required.")
   if (missing(quiet)) quiet <- xpdb$options$quiet
   fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
+
+  # TODO: Add a means to get equivalent table for nlmixr2 xpose data objects so associations can work
 
   if (is.null(digits)) digits <- reportable_digits(xpdb,.problem=.problem, .subprob=.subprob, .method=.method)
   # Get basic param table

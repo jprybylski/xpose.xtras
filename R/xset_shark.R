@@ -115,12 +115,7 @@ shark_plot <- function(
   # Now have mod1 and mod2
 
   # Default to the settings for mod1
-  if (missing(.problem)) .problem <- xpose::default_plot_problem(mod1$xpdb)
-  if (missing(.subprob))
-    .subprob <- xpose::last_file_subprob(mod1$xpdb, ext = "ext", .problem = .problem)
-  if (missing(.method))
-    .method <- xpose::last_file_method(mod1$xpdb, ext = "ext", .problem = .problem,
-                                       .subprob = .subprob)
+  fill_prob_subprob_method(mod1$xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
   if (missing(quiet)) quiet <- mod1$xpdb$options$quiet
 
   # Make sure both models have iofv
@@ -214,6 +209,12 @@ shark_plot <- function(
                         "since these are probably the same model."))
 
   # Significance of dOFV
+  if (df == "guess" &&
+      (xpose::software(mod1$xpdb)!="nonmem" || xpose::software(mod2$xpdb)!="nonmem")) {
+    if (xpose::software(mod1$xpdb)!="nonmem" || xpose::software(mod2$xpdb)!="nonmem")
+      cli::cli_alert_warning("Currently cannot guess `df` for software other than nonmem. Defaulting to 1.")
+    df <- 1
+  }
   if (df == "guess") {
     prm1 <- xpose::get_prm(mod1$xpdb, .problem = .problem, .subprob = .subprob, .method = .method, quiet = quiet)
     prm2 <- xpose::get_prm(mod2$xpdb, .problem = .problem, .subprob = .subprob, .method = .method, quiet = quiet)

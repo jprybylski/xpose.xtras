@@ -131,7 +131,7 @@ print.xp_xtras <- function(x, ...) {
   package_flex <- cli::col_magenta(paste(cli::style_bold("~"), "xp_xtras"))
   cli::cli({
     cli::cli_h3("{package_flex} object")
-    cli::cli_text("{cli::style_bold('Model description')}: {get_prop(x, 'descr')}")
+    cli::cli_text("{cli::style_bold('Model description')}: {get_prop(x, 'descr', .problem=0, .subprob=0)}")
     cli::cli_verbatim(capture.output(NextMethod()))
   })
 }
@@ -475,8 +475,10 @@ lvl_inord <- function(x, .start_index = 1) {
 #'
 #' @details
 #' This function will only work for objects with software listed as
-#' `nonmem`, which has a `phi` file and with an `OBJ` column in that
-#' file.
+#' `nonmem` or `nlmixr2`. For `nonmem`, the object should haves a `phi`
+#' file and with an `OBJ` column in that file. For `nlmixr2`, the fit
+#' object data should have individual observation likelihoods in a column
+#' called `NLMIXRLLIKOBS` (this is a current standard, but is checked at runtime).
 #'
 #'
 #' @return <`xp_xtras`> object with new column in the data and a
@@ -490,29 +492,55 @@ lvl_inord <- function(x, .start_index = 1) {
 #'   list_vars()
 #'
 backfill_iofv <- function(xpdb, .problem=NULL, .subprob=NULL, .label = "iOFV") {
-  if (xpose::software(xpdb) != 'nonmem')
-    cli::cli_abort("This backfill function only works for nonmem-based objects, not those from {.strong {cli::col_yellow(xpose::software(xpdb))}}")
+  allowed_software <- c("nonmem","nlmixr2")
+  rlang::try_fetch(
+    checkmate::assert_choice(xpose::software(xpdb), allowed_software),
+    error = function(s)
+      cli::cli_abort("This backfill function only works for {allowed_software} model objects, not those from {.strong {cli::col_yellow(xpose::software(xpdb))}}", parent = s)
+  )
+
 
   xpose::check_xpdb(xpdb, "data")
-  is_subprob_null <- is.null(.subprob)
   fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob) # fills in .problem and .subprob if missing
 
-  if (!"phi" %in% xpdb$files$extension) rlang::abort("phi table not found in files.")
+  new_xpdb <- as_xp_xtras(xpdb)
+  if (xpose::software(xpdb)=="nonmem") {
+    # Get from nonmem phi file
+    if (!"phi" %in% xpdb$files$extension) rlang::abort("phi table not found in files.")
 
-  # Get iOFV from phi
-  phi_df <- xpdb$files %>%
-    dplyr::filter(extension=="phi", problem==.problem, subprob==.subprob) %>%
-    dplyr::pull(data) %>%
-    .[[1]]
-  # Change any objective function to the default (for labeling purposes)
-  if (any(
-    stringr::str_detect(names(phi_df), "^.+OBJ$")
+    # Get iOFV from phi
+    phi_df <- xpdb$files %>%
+      dplyr::filter(extension=="phi", problem==.problem, subprob==.subprob) %>%
+      dplyr::pull(data) %>%
+      .[[1]]
+    # Change any objective function to the default (for labeling purposes)
+    if (any(
+      stringr::str_detect(names(phi_df), "^.+OBJ$")
     )) phi_df <- dplyr::rename_with(phi_df, ~"OBJ", .cols=dplyr::matches("^.+OBJ$"))
-  match_obj <- function(id) {
-    phi_df$OBJ[match(id,phi_df$ID)]
+    match_obj <- function(id) {
+      phi_df$OBJ[match(id,phi_df$ID)]
+    }
+  } else if (xpose::software(xpdb)=="nlmixr2") {
+    # For nlmixr2, manually calculate with NLMIXRLLIKOBS column
+    fit_data <- xpose::get_data(xpdb, .problem=.problem)
+
+    req_col <- "NLMIXRLLIKOBS"
+
+    if (!req_col %in% names(fit_data)) cli::cli_abort("Required column {req_col} not in the data.")
+    id_col <- xp_var(new_xpdb, .problem = .problem, type = "id")$col[1]
+    phi_df <- fit_data %>%
+      dplyr::select(dplyr::all_of(c(id_col,req_col))) %>%
+      dplyr::group_by(!!dplyr::sym(id_col)) %>%
+      dplyr::summarise(
+        OBJ = sum(!!dplyr::sym(req_col))
+      ) %>%
+      dplyr::ungroup()
+    match_obj <- function(id) {
+      phi_df$OBJ[match(id,phi_df[[id_col]])]
+    }
   }
 
-  new_xpdb <- as_xp_xtras(xpdb)
+
   for (prob in .problem) {
     # ID column
     id_col <- xp_var(new_xpdb, .problem = prob, type = "id")$col[1] # Should only be 1 id but just in case
