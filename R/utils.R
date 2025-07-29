@@ -450,7 +450,7 @@ fill_prob_subprob_method <- function(xpdb, .problem, .subprob, .method, envir=pa
 
     if (nrow(summ)==0) {
       cli::cli_warn("Model from {xpose::software(xpdb)} may not be compatible with {package_flex}.")
-      ssign(".problem", 0, envir = envir)
+      assign(".problem", 0, envir = envir)
       assign(".subprob", 0, envir = envir)
       assign(".method", "", envir = envir)
       return()
