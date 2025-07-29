@@ -95,7 +95,7 @@ iofv_vs_mod <- function(
   nicer_labs <- purrr::map_chr(xpdb_l,~xpose::parse_title(axis.text,.x, .problem))
   if (any(duplicated(nicer_labs))) {
     cli::cli_alert_warning("Duplicate values for default {.code axis.text}. Making result unique.")
-    if (xpose::software(xpose_subset[[1]]$xpdb)=="nlmixr2")
+    if (any(purrr::map_lgl(xpose_subset, ~ xpose::software(.x$xpdb)=="nlmixr2")))
       cli::cli_alert_info("For {.strong nlmixr2} models, sometimes '@file' is a better {.code axis.text}")
     nicer_labs <- make.unique(nicer_labs)
   }

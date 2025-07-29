@@ -30,10 +30,10 @@ as_xpdb_x <- function(x) {
     # Space for levels and probs in index
     new_x$data <- new_x$data %>%
       # add nested levels to index
-      mutate(
+      dplyr::mutate(
         index = purrr::map(index, ~{
-          mutate(.x, levels = list(tibble::tibble())) %>%
-            mutate(probs = list(tibble::tibble()))
+          dplyr::mutate(.x, levels = list(tibble::tibble())) %>%
+            dplyr::mutate(probs = list(tibble::tibble()))
         })
       )
 
@@ -128,11 +128,21 @@ check_xp_xtras <- function(...) check_xpdb_x(...)
 #' @method print xp_xtras
 #' @export
 print.xp_xtras <- function(x, ...) {
-  package_flex <- cli::col_magenta(paste(cli::style_bold("~"), "xp_xtras"))
+  default_out <- capture.output(NextMethod())
+  if (xpose::software(x) == "nlmixr2") {
+    where_special <- which(stringr::str_detect(default_out, "\\s*\\W\\sspecial: "))
+    default_out <- c(
+      default_out[1:where_special],
+      stringr::str_replace(default_out[where_special], "special:.*", paste("fit:", ifelse(
+        test_nlmixr2_has_fit(x), "attached as (this)$fit", "<none>"
+      ))),
+      tail(default_out, -where_special)
+    )
+  }
   cli::cli({
     cli::cli_h3("{package_flex} object")
     cli::cli_text("{cli::style_bold('Model description')}: {get_prop(x, 'descr', .problem=0, .subprob=0)}")
-    cli::cli_verbatim(capture.output(NextMethod()))
+    cli::cli_verbatim(default_out)
   })
 }
 

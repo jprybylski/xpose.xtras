@@ -449,7 +449,7 @@ fill_prob_subprob_method <- function(xpdb, .problem, .subprob, .method, envir=pa
       dplyr::filter(label=="method")
 
     if (nrow(summ)==0) {
-      cli::cli_warn("Model from {xpose::software(xpdb)} may not be compatible with {package_flex}.")
+      cli::cli_warn("Model from {.strong {xpose::software(xpdb)}} may not be compatible with {package_flex}.")
       assign(".problem", 0, envir = envir)
       assign(".subprob", 0, envir = envir)
       assign(".method", "", envir = envir)
@@ -495,4 +495,36 @@ fill_prob_subprob_method <- function(xpdb, .problem, .subprob, .method, envir=pa
   assign(".subprob", return_subprob, envir = envir)
   assign(".method", .method, envir = envir)
   return()
+}
+
+
+#' Logical instead of exception for xpose data check
+#'
+#' @inheritParams xpose::check_xpdb
+#'
+#' @keywords internal
+#' @export
+#'
+test_xpdb <- function(
+    xpdb, check="data"
+) {
+  test_check <- purrr::safely(xpose::check_xpdb)(xpdb=xpdb, check=check)
+  is.null(test_check$error)
+}
+
+
+#' Mutate the file table for an xpose data object
+#'
+#' @param xpdb <`xpose data`> object
+#' @param ... Forwarded to [mutate()][dplyr::mutate()]
+#'
+#' @keywords internal
+#'
+mutate_files <- function(xpdb, ...) {
+  xpose:::check_xpdb(xpdb)
+  if (!test_xpdb(xpdb, "files")) return(xpdb)
+  revert_to_xpdb_fn <- if (is_xp_xtras(xpdb)) as_xp_xtras else xpose::as.xpdb
+
+  xpdb$files <- dplyr::mutate(xpdb$files, ...)
+  revert_to_xpdb_fn(xpdb)
 }

@@ -54,7 +54,7 @@ iofv_waterfall(
   max_nind = 0.7,
   scale_diff = FALSE,
   show_n = TRUE,
-  title = "iOFV changes between models | @run",
+  title = "iOfv changes between models | @run",
   subtitle = "Based on @nobs observations in @nind individuals",
   caption = "@dir",
   tag = NULL,

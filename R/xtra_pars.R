@@ -491,17 +491,26 @@ get_prm.default <- function(
     digits = 4,
     transform = TRUE,
     show_all = FALSE,
-    quiet
-) {
+    quiet) {
   if (check_xpdb_x(xpdb, .warn = FALSE)) {
-    return(get_prm.xp_xtras(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
-                            .method = .method, transform = transform,
-                            show_all = show_all, quiet=quiet))
+    return(get_prm.xp_xtras(
+      xpdb = xpdb, .problem = .problem, .subprob = .subprob,
+      .method = .method, transform = transform,
+      show_all = show_all, quiet = quiet
+    ))
   }
 
-  xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
-                 .method = .method, digits = digits, transform = transform,
-                 show_all = show_all, quiet=quiet)
+  implemented_prm_software <- c("nlmixr2")
+  if (xpose::software(xpdb) %in% implemented_prm_software) {
+    cli::cli_abort("For {.strong {xpose::software(xpdb)}} models, convert to {package_flex} object before doing this action.")
+  } else if (xpose::software(xpdb) != "nonmem") {
+    cli::cli_abort("For {.strong {xpose::software(xpdb)}} models, {.emph extra} parameter functionality is not implemented.")
+  }
+  xpose::get_prm(
+    xpdb = xpdb, .problem = .problem, .subprob = .subprob,
+    .method = .method, digits = digits, transform = transform,
+    show_all = show_all, quiet = quiet
+  )
 }
 
 #' @method get_prm xp_xtras
@@ -1039,6 +1048,7 @@ mutate_prm_proc <- function(mutp_list,.problem,.subprob,.method) {
 # Pulled out to isolate this logic.
 # Surgical update of enclosed file values.
 # Not intended to be used by end users, so can avoid some boilerplate
+# See mutate_files for a generic application
 mutate_in_file <- function(
     xpdb,
     val,

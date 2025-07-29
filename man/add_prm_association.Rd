@@ -134,7 +134,10 @@ pheno_base \%>\%
 # Dropping association is easy
 bad_assoc <- pheno_final \%>\%
    add_prm_association(the1~logit(IIVCL),Vpkg~logit(IIVV))
-bad_assoc
+bad_assoc \%>\% get_prm()
+bad_assoc \%>\%
+  drop_prm_association(the1) \%>\%
+  get_prm()
 
 }
 \references{

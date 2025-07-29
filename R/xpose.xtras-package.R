@@ -25,3 +25,5 @@ NULL
 
 
 default_spinner <- "dots"
+
+package_flex <- cli::col_magenta(paste(cli::style_bold("~"), "xp_xtras"))

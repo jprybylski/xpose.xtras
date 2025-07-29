@@ -9,7 +9,8 @@ fill_prob_subprob_method(
   .problem,
   .subprob,
   .method,
-  envir = parent.frame()
+  envir = parent.frame(),
+  for_summary = FALSE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ fill_prob_subprob_method(
 \item{.method}{\code{NULL} or missing}
 
 \item{envir}{<\code{environment}> in which to assign the problem info.}
+
+\item{for_summary}{<\code{logical}> If used for summary functions, subprob needs to be adjusted for zero-indexing}
 }
 \description{
 Since this is a common need, it is being functionalized

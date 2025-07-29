@@ -24,8 +24,10 @@ Add individual objective function to data
 }
 \details{
 This function will only work for objects with software listed as
-\code{nonmem}, which has a \code{phi} file and with an \code{OBJ} column in that
-file.
+\code{nonmem} or \code{nlmixr2}. For \code{nonmem}, the object should haves a \code{phi}
+file and with an \code{OBJ} column in that file. For \code{nlmixr2}, the fit
+object data should have individual observation likelihoods in a column
+called \code{NLMIXRLLIKOBS} (this is a current standard, but is checked at runtime).
 }
 \examples{
 

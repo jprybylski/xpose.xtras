@@ -1,6 +1,6 @@
 Package: xpose.xtras
 Title: Extra Functionality for the 'xpose' Package
-Version: 0.0.2.9000
+Version: 0.1.0.9000
 Authors@R: 
     person("John", "Prybylski", , "john.prybylski@pfizer.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-5802-0539"))
@@ -42,9 +42,13 @@ Suggests:
     DiagrammeR,
     grDevices,
     knitr,
+    nlmixr2,
+    nlmixr2data,
+    nlmixr2est,
     rmarkdown,
     testthat (>= 3.0.0),
-    vdiffr
+    vdiffr,
+    xpose.nlmixr2
 Config/testthat/edition: 3
 Depends: 
     R (>= 3.5)

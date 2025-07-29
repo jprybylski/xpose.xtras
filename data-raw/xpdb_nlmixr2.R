@@ -24,7 +24,7 @@ one.cmt <- function() {
 
 theo_sd_fit <- nlmixr2::nlmixr2(one.cmt, nlmixr2data::theo_sd, "focei", control=nlmixr2::foceiControl(print=0))
 
-xpdb_nlmixr2 <- xpose.nlmixr2::xpose_data_nlmixr2(obj = theo_sd_fit)
+xpdb_nlmixr2 <- nlmixr2_as_xtra(obj = theo_sd_fit)
 
 
 usethis::use_data(xpdb_nlmixr2, overwrite = TRUE)

@@ -24,7 +24,7 @@ one.cmt <- function() {
 
 theo_sd_saem <- nlmixr2::nlmixr2(one.cmt, nlmixr2data::theo_sd, "saem", control=nlmixr2::saemControl(print=0))
 
-xpdb_nlmixr2_saem <- xpose.nlmixr2::xpose_data_nlmixr2(obj = theo_sd_saem)
+xpdb_nlmixr2_saem <- nlmixr2_as_xtra(obj = theo_sd_saem)
 
 
 usethis::use_data(xpdb_nlmixr2_saem, overwrite = TRUE)
