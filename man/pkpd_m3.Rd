@@ -11,7 +11,7 @@ An \code{xp_xtras} object.
 }
 }
 \source{
-https://doi.org/10.1002/psp4.13219
+\url{https://doi.org/10.1002/psp4.13219}
 }
 \usage{
 pkpd_m3

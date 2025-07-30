@@ -15,7 +15,15 @@ nlmixr2_as_xtra(obj, ...)
 An <\code{xp_xtra}> object with fit attached
 }
 \description{
-A wrapper that executes the pipeline \verb{fit |> xpose_data_nlmixr2 |> attach_nlmixr2 |> as_xp_xtras}
+A wrapper that executes the pipeline:
+
+\preformatted{
+obj |>
+ xpose.nlmixr2::xpose_data_nlmixr2() |>
+ attach_nlmixr2() |>
+ as_xp_xtras() |>
+ backfill_nlmixr2_props()
+}
 }
 \seealso{
 \code{\link[=attach_nlmixr2]{attach_nlmixr2()}}

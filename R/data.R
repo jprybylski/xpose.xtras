@@ -29,7 +29,7 @@
 #' @format ## `xpose_set`
 #' An `xpose_set` object of length 14 with a branched lineage.
 #'
-#' @source https://doi.org/10.1159/000457062 and nlmixr2data::pheno_sd
+#' @source <https://doi.org/10.1159/000457062> and nlmixr2data::pheno_sd
 "pheno_set"
 
 #' An `xp_xtras` example of a base model
@@ -41,7 +41,7 @@
 #' @format ## `xp_xtras`
 #' An `xp_xtras` object.
 #'
-#' @source https://doi.org/10.1159/000457062 and nlmixr2data::pheno_sd
+#' @source <https://doi.org/10.1159/000457062> and nlmixr2data::pheno_sd
 "pheno_base"
 
 #' An `xp_xtras` example of a final model
@@ -56,7 +56,7 @@
 #' @format ## `xp_xtras`
 #' An `xp_xtras` object.
 #'
-#' @source https://doi.org/10.1159/000457062 and nlmixr2data::pheno_sd
+#' @source <https://doi.org/10.1159/000457062> and nlmixr2data::pheno_sd
 "pheno_final"
 
 #' An `xp_xtras` example of a final model
@@ -70,7 +70,7 @@
 #' @format ## `xp_xtras`
 #' An `xp_xtras` object.
 #'
-#' @source https://doi.org/10.1159/000457062 and nlmixr2data::pheno_sd
+#' @source <https://doi.org/10.1159/000457062> and nlmixr2data::pheno_sd
 "pheno_saem"
 
 #' A tibble of mock data used for fitting vismodegib models
@@ -90,7 +90,7 @@
 #' Muscle Spasm Adverse Event of Vismodegib: Comparison
 #' Between Different Pharmacometric Models. CPT
 #' Pharmacometrics Syst. Pharmacol., 9: 96-105.
-#' https://doi.org/10.1002/psp4.12487
+#' <https://doi.org/10.1002/psp4.12487>
 #'
 #' @source Generated using sup-0009 and sup-0010 from the reference.
 #'
@@ -112,7 +112,7 @@
 #' Muscle Spasm Adverse Event of Vismodegib: Comparison
 #' Between Different Pharmacometric Models. CPT
 #' Pharmacometrics Syst. Pharmacol., 9: 96-105.
-#' https://doi.org/10.1002/psp4.12487
+#' <https://doi.org/10.1002/psp4.12487>
 #'
 #' @source Derived from sup-0009 and sup-0010 from the reference.
 #'
@@ -134,7 +134,7 @@
 #' Muscle Spasm Adverse Event of Vismodegib: Comparison
 #' Between Different Pharmacometric Models. CPT
 #' Pharmacometrics Syst. Pharmacol., 9: 96-105.
-#' https://doi.org/10.1002/psp4.12487
+#' <https://doi.org/10.1002/psp4.12487>
 #'
 #' @source Derived from sup-0009 and sup-0010 from the reference.
 #'
@@ -158,7 +158,7 @@
 #' CPT Pharmacometrics Syst Pharmacol. 2024; 00: 1-9.
 #' doi:10.1002/psp4.13219
 #'
-#' @source https://doi.org/10.1002/psp4.13219
+#' @source <https://doi.org/10.1002/psp4.13219>
 "pkpd_m3"
 
 #' An `xp_xtras` example of an M3 model (dataset)
@@ -174,5 +174,38 @@
 #' CPT Pharmacometrics Syst Pharmacol. 2024; 00: 1-9.
 #' doi:10.1002/psp4.13219
 #'
-#' @source https://doi.org/10.1002/psp4.13219
+#' @source <https://doi.org/10.1002/psp4.13219>
 "pkpd_m3_df"
+
+
+
+#' An `xp_xtra` example based on an nlmixr2 fit
+#'
+#' This is the most basic one compartment example used in
+#' nlmixr2 example documentation. It is a fit to the popular theophylline
+#' dataset.
+#'
+#' @rdname xpdb_nlmixr2
+#'
+#' @seealso [Theoph][datasets::Theoph]
+#'
+#' @references
+#' Fidler M (2025). _nlmixr2: Nonlinear Mixed Effects Models in Population PK/PD_.
+#' doi:10.32614/CRAN.package.nlmixr2 <https://doi.org/10.32614/CRAN.package.nlmixr2>,
+#' R package version 3.0.2, <https://CRAN.R-project.org/package=nlmixr2>.
+#'
+#' Fidler M, Wilkins J, Hooijmaijers R, Post T, Schoemaker R, Trame M, Xiong Y, Wang W
+#' (2019). “Nonlinear Mixed-Effects Model Development and Simulation Using nlmixr and
+#' Related R Open-Source Packages.” _CPT: Pharmacometrics & Systems Pharmacology_,
+#' *8*(9), 621-633. <https://doi.org/10.1002/psp4.12445>.
+#'
+#' Schoemaker R, Fidler M, Laveille C, Wilkins J, Hooijmaijers R, Post T, Trame M,
+#' Xiong Y, Wang W (2019). “Performance of the SAEM and FOCEI Algorithms in the
+#' Open-Source, Nonlinear Mixed Effect Modeling Tool nlmixr.” _CPT: Pharmacometrics &
+#'   Systems Pharmacology_, *8*(12), 923-930. <https://doi.org/10.1002/psp4.12471>.
+#'
+#' @source <https://nlmixr2.org/articles/running_nlmixr.html>
+"xpdb_nlmixr2"
+
+#' @rdname xpdb_nlmixr2
+"xpdb_nlmixr2_saem"

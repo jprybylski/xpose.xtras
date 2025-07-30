@@ -38,6 +38,11 @@ it deviates from the typical log-normal.
 Default transformations are those that are built into
 \code{pmxcv}, but see examples for how associations can be
 described for other relationships.
+
+\strong{\emph{Note:}} When these associations are used to calculate CV\%, it is assumed
+that the value for the theta parameter is \emph{untransformed}. So, if a parameter is
+fitted in the logit scale, the value should be transformed back to normal scale
+with \code{\link[=mutate_prm]{mutate_prm()}} (eg, \verb{mutate_prm(the~plogis}) before declaring \code{the~logit(ome)}.
 }
 \details{
 At time of writing, the built-in distributions for \code{pmxcv} are below.
@@ -45,8 +50,8 @@ Those marked with an asterisk require a fixed effect parameter to calculate CV.
 \itemize{
 \item \code{log} typical log-normal. Optional \code{exact} parameter (if \code{TRUE}, default, will not
 calculate with integration); this is unrelated to the \code{cvtype} option. \strong{Note},
-if \code{cvtype} is set to \code{"sqrt"}, log-normal \code{gte_prm} CVs will use the square root, not any integration
-or analytical estimate, regardless of how this association is specified..
+if \code{cvtype} option is set to \code{"sqrt"}, log-normal \code{get_prm} CVs will use the square root,
+not any integration or analytical estimate, regardless of how this association is specified.
 \item \code{logexp}* modified log-normal \code{log(1+X)}
 \item \code{logit}* logit-normal
 \item \code{arcsin}* arcsine-transform
@@ -58,7 +63,7 @@ To pass a custom parameter, use \code{custom} transform, and pass \code{pdist} a
 that transform. See Examples.
 
 Reminder about \code{qdist} and \code{pdist}: Consider that \code{qlogis} transforms a proportion
-to a continuous, unbounded number; it is the \code{logit} transform. The \code{pdist} function
+to a continuous, unbounded number; it is the \code{logit} transform. The \code{plogis} function
 converts a continuous, unbounded number to a proportion; it is the \emph{inverse} \code{logit}
 transform. Other R \code{stats} functions work similarly, and as such functions used as
 \code{qdist} and \code{pdist} values are expected to act similarly.

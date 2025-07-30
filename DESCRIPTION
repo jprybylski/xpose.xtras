@@ -46,6 +46,7 @@ Suggests:
     nlmixr2data,
     nlmixr2est,
     rmarkdown,
+    rxode2,
     testthat (>= 3.0.0),
     vdiffr,
     xpose.nlmixr2
