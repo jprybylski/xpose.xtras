@@ -27,5 +27,5 @@ theo_sd_fit <- nlmixr2::nlmixr2(one.cmt, nlmixr2data::theo_sd, "focei", control=
 xpdb_nlmixr2 <- nlmixr2_as_xtra(obj = theo_sd_fit)
 
 
-usethis::use_data(xpdb_nlmixr2, overwrite = TRUE)
+usethis::use_data(xpdb_nlmixr2, overwrite = TRUE, compress = "gzip")
 rm(list = ls())

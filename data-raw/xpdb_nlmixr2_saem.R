@@ -27,5 +27,5 @@ theo_sd_saem <- nlmixr2::nlmixr2(one.cmt, nlmixr2data::theo_sd, "saem", control=
 xpdb_nlmixr2_saem <- nlmixr2_as_xtra(obj = theo_sd_saem)
 
 
-usethis::use_data(xpdb_nlmixr2_saem, overwrite = TRUE)
+usethis::use_data(xpdb_nlmixr2_saem, overwrite = TRUE, compress = "gzip")
 rm(list = ls())
