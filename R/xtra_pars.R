@@ -533,6 +533,13 @@ get_prm.xp_xtras <- function(
   # TODO: Add a means to get equivalent table for nlmixr2 xpose data objects so associations can work
 
   if (is.null(digits)) digits <- reportable_digits(xpdb,.problem=.problem, .subprob=.subprob, .method=.method)
+
+  if (xpose::software(xpdb)=="nonmem") {
+
+  } else if (xpose::software(xpdb)=="nlmixr2") {
+
+  }
+
   # Get basic param table
   def_prm <- xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
                    .method = .method, digits = digits, transform = transform,
@@ -1084,3 +1091,105 @@ mutate_in_file <- function(
     ) %>%
     dplyr::ungroup()
 }
+
+#' @title get_prm equivalent for nlmixr2 fits
+#' @description
+#' This is intended to match the <`xpose::get_prm`> rather than the
+#' updated [`get_prm()`].
+#'
+#' @param fit <`nlmixr2FitData`>
+#' @param transform  <`logical`> as in [get_prm()]
+#' @param show_all   <`logical`> as in [get_prm()]
+#' @return a tibble with expected columns
+get_prm_nlmixr2 <- function(fit, transform = TRUE, show_all = FALSE) {
+
+  # Template
+  templater <- xpose::get_prm(xpdb_x,quiet = TRUE) %>%
+    dplyr::slice(0)
+
+  # Additional parameter data
+  extra_info <- (fit$iniUi$iniDf) %>%
+    # Common rename
+    dplyr::rename(
+      fixed = fix,
+      n = neta2
+    )
+
+  # Fixed effects
+  fx_tbl <- fit$parFixedDf %>%
+    tibble::rownames_to_column("name") %>%
+    dplyr::mutate(
+      rse = `%RSE`/100
+    ) %>%
+    dplyr::rename(
+      value = Estimate,
+      se = SE,
+    ) %>%
+    dplyr::select(name,value,se,rse)
+  the_tbl <- extra_info %>%
+    # Drop omegas and sigmas
+    dplyr::filter(is.na(err), !is.na(ntheta)) %>%
+    # analogous columns
+    dplyr::mutate(
+      type = "the",
+      m = ntheta,
+    ) %>%
+    # Join results
+    dplyr::left_join(
+      fx_tbl, by = "name"
+    )
+
+  # Omegas
+  all_nxm_combos <- nrow(fit$omega)
+  ome_tbl <- templater
+  if (all_nxm_combos>0) {
+    show_all_om <- expand.grid(
+      neta1 = 1:all_nxm_combos,
+      neta2 = 1:all_nxm_combos
+    ) %>%
+      dplyr::filter(neta2<=neta1) %>%
+      dplyr::rowwise() %>%
+      dplyr::mutate(
+        value = fit$omega[neta1,neta2],
+      ) %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(
+        diagonal = neta1==neta2,
+        m = neta1,
+        n = neta2,
+        type = "ome"
+      ) %>%
+      dplyr::left_join(
+        dplyr::filter(extra_info, is.na(ntheta)),
+        by=c("neta1","n"),
+        keep =TRUE
+      ) %>%
+      dplyr::rename(
+        n = n.x
+      ) %>%
+      dplyr::mutate(
+        fixed = ifelse(is.na(fixed), TRUE, fixed)
+      ) %>%
+      # Fill name and label if missing
+      dplyr::mutate(
+        label = dplyr::case_when(
+          is.na(label) & !is.na(name) ~ name,
+          is.na(label) ~ "",
+          TRUE ~ label
+        ),
+        name = ifelse(is.na(name),sprintf("omega(%s,%s)",m,n), name)
+      )
+    ome_tbl <- show_all_om %>%
+      dplyr::select(dplyr::any_of(names(templater)))
+    if (!show_all) ome_tbl <- dplyr::filter(ome_tbl,diagonal | !fixed)
+  }
+
+  dplyr::bind_rows(
+    templater,
+    the_tbl,
+    ome_tbl
+  ) %>%
+    dplyr::select(dplyr::all_of(names(templater)))
+}
+
+#TODO: leverage nlmixr2 built-in backtransform and association (via iniUi and rxModelVaes) features to auto-populate prm_associations. Two-way changes (xpose -> backend nlmixr2 fit as well as nlmixr2 fit to xpose [latter only on creation]) would be ideal
