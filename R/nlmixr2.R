@@ -65,12 +65,16 @@ attach_nlmixr2 <- function(
 #'  xpose.nlmixr2::xpose_data_nlmixr2() |>
 #'  attach_nlmixr2() |>
 #'  as_xp_xtras() |>
-#'  backfill_nlmixr2_props()
+#'  backfill_nlmixr2_props() %>%
+#'  `if`(.skip_assoc, ., nlmixr2_prm_associations(.))
 #' }
 #'
 #'
 #' @param obj nlmixr2 fit object
 #' @param ... Passed to [xpose_data_nlmixr2][xpose.nlmixr2::xpose_data_nlmixr2()]
+#' @param .skip_assoc <`logical`> If the model is relatively uncomplicated, [`nlmixr2_prm_associations(`]
+#' may be able to recognize relationships between random effects and fixed effect parameters. If the default
+#' (`FALSE`) fails then try to rerun with the association step skipped.
 #'
 #' @return An <`xp_xtra`> object with fit attached
 #' @export
@@ -79,7 +83,8 @@ attach_nlmixr2 <- function(
 #'
 nlmixr2_as_xtra <- function(
   obj,
-  ...
+  ...,
+  .skip_assoc = FALSE
 ) {
   mod_name <- deparse(substitute(obj))
   rlang::check_installed("xpose.nlmixr2")
@@ -97,7 +102,8 @@ nlmixr2_as_xtra <- function(
       # If the situation changes, fall back to default
       TRUE ~ name
     )) %>%
-    backfill_nlmixr2_props()
+    backfill_nlmixr2_props() %>%
+    `if`(.skip_assoc, ., nlmixr2_prm_associations(.))
 }
 
 #' Populate some properties from nlmixr2 fit
@@ -147,6 +153,7 @@ backfill_nlmixr2_props <- function(xpdb) {
 #' @export
 #'
 test_nlmixr2_has_fit <- function(xpdb) {
+  xpose::check_xpdb(xpdb)
   if (xpose::software(xpdb)!="nlmixr2") return(FALSE)
   "fit" %in% names(xpdb) && inherits(xpdb$fit, "nlmixr2FitData")
 }
@@ -315,7 +322,7 @@ hot_swap_base_get_prm <- function(xpdb, ...) {
 #' Based on associations baked into nlmixr2, automatically add to xpose data
 #'
 #' @param xpdb <`xp_xtras`> object
-#' @param dry_run <`logical`> Return a resulting `par` to compare against.
+#' @param dry_run <`logical`> Return a resulting information to compare against.
 #'
 #' @details
 #' This function attempts to discern the associations between omegas and thetas
@@ -334,6 +341,12 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE) {
   checkmate::assert_true(test_nlmixr2_has_fit(xpdb))
 
   # Several parts to this that end up pretty complex
+
+  # Notably, if add_cov_association is ever implemented, this function
+  # can be modified so the dry_run also returns covariate info (probably as a nested tibble)
+
+  # Backtransform (for record-keeping)
+  inidf <- xpdb$fit$iniUi$iniDf
 
   # Get muRefCurEval and muRefTable
   muref_cureval <- xpdb$fit$ui$muRefCurEval # Captures transformation
@@ -361,9 +374,56 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE) {
       # flag as mu referenced or not
       muref = paste(theta,eta) %in% paste(muref_tbl$theta,muref_tbl$eta),
       # determine transformation of eta parameter
-      etatrans =
+      etatrans = muref_cureval$curEval[muref_cureval$parameter==eta],
+      # FYI determine transformation of theta parameter
+      thetatrans = muref_cureval$curEval[muref_cureval$parameter==theta],
+      # record manual backtransform, if any
+      thetabt = inidf$backTransform[inidf$name==theta]
     ) %>%
-    dplyr::ungroup()
+    dplyr::ungroup() %>%
+    dplyr::relocate(param, .before = dplyr::everything())
 
-  # WIP
+  if (dry_run) return(lhs_tbl)
+
+  # Check if all etatrans have a known pmxcv equivalent
+  etatrans_pmxcv <- dplyr::bind_rows(
+    dplyr::tibble(
+      etatrans = "exp",
+      # Define these as quosures so we can check for globally evaluable custom functions
+      pdist = list(rlang::quo(exp)), # get original with rlang::as_label
+      qdist = list(rlang::quo(log)),
+      dist = "log" # if NA, use custom()
+    ),
+    dplyr::tibble(
+      etatrans = "expm1",
+      pdist = list(rlang::quo(function(x) exp(x)-1)),
+      qdist = list(rlang::quo(function(x) log(x+1))),
+      dist = "logexp"
+    ),
+    dplyr::tibble(
+      etatrans = "expit",
+      pdist = list(rlang::quo(plogis)),
+      qdist = list(rlang::quo(qlogis)),
+      dist = "logit"
+    ),
+    dplyr::tibble(
+      etatrans = "boxCox",
+      pdist = list(rlang::quo(function(x,...) pmxcv::nonmemboxcox(x,...,inv = TRUE))),
+      qdist = list(rlang::quo(pmxcv::nonmemboxcox)),
+      dist = "nmboxcox"
+    ),
+    # Add customs for some rxode functions like yauJohnson to bypass the checks below
+  )
+
+  # For each row, add prm association using appropriate pmxcv or custom association
+  # In each custom case, test if pdist function can be applied to (0.1) without error when
+  # evaluated in the global environment. If not, see if the function exists in the rxode2
+  # namespace, then change custom to reflect that. Then check if in rxode2::rxSupportedFuns(),
+  # and if so (supported by not in rxode2 namespace) set a flag. If it is not evaluable,
+  # let the user know they need to write a custom for it; if the rxSupportedFuns flag is up,
+  # note that the function is used internal to rxode2, and if not ask if it was a custom function
+  # from the model fitting script?
+
+
+  xpdb
 }
