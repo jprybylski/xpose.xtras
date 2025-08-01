@@ -9,5 +9,5 @@ pheno_saem <- xpose::xpose_data(runno = 18, dir=here::here("inst", "pheno_saemim
     dir = paste0("~/pheno_saemimp")
   )
 
-usethis::use_data(pheno_saem, overwrite = TRUE, compress = "gzip")
+usethis::use_data(pheno_saem, overwrite = TRUE, compress = "xz")
 rm(list=ls())

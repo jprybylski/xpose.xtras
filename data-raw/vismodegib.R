@@ -6,5 +6,5 @@ untar(here::here("inst","vismodegib_models","muscle_spasm_PO_weekly2.tar.gz"), e
 vismodegib <- readr::read_csv(file.path(tempd, "muscle_spasm_PO_weekly2.csv"))
 
 
-usethis::use_data(vismodegib, overwrite = TRUE, compress = "gzip")
+usethis::use_data(vismodegib, overwrite = TRUE, compress = "xz")
 rm(list=ls())

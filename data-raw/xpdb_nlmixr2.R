@@ -22,10 +22,10 @@ one.cmt <- function() {
   })
 }
 
-theo_sd_fit <- nlmixr2::nlmixr2(one.cmt, nlmixr2data::theo_sd, "focei", control=nlmixr2::foceiControl(print=0))
+theo_sd_fit <- nlmixr2est::nlmixr2(one.cmt, nlmixr2data::theo_sd, "focei", control=nlmixr2est::foceiControl(print=0))
 
-xpdb_nlmixr2 <- nlmixr2_as_xtra(obj = theo_sd_fit)
+xpdb_nlmixr2 <- nlmixr2_as_xtra(obj = theo_sd_fit, .skip_assoc = TRUE)
 
 
-usethis::use_data(xpdb_nlmixr2, overwrite = TRUE, compress = "gzip")
+usethis::use_data(xpdb_nlmixr2, overwrite = TRUE, compress = "xz")
 rm(list = ls())

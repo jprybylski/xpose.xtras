@@ -7,6 +7,9 @@ if (tolower(readline(
 if (tolower(readline(
   prompt = "Have `|>` pipes and `\\()` lambdas been converted to older versions? [y/*] "
 ))!="y") cli::cli_abort("Ensure backwards compatability")
+# Regenerate examples
+source(here::here("data-raw","-regerate_all-R.R"))
+devtools::load_all()
 # Render readme
 rmarkdown::render("README.Rmd")
 # Run documentation

@@ -15,5 +15,5 @@ vismo_dtmm <- xpose::xpose_data(runno = 30, dir=file.path(tempd, fitdir)) %>%
   )
 
 
-usethis::use_data(vismo_dtmm, overwrite = TRUE, compress = "gzip")
+usethis::use_data(vismo_dtmm, overwrite = TRUE, compress = "xz")
 rm(list=ls())

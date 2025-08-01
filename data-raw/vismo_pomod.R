@@ -15,5 +15,5 @@ vismo_pomod <- xpose::xpose_data(runno = 29, dir=file.path(tempd, fitdir)) %>%
   )
 
 
-usethis::use_data(vismo_pomod, overwrite = TRUE, compress = "gzip")
+usethis::use_data(vismo_pomod, overwrite = TRUE, compress = "xz")
 rm(list=ls())
