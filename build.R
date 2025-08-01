@@ -1,0 +1,19 @@
+# Manual build reminders
+# Send question to self, is version correct?
+if (tolower(readline(
+  prompt = sprintf("Is %s the right version number? [y/*] ", usethis:::proj_version())
+  ))!="y") cli::cli_abort("Change version")
+# Send question to self that "\()" and "|>" are not used (backwards compatability)
+if (tolower(readline(
+  prompt = "Have `|>` pipes and `\\()` lambdas been converted to older versions? [y/*] "
+))!="y") cli::cli_abort("Ensure backwards compatability")
+# Render readme
+knitr::knit("README.Rmd")
+# Run documentation
+devtools::document()
+# Spell Check
+usethis::use_spell_check(error = TRUE)
+devtools::spell_check()
+# Regenerate all data
+# ?
+# build (+test)

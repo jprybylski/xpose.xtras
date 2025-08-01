@@ -141,7 +141,7 @@ test_that("xplot_boxplot", {
     xplot_boxplot(xpdb_x,
                   aes(MED1,ETA1),
                   quiet=TRUE,
-                  opt = xpose::data_opt(filter = \(x) x[x$ETA1 >999,])),
+                  opt = xpose::data_opt(filter = function(x) x[x$ETA1 >999,])),
     "No data available"
   )
 

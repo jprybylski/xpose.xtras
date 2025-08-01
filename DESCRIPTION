@@ -47,6 +47,7 @@ Suggests:
     nlmixr2est,
     rmarkdown,
     rxode2,
+    spelling,
     testthat (>= 3.0.0),
     vdiffr,
     xpose.nlmixr2
@@ -56,3 +57,4 @@ Depends:
 LazyData: true
 VignetteBuilder: knitr
 URL: https://jprybylski.github.io/xpose.xtras/, https://github.com/jprybylski/xpose.xtras
+Language: en-US

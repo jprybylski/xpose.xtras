@@ -326,7 +326,8 @@ hot_swap_base_get_prm <- function(xpdb, ...) {
 #'
 #' @details
 #' This function attempts to discern the associations between omegas and thetas
-#' using information about mu referencing within the `nlmixr2` fit object.
+#' using information about mu referencing within the `nlmixr2` fit object. Please
+#'
 #'
 #' Notably, back-transformations are not as relevant here as they may seem. Manual
 #' back-transformation with `backTransform()` only affects the display of the
@@ -358,7 +359,7 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE) {
 
   # Now we process
   # We convert the LHS vectors to tibbles for joining on which param they estimate
-  v2t <- \(v, what) v %>% t() %>% t() %>%
+  v2t <- function(v, what) v %>% t() %>% t() %>%
     as.data.frame() %>%
     rlang::set_names("param") %>%
     tibble::rownames_to_column(what)
@@ -383,16 +384,14 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE) {
     dplyr::ungroup() %>%
     dplyr::relocate(param, .before = dplyr::everything())
 
-  if (dry_run) return(lhs_tbl)
-
   # Check if all etatrans have a known pmxcv equivalent
   etatrans_pmxcv <- dplyr::bind_rows(
     dplyr::tibble(
       etatrans = "exp",
       # Define these as quosures so we can check for globally evaluable custom functions
       pdist = list(rlang::quo(exp)), # get original with rlang::as_label
-      qdist = list(rlang::quo(log)),
-      dist = "log" # if NA, use custom()
+      qdist = list(rlang::quo(log)), # Probably won't use these quos, but using this approach for flexibility
+      dist = "log"
     ),
     dplyr::tibble(
       etatrans = "expm1",
@@ -406,14 +405,21 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE) {
       qdist = list(rlang::quo(qlogis)),
       dist = "logit"
     ),
-    dplyr::tibble(
-      etatrans = "boxCox",
-      pdist = list(rlang::quo(function(x,...) pmxcv::nonmemboxcox(x,...,inv = TRUE))),
-      qdist = list(rlang::quo(pmxcv::nonmemboxcox)),
-      dist = "nmboxcox"
-    ),
-    # Add customs for some rxode functions like yauJohnson to bypass the checks below
+    # Add more as needed
   )
+
+  # Create a list of transformations supported by rxode2 that need additional parameters
+  # These _may_ be feasible to automatically add, but honestly the juice isn't worth
+  # the squeeze. Some transformations can technically take additional parameters (like expit),
+  # but it's safe to assume that in the vast majority of cases the default is used.
+  need_extra_params <- c("boxCox", "yeoJohnson")
+  if (any(lhs_tbl$etatrans %in% need_extra_params)) {
+    cli::cli_alert_info(
+      paste("Transformations {.strong {dplyr::intersect(need_extra_params,lhs_tbl$etatrans)}} need",
+      "additional parameters that are not captured in the current version of this function.","\n",
+      "\U00A0 Add manually with {.code add_prm_association(...)}.")
+    )
+  }
 
   # For each row, add prm association using appropriate pmxcv or custom association
   # In each custom case, test if pdist function can be applied to (0.1) without error when
@@ -423,6 +429,30 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE) {
   # let the user know they need to write a custom for it; if the rxSupportedFuns flag is up,
   # note that the function is used internal to rxode2, and if not ask if it was a custom function
   # from the model fitting script?
+  fmla_builder <- function(lhs,rhs_fun,rhs_inner) paste0(lhs,"~",rhs_fun,"(",rhs_inner,")")
+  pdist_tester <- function(pdist_quo) {
+
+  }
+  transforms_to_apply <- lhs_tbl %>%
+    # etatrans_pmxcv
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      prm_assoc_formula = dplyr::case_when(
+        # Predefined etatrans
+        etatrans %in% etatrans_pmxcv$etatrans &&
+          # With non-custom dist
+          etatrans_pmxcv[etatrans_pmxcv$etatrans == etatrans]$dist!="custom" ~
+          fmla_builder()
+      )
+    ) %>%
+    dplyr::ungroup()
+
+  if (dry_run) return(lhs_tbl)
+  purrr::pwalk(transforms_to_apply, ~ {
+
+  })
+
+
 
 
   xpdb

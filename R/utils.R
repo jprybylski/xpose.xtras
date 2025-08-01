@@ -59,19 +59,19 @@ get_shk <- function(xpdb, wh = "eta", .problem = NULL, .subprob = NULL, .method=
 get_prop <- function(xpdb, prop, .problem = NULL, .subprob=NULL, .method=NULL, .tail=1) {
   rlang::try_fetch(
     checkmate::assert_scalar(.problem, null.ok = TRUE),
-    error = \(s) rlang::abort("", parent=s)
+    error = function(s) rlang::abort("", parent=s)
   )
   rlang::try_fetch(
     checkmate::assert_scalar(.subprob, null.ok = TRUE),
-    error = \(s) rlang::abort("", parent=s)
+    error = function(s) rlang::abort("", parent=s)
   )
   rlang::try_fetch(
     checkmate::assert_scalar(.method, null.ok = TRUE),
-    error = \(s) rlang::abort("", parent=s)
+    error = function(s) rlang::abort("", parent=s)
   )
   rlang::try_fetch(
     checkmate::assert_scalar(prop),
-    error = \(s) rlang::abort("Request one property at a time from the xpdb model summary.", parent=s)
+    error = function(s) rlang::abort("Request one property at a time from the xpdb model summary.", parent=s)
   )
 
   summ <- xpose::get_summary(xpdb)

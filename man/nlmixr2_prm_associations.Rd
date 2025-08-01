@@ -9,7 +9,7 @@ nlmixr2_prm_associations(xpdb, dry_run = FALSE)
 \arguments{
 \item{xpdb}{<\code{xp_xtras}> object}
 
-\item{dry_run}{<\code{logical}> Return a resulting \code{par} to compare against.}
+\item{dry_run}{<\code{logical}> Return a resulting information to compare against.}
 }
 \value{
 Object with filled \code{par}
@@ -19,7 +19,7 @@ Based on associations baked into nlmixr2, automatically add to xpose data
 }
 \details{
 This function attempts to discern the associations between omegas and thetas
-using information about mu referencing within the \code{nlmixr2} fit object.
+using information about mu referencing within the \code{nlmixr2} fit object. Please
 
 Notably, back-transformations are not as relevant here as they may seem. Manual
 back-transformation with \code{backTransform()} only affects the display of the
