@@ -8,7 +8,7 @@ if (tolower(readline(
   prompt = "Have `|>` pipes and `\\()` lambdas been converted to older versions? [y/*] "
 ))!="y") cli::cli_abort("Ensure backwards compatability")
 # Render readme
-knitr::knit("README.Rmd")
+rmarkdown::render("README.Rmd")
 # Run documentation
 devtools::document()
 # Spell Check
