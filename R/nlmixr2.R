@@ -431,7 +431,12 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE) {
   # from the model fitting script?
   fmla_builder <- function(lhs,rhs_fun,rhs_inner) paste0(lhs,"~",rhs_fun,"(",rhs_inner,")")
   pdist_tester <- function(pdist_quo) {
-
+    # Set quo environment to global
+    # Wrap the tidy_eval for the function in safely()
+    # If no error, no problem
+    # If error, test if function is in the rxode2 namespace
+    # If in rxode2, update quo and test safe tidy eval
+    # If still error, alert user
   }
   transforms_to_apply <- lhs_tbl %>%
     # etatrans_pmxcv

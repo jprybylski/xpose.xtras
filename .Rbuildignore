@@ -14,3 +14,5 @@
 ^pkgdown$
 ^\.github$
 ^codecov\.yml$
+^build.R$
+^builds$
