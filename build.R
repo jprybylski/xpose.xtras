@@ -17,6 +17,9 @@ devtools::document()
 # Spell Check
 usethis::use_spell_check(error = TRUE)
 devtools::spell_check()
-# Regenerate all data
-# ?
-# build (+test)
+# final checks (some of the above is re-run)
+devtools::check()
+# build
+if (tolower(readline(
+  prompt = "Really build? [y/*] "
+))=="y") devtools::build(path = "builds")
