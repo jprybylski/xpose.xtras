@@ -50,7 +50,7 @@ parameter values that are used by \code{xpose} \code{get_prm} functions. At this
 time these transformations are not applied to \code{param} vars (\code{\link{list_vars}}), but that can
 already be done with the \code{mutate} method.
 
-This only works for theta parameters.
+\strong{This only works for theta parameters.}
 
 All valid mutations are applied sequentially, so a double call to \code{the2~the2^3}
 will result in effectively \code{the2~the2^9}, for example.
@@ -59,7 +59,7 @@ RSE values are calculated at runtime within \code{get_prm}, so they are not upda
 updatable) with this function.
 }
 \details{
-\subsection{Important points about covariance and correlation}{
+\subsection{Important points about covariance and correlation (for NONMEM only)}{
 
 Covariance and correlation parameters are adjusted when standard error (SE)
 values are changed directly or with \code{.autose}. When a transformation is applied
@@ -77,8 +77,9 @@ to see the complete updated variance-covariance values. This could be useful if 
 matrices are being used to define priors for a Bayesian model fitting, as the re-scaling
 of off-diagonal elements is handled automatically.
 
-A function to transform parameters will result in a more accurate \code{autose} result. If a call
-(\code{the1~exp(the)}) or a value (\code{the1~2}) are used, the standard error will be simply scaled.
+For all software: A function to transform parameters will result in a more accurate \code{autose}
+result. If a call (\code{the1~exp(the)}) or a value (\code{the1~2}) are used, the standard error
+will be simply scaled.
 }
 }
 \examples{

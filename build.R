@@ -1,4 +1,4 @@
-# Manual build reminders
+# Manual build reminders (this may be a devtools::release and release_questions() use case, but don't want to submit prematurely)
 # Send question to self, is version correct?
 if (tolower(readline(
   prompt = sprintf("Is %s the right version number? [y/*] ", usethis:::proj_version())

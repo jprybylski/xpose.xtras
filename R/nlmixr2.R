@@ -90,7 +90,7 @@ nlmixr2_as_xtra <- function(
   rlang::check_installed("xpose.nlmixr2")
   rlang::check_installed("nlmixr2")
 
-  xpose.nlmixr2::xpose_data_nlmixr2(
+  nlm_xpd <- xpose.nlmixr2::xpose_data_nlmixr2(
     obj = obj, ...
   ) %>%
     attach_nlmixr2(obj) %>%
@@ -102,8 +102,9 @@ nlmixr2_as_xtra <- function(
       # If the situation changes, fall back to default
       TRUE ~ name
     )) %>%
-    backfill_nlmixr2_props() %>%
-    `if`(.skip_assoc, ., nlmixr2_prm_associations(.))
+    backfill_nlmixr2_props()
+  if (.skip_assoc) return(nlm_xpd)
+  nlmixr2_prm_associations(nlm_xpd, quiet = nlm_xpd$options$quiet)
 }
 
 #' Populate some properties from nlmixr2 fit
@@ -165,19 +166,22 @@ test_nlmixr2_has_fit <- function(xpdb) {
 #' This is intended to match the <`xpose::get_prm`> rather than the
 #' updated [`get_prm()`].
 #'
-#' @param fit <`nlmixr2FitData`>
+#' @param xpdb <`xp_xtras`> With nlmixr2 fit
 #' @param transform  <`logical`> as in [get_prm()]
 #' @param show_all   <`logical`> as in [get_prm()]
 #' @param quiet <`logical`> as in [get_prm()]
 #'
 #' @return a tibble with expected columns
 get_prm_nlmixr2 <- function(
-    fit,
+    xpdb,
     transform = formals(get_prm)$transform,
     show_all = formals(get_prm)$show_all,
     quiet = FALSE
 ) {
   if (!quiet) cli::cli_alert_info("{.strong nlmixr2} does not provide SE values for random effect parameters (this includes error parameters).")
+
+  checkmate::assert_true(test_nlmixr2_has_fit(xpdb))
+  fit <- xpdb$fit
 
   # Template
   templater <- xpose::get_prm(xpdb_x,quiet = TRUE) %>%
@@ -219,7 +223,7 @@ get_prm_nlmixr2 <- function(
   all_nxm_combos <- nrow(fit$omega)
   ome_tbl <- templater
   if (all_nxm_combos>0) {
-    show_all_om <- expand.grid(
+    show_all_om <- tidyr::expand_grid(
       neta1 = 1:all_nxm_combos,
       neta2 = 1:all_nxm_combos
     ) %>%
@@ -282,7 +286,8 @@ get_prm_nlmixr2 <- function(
       n = 1
     )
 
-  dplyr::bind_rows(
+
+  out <- dplyr::bind_rows(
     templater,
     the_tbl,
     ome_tbl,
@@ -293,6 +298,22 @@ get_prm_nlmixr2 <- function(
     dplyr::mutate(
       label = ifelse(is.na(label), "", label)
     )
+
+  # Mask (change) any parameter values
+  mask_df <- dplyr::tibble(name=character(0))
+  if ("prm_mask" %in% names(xpdb)) mask_df <- xpdb$prm_mask %>%
+    # Ensure no NAs
+    dplyr::rows_patch(
+      dplyr::select(out,name,value,se),
+      by = "name",
+      unmatched = "ignore"
+    )
+  out %>%
+    # apply and transformations to data
+    dplyr::rows_update(mask_df, by = "name") %>%
+    dplyr::mutate(
+      rse = ifelse(name %in% mask_df$name & !is.na(rse), se/value, rse)
+    )
 }
 
 # Based on the xpdb software, use xpose::get_prm or nlmixr2 equivalent
@@ -301,28 +322,58 @@ hot_swap_base_get_prm <- function(xpdb, ...) {
   if (xpose::software(xpdb)=="nonmem") {
     use_function <- xpose::get_prm
     use_dots <- all_dots[names(all_dots) %in% names(formals(use_function))]
-    par_tbl <- rlang::exec(
-      use_function, xpdb, !!!use_dots
-    )
   } else if (xpose::software(xpdb)=="nlmixr2") {
     checkmate::assert_true(test_nlmixr2_has_fit(xpdb))
     use_function <- get_prm_nlmixr2
     use_dots <- all_dots[names(all_dots) %in% names(formals(use_function))]
-    par_tbl <- rlang::exec(
-      use_function, xpdb$fit, !!!use_dots
-    )
   }
-  par_tbl
+  rlang::exec(
+    use_function, xpdb, !!!use_dots
+  )
 }
 
 
-# TODO: mutate_in_fit for equivalent of mutate_in_file used by mutate_prm
-# Using that, can have a backfill to apply backtransform to
+
+#' Mutate parameter value without changing in source
+#'
+#' @description
+#' Unexported function to provide the same mutate_prm api for nlmixr2
+#' fits. Since the fit cannot be directly edited, this will add an
+#' undocumented and unchecked of the xpose_data object with the updated
+#' value and SE for the parameter.
+#'
+#'
+#' @param xpdb <`xp_xtras`>
+#' @param fortheta name of theta to be changed
+#' @param newval new value to store for theta
+#' @param se is new value to SE?
+#'
+#' @noRd
+#'
+mutate_mask <- function(
+    xpdb, fortheta, newval, se=FALSE
+    ) {
+  # Build tibble of new values to upsert to mask table
+  upsert_df <- dplyr::tibble(
+    name = fortheta,
+    value = newval
+  )
+  if (se) upsert_df <- dplyr::rename(upsert_df, se = value)
+  if (!"prm_mask" %in% names(xpdb))
+    xpdb$prm_mask = dplyr::tibble(name = character(0), value = numeric(0), se = numeric(0))
+  xpdb$prm_mask <- dplyr::rows_upsert(
+    xpdb$prm_mask,
+    upsert_df,
+    by = "name"
+  )
+  as_xp_xtras(xpdb)
+}
 
 #' Based on associations baked into nlmixr2, automatically add to xpose data
 #'
 #' @param xpdb <`xp_xtras`> object
 #' @param dry_run <`logical`> Return a resulting information to compare against.
+#' @param quiet <`logical`> Include extra information
 #'
 #' @details
 #' This function attempts to discern the associations between omegas and thetas
@@ -338,8 +389,23 @@ hot_swap_base_get_prm <- function(xpdb, ...) {
 #' @return Object with filled `par`
 #' @export
 #'
-nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE) {
+#' @examples
+#' \dontrun{
+#' nlmixr2_warfarin %>%
+#'   # This will add all log-normal and the logitnormal params
+#'   nlmixr2_prm_associations() %>%
+#'   # Make sure theta is in normal scale
+#'   mutate_prm(temax~rxode2::expit) %>%
+#'   # Review results
+#'   get_prm()
+#'
+#' }
+#'
+#'
+nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE, quiet) {
   checkmate::assert_true(test_nlmixr2_has_fit(xpdb))
+
+  if (rlang::is_missing(quiet)) quiet <- xpdb$options$quiet
 
   # Several parts to this that end up pretty complex
 
@@ -382,15 +448,18 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE) {
       thetabt = inidf$backTransform[inidf$name==theta]
     ) %>%
     dplyr::ungroup() %>%
-    dplyr::relocate(param, .before = dplyr::everything())
+    dplyr::relocate(param, .before = dplyr::everything()) %>%
+    # Flag to ignore for inclusion (updated further down)
+    dplyr::mutate(ignore = FALSE)
 
-  # Check if all etatrans have a known pmxcv equivalent
+  # Check if all etatrans have a known pmxcv equivalent or build custom
   etatrans_pmxcv <- dplyr::bind_rows(
     dplyr::tibble(
       etatrans = "exp",
       # Define these as quosures so we can check for globally evaluable custom functions
+      # Not very relevant for built-ins, but helpful for testing more custom situations
       pdist = list(rlang::quo(exp)), # get original with rlang::as_label
-      qdist = list(rlang::quo(log)), # Probably won't use these quos, but using this approach for flexibility
+      qdist = list(rlang::quo(log)),
       dist = "log"
     ),
     dplyr::tibble(
@@ -406,6 +475,18 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE) {
       dist = "logit"
     ),
     # Add more as needed
+    dplyr::tibble(
+      etatrans = "probitInv",
+      pdist = list(rlang::quo(probitInv)),
+      qdist = list(rlang::quo(probit)),
+      dist = "custom"
+    ),
+    dplyr::tibble(
+      etatrans = "", # no apparent transformation
+      pdist = list(rlang::quo(c)),
+      qdist = list(rlang::quo(c)),
+      dist = "custom"
+    ),
   )
 
   # Create a list of transformations supported by rxode2 that need additional parameters
@@ -419,46 +500,145 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE) {
       "additional parameters that are not captured in the current version of this function.","\n",
       "\U00A0 Add manually with {.code add_prm_association(...)}.")
     )
+    lhs_tbl <- dplyr::mutate(lhs_tbl, ignore = etatrans %in% need_extra_params)
   }
 
-  # For each row, add prm association using appropriate pmxcv or custom association
-  # In each custom case, test if pdist function can be applied to (0.1) without error when
-  # evaluated in the global environment. If not, see if the function exists in the rxode2
-  # namespace, then change custom to reflect that. Then check if in rxode2::rxSupportedFuns(),
-  # and if so (supported by not in rxode2 namespace) set a flag. If it is not evaluable,
-  # let the user know they need to write a custom for it; if the rxSupportedFuns flag is up,
-  # note that the function is used internal to rxode2, and if not ask if it was a custom function
-  # from the model fitting script?
-  fmla_builder <- function(lhs,rhs_fun,rhs_inner) paste0(lhs,"~",rhs_fun,"(",rhs_inner,")")
-  pdist_tester <- function(pdist_quo) {
-    # Set quo environment to global
-    # Wrap the tidy_eval for the function in safely()
-    # If no error, no problem
-    # If error, test if function is in the rxode2 namespace
-    # If in rxode2, update quo and test safe tidy eval
-    # If still error, alert user
+  # This is a bit overengineered
+  # Identify optimal q/pdist environment
+  test_envs <- list(
+    global = .GlobalEnv,
+    rxode2 = rlang::ns_env("rxode2")
+  )
+  pdist_qdist_env <- function(xdist_quo) {
+    # global gets piority in case user has masked paackage funs
+    for (tenv in names(test_envs)) {
+      env_quo <- rlang::quo_set_env(xdist_quo, env = test_envs[[tenv]])
+      # Wrap the tidy_eval for the function in safely()
+      test_fn <- purrr::safely(function() rlang::eval_tidy(env_quo))
+      test_preres <- test_fn()
+      if (is.null(test_preres$error))
+        return(tenv)
+    }
+    NULL # return null if no known envinment
   }
+  pdist_qdist_tester <- function(pdist_quo, qdist_quo) {
+    # Determine if environment is identifiable
+    pdist_envname <- pdist_qdist_env(pdist_quo)
+    qdist_envname <- pdist_qdist_env(qdist_quo)
+    xdist_exprs <- purrr::map_chr(list(pdist_quo, qdist_quo), rlang::as_label)
+    if (is.null(pdist_envname) ||
+        is.null(qdist_envname)) {
+      null_env <- xdist_exprs[c(is.null(pdist_envname), is.null(qdist_envname))]
+      if (!quiet)
+        cli::cli_warn("Normal → Transformed or inverse function not in global or rxode2 environment. ({.code {null_env}})")
+      return(FALSE)
+    }
+    # Ensure results are numeric and revere eachother
+    pdist_fn <- purrr::safely(rlang::eval_tidy(rlang::quo_set_env(pdist_quo, test_envs[[pdist_envname]])))
+    qdist_fn <- purrr::safely(rlang::eval_tidy(rlang::quo_set_env(qdist_quo, test_envs[[qdist_envname]])))
+    probe_num <- 0.1
+    pdist_test <- pdist_fn(probe_num)
+    if (!is.null(pdist_test$error)) {
+      if (!quiet)
+        cli::cli_warn("Normal → Transformed function cannot be evaluated without error with input value {.code {probe_num}}. ({.code {xdist_exprs[1]}})")
+      return(FALSE)
+    }
+    if (!is.numeric(pdist_test$result)) {
+      if (!quiet)
+        cli::cli_warn("Normal → Transformed function does not return numeric values with input value {.code {probe_num}}. ({.code {xdist_exprs[1]}})")
+      return(FALSE)
+    }
+    qdist_test <- qdist_fn(pdist_test$result)
+    if (!is.null(qdist_test$error)) {
+      if (!quiet)
+        cli::cli_warn("Transformed → Normal function cannot be evaluated without error with input value {.code {pdist_test$result}}. ({.code {xdist_exprs[2]}})")
+      return(FALSE)
+    }
+    if (!isTRUE(all.equal(qdist_test$result,probe_num))) {
+      if (!quiet)
+        cli::cli_warn("Normal → Transformed is not reversible by {.code {xdist_exprs[2]}}. ({.code {xdist_exprs[1]}})")
+      return(FALSE)
+    }
+    return(TRUE)
+  }
+  fmla_builder <- function(lhs,rhs_fun,rhs_inner) formula(paste0(lhs,"~",rhs_fun,"(",rhs_inner,")"))
+  tidy_eval_builder <- function(label,env) sprintf(
+    "rlang::eval_tidy(rlang::quo_set_env(rlang::quo(%s),%s))",
+    label, env
+  )
   transforms_to_apply <- lhs_tbl %>%
-    # etatrans_pmxcv
-    dplyr::rowwise() %>%
-    dplyr::mutate(
-      prm_assoc_formula = dplyr::case_when(
-        # Predefined etatrans
-        etatrans %in% etatrans_pmxcv$etatrans &&
-          # With non-custom dist
-          etatrans_pmxcv[etatrans_pmxcv$etatrans == etatrans]$dist!="custom" ~
-          fmla_builder()
-      )
-    ) %>%
-    dplyr::ungroup()
+  # etatrans_pmxcv
+  dplyr::rowwise() %>%
+  dplyr::mutate(
+    prm_assoc_formula = if (ignore == TRUE) {
+      list(formula(".~."))
+    } else if (
+      etatrans %in% etatrans_pmxcv$etatrans &&
+        # With non-custom dist
+        etatrans_pmxcv[etatrans_pmxcv$etatrans == etatrans, ]$dist != "custom"
+    ) {
+      # Predefined etatrans
+      list(fmla_builder(
+        theta, etatrans_pmxcv[etatrans_pmxcv$etatrans == etatrans, ]$dist, eta
+      ))
+    } else if (
+      # Custom etatrans
+      etatrans %in% etatrans_pmxcv$etatrans
+    ) {
+      pdist_quo <- etatrans_pmxcv[etatrans_pmxcv$etatrans == etatrans, ]$pdist[[1]]
+      qdist_quo <- etatrans_pmxcv[etatrans_pmxcv$etatrans == etatrans, ]$qdist[[1]]
+      # Test that the quos are valid
+      if (!pdist_qdist_tester(pdist_quo, qdist_quo)) {
+        list(formula(".~."))
+      } else {
+        # Determine what to put as the environment
+        pdist_env_char <- pdist_qdist_env(pdist_quo) %>%
+          {
+            ifelse(. == "global", ".GlobalEnv", paste0("rlang::ns_env('", ., "')"))
+          }
+        qdist_env_char <- pdist_qdist_env(qdist_quo) %>%
+          {
+            ifelse(. == "global", ".GlobalEnv", paste0("rlang::ns_env('", ., "')"))
+          }
+        # Build formula
+        list(fmla_builder(
+          theta, "custom", paste(c(
+            eta,
+            paste0("pdist=", tidy_eval_builder(rlang::as_label(pdist_quo), pdist_env_char)),
+            paste0("qdist=", tidy_eval_builder(rlang::as_label(qdist_quo), qdist_env_char))
+          ), collapse = ", ")
+        ))
+      }
+    } else {
+      list(formula(".~."))
+    },
+    ignore = prm_assoc_formula == formula(".~.")
+  ) %>%
+  dplyr::ungroup()
 
-  if (dry_run) return(lhs_tbl)
-  purrr::pwalk(transforms_to_apply, ~ {
+  if (dry_run) return(transforms_to_apply)
 
-  })
+  # Should users be notified if an association will be added that may depend on theta being untransformed?
+  if (!quiet) {
+    may_need_to_update_theta <- transforms_to_apply %>%
+      dplyr::filter(!ignore,
+                    etatrans!="exp",
+                    thetatrans!="") %>%
+      dplyr::pull(theta)
+    if (length(may_need_to_update_theta)!=0) {
+      cli::cli_alert_info("May need to untransform thetas {.code {may_need_to_update_theta}} since the CV calculation will be dependent upon the untransformed value.")
+      cli::cli_alert_info("This untransform must be done manually using {.help [{.fun mutate_prm}](xpose.xtras::mutate_prm)}.")
+    }
+  }
 
-
-
-
-  xpdb
+  # Build splice-friendly list of formulas to add
+  arg_formula_list <- transforms_to_apply %>%
+    dplyr::filter(!ignore) %>%
+    dplyr::pull(prm_assoc_formula)
+  if (length(arg_formula_list)==0) {
+    if (!quiet)
+      cli::cli_alert_info("No valid associations to add.")
+    return(xpdb)
+  }
+  xpdb %>% add_prm_association(!!!arg_formula_list)
 }

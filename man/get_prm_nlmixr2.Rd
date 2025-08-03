@@ -5,14 +5,14 @@
 \title{get_prm equivalent for nlmixr2 fits}
 \usage{
 get_prm_nlmixr2(
-  fit,
+  xpdb,
   transform = formals(get_prm)$transform,
   show_all = formals(get_prm)$show_all,
   quiet = FALSE
 )
 }
 \arguments{
-\item{fit}{<\code{nlmixr2FitData}>}
+\item{xpdb}{<\code{xp_xtras}> With nlmixr2 fit}
 
 \item{transform}{<\code{logical}> as in \code{\link[=get_prm]{get_prm()}}}
 

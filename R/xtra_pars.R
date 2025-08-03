@@ -556,9 +556,11 @@ get_prm.xp_xtras <- function(
     checkmate::assert_true(test_nlmixr2_has_fit(xpdb))
 
     # Get basic param table
-    def_prm <- get_prm_nlmixr2(xpdb$fit, transform = transform, show_all = show_all, quiet=quiet)
+    def_prm <- get_prm_nlmixr2(xpdb, transform = transform, show_all = show_all, quiet=quiet)
     # Get untransformed param table
-    untr_prm <- suppressWarnings(get_prm_nlmixr2(xpdb$fit, transform = FALSE, show_all = show_all, quiet=TRUE))
+    untr_prm <- suppressWarnings(get_prm_nlmixr2(xpdb, transform = FALSE, show_all = show_all, quiet=TRUE))
+  } else {
+    cli::cli_abort("`get_prm` currently only works for nonmem and nlmixr2 models. Sorry.")
   }
 
 
@@ -701,7 +703,7 @@ print.prm_tbl <- function(x, ...) {
 #' time these transformations are not applied to `param` vars ([`list_vars`]), but that can
 #' already be done with the `mutate` method.
 #'
-#' This only works for theta parameters.
+#' **This only works for theta parameters.**
 #'
 #' All valid mutations are applied sequentially, so a double call to `the2~the2^3`
 #' will result in effectively `the2~the2^9`, for example.
@@ -727,7 +729,7 @@ print.prm_tbl <- function(x, ...) {
 #' @export
 #'
 #' @details
-#' ### Important points about covariance and correlation
+#' ### Important points about covariance and correlation (for NONMEM only)
 #'
 #' Covariance and correlation parameters are adjusted when standard error (SE)
 #' values are changed directly or with `.autose`. When a transformation is applied
@@ -745,8 +747,9 @@ print.prm_tbl <- function(x, ...) {
 #' matrices are being used to define priors for a Bayesian model fitting, as the re-scaling
 #' of off-diagonal elements is handled automatically.
 #'
-#' A function to transform parameters will result in a more accurate `autose` result. If a call
-#' (`the1~exp(the)`) or a value (`the1~2`) are used, the standard error will be simply scaled.
+#' For all software: A function to transform parameters will result in a more accurate `autose`
+#' result. If a call (`the1~exp(the)`) or a value (`the1~2`) are used, the standard error
+#' will be simply scaled.
 #'
 #' @returns An updated `xp_xtras` object with mutated parameters
 #'
@@ -837,7 +840,7 @@ mutate_prm <- function(
     f # either function or a value
   }
   refresh_calls_prms <- function(xpdb) # Same as call in beginning of function. Get updated parameters
-    calls_env$base_df <- suppressWarnings(xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
+    calls_env$base_df <- suppressWarnings(hot_swap_base_get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
                                                          .method = .method, digits = 12,
                                                          transform = FALSE, show_all = TRUE, quiet=TRUE)) # show all is for off-diagonal of cor cov
   for (mn in 1:nrow(mutp_tab)) { # For loop to apply changes initiated from mutp_tab to running updates in new_xpdb
@@ -870,6 +873,10 @@ mutate_prm <- function(
             problem = .problem,
             subprob = .subprob,
             method = .method
+          )
+        } else if (xpose::software(xpdb)=="nlmixr2") {
+          new_xpdb <- mutate_mask(
+            new_xpdb, fortheta = base_df$name[impacted_prm], newval = change_to
           )
         } else {
           cli::cli_abort("This functionality is not yet implemented for {.strong {xpose::software(xpdb)}}")
@@ -911,19 +918,30 @@ mutate_prm <- function(
         if (length(change_to)!=1)
           cli::cli_abort("RHS must resolve to a length of {.strong 1}, not {.strong {length(change_to)}}")
         # Change value in ext (most times get_prm actually pulls from cov, but can happen here, too)
-        new_xpdb$files <- mutate_in_file(
-          xpdb = new_xpdb,
-          val = abs(change_to),
-          col = 1 + impacted_prm,
-          row = quote(ITERATION==-1000000001),
-          ext = "ext",
-          problem = .problem,
-          subprob = .subprob,
-          method = .method
-        )
+        if (xpose::software(xpdb)=="nonmem") {
+          new_xpdb$files <- mutate_in_file(
+            xpdb = new_xpdb,
+            val = abs(change_to),
+            col = 1 + impacted_prm,
+            row = quote(ITERATION==-1000000001),
+            ext = "ext",
+            problem = .problem,
+            subprob = .subprob,
+            method = .method
+          )
+        } else if (xpose::software(xpdb)=="nlmixr2") {
+          new_xpdb <- mutate_mask(
+            new_xpdb, fortheta = base_df$name[impacted_prm], newval = abs(change_to),
+            se = TRUE
+          )
+        } else {
+          # Since other software would have files processed differently, make SE correction here
+          return(new_xpdb)
+        }
         new_xpdb <- as_xp_xtras(new_xpdb)
         # If Iteration -1...1 exists, there should be cor/cov, but just in case...
-        if ("cov" %in% new_xpdb$files$extension &&
+        if (xpose::software(xpdb)=="nonmem" &&
+            "cov" %in% new_xpdb$files$extension &&
             "cor" %in% new_xpdb$files$extension) {
           # Change value in cor (off-diagonal is invariant to scale; only need to change reporting diagonal)
           new_xpdb$files <- mutate_in_file(

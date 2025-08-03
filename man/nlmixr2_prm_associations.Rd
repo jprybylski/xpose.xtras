@@ -4,12 +4,14 @@
 \alias{nlmixr2_prm_associations}
 \title{Based on associations baked into nlmixr2, automatically add to xpose data}
 \usage{
-nlmixr2_prm_associations(xpdb, dry_run = FALSE)
+nlmixr2_prm_associations(xpdb, dry_run = FALSE, quiet)
 }
 \arguments{
 \item{xpdb}{<\code{xp_xtras}> object}
 
 \item{dry_run}{<\code{logical}> Return a resulting information to compare against.}
+
+\item{quiet}{<\code{logical}> Include extra information}
 }
 \value{
 Object with filled \code{par}
@@ -25,6 +27,20 @@ Notably, back-transformations are not as relevant here as they may seem. Manual
 back-transformation with \code{backTransform()} only affects the display of the
 back-transformed theta estimate (and CI), but does not impact the
 relationship between EBEs and individual parameter estimates.
+}
+\examples{
+\dontrun{
+nlmixr2_warfarin \%>\%
+  # This will add all log-normal and the logitnormal params
+  nlmixr2_prm_associations() \%>\%
+  # Make sure theta is in normal scale
+  mutate_prm(temax~rxode2::expit) \%>\%
+  # Review results
+  get_prm()
+
+}
+
+
 }
 \seealso{
 \code{\link[rxode2:ini]{rxode2::ini()}}
