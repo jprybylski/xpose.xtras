@@ -99,6 +99,7 @@ iofv_vs_mod <- function(
       cli::cli_alert_info("For {.strong nlmixr2} models, sometimes '@file' is a better {.code axis.text}")
     nicer_labs <- make.unique(nicer_labs)
   }
+  nicer_labs <- nlmixr2_duplicate_axis_text_helper(nicer_labs, xpose_subset, axis.text)
 
   # Get combined xpdb
   xpdb_f <- franken_xpdb(
@@ -382,6 +383,7 @@ iofv_waterfall <- function(
 #' @param tag Plot tag
 #' @param log Log scale covariate value?
 #' @param guide Add guide line?
+#' @param axis.text What to show in the axes to distinguish the model values
 #' @param facets Additional facets
 #' @param .problem Problem number
 #' @param quiet Silence output
@@ -407,6 +409,7 @@ ipred_vs_ipred <- function(
     tag      = NULL,
     log = NULL,
     guide = TRUE,
+    axis.text = "@run",
     facets,
     .problem,
     quiet) {
@@ -462,9 +465,10 @@ ipred_vs_ipred <- function(
   new_col_names <- paste0(c(
     m1col, m2col # should be the same, still
   ), " (", c(
-    get_prop(mod1$xpdb, "run"),
-    get_prop(mod2$xpdb, "run")
+    xpose::parse_title(axis.text, mod1$xpdb, problem = .problem, quiet = quiet),
+    xpose::parse_title(axis.text, mod2$xpdb, problem = .problem, quiet = quiet)
   ), ")")
+  new_col_names <- nlmixr2_duplicate_axis_text_helper(new_col_names, list(mod1,mod2), axis.text)
   post_processing <- function(df) {
     df %>%
       dplyr::rename_with(~dplyr::case_when(
@@ -509,6 +513,7 @@ pred_vs_pred <- function(
     tag      = NULL,
     log = NULL,
     guide = TRUE,
+    axis.text = "@run",
     facets,
     .problem,
     quiet) {
@@ -564,9 +569,10 @@ pred_vs_pred <- function(
   new_col_names <- paste0(c(
     m1col, m2col # should be the same, still
   ), " (", c(
-    get_prop(mod1$xpdb, "run"),
-    get_prop(mod2$xpdb, "run")
+    xpose::parse_title(axis.text, mod1$xpdb, problem = .problem, quiet = quiet),
+    xpose::parse_title(axis.text, mod2$xpdb, problem = .problem, quiet = quiet)
   ), ")")
+  new_col_names <- nlmixr2_duplicate_axis_text_helper(new_col_names, list(mod1,mod2), axis.text)
   post_processing <- function(df) {
     df %>%
       dplyr::rename_with(~dplyr::case_when(

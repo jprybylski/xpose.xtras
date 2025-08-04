@@ -130,7 +130,7 @@ modavg_xpdb <- function(
         xpdb <- xpdb_l[[i]]
         new_col <- aic_cols[i]
         ofv_col <- ofv_frk_cols[i]
-        npars <- xpose::get_prm(xpdb, .problem = prob, quiet = TRUE) %>%
+        npars <- hot_swap_base_get_prm(xpdb, .problem = prob, quiet = TRUE) %>%
           dplyr::pull(fixed) %>%
           magrittr::not() %>%
           sum()

@@ -553,7 +553,7 @@ get_prm.xp_xtras <- function(
                                                 show_all = show_all, quiet=TRUE))
 
   } else if (xpose::software(xpdb)=="nlmixr2") {
-    checkmate::assert_true(test_nlmixr2_has_fit(xpdb))
+    assert_nlmixr2fit(xpdb)
 
     # Get basic param table
     def_prm <- get_prm_nlmixr2(xpdb, transform = transform, show_all = show_all, quiet=quiet)
@@ -891,6 +891,7 @@ mutate_prm <- function(
         if (is.na(exisiting_se) || exisiting_se==0) next # no point in doing the rest if se is 0 or unknown
         if (!mutp_tab$is_se[mn] && .autose==TRUE) {
           if (is.function(new_value)) {
+            set.seed(2323) # ensure reproducible
             nv_fun <- new_value
             new_value <- function(x,y=exisiting_se)
               sd(

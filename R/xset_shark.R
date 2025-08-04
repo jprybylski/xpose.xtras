@@ -209,15 +209,15 @@ shark_plot <- function(
                         "since these are probably the same model."))
 
   # Significance of dOFV
-  if (df == "guess" &&
-      (xpose::software(mod1$xpdb)!="nonmem" || xpose::software(mod2$xpdb)!="nonmem")) {
-    if (xpose::software(mod1$xpdb)!="nonmem" || xpose::software(mod2$xpdb)!="nonmem")
-      cli::cli_alert_warning("Currently cannot guess `df` for software other than nonmem. Defaulting to 1.")
-    df <- 1
-  }
+  # if (df == "guess" &&
+  #     (xpose::software(mod1$xpdb)!="nonmem" || xpose::software(mod2$xpdb)!="nonmem")) {
+  #   if (xpose::software(mod1$xpdb)!="nonmem" || xpose::software(mod2$xpdb)!="nonmem")
+  #     cli::cli_alert_warning("Currently cannot guess `df` for software other than nonmem. Defaulting to 1.")
+  #   df <- 1
+  # }
   if (df == "guess") {
-    prm1 <- xpose::get_prm(mod1$xpdb, .problem = .problem, .subprob = .subprob, .method = .method, quiet = quiet)
-    prm2 <- xpose::get_prm(mod2$xpdb, .problem = .problem, .subprob = .subprob, .method = .method, quiet = quiet)
+    prm1 <- hot_swap_base_get_prm(mod1$xpdb, .problem = .problem, .subprob = .subprob, .method = .method, quiet = TRUE)
+    prm2 <- hot_swap_base_get_prm(mod2$xpdb, .problem = .problem, .subprob = .subprob, .method = .method, quiet = TRUE)
 
     nfit1 <- sum(!prm1$fixed)
     nfit2 <- sum(!prm2$fixed)

@@ -51,11 +51,10 @@ pk.turnover.emax3 <- function() {
     effect ~ add(pdadd.err) | pca
   })
 }
-fit.TOS <- nlmixr2est::nlmixr2(pk.turnover.emax3, nlmixr2data::warfarin, "saem", control=list(print=0),
+fit.TOS <- nlmixr2est::nlmixr2(pk.turnover.emax3, nlmixr2data::warfarin, "focei", control=list(print=0),
                   table=list(cwres=TRUE, npde=TRUE))
 
-nlmixr2_warfarin <- fit.TOS %>%
-  nlmixr2_as_xtra(.skip_assoc = TRUE)
+nlmixr2_warfarin <- nlmixr2_as_xtra(fit.TOS, .skip_assoc = TRUE)
 
 
 usethis::use_data(nlmixr2_warfarin, overwrite = TRUE, compress = "xz")

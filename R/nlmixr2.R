@@ -86,7 +86,7 @@ nlmixr2_as_xtra <- function(
   ...,
   .skip_assoc = FALSE
 ) {
-  mod_name <- deparse(substitute(obj))
+  mod_name <- deparse(substitute(obj))[1]
   rlang::check_installed("xpose.nlmixr2")
   rlang::check_installed("nlmixr2")
 
@@ -132,13 +132,13 @@ nlmixr2_as_xtra <- function(
 #'   get_prop("condn")
 #'
 backfill_nlmixr2_props <- function(xpdb) {
-  checkmate::assert_true(test_nlmixr2_has_fit(xpdb))
+  assert_nlmixr2fit(xpdb)
   rlang::check_installed("rxode2") # This would be installed
 
   xpdb %>%
   # Condition number
   set_prop(
-    condn = dplyr::coalesce(paste(xpdb$fit$conditionNumberCov), "na")
+    condn = ifelse(is.null(xpdb$fit$conditionNumberCov), "na", paste(xpdb$fit$conditionNumberCov))
   ) %>%
   # Significant digits
   set_prop(
@@ -157,6 +157,10 @@ test_nlmixr2_has_fit <- function(xpdb) {
   xpose::check_xpdb(xpdb)
   if (xpose::software(xpdb)!="nlmixr2") return(FALSE)
   "fit" %in% names(xpdb) && inherits(xpdb$fit, "nlmixr2FitData")
+}
+
+assert_nlmixr2fit <- function(xpdb, caller = parent.frame()) {
+  xpa("true", test_nlmixr2_has_fit(xpdb), "No `nlmixr2` fit object found.", caller = caller)
 }
 
 
@@ -180,7 +184,7 @@ get_prm_nlmixr2 <- function(
 ) {
   if (!quiet) cli::cli_alert_info("{.strong nlmixr2} does not provide SE values for random effect parameters (this includes error parameters).")
 
-  checkmate::assert_true(test_nlmixr2_has_fit(xpdb))
+  assert_nlmixr2fit(xpdb)
   fit <- xpdb$fit
 
   # Template
@@ -323,7 +327,7 @@ hot_swap_base_get_prm <- function(xpdb, ...) {
     use_function <- xpose::get_prm
     use_dots <- all_dots[names(all_dots) %in% names(formals(use_function))]
   } else if (xpose::software(xpdb)=="nlmixr2") {
-    checkmate::assert_true(test_nlmixr2_has_fit(xpdb))
+    assert_nlmixr2fit(xpdb)
     use_function <- get_prm_nlmixr2
     use_dots <- all_dots[names(all_dots) %in% names(formals(use_function))]
   }
@@ -371,16 +375,17 @@ mutate_mask <- function(
 
 #' Based on associations baked into nlmixr2, automatically add to xpose data
 #'
+#' @description
+#' This function attempts to discern the associations between omegas and thetas
+#' using information about mu referencing within the `nlmixr2` fit object.
+#'
+#'
 #' @param xpdb <`xp_xtras`> object
 #' @param dry_run <`logical`> Return a resulting information to compare against.
 #' @param quiet <`logical`> Include extra information
 #'
 #' @details
-#' This function attempts to discern the associations between omegas and thetas
-#' using information about mu referencing within the `nlmixr2` fit object. Please
-#'
-#'
-#' Notably, back-transformations are not as relevant here as they may seem. Manual
+#' Back-transformations are not as relevant here as they may seem. Manual
 #' back-transformation with `backTransform()` only affects the display of the
 #' back-transformed theta estimate (and CI), but does not impact the
 #' relationship between EBEs and individual parameter estimates.
@@ -403,7 +408,7 @@ mutate_mask <- function(
 #'
 #'
 nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE, quiet) {
-  checkmate::assert_true(test_nlmixr2_has_fit(xpdb))
+  assert_nlmixr2fit(xpdb)
 
   if (rlang::is_missing(quiet)) quiet <- xpdb$options$quiet
 
@@ -642,3 +647,28 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE, quiet) {
   }
   xpdb %>% add_prm_association(!!!arg_formula_list)
 }
+
+
+nlmixr2_duplicate_axis_text_helper <- function(
+    test_for_sameness,
+    xpdb_list,
+    current_axis.text
+) {
+  if (any(duplicated(test_for_sameness))) {
+    cli::cli_alert_warning("Duplicate values for default {.code axis.text}. Making result unique.")
+    if (any(purrr::map_lgl(xpdb_list, ~ xpose::software(.x$xpdb)=="nlmixr2")))
+      cli::cli_alert_info("For {.strong nlmixr2} models, sometimes '@file' is a better {.code axis.text}, instead of '{current_axis.text}'.")
+    test_for_sameness <- make.unique(test_for_sameness)
+  }
+  test_for_sameness
+}
+
+# Not going to backfill this. Users will have to create and
+# output their own likelihood estimate, just like one has to
+# do if using M3 in NONMEM (acknowledging that is directly used
+# in NONMEM, whereas it is implicit here). The data-raw for the
+# M3 example shows how easy this is to do.
+# backfill_nlmixr2_censlike <- function(
+#     xpdb,
+#
+#     )

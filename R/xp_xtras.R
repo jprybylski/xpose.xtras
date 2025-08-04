@@ -512,7 +512,6 @@ backfill_iofv <- function(xpdb, .problem=NULL, .subprob=NULL, .label = "iOFV") {
 
   xpose::check_xpdb(xpdb, "data")
   fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob) # fills in .problem and .subprob if missing
-
   new_xpdb <- as_xp_xtras(xpdb)
   if (xpose::software(xpdb)=="nonmem") {
     # Get from nonmem phi file
@@ -531,22 +530,15 @@ backfill_iofv <- function(xpdb, .problem=NULL, .subprob=NULL, .label = "iOFV") {
       phi_df$OBJ[match(id,phi_df$ID)]
     }
   } else if (xpose::software(xpdb)=="nlmixr2") {
-    # For nlmixr2, manually calculate with NLMIXRLLIKOBS column
-    fit_data <- xpose::get_data(xpdb, .problem=.problem)
+    assert_nlmixr2fit(xpdb)
+    xpa("data_frame", xpdb$fit$etaObf)
 
-    req_col <- "NLMIXRLLIKOBS"
-
-    if (!req_col %in% names(fit_data)) cli::cli_abort("Required column {req_col} not in the data.")
     id_col <- xp_var(new_xpdb, .problem = .problem, type = "id")$col[1]
-    phi_df <- fit_data %>%
-      dplyr::select(dplyr::all_of(c(id_col,req_col))) %>%
-      dplyr::group_by(!!dplyr::sym(id_col)) %>%
-      dplyr::summarise(
-        OBJ = sum(!!dplyr::sym(req_col))
-      ) %>%
-      dplyr::ungroup()
+    req_col <- "OBJI"
+    phi_df <- (xpdb$fit$etaObf) %>%
+      dplyr::select(dplyr::all_of(c(id_col,req_col)))
     match_obj <- function(id) {
-      phi_df$OBJ[match(id,phi_df[[id_col]])]
+      phi_df[[req_col]][match(id,phi_df[[id_col]])]
     }
   }
 
@@ -562,7 +554,18 @@ backfill_iofv <- function(xpdb, .problem=NULL, .subprob=NULL, .label = "iOFV") {
     new_xpdb <- new_xpdb %>%
       xpose::mutate(!!.label := new_objs(), .problem = prob) %>%
       set_var_types(.problem = prob, iofv = {{.label}})
+
+
+    if (any(!is.finite(xpose::get_data(new_xpdb, .problem = prob, quiet=TRUE)[[.label]])) &&
+        !xpdb$options$quiet) {
+      cli::cli_alert_warning(
+        paste("Some { .label} values for problem { prob} are not finite (NA or Inf). Please consider",
+              "using {.code filter(is.finite({ .label}))} before using { .label} values.")
+      )
+    }
   }
+
+
   new_xpdb
 }
 

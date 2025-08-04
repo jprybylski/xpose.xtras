@@ -17,13 +17,11 @@ nlmixr2_prm_associations(xpdb, dry_run = FALSE, quiet)
 Object with filled \code{par}
 }
 \description{
-Based on associations baked into nlmixr2, automatically add to xpose data
+This function attempts to discern the associations between omegas and thetas
+using information about mu referencing within the \code{nlmixr2} fit object.
 }
 \details{
-This function attempts to discern the associations between omegas and thetas
-using information about mu referencing within the \code{nlmixr2} fit object. Please
-
-Notably, back-transformations are not as relevant here as they may seem. Manual
+Back-transformations are not as relevant here as they may seem. Manual
 back-transformation with \code{backTransform()} only affects the display of the
 back-transformed theta estimate (and CI), but does not impact the
 relationship between EBEs and individual parameter estimates.
