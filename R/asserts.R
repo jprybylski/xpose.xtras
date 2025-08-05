@@ -8,7 +8,8 @@ xpa <- function(
     caller = parent.frame(),
     ...
 ) {
-  checkmate::check_atomic(custom_msg)
+  checkmate::assert_string(custom_msg) # can be vanilla since this is internal
+  literal_expression <- rlang::as_label(rlang::enquo(expr))
   fun_to_call <- paste0("assert_",tolower(that))
   rlang::try_fetch(
     rlang::exec(
@@ -19,7 +20,7 @@ xpa <- function(
     error = function(s) {
       rlang::abort(
         ifelse(custom_msg=="",
-               paste0("Error evaluating `",deparse(expr),"`"),
+               paste0("Error evaluating `",literal_expression,"`"),
                custom_msg),
         parent = s, call = caller, use_cli_format = TRUE
       )

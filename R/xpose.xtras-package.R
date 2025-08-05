@@ -12,7 +12,10 @@
 #' @importFrom grDevices pdf
 #' @importFrom lifecycle deprecated
 #' @importFrom stats as.formula
+#' @importFrom stats formula
 #' @importFrom stats na.omit
+#' @importFrom stats plogis
+#' @importFrom stats qlogis
 #' @importFrom stats quantile
 #' @importFrom stats rnorm
 #' @importFrom stats sd
@@ -20,6 +23,7 @@
 #' @importFrom utils capture.output
 #' @importFrom utils data
 #' @importFrom utils modifyList
+#' @importFrom utils tail
 ## usethis namespace: end
 NULL
 

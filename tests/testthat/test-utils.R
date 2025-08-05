@@ -101,6 +101,10 @@ test_that("set_* functions works", {
     set_option(xpdb_ex_pk, quiet = !current_quiet)$options$quiet,
     !current_quiet
   )
+  expect_error(
+    set_option(xpdb_x, cvtype = "log"),
+    regexp = "exact.*sqrt.*log"
+  )
 
 
   expect_error(
@@ -292,4 +296,100 @@ test_that("description can be pulled from commments generically", {
       get_prop("descr") %>%
       grepl("CORRECT",.,ignore.case = FALSE)
   )
+  expect_error(
+    desc_from_comments(pkpd_m3a, extra_proc = ""),
+    regexp = "character"
+  )
 })
+
+test_that("extra fill tests pass", {
+  fill_test <- function(...,xpdb=pheno_saem) {
+    fill_prob_subprob_method(xpdb, ...)
+    list(
+      .problem = .problem,
+      .subprob = .subprob,
+      .method = .method
+    )
+  }
+
+  expect_no_error(
+    fill_test()
+  )
+  expect_identical(
+    fill_test(),
+    list(
+      .problem = 1,
+      .subprob = 2,
+      .method = "imp"
+    )
+  )
+  expect_identical(
+    fill_test(for_summary = TRUE),
+    list(
+      .problem = 1,
+      .subprob = 1,
+      .method = "imp"
+    )
+  )
+  expect_no_error(
+    fill_test(.problem = 1)
+  )
+  expect_no_error(
+    fill_test(.problem = 1, .subprob=1)
+  )
+  expect_no_error(
+    fill_test(.problem = 1, .subprob=1, .method="saem")
+  )
+  expect_identical(
+    fill_test(.method="saem"),
+    fill_test(.problem = 1, .subprob=1, .method="saem")
+  )
+
+  no_ext <- xpdb_x
+  no_ext$files <- dplyr::filter(no_ext$files, extension != "ext")
+  no_ext <- as_xp_xtras(no_ext)
+  expect_error(
+    fill_test(xpdb=no_ext),
+    regexp = "extension.*ext.*missing"
+  )
+
+})
+
+
+test_that("check xpdb with logical return", {
+  expect_no_error(
+    test_xpdb(xpdb_x)
+  )
+  expect_true(
+    test_xpdb(xpdb_x)
+  )
+  not_xpdb <- "hi"
+  expect_no_error(
+    test_xpdb(not_xpdb)
+  )
+  expect_false(
+    test_xpdb(not_xpdb)
+  )
+})
+
+test_that("files df can be mutated", {
+  expect_no_error(
+    mutate_files(xpdb_x)
+  )
+  expect_no_error(
+    mutate_files(nlmixr2_m3)
+  )
+  expect_identical(
+    class(mutate_files(xpdb_x)),
+    class(xpdb_x)
+  )
+  expect_identical(
+    class(mutate_files(xpose::xpdb_ex_pk)),
+    class(xpose::xpdb_ex_pk)
+  )
+  expect_identical(
+    mutate_files(xpdb_x,name=toupper(name))$files,
+    dplyr::mutate(xpdb_x$files,name=toupper(name))
+  )
+})
+

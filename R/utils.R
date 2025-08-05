@@ -76,20 +76,6 @@ get_prop <- function(xpdb, prop, .problem = NULL, .subprob=NULL, .method=NULL, .
 
   summ <- xpose::get_summary(xpdb)
 
-  # If subprob is NULL and method is not, determine subprob for method
-  # TODO: Consider if this should be moved to fill_prob_subprob_method
-  if (is.null(.subprob) && !is.null(.method)) {
-    # Find the summary column that matches the method argument
-    all_methods <- summ %>%
-      dplyr::filter(label=="method") %>%
-      dplyr::filter(stringr::str_detect(value, tolower(.method)))
-    # If .problem is not null, also filter on that
-    if (!is.null(.problem)) all_methods <- dplyr::filter(all_methods, problem==.problem)
-    if (nrow(all_methods)==0)
-      cli::cli_abort("No method {.method} found in summary.")
-    # Pick last subprob
-    .subprob <- tail(all_methods$subprob, 1)
-  }
 
   fill_prob_subprob_method(xpdb, .problem = .problem, .subprob=.subprob, .method=.method, for_summary = TRUE)
 
@@ -101,6 +87,10 @@ get_prop <- function(xpdb, prop, .problem = NULL, .subprob=NULL, .method=NULL, .
   prop_ <- summ %>%
     dplyr::filter(label==prop)
 
+
+  # If there is only one value to return, return in
+  if (nrow(prop_)==1)
+    return(prop_$value)
 
   # If all problem and subprob numbers are 0, return value
   if (all(prop_$problem==0) && all(prop_$subprob==0))
@@ -388,6 +378,8 @@ desc_from_comments <- function(
     extra_proc = c,
     collapse = " "
     ) {
+  if (xpose::software(xpdb)!="nonmem")
+    cli::cli_abort("This function is only relevant to nonmem objects.")
   xpose::check_xpdb(xpdb, "code")
   if (!is.function(extra_proc))
     cli::cli_abort("`extra_proc` must be a function, not a {.strong {class(extra_proc)[1]}}")
@@ -442,6 +434,27 @@ desc_from_comments <- function(
 #'
 fill_prob_subprob_method <- function(xpdb, .problem, .subprob, .method, envir=parent.frame(), for_summary = FALSE) {
 
+  summ <- xpose::get_summary(xpdb) %>%
+    # Both filling approaches (to match nonmem approach) only work for estimations
+    dplyr::filter(label=="method")
+
+
+  # If subprob is NULL and method is not, determine subprob for method
+  if ((missing(.subprob) || is.null(.subprob)) && !(missing(.method) || is.null(.method))) {
+    # Find the summary column that matches the method argument
+    all_methods <- summ %>%
+      dplyr::filter(label=="method") %>%
+      dplyr::filter(stringr::str_detect(value, tolower(.method)))
+    # If .problem is not null, also filter on that
+    if (!(missing(.problem) || is.null(.problem))) all_methods <- dplyr::filter(all_methods, problem==.problem)
+    if (nrow(all_methods)==0)
+      cli::cli_abort("No method {.method} found in summary.")
+    # Pick last subprob
+    .subprob <- tail(all_methods$subprob, 1)
+    # Need to add 1 unless returning for summary, to be consistent with expectations when .method not provided
+    .subprob <- .subprob + !for_summary
+  }
+
   # If not nonmem, just use reasonable defaults that are consistent with nonmem approach
   if (xpose::software(xpdb)!="nonmem") {
     summ <- xpose::get_summary(xpdb) %>%
@@ -456,10 +469,14 @@ fill_prob_subprob_method <- function(xpdb, .problem, .subprob, .method, envir=pa
       return()
     }
 
-    if (missing(.problem) || is.null(.problem))
+    if (missing(.problem) || is.null(.problem)) {
       .problem <- tail(summ$problem,1)
-    if (missing(.subprob) || is.null(.subprob))
+      summ <- dplyr::filter(summ, problem==.problem)
+    }
+    if (missing(.subprob) || is.null(.subprob)) {
       .subprob <- tail(summ$subprob,1)
+      summ <- dplyr::filter(summ, subprob==.subprob)
+    }
     if (missing(.method) || is.null(.method))
       .method <- tail(summ$value,1)
 
@@ -483,7 +500,9 @@ fill_prob_subprob_method <- function(xpdb, .problem, .subprob, .method, envir=pa
     .problem <- xpose::last_file_problem(xpdb, ext = "ext")
   if (missing(.subprob) || is.null(.subprob)) {
     .subprob <- xpose::last_file_subprob(xpdb, ext = "ext", .problem = .problem)
-    return_subprob <- .subprob - as.integer(for_summary) # If this function interacts with xpose summary (as usual), .subprob needs to be 0-indexed instead of 1-indexed
+    #  If this function interacts with xpose summary (as usual),
+    #  .subprob needs to be 0-indexed instead of 1-indexed
+    return_subprob <- .subprob - as.integer(for_summary) #
   } else {
     return_subprob <- .subprob
   }
@@ -521,7 +540,7 @@ test_xpdb <- function(
 #' @keywords internal
 #'
 mutate_files <- function(xpdb, ...) {
-  xpose:::check_xpdb(xpdb)
+  xpose::check_xpdb(xpdb)
   if (!test_xpdb(xpdb, "files")) return(xpdb)
   revert_to_xpdb_fn <- if (is_xp_xtras(xpdb)) as_xp_xtras else xpose::as.xpdb
 

@@ -11,7 +11,7 @@ nlmixr2_as_xtra(obj, ..., .skip_assoc = FALSE)
 
 \item{...}{Passed to \link[xpose.nlmixr2:xpose_data_nlmixr2]{xpose_data_nlmixr2}}
 
-\item{.skip_assoc}{<\code{logical}> If the model is relatively uncomplicated, \code{\link{nlmixr2_prm_associations(}}
+\item{.skip_assoc}{<\code{logical}> If the model is relatively uncomplicated, \code{\link[=nlmixr2_prm_associations]{nlmixr2_prm_associations()}}
 may be able to recognize relationships between random effects and fixed effect parameters. If the default
 (\code{FALSE}) fails then try to rerun with the association step skipped.}
 }

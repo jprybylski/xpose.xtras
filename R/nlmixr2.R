@@ -72,7 +72,7 @@ attach_nlmixr2 <- function(
 #'
 #' @param obj nlmixr2 fit object
 #' @param ... Passed to [xpose_data_nlmixr2][xpose.nlmixr2::xpose_data_nlmixr2()]
-#' @param .skip_assoc <`logical`> If the model is relatively uncomplicated, [`nlmixr2_prm_associations(`]
+#' @param .skip_assoc <`logical`> If the model is relatively uncomplicated, [nlmixr2_prm_associations()]
 #' may be able to recognize relationships between random effects and fixed effect parameters. If the default
 #' (`FALSE`) fails then try to rerun with the association step skipped.
 #'
@@ -400,6 +400,7 @@ mutate_mask <- function(
 #'   # This will add all log-normal and the logitnormal params
 #'   nlmixr2_prm_associations() %>%
 #'   # Make sure theta is in normal scale
+#'   # rxode::expit could be plogis in this case
 #'   mutate_prm(temax~rxode2::expit) %>%
 #'   # Review results
 #'   get_prm()
@@ -441,6 +442,9 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE, quiet) {
     theta_lhs_tbl, eta_lhs_tbl,
     by = "param"
   ) %>%
+    #  Ignore parameters with no theta or eta association
+    filter(!is.na(eta) & !is.na(theta)) %>%
+    # Add transformations
     dplyr::rowwise() %>%
     dplyr::mutate(
       # flag as mu referenced or not
@@ -535,7 +539,7 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE, quiet) {
         is.null(qdist_envname)) {
       null_env <- xdist_exprs[c(is.null(pdist_envname), is.null(qdist_envname))]
       if (!quiet)
-        cli::cli_warn("Normal → Transformed or inverse function not in global or rxode2 environment. ({.code {null_env}})")
+        cli::cli_warn("Normal \U2192 Transformed or inverse function not in global or rxode2 environment. ({.code {null_env}})")
       return(FALSE)
     }
     # Ensure results are numeric and revere eachother
@@ -545,23 +549,23 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE, quiet) {
     pdist_test <- pdist_fn(probe_num)
     if (!is.null(pdist_test$error)) {
       if (!quiet)
-        cli::cli_warn("Normal → Transformed function cannot be evaluated without error with input value {.code {probe_num}}. ({.code {xdist_exprs[1]}})")
+        cli::cli_warn("Normal \U2192 Transformed function cannot be evaluated without error with input value {.code {probe_num}}. ({.code {xdist_exprs[1]}})")
       return(FALSE)
     }
     if (!is.numeric(pdist_test$result)) {
       if (!quiet)
-        cli::cli_warn("Normal → Transformed function does not return numeric values with input value {.code {probe_num}}. ({.code {xdist_exprs[1]}})")
+        cli::cli_warn("Normal \U2192 Transformed function does not return numeric values with input value {.code {probe_num}}. ({.code {xdist_exprs[1]}})")
       return(FALSE)
     }
     qdist_test <- qdist_fn(pdist_test$result)
     if (!is.null(qdist_test$error)) {
       if (!quiet)
-        cli::cli_warn("Transformed → Normal function cannot be evaluated without error with input value {.code {pdist_test$result}}. ({.code {xdist_exprs[2]}})")
+        cli::cli_warn("Transformed \U2192 Normal function cannot be evaluated without error with input value {.code {pdist_test$result}}. ({.code {xdist_exprs[2]}})")
       return(FALSE)
     }
     if (!isTRUE(all.equal(qdist_test$result,probe_num))) {
       if (!quiet)
-        cli::cli_warn("Normal → Transformed is not reversible by {.code {xdist_exprs[2]}}. ({.code {xdist_exprs[1]}})")
+        cli::cli_warn("Normal \U2192 Transformed is not reversible by {.code {xdist_exprs[2]}}. ({.code {xdist_exprs[1]}})")
       return(FALSE)
     }
     return(TRUE)
