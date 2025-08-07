@@ -32,7 +32,13 @@ theo_sdcens$CENS=ifelse(theo_sdcens$DV<good_lloq & theo_sdcens$EVID==0,1,0)
 theo_sdcens$DV=ifelse(theo_sdcens$CENS==1,good_lloq,theo_sdcens$DV)
 theo_sdcens$LLOQ=good_lloq # add lloq column
 fitcens <- nlmixr2est::nlmixr2(one.cmt, theo_sdcens, "focei", control=nlmixr2est::foceiControl(print=0))
-nlmixr2_m3 <- nlmixr2_as_xtra(obj = fitcens, .skip_assoc = TRUE)
+nlmixr2_m3 <- nlmixr2_as_xtra(obj = fitcens, .skip_assoc = TRUE) %>%
+  set_option(
+    dir = paste0("~")
+  ) %>%
+  set_prop(
+    dir = paste0("~")
+  )
 
 
 usethis::use_data(nlmixr2_m3, overwrite = TRUE, compress = "xz")

@@ -225,7 +225,7 @@
 #'
 #' A modified version of the theophylline model fit with censoring
 #' added in to provoke M3 censoring. An additional output variable
-#' is added to use an an example in categorical DVs/
+#' is added to use an an example in categorical DVs.
 #'
 #'
 #' @seealso [xpdb_nlmixr2] [catdv_vs_dvprobs()]

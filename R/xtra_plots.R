@@ -115,6 +115,12 @@ xp_xtra_theme <- function(base_on = NULL) {
     shkdntxt_size = base_on$text_size,
     shkdntxt_hjust = base_on$text_hjust,
     shkdntxt_vjust = base_on$text_vjust,
+    label_alpha = base_on$text_alpha,
+    label_color = base_on$text_color,
+    label_family = base_on$text_family,
+    label_fontface = base_on$text_fontface,
+    label_lineheight = base_on$text_lineheight,
+    label_size = base_on$text_size,
   )
 
   # May rarely have these xp_theme elements already defined for an xpose

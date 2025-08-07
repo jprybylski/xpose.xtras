@@ -54,7 +54,13 @@ pk.turnover.emax3 <- function() {
 fit.TOS <- nlmixr2est::nlmixr2(pk.turnover.emax3, nlmixr2data::warfarin, "focei", control=list(print=0),
                   table=list(cwres=TRUE, npde=TRUE))
 
-nlmixr2_warfarin <- nlmixr2_as_xtra(fit.TOS, .skip_assoc = TRUE)
+nlmixr2_warfarin <- nlmixr2_as_xtra(fit.TOS, .skip_assoc = TRUE) %>%
+  set_option(
+    dir = paste0("~")
+  ) %>%
+  set_prop(
+    dir = paste0("~")
+  )
 
 
 usethis::use_data(nlmixr2_warfarin, overwrite = TRUE, compress = "xz")

@@ -613,12 +613,12 @@ list_vars.default <- function (xpdb, .problem = NULL, ...) {
 
 #' @rdname list_vars
 #' @export
-list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
+list_vars.xp_xtras <- function(xpdb, .problem = NULL, ...) {
   #### xpose.xtras +++ Most of the default function can be copied.
   #### xpose.xtras +++ There are some minimal changes throughout for style and new var types
 
   # Check input
-  xpose::check_xpdb(xpdb, check = 'data')
+  xpose::check_xpdb(xpdb, check = "data")
 
   x <- xpdb$data
 
@@ -632,103 +632,115 @@ list_vars.xp_xtras  <- function (xpdb, .problem = NULL, ...) {
   # Full dv probs data
   full_probs <- dplyr::bind_rows(get_index(xpdb, .problem = .problem)$probs)
 
-  order <- c('id', 'dv', 'catdv','dvprobs','expdv', 'idv', 'dvid', 'occ', 'amt', 'evid', 'mdv', 'pred', 'ipred',
-             'param', 'eta', 'iofv', 'res', 'catcov', 'contcov', 'a', 'bin', 'na')
+  order <- c(
+    "id", "dv", "catdv", "dvprobs", "expdv", "idv", "dvid",
+    "occ", "amt", "evid", "mdv", "pred", "ipred",
+    "param", "eta", "iofv", "res", "catcov", "contcov",
+    "a", "bin", "na"
+  )
   cli::cli({
     if (rlang::is_interactive()) sp <- cli::make_spinner(default_spinner)
     if (rlang::is_interactive()) sp$spin()
     x %>%
       dplyr::mutate(grouping = as.integer(.$problem)) %>%
-      dplyr::group_by_at(.vars = 'grouping') %>%
+      dplyr::group_by_at(.vars = "grouping") %>%
       tidyr::nest() %>%
       dplyr::ungroup() %>%
-      {purrr::map(.$data, function(df) {
-        if (rlang::is_interactive()) sp$spin()
-        cli::cli_bullets("List of available variables for problem no. {df$problem[1]}")
-        df$index[[1]] %>%
-          dplyr::mutate(type2=type) %>% # xtra :: just to keep type
-          dplyr::group_by_at(.vars = 'type') %>%
-          tidyr::nest() %>%
-          dplyr::ungroup() %>%
-          dplyr::mutate(
-            string = purrr::map_chr(.$data, ~{
-              if (rlang::is_interactive()) sp$spin()
+      {
+        purrr::map(.$data, function(df) {
+          if (rlang::is_interactive()) sp$spin()
+          cli::cli_bullets("List of available variables for problem no. {cli::col_magenta(df$problem[1])}")
+          df$index[[1]] %>%
+            dplyr::mutate(type2 = type) %>% # xtra :: just to keep type
+            dplyr::group_by_at(.vars = "type") %>%
+            tidyr::nest() %>%
+            dplyr::ungroup() %>%
+            dplyr::mutate(
+              string = purrr::map_chr(.$data, ~ {
+                if (rlang::is_interactive()) sp$spin()
 
-              cols_c <- unique(.$col)
+                cols_c <- unique(.$col)
 
-              # Add labels and/or units
-              if (!all(is.na(c(.$label,.$units)))) {
-                labs_c <- .$label[!duplicated(.$col)]
-                units_c <- .$units[!duplicated(.$col)]
-                tocols_c <- stringr::str_c(
-                  dplyr::coalesce(stringr::str_c(
-                    "'", labs_c, "'"
-                  ), ""),
-                  dplyr::coalesce(stringr::str_c(
-                    ifelse(is.na(labs_c), "", ", "),
-                    units_c
-                  ), "")
-                ) %>% ifelse(.=="", ., paste0(" (",.,")"))
-                cols_c <- stringr::str_c(cols_c, cli::style_bold(tocols_c))
-              }
+                # Add labels and/or units
+                if (!all(is.na(c(.$label, .$units)))) {
+                  labs_c <- .$label[!duplicated(.$col)]
+                  units_c <- .$units[!duplicated(.$col)]
+                  tocols_c <- stringr::str_c(
+                    dplyr::coalesce(stringr::str_c(
+                      "'", labs_c, "'"
+                    ), ""),
+                    dplyr::coalesce(stringr::str_c(
+                      ifelse(is.na(labs_c), "", ", "),
+                      units_c
+                    ), "")
+                  ) %>% ifelse(. == "", ., paste0(" (", ., ")"))
+                  cols_c <- stringr::str_c(cols_c, cli::style_bold(tocols_c))
+                }
 
-              # Add level count
-              if (.$type2[1] %in% level_types) {
-                lvls_c <- .$levels[!duplicated(.$col)]
-                cols_c <- purrr::map2_chr(cols_c, lvls_c, ~{
-                  paste0(.x, " [", cli::col_yellow(nrow(.y)),"]")
-                })
-              }
+                # Add level count
+                if (.$type2[1] %in% level_types) {
+                  lvls_c <- .$levels[!duplicated(.$col)]
+                  cols_c <- purrr::map2_chr(cols_c, lvls_c, ~ {
+                    paste0(.x, " [", cli::col_yellow(nrow(.y)), "]")
+                  })
+                }
 
-              # Add prob definition
-              if (.$type2[1]=="dvprobs" && nrow(full_probs)>0) {
-                prb_which <- match(unique(.$col), full_probs$prob)
-                cols_c <- purrr::map2_chr(cols_c, prb_which, ~{
-                  paste0(.x, " [P(",
-                         cli::col_blue(paste0("*.",
-                         ifelse(is.na(full_probs$qual[.y]), "eq", full_probs$qual[.y]),
-                         ".", ifelse(is.na(full_probs$value[.y]), "??", full_probs$value[.y])
-                         ) %>% paste(collapse="|")),
-                         ")]")
-                })
-              }
+                # Add prob definition
+                if (.$type2[1] == "dvprobs" && nrow(full_probs) > 0) {
+                  prb_which <- match(unique(.$col), full_probs$prob)
+                  cols_c <- purrr::map2_chr(cols_c, prb_which, ~ {
+                    paste0(
+                      .x, " [P(",
+                      cli::col_blue(paste0(
+                        "*.",
+                        ifelse(is.na(full_probs$qual[.y]), "eq", full_probs$qual[.y]),
+                        ".", ifelse(is.na(full_probs$value[.y]), "??", full_probs$value[.y])
+                      ) %>% paste(collapse = "|")),
+                      ")]"
+                    )
+                  })
+                }
 
-              stringr::str_c(cols_c, collapse = ', ')
-            }),
-            descr = dplyr::case_when(type == 'id' ~ 'Subject identifier',
-                                     type == 'occ' ~ 'Occasion flag',
-                                     type == 'na' ~ 'Not attributed',
-                                     type == 'amt' ~ 'Dose amount',
-                                     type == 'idv' ~ 'Independent variable',
-                                     type == 'ipred' ~ 'Model individual predictions',
-                                     type == 'pred' ~ 'Model typical predictions',
-                                     type == 'res' ~ 'Residuals',
-                                     type == 'evid' ~ 'Event identifier',
-                                     type == 'dv' ~ 'Dependent variable',
-                                     type == 'catdv' ~ 'Categorical endpoint',
-                                     type == 'dvprobs' ~ 'DV Probabilities',
-                                     type == 'expdv' ~ 'Expected DV',
-                                     type == 'catcov' ~ 'Categorical covariates',
-                                     type == 'contcov' ~ 'Continuous covariates',
-                                     type == 'param' ~ 'Model parameter',
-                                     type == 'eta' ~ 'Eta',
-                                     type == 'iofv' ~ 'Individual OFV',
-                                     type == 'bin' ~ 'Binned IDV',
-                                     type == 'a' ~ 'Compartment amounts',
-                                     type == 'dvid' ~ 'DV identifier',
-                                     type == 'mdv' ~ 'Missing dependent variable',
-                                     TRUE ~ "Undefined type") %>%
-              sprintf("%s (%s)", ., ifelse(type%in%order, type, paste0("?",type)))
-          ) %>%
-          dplyr::mutate(descr = stringr::str_pad(.$descr, 37, 'right')
-          ) %>%
-          dplyr::slice(order(match(.$type, order))) %>%
-          {stringr::str_c(' -', .$descr, ':', .$string, sep = ' ')} %>%
-          stringr::str_c(collapse="\n") %>%
-          cli::cli_verbatim()})}
+                stringr::str_c(cols_c, collapse = ", ")
+              }),
+              descr = dplyr::case_when(
+                type == "id" ~ "Subject identifier",
+                type == "occ" ~ "Occasion flag",
+                type == "na" ~ "Not attributed",
+                type == "amt" ~ "Dose amount",
+                type == "idv" ~ "Independent variable",
+                type == "ipred" ~ "Model individual predictions",
+                type == "pred" ~ "Model typical predictions",
+                type == "res" ~ "Residuals",
+                type == "evid" ~ "Event identifier",
+                type == "dv" ~ "Dependent variable",
+                type == "catdv" ~ "Categorical endpoint",
+                type == "dvprobs" ~ "DV Probabilities",
+                type == "expdv" ~ "Expected DV",
+                type == "catcov" ~ "Categorical covariates",
+                type == "contcov" ~ "Continuous covariates",
+                type == "param" ~ "Model parameter",
+                type == "eta" ~ "Eta",
+                type == "iofv" ~ "Individual OFV",
+                type == "bin" ~ "Binned IDV",
+                type == "a" ~ "Compartment amounts",
+                type == "dvid" ~ "DV identifier",
+                type == "mdv" ~ "Missing dependent variable",
+                TRUE ~ "Undefined type"
+              ) %>%
+                sprintf("%s (%s)", ., ifelse(type %in% order, type, paste0("?", type)))
+            ) %>%
+            dplyr::mutate(descr = stringr::str_pad(.$descr, 37, "right")) %>%
+            dplyr::slice(order(match(.$type, order))) %>%
+            {
+              stringr::str_c(" -", .$descr, ":", .$string, sep = " ")
+            } %>%
+            stringr::str_c(collapse = "\n") %>%
+            cli::cli_verbatim()
+        })
+      }
     if (rlang::is_interactive()) sp$finish()
   })
-
 }
 
 

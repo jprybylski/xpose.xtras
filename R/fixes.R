@@ -13,7 +13,7 @@
 #'
 #' @param xpdb An \code{xpose_data} object.
 #' @param .problem The problem number to which the edits will be applied.
-#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Passed to \code{\link[xpose]{set_var_types}} after processing.
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Passed to <[`set_var_types`][xpose::set_var_types]> after processing.
 #' @param auto_factor If \code{TRUE} new columns assigned to the type 'catcov' will be converted to
 #' factor.
 #' @param quiet Logical, if \code{FALSE} messages are printed to the console.

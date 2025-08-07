@@ -24,7 +24,13 @@ one.cmt <- function() {
 
 theo_sd_saem <- nlmixr2est::nlmixr2(one.cmt, nlmixr2data::theo_sd, "saem", control=nlmixr2est::saemControl(print=0))
 
-xpdb_nlmixr2_saem <- nlmixr2_as_xtra(obj = theo_sd_saem, .skip_assoc = TRUE)
+xpdb_nlmixr2_saem <- nlmixr2_as_xtra(obj = theo_sd_saem, .skip_assoc = TRUE) %>%
+  set_option(
+    dir = paste0("~")
+  ) %>%
+  set_prop(
+    dir = paste0("~")
+  )
 
 
 usethis::use_data(xpdb_nlmixr2_saem, overwrite = TRUE, compress = "xz")
