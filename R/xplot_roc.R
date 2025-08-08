@@ -139,11 +139,9 @@ xplot_rocplot <- function(xpdb,
             dplyr::arrange(dplyr::across(c(dplyr::ends_with(xcol), dplyr::ends_with(ycol)))) %>%
             # AUC
             dplyr::mutate(
-              ...auc... := sum(
-                .data[[paste0(avoid_conflict,ycol)]]*diff(
-                  c(0,.data[[paste0(avoid_conflict,ycol)]])
-                )
-              )
+              ...auc... = sum(diff(.data[[paste0(avoid_conflict, xcol)]]) *
+                (head(.data[[paste0(avoid_conflict, ycol)]], -1) +
+                  tail(.data[[paste0(avoid_conflict, ycol)]], -1)) / 2)
             )
         )
       ) %>%

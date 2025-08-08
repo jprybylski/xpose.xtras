@@ -74,7 +74,7 @@ roc_plot <- function(xpdb,
                         cutpoint = 1,
                         group    = 'ID',
                         type     = 'ca',
-                        title    = 'ROC curve | @run',
+                        title    = 'ROC curve @dvcol~@probcol | @run',
                         subtitle = 'Ofv: @ofv, Eps shrink: @epsshk',
                         caption  = '@dir',
                         tag      = NULL,
@@ -109,7 +109,7 @@ roc_plot <- function(xpdb,
   ## For some reason the summary data for the xpdb is getting lost
   ## Not @dir, but @ofv and @epsshk
   xplot_rocplot(
-    xpdb = xpdb, group = NULL, quiet = quiet,
+    xpdb = xpdb, group = group, quiet = quiet,
     opt = xpose::data_opt(
       .problem = .problem,
       filter = xpose::only_obs(xpdb, .problem, quiet),
@@ -117,7 +117,11 @@ roc_plot <- function(xpdb,
     ),
     mapping = mapping,
     type = type, facets = facets,
-    title = title, subtitle = subtitle, caption = caption,
+    title = stringr::str_replace_all(title, c(
+      "@dvcol" = catdv_cols,
+      "@probcol" = cp$prob_col
+    )),
+    subtitle = subtitle, caption = caption,
     tag = tag, plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
     like_col = cp$prob_col,
     obs_col = catdv_cols,

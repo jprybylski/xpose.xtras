@@ -148,12 +148,12 @@ make_catdv_cutpoint <- function(xpdb, .problem, catdv_col, cutpoint) {
   if (nrow(probs_df)==0) {
     rlang::abort("Relationship between probabiliy column and at least one categorical DV level should be defined.")
   }
-  if (nrow(probs_df)<cutpoint) {
+  if (!cutpoint %in% 1:nrow(probs_df)) {
     cli::cli_abort("cutpoint is the row number of established probability formulae.
-                   There are only {nrow(probs_df)} rows available, so cutpoint {cutpoint} is too high.")
+                   There are {nrow(probs_df)} rows available, so cutpoint {cutpoint} is out of range.")
   }
 
-  cp_row <- probs_df[cutpoint, , drop = TRUE]
+  cp_row <- probs_df[cutpoint,]
   # find human‐readable level label if any
   val_lab <- cp_row$value
   if (nrow(levels_df) && cp_row$value %in% levels_df$value) {
