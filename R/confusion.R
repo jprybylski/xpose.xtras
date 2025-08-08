@@ -74,7 +74,7 @@ roc_plot <- function(xpdb,
                         cutpoint = 1,
                         group    = 'ID',
                         type     = 'ca',
-                        title    = '@y vs. @x | @run',
+                        title    = 'ROC curve | @run',
                         subtitle = 'Ofv: @ofv, Eps shrink: @epsshk',
                         caption  = '@dir',
                         tag      = NULL,
@@ -98,17 +98,16 @@ roc_plot <- function(xpdb,
     catdv_cols <- catdv_cols[1]
   }
 
-  cutpoint_row <- catdv_cutpoint_row(xpdb, .problem, catdv_cols, cutpoint)
-  catdv_cplabels_ <- catdv_cplabels(catdv_cols, cutpoint_row)
-  cp_label <- catdv_cplabels_$cp_label
-  cp_olabel <- catdv_cplabels_$cp_olabel
+  cp <- make_catdv_cutpoint(xpdb, .problem, catdv_cols, cutpoint)
   # Use catdv_vs function but with a slight modification
   post_processing <- function (df) {
-    catdv_postprocessing_fn(catdv_cols, cutpoint_row)(df) %>%
+    cp$post_process(df) %>%
       dplyr::mutate(!!catdv_cols := as.numeric(.data[[catdv_cols]])-1)
   }
 
 
+  ## For some reason the summary data for the xpdb is getting lost
+  ## Not @dir, but @ofv and @epsshk
   xplot_rocplot(
     xpdb = xpdb, group = NULL, quiet = quiet,
     opt = xpose::data_opt(
@@ -120,7 +119,7 @@ roc_plot <- function(xpdb,
     type = type, facets = facets,
     title = title, subtitle = subtitle, caption = caption,
     tag = tag, plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
-    like_col = cutpoint_row$prob,
+    like_col = cp$prob_col,
     obs_col = catdv_cols,
     obs_target = 1,
     ...

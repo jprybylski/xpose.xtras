@@ -173,7 +173,11 @@ xplot_rocplot <- function(xpdb,
       dplyr::group_by(., dplyr::across(dplyr::all_of(strata))),
       .
     ) %>%
-    add_columns()
+    add_columns() %>%
+    # Add these back
+    `attr<-`("problem", attr(data, "problem")) %>%
+    `attr<-`("subprob", attr(data, "subprob")) %>%
+    `attr<-`("method", attr(data, "method"))
 
   x_axis <- paste0(avoid_conflict, xcol)
   y_axis <- paste0(avoid_conflict, ycol)
