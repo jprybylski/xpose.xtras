@@ -236,7 +236,13 @@ get_prm_nlmixr2 <- function(
       dplyr::rowwise() %>%
       dplyr::mutate(
         value = `if`(TRUE==transform,
-                     fit$omegaR,
+                     `if`(
+                       # omega needs to be square matrix for omegaR to work
+                       length(fit$omega)>1 &&
+                         nrow(fit$omega)==ncol(fit$omega),
+                       fit$omegaR,
+                       sqrt(fit$omega)
+                     ),
                      fit$omega)[neta1,neta2],
       ) %>%
       dplyr::ungroup() %>%
@@ -428,13 +434,10 @@ nlmixr2_prm_associations <- function(xpdb, dry_run = FALSE, quiet) {
   # Get eta and theta lhs
   eta_lhs <- xpdb$fit$ui$etaLhs
   theta_lhs <- xpdb$fit$ui$thetaLhs
-
   # Now we process
   # We convert the LHS vectors to tibbles for joining on which param they estimate
-  v2t <- function(v, what) v %>% t() %>% t() %>%
-    as.data.frame() %>%
-    rlang::set_names("param") %>%
-    tibble::rownames_to_column(what)
+  v2t <- function(v, what) v %>%
+    dplyr::tibble(param=., !!what := names(.))
   eta_lhs_tbl <- v2t(eta_lhs, "eta")
   theta_lhs_tbl <- v2t(theta_lhs, "theta")
   # Join and...

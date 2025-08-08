@@ -19,6 +19,18 @@ pkpd_m3
 \description{
 A representative PK/PD model with M3 fitting applied.
 }
+\examples{
+# To establish as a complete categorical DV example:
+pkpd_m3 <- pkpd_m3 \%>\%
+  # Need to ensure var types are set
+  set_var_types(catdv=BLQ,dvprobs=LIKE) \%>\%
+  # Set probs
+  set_dv_probs(1, 1~LIKE, .dv_var = BLQ) \%>\%
+  # Optional, but useful to set levels
+  set_var_levels(1, BLQ = lvl_bin())
+
+
+}
 \references{
 Beal, S.L. Ways to Fit a PK Model with Some Data
 Below the Quantification Limit. J Pharmacokinet

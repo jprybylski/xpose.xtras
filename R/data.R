@@ -116,6 +116,13 @@
 #'
 #' @source Derived from sup-0009 and sup-0010 from the reference.
 #'
+#' @examples
+#' # To establish as a complete categorical DV example:
+#' vismo_pomod <- vismo_pomod  %>%
+#'   set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\d+$")) %>%
+#'   set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)
+#'
+#'
 "vismo_pomod"
 
 #' An `xp_xtras` example of the discrete-time Markov model of categorical vismodegib data
@@ -138,6 +145,12 @@
 #'
 #' @source Derived from sup-0009 and sup-0010 from the reference.
 #'
+#' @examples
+#' # To establish as a complete categorical DV example:
+#' vismo_dtmm  <- vismo_dtmm   %>%
+#'   set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\d+$")) %>%
+#'   set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)
+#'
 "vismo_dtmm"
 
 #' An `xp_xtras` example of an M3 model
@@ -159,6 +172,18 @@
 #' doi:10.1002/psp4.13219
 #'
 #' @source <https://doi.org/10.1002/psp4.13219>
+#'
+#' @examples
+#' # To establish as a complete categorical DV example:
+#' pkpd_m3 <- pkpd_m3 %>%
+#'   # Need to ensure var types are set
+#'   set_var_types(catdv=BLQ,dvprobs=LIKE) %>%
+#'   # Set probs
+#'   set_dv_probs(1, 1~LIKE, .dv_var = BLQ) %>%
+#'   # Optional, but useful to set levels
+#'   set_var_levels(1, BLQ = lvl_bin())
+#'
+#'
 "pkpd_m3"
 
 #' An `xp_xtras` example of an M3 model (dataset)

@@ -302,6 +302,7 @@ xplot_rocplot <- function(xpdb,
       xp_theme = xpdb$xp_theme,
       name = "xscale",
       ggfun = paste0("scale_x_", xscale),
+      xscale_limits = c(0,1),
       ...
     ) +
     xpose::xp_geoms(
@@ -309,6 +310,7 @@ xplot_rocplot <- function(xpdb,
       xp_theme = xpdb$xp_theme,
       name = "yscale",
       ggfun = paste0("scale_y_", yscale),
+      yscale_limits = c(0,1),
       ...
     )
 

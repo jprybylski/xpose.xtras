@@ -45,6 +45,7 @@
 #' @param .problem Problem number
 #'
 #' @export
+#' @inherit xplot_boxplot details
 #'
 #' @returns The desired plot
 #'

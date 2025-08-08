@@ -62,6 +62,20 @@ expected that the overall trend is up and to the right; a relatively
 flat trend suggests that the modeled likelihood is inconsistent with the
 observed outcome.
 }
+\details{
+For type-based customization of plots:
+\itemize{
+\item \code{b} box-whisker (using default quantiles)
+\item \code{p} points (from \code{geom_dotplot})
+\item \code{v} violin (from \code{geom_violin})
+\item \code{o} outliers (show outliers)
+\item \code{l} line through 0 (or as indicated in \code{hline_yintercept} or
+\code{yline_xintercept})
+\item \code{s} smooth line (from \code{geom_smooth})
+\item \code{j} jitter points (from \code{geom_jitter})
+\item \code{c} connecting lines for jitter points  (from \code{geom_path})
+}
+}
 \examples{
 
 # Test M3 model

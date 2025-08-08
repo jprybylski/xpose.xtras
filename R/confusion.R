@@ -68,7 +68,54 @@ confmatr_by_threshold <- function(
 }
 
 # pre-planned plots
-# ROC plot faceted by levels of catdv
+
+#' ROC Plot for categorical DVs
+#'
+#' @inheritParams catdv_vs_dvprobs
+#'
+#'
+#' @inherit xplot_rocplot details
+#'
+#' @returns A desired plot
+#' @export
+#'
+#' @seealso [catdv_vs_dvprobs()]
+#'
+#' @examples
+#' # Note these examples are similar to catdv_vs_dvprobs
+#'
+#' # Test M3 model
+#' pkpd_m3 %>%
+#'   # Need to ensure var types are set
+#'   set_var_types(catdv=BLQ,dvprobs=LIKE) %>%
+#'   # Set probs
+#'   set_dv_probs(1, 1~LIKE, .dv_var = BLQ) %>%
+#'   # Optional, but useful to set levels
+#'   set_var_levels(1, BLQ = lvl_bin()) %>%
+#'   # Generate typical ROC curve
+#'   roc_plot()
+#'
+#' # Test categorical model
+#' vismo_xpdb <- vismo_pomod  %>%
+#'   set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\d+$")) %>%
+#'   set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)
+#'
+#' # Various cutpoints (note axes labels and texts)
+#' vismo_xpdb %>%
+#'   roc_plot(type = "p") # space plot
+#' vismo_xpdb %>%
+#'   roc_plot(cutpoint=2, type = "cak") # with area and key point
+#' vismo_xpdb %>%
+#'   roc_plot(cutpoint=3, type = "cak")
+#'
+#' # alternative model example
+#' vismo_xpdb2  <- vismo_dtmm   %>%
+#'   set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\d+$")) %>%
+#'   set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)
+#' vismo_xpdb2 %>%
+#'   roc_plot(cutpoint=2, type = "cak")
+#'
+#'
 roc_plot <- function(xpdb,
                         mapping  = NULL,
                         cutpoint = 1,
@@ -130,8 +177,9 @@ roc_plot <- function(xpdb,
   )
 }
 
-# ROC space plot where oper chars per individual are plotted at the default threshold
-roc_space <- function() {}
+ind_roc <- function() {
+
+}
 
 # Curve (faceted) or space (no default facet) plot comparing models
 roc_by_mod <- function() {}

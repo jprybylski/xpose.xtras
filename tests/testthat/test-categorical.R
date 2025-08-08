@@ -183,7 +183,7 @@ test_that("catdv can be plot against dvprobs", {
   expect_error(
     m3_test_dummy %>%
       catdv_vs_dvprobs(cutpoint = 99, quiet=TRUE),
-    "cutpoint.*is.*row number.*only.*1.*99.*too high"
+    "cutpoint.*is.*row number.*1.*99.*range"
   )
 
   test_plot <- m3_test_dummy %>%

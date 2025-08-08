@@ -16,7 +16,7 @@ nlmixr2_m3
 \description{
 A modified version of the theophylline model fit with censoring
 added in to provoke M3 censoring. An additional output variable
-is added to use an an example in categorical DVs/
+is added to use an an example in categorical DVs.
 }
 \examples{
 \dontrun{
