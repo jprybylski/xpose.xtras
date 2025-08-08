@@ -177,12 +177,100 @@ roc_plot <- function(xpdb,
   )
 }
 
-ind_roc <- function() {
+#' Individual ROC plots
+#'
+#' @description
+#' To identify any individual likelihood predictions that may
+#' be more influential or unusual.
+#'
+#' Note this function may have a long runtime.
+#'
+#' @inheritParams  roc_plot
+#'
+#' @inherit xplot_rocplot details
+#'
+#' @returns The desired plot
+#' @export
+#'
+#' @examples
+#' vismo_pomod  %>%
+#'   set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\d+$")) %>%
+#'   set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23) %>%
+#'   ind_roc()
+ind_roc <- function(xpdb,
+                    mapping = NULL,
+                    cutpoint = 1,
+                    type = "ca",
+                    title = "Individual ROC curves | @run",
+                    subtitle = "Ofv: @ofv, Eps shrink: @epsshk",
+                    caption = "@dir | Page @page of @lastpage",
+                    tag = NULL,
+                    facets,
+                    .problem,
+                    quiet,
+                    ...) {
+  # Check input
+  xpose::check_xpdb(xpdb, check = "data")
+  if (missing(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+  if (missing(facets)) {
+    facets <- xpose::add_facet_var(
+      facets = xpdb$xp_theme$facets,
+      variable = xp_var(xpdb, .problem, type = "id")$col
+    )
+  }
+
+  extra_args <- list(...)
+  if (!any(names(extra_args) == "nrow")) extra_args$nrow <- 3
+  if (!any(names(extra_args) == "ncol")) extra_args$ncol <- 3
+
+  # Get relevant columns (or throw error)
+  dvprob_cols <- xp_var(xpdb, .problem, type = "dvprobs")$col
+  catdv_cols <- xp_var(xpdb, .problem, type = "catdv")$col
+  if (length(catdv_cols) > 1) {
+    cli::cli_warn("Only one categorical DV will be used ({catdv_cols[1]}).")
+    catdv_cols <- catdv_cols[1]
+  }
+
+
+
+  cp <- make_catdv_cutpoint(xpdb, .problem, catdv_cols, cutpoint)
+  # Use catdv_vs function but with a slight modification
+  post_processing <- function(df) {
+    cp$post_process(df) %>%
+      dplyr::mutate(!!catdv_cols := as.numeric(.data[[catdv_cols]]) - 1)
+  }
+
+
+  rlang::exec(xplot_rocplot,
+    !!!extra_args,
+    xpdb = xpdb,
+    group = NULL,
+    quiet = quiet,
+    opt = xpose::data_opt(
+      .problem = .problem,
+      filter = xpose::only_obs(xpdb, .problem, quiet),
+      post_processing = post_processing
+    ),
+    mapping = mapping,
+    type = type,
+    facets = facets,
+    title = title,
+    subtitle = subtitle,
+    caption = caption,
+    tag = tag,
+    plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
+    like_col = cp$prob_col,
+    obs_col = catdv_cols,
+    obs_target = 1
+  )
+}
+# Curve (faceted) or space (no default facet) plot comparing models
+roc_by_mod <- function() {
+  # similar to normal roc_plot, but using iofv_vs_mod logic
 
 }
-
-# Curve (faceted) or space (no default facet) plot comparing models
-roc_by_mod <- function() {}
 
 ### Other confusion matrix ideas
 ### Confusion indexes as new var type
