@@ -89,7 +89,7 @@ xplot_boxplot <- function(xpdb,
   }
 
   # Assign xp_theme
-  if (!missing(xp_theme)) xpdb <- xpose::update_themes(xpdb = xpdb, xp_theme = xp_theme)
+  if (!missing(xp_theme)) xpdb <- xpose::update_themes(xpdb = xpdb, xp_theme = xp_xtra_theme(xp_theme))
 
   # Update theme of non-xp_xtra object
   if (!is_xp_xtras(xpdb)) xpdb <- xpose::update_themes(xpdb = xpdb, xp_theme = xp_xtra_theme(xpdb$xp_theme))
@@ -120,14 +120,23 @@ xplot_boxplot <- function(xpdb,
 
   # Add boxplot
   if (check_type$b) {
-    xp <- xp + xpose::xp_geoms(mapping  = mapping,
-                               xp_theme = xpdb$xp_theme,
-                               name     = 'boxplot', # TODO: add defaults to xp_xtas xp_theme
-                               ggfun    = 'geom_boxplot',
-                               boxplot_outlier.shape = ifelse(
-                                 check_type$o && !check_type$j, xpdb$xp_theme$boxplot_outlier.shape,
-                                 NA),
-                               ...)
+    if (utils::packageVersion("ggplot2") > "3.5.2") {
+      xp <- xp + xpose::xp_geoms(mapping  = mapping,
+                                 xp_theme = xpdb$xp_theme,
+                                 name     = 'boxplot',
+                                 ggfun    = 'geom_boxplot',
+                                 boxplot_outliers = check_type$o && !check_type$j,
+                                 ...)
+    } else {
+      xp <- xp + xpose::xp_geoms(mapping  = mapping,
+                                 xp_theme = xpdb$xp_theme,
+                                 name     = 'boxplot',
+                                 ggfun    = 'geom_boxplot',
+                                 boxplot_outlier.shape = ifelse(
+                                   check_type$o && !check_type$j, xpdb$xp_theme$boxplot_outlier.shape,
+                                   NA),
+                                 ...)
+    }
   }
 
   # Add violin

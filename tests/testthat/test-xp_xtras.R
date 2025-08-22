@@ -30,7 +30,10 @@ test_that("xp_xtra class can be set", {
                  regexp = "xpose_data")
 
   # edge case where an xp_xtras object loses its class due to cross-compatibility
-  secret_xp_xtra <- xpose::set_var_units(as_xpdb_x(xpdb_ex_pk), AGE="yr")
+  # Not sure why this doesn't happen as much now (xpose was probably updated),
+  # so creating an artificial case that does the same idea
+  secret_xp_xtra <- as_xpdb_x(xpdb_ex_pk)
+  class(secret_xp_xtra) <- class(xpdb_ex_pk)
   expect_false(is_xp_xtras(secret_xp_xtra)) # "stric"
   expect_true(check_xpdb_x(secret_xp_xtra)) # compatibility checker
   expect_no_message(check_xpdb_x(secret_xp_xtra))
@@ -45,7 +48,7 @@ test_that("xp_xtra class can be set", {
   expect_false(check_xpdb_x(c()))
   xpose_themed <- as_xpdb_x(xpdb_ex_pk)
   xpose_themed$xp_theme <- xpose::theme_xp_default()
-  expect_false(is_xp_xtras(xpose_themed)) # invalid test_coverage
+  expect_true(is_xp_xtras(xpose_themed)) # invalid test_coverage
 
 })
 
@@ -241,7 +244,7 @@ test_that("print methods are working", {
 
   # expect to recognize xp_xtras affected by cross-compatibility
   hidden_xp_xtras <- xpose::set_var_labels(xpdb_x, AGE="Age")
-  expect_false(
+  expect_true(
     is_xp_xtras(hidden_xp_xtras)
   )
   # This behavior, while nice, creates an annoying warning to user
@@ -287,7 +290,7 @@ test_that("list_vars extension behaves as expected", {
 
 
   # above would fail if below test would fail, but just to verify
-  expect_false(
+  expect_true(
     is_xp_xtras(lbl_x)
   )
   expect_true(

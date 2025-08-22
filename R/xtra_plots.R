@@ -117,6 +117,10 @@ xp_xtra_theme <- function(base_on = NULL) {
     shkdntxt_vjust = base_on$text_vjust,
   )
 
+  # bug fix
+  base_on$labeller =  ggplot2::labeller(.default = ggplot2::label_both,
+                                         .multi_line = FALSE)
+
   # May rarely have these xp_theme elements already defined for an xpose
   # object being based_on, so don't want to overwrite.
   already_covered <- names(new_defs) %in% names(base_on)
@@ -127,6 +131,7 @@ xp_xtra_theme <- function(base_on = NULL) {
   ) %>%
     xpose::as.xpose.theme()
 }
+
 
 #' Updated version of the xpose4 theme
 #' @returns An `xpose` theme object with `xpose4` color palette
