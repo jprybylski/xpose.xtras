@@ -49,7 +49,7 @@ remotes::install_github("jprybylski/xpose.xtras")
 
 ## Preview
 
-The grandparent package, `xpose4`, has a nice collection of figures and documentation that is referred to as a "[bestiary](https://xpose.sourceforge.net/bestiarium_v1.0.pdf)". The documentation site for this package serves as a complete bestiary, but see the uncommented examples below as a sort of menagerie. There is no assumption that these examples are self-explanatory, but hopefully users familiar with `xpose` will recognize the new (and *re*newed) tools made available by this package.
+The grandparent package, `xpose4`, used to have a nice collection of figures and documentation that is referred to as a "bestiarium". The documentation site for this package serves as a complete bestiary, but see the uncommented examples below as a sort of menagerie. There is no assumption that these examples are self-explanatory, but hopefully users familiar with `xpose` will recognize the new (and *re*newed) tools made available by this package.
 
 ### EBEs versus covariates
 
