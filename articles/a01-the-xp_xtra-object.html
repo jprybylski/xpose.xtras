@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xpose.xtras</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,7 +99,7 @@ The extended version of <code>xpose_data</code> has the class
 <span><span class="co">#&gt; <span style="font-weight: bold;">Model description</span>: NONMEM PK example for xpose</span></span>
 <span><span class="co">#&gt; run001.lst overview: </span></span>
 <span><span class="co">#&gt;  - Software: nonmem 7.3.0 </span></span>
-<span><span class="co">#&gt;  - Attached files (memory usage 1.4 Mb): </span></span>
+<span><span class="co">#&gt;  - Attached files (memory usage 1.5 Mb): </span></span>
 <span><span class="co">#&gt;    + obs tabs: $prob no.1: catab001.csv, cotab001, patab001, sdtab001 </span></span>
 <span><span class="co">#&gt;    + sim tabs: $prob no.2: simtab001.zip </span></span>
 <span><span class="co">#&gt;    + output files: run001.cor, run001.cov, run001.ext, run001.grd, run001.phi, run001.shk </span></span>
@@ -143,13 +143,13 @@ situations where this is convenient.</p>
 <span></span>
 <span><span class="co"># set_var_types on xpose_data objects uses xpose::set_var_types</span></span>
 <span><span class="fu"><a href="../reference/set_var_types.html">set_var_types</a></span><span class="op">(</span><span class="va">no_covs</span>, .problem<span class="op">=</span><span class="fl">1</span>, catcov <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MED1"</span>,<span class="st">"MED2"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/xp_var.html">xp_var</a></span><span class="op">(</span>type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"catcov"</span>,<span class="st">"contcov"</span><span class="op">)</span>, .problem<span class="op">=</span><span class="fl">1</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/xp_var.html">xp_var</a></span><span class="op">(</span>type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"catcov"</span><span class="op">)</span>, .problem<span class="op">=</span><span class="fl">1</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">col</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "MED1" "MED2"</span></span>
 <span><span class="va">no_covs</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/xp_xtras.html">as_xpdb_x</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/set_var_types.html">set_var_types</a></span><span class="op">(</span>catcov <span class="op">=</span> <span class="fu">starts_with</span><span class="op">(</span><span class="st">"MED"</span><span class="op">)</span>, .problem<span class="op">=</span><span class="fl">1</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/xp_var.html">xp_var</a></span><span class="op">(</span>type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"catcov"</span>,<span class="st">"contcov"</span><span class="op">)</span>, .problem<span class="op">=</span><span class="fl">1</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/xp_var.html">xp_var</a></span><span class="op">(</span>type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"catcov"</span><span class="op">)</span>, .problem<span class="op">=</span><span class="fl">1</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">col</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "MED1" "MED2"</span></span></code></pre></div>
 <p>Tidyselection is used fairly heavily in the <code>xpose.xtras</code>
@@ -364,7 +364,7 @@ can be made available.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>
