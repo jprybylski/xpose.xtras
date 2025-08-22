@@ -393,7 +393,7 @@ print.xpose_plot <- function(x, page, ...) {
     } else {
       # Process the keywords
       x$labels <- x$labels %>%
-        purrr::map_if(stringr::str_detect(., '@'),
+        purrr::map_if(grepl( "@", .),
                       .f = xpose::parse_title, xpdb = x$xpose,
                       problem = x$xpose$problem, quiet = x$xpose$quiet,
                       ignore_key = c('page', 'lastpage'),
