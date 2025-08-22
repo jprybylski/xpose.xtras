@@ -19,7 +19,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: John Prybylski \email{john.prybylski@pfizer.com} (\href{https://orcid.org/0000-0001-5802-0539}{ORCID})
+\strong{Maintainer}: John Prybylski \email{jprybylski@pfizer.com} (\href{https://orcid.org/0000-0001-5802-0539}{ORCID}) [copyright holder]
 
 }
 \keyword{internal}

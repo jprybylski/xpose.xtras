@@ -57,12 +57,12 @@ no_covs <- set_var_types(xpdb_ex_pk, .problem=1, na = xpdb_ex_covs)
 
 # set_var_types on xpose_data objects uses xpose::set_var_types
 set_var_types(no_covs, .problem=1, catcov = c("MED1","MED2")) %>%
-  xp_var(type = c("catcov","contcov"), .problem=1) %>% 
+  xp_var(type = c("catcov"), .problem=1) %>% 
   pull(col)
 no_covs %>%
   as_xpdb_x() %>%
   set_var_types(catcov = starts_with("MED"), .problem=1) %>%
-  xp_var(type = c("catcov","contcov"), .problem=1) %>% 
+  xp_var(type = c("catcov"), .problem=1) %>% 
   pull(col)
 ```
 

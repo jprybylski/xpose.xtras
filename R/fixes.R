@@ -307,3 +307,259 @@ ungroup_x <- function(.data, ..., .problem, .source, .where) {
                   .data = .data, .problem = .problem, .source = .source, .where = .where,
                   ...)
 }
+
+
+
+
+##### Fix for ggplot2 from xpose@cc0e4b2
+##### With backwards compatibility considered
+#' Draw an xpose_plot object
+#'
+#' @description This function explicitly draw an xpose_plot and interprets keywords
+#' contained in labels.
+#'
+#' @param x An \code{xpose_plot} object.
+#' @param page The page number to be drawn. Can be specified as vector or range
+#' of integer values.
+#' @param ... Options to be passed on to the ggplot2 print method.
+#'
+#' @examples
+#' my_plot <- xpose::dv_vs_ipred(xpose::xpdb_ex_pk) +
+#'             ggplot2::labs(title = 'A label with keywords: @nind individuals & @nobs observations')
+#' # Using the print function
+#' print(my_plot)
+#'
+#' # Or simply by writing the plot object name
+#' my_plot
+#'
+print.xpose_plot <- function(x, page, ...) {
+
+  # Parse template titles
+  if (xpose::is.xpose.plot(x)) {
+    if (utils::packageVersion("ggplot2") > "3.5.2") {
+      x_labs <- suppressMessages(ggplot2::get_labs(plot = x))
+
+      # Add prefix to title subtitle, caption and tags
+      x <- x + ggplot2::labs(
+        title    = xpose::append_suffix(x$xpose, x_labs$title, 'title'),
+        subtitle = xpose::append_suffix(x$xpose, x_labs$subtitle, 'subtitle'),
+        caption  = xpose::append_suffix(x$xpose, x_labs$caption, 'caption'),
+        tag      = xpose::append_suffix(x$xpose, x_labs$tag, 'tag')
+      )
+    } else {
+      x$title <- xpose::append_suffix(x$xpose, x$title,
+                                      "title")
+      x$gg$labs$subtitle <- xpose::append_suffix(x$xpose, x$gg$labs$subtitle,
+                                                 "subtitle")
+      x$gg$labs$caption <- xpose::append_suffix(x$xpose, x$gg$labs$caption,
+                                                "caption")
+      if (utils::packageVersion("ggplot2") >= "3.0.0") {
+        x$gg$labs$tag <- xpose::append_suffix(x$xpose, x$gg$labs$tag,
+                                              "tag")
+      }
+    }
+
+    # Get the mapping variables keywords and values
+    var_map <- x$mapping %>%
+      as.character() %>%
+      stringr::str_remove(pattern = "^~") %>%
+
+      ## Improve parsing since we now have to use the .data[["var"]] format in aes()
+      ifelse(stringr::str_detect(., "\\.data\\[\\[\"\\w+\"]]"),
+             yes = stringr::str_remove_all(., "(\\.data\\[\\[\")|(\"]])"),
+             no  = .) %>%
+      purrr::set_names(names(x$mapping))
+
+
+    if (utils::packageVersion("ggplot2") > "3.5.2") {
+
+      # Process the keywords
+      x <- x + do.call(
+        what = ggplot2::labs,
+        args = suppressMessages(ggplot2::get_labs(plot = x)) %>%
+          purrr::compact() %>%
+          purrr::map_if(
+            .p = stringr::str_detect(., '@'),
+            .f = xpose::parse_title,
+            xpdb = x$xpose,
+            problem = x$xpose$problem, quiet = x$xpose$quiet,
+            ignore_key = c('page', 'lastpage'),
+            extra_key = c('plotfun', 'timeplot', names(var_map)),
+            extra_value = c(x$xpose$fun,
+                            format(Sys.time(), "%a %b %d %X %Z %Y"),
+                            var_map)
+          )
+      )
+    } else {
+      # Process the keywords
+      x$labels <- x$labels %>%
+        purrr::map_if(grepl( "@", .),
+                      .f = xpose::parse_title, xpdb = x$xpose,
+                      problem = x$xpose$problem, quiet = x$xpose$quiet,
+                      ignore_key = c('page', 'lastpage'),
+                      extra_key = c('plotfun', 'timeplot', names(var_map)),
+                      extra_value = c(x$xpose$fun,
+                                      format(Sys.time(), "%a %b %d %X %Z %Y"),
+                                      var_map))
+    }
+  }
+
+  # Print multiple pages
+  if (class(x$facet)[1] %in% c('FacetWrapPaginate', 'FacetGridPaginate')) {
+
+    # Get total number of pages
+    if (utils::packageVersion("ggplot2") > "3.5.2") {
+      page_tot <- plot_layout(x)$n_pages
+    } else {
+      page_tot <- n_pages(x)
+    }
+
+    # Get and check the page number to be drawn
+    if (!missing(page)) {
+      page_2_draw <- page
+    } else if (!is.null(x$facet$params$page)) {
+      page_2_draw <- x$facet$params$page
+    } else {
+      page_2_draw <- 1:page_tot
+    }
+
+    if (any(page_2_draw > page_tot)) {
+      page_2_draw <- page_2_draw[page_2_draw <= page_tot]
+      if (length(page_2_draw) == 0) {
+        stop('All `page` element exceeded the total (', page_tot, ') number of pages.', call. = FALSE)
+      }
+      warning('`page` contained elements exceeding the total (', page_tot, ') number of pages. These were ignored.',
+              call. = FALSE)
+    }
+
+    # Prevent issue with facet_repair when page = NULL
+    x$facet$params$page <- page_2_draw
+
+    # Begin multiple page plotting
+    n_page_2_draw <- length(page_2_draw)
+
+    if (interactive() && !x$xpose$quiet) {
+      message('Rendering ', n_page_2_draw, ' selected page(s) out of ', page_tot, '.')
+    }
+
+    if (n_page_2_draw == 1) {
+      x %>%
+        paginate(page_2_draw, page_tot) %>%
+        plot(...)
+    } else {
+      if (interactive() && !x$xpose$quiet) {
+        pb <- utils::txtProgressBar(min = 0, max = n_page_2_draw,
+                                    style = 3)   # Create progress bar
+      }
+      for (p in seq_along(page_2_draw)) {
+        x$facet$params$page <- page_2_draw[p]
+        x %>%
+          paginate(page_2_draw[p], page_tot) %>%
+          plot(...)
+        if (interactive() && !x$xpose$quiet) {
+          utils::setTxtProgressBar(pb, value = p) # Update progress bar
+        }
+      }
+      if (interactive() && !x$xpose$quiet) close(pb)
+
+      # Prevent ggforce from droping multiple pages value
+      x$facet$params$page <- page_2_draw
+    }
+  } else {
+    if (!missing(page)) warning('Faceting not set. Ignoring `page` argument.', call. = FALSE)
+
+    # Warn for big plots
+    if (utils::packageVersion("ggplot2") > "3.5.2") {
+      panel_tot <- plot_layout(x)$n_panels
+    } else {
+      panel_tot <- n_panels(x)
+    }
+
+    if (panel_tot > 20) {
+      xpose::msg(c('The faceting resulted in ', panel_tot,
+            ' panels. The plot may take a while to render.'),
+          quiet = x$xpose$quiet)
+    }
+
+    # Print without multiple pages
+    x %>%
+      paginate(page_2_draw = 1, page_tot = 1) %>%
+      plot(...)
+  }
+}
+
+
+# Add page number to pages
+paginate <- function(plot, page_2_draw, page_tot) {
+  if (utils::packageVersion("ggplot2") > "3.5.2") {
+    plot + do.call(
+      what = ggplot2::labs,
+      args = suppressMessages(ggplot2::get_labs(plot)) %>%
+        purrr::compact() %>%
+        purrr::map_if(
+          .p = ~!is.null(.) && stringr::str_detect(., '@(page|lastpage)'),
+          .f = xpose::parse_title, xpdb = plot$xpose,
+          problem = plot$xpose$problem, quiet = plot$xpose$quiet,
+          extra_key = c('page', 'lastpage'),
+          extra_value = c(as.character(page_2_draw), page_tot)
+        )
+    )
+  } else {
+    plot$labels <- plot$labels %>%
+      purrr::map_if(.p = ~!is.null(.) && stringr::str_detect(., '@(page|lastpage)'),
+                    .f = xpose::parse_title, xpdb = plot$xpose,
+                    problem = plot$xpose$problem, quiet = plot$xpose$quiet,
+                    extra_key = c('page', 'lastpage'),
+                    extra_value = c(as.character(page_2_draw), page_tot))
+    plot
+  }
+}
+
+
+# Calculate the total number of pages
+plot_layout <- function(plot) {
+  plot_str <- suppressMessages(ggplot2::ggplot_build(plot))
+
+  panels   <- plot_str$layout$layout
+  n_panels <- ifelse(!is.null(panels), nrow(panels), 0L)
+
+  pages    <- plot_str$layout$layout$page
+  n_pages  <- ifelse(!is.null(pages), max(pages), 0L)
+
+  list(n_panels = n_panels, n_pages = n_pages)
+}
+
+## From xpose@74780e9
+# Calculate the total number of pages
+n_pages <- function(plot) {
+  if (utils::packageVersion("ggplot2") > "3.5.2")
+    cli::cli_abort("Not intended for use in ggplot2 >= 4.0.0")
+
+  if (utils::packageVersion('ggplot2') <= '2.2.1') {
+    page <- ggplot2::ggplot_build(plot)$layout$panel_layout$page
+  } else {
+    page <- ggplot2::ggplot_build(plot)$layout$layout$page
+  }
+  if (!is.null(page)) {
+    max(page)
+  } else {
+    0L
+  }
+}
+
+# Calculate the total number of panels
+n_panels <- function(plot) {
+  if (utils::packageVersion("ggplot2") > "3.5.2")
+    cli::cli_abort("Not intended for use in ggplot2 >= 4.0.0")
+
+  if (utils::packageVersion('ggplot2') <= '2.2.1') {
+    page <- ggplot2::ggplot_build(plot)$layout$panel_layout
+  } else {
+    page <- ggplot2::ggplot_build(plot)$layout$layout
+  }
+  if (!is.null(page)) {
+    nrow(page)
+  } else {
+    0L
+  }
+}

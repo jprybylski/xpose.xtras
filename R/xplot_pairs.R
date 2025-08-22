@@ -45,48 +45,47 @@
 #'
 xplot_pairs <- function(
     xpdb,
-    mapping   = NULL,
+    mapping = NULL,
     cont_opts = list(
       group = "ID",
-      guide     = FALSE,
-      type     = 'ps'
+      guide = FALSE,
+      type = "ps"
     ),
     dist_opts = list(
-      guide     = FALSE,
+      guide = FALSE,
       type = "hr"
     ),
     cat_opts = list(
-      type      = 'bo',
+      type = "bo",
       log = NULL
     ),
     contcont_opts = list(
       other_fun = NULL,
-      stars= FALSE,
+      stars = FALSE,
       digits = reportable_digits(xpdb),
       title = "Pearson Corr"
     ),
     catcont_opts = list(
       other_fun = NULL,
-      stars= FALSE,
+      stars = FALSE,
       digits = reportable_digits(xpdb),
       title = "Spearman rho"
     ),
     catcat_opts = list(
       use_rho = TRUE
     ),
-    title     = NULL,
-    subtitle  = NULL,
-    caption   = NULL,
-    tag       = NULL,
-    plot_name = 'pairs',
+    title = NULL,
+    subtitle = NULL,
+    caption = NULL,
+    tag = NULL,
+    plot_name = "pairs",
     gg_theme,
     xp_theme,
     opt,
     quiet,
     progress = rlang::is_interactive() && quiet,
     switch = NULL,
-    ...
-) {
+    ...) {
   #### Boilerplate for typical parts
   # Check input
   xpose::check_xpdb(xpdb, check = FALSE)
@@ -94,12 +93,14 @@ xplot_pairs <- function(
 
   # Fetch data
   if (missing(opt)) opt <- xpose::data_opt()
-  data <- xpose::fetch_data(xpdb, quiet = quiet, .problem = opt$problem, .subprob = opt$subprob,
-                            .method = opt$method, .source = opt$source, simtab = opt$simtab,
-                            filter = opt$filter, tidy = opt$tidy, index_col = opt$index_col,
-                            value_col = opt$value_col, post_processing = opt$post_processing)
+  data <- xpose::fetch_data(xpdb,
+    quiet = quiet, .problem = opt$problem, .subprob = opt$subprob,
+    .method = opt$method, .source = opt$source, simtab = opt$simtab,
+    filter = opt$filter, tidy = opt$tidy, index_col = opt$index_col,
+    value_col = opt$value_col, post_processing = opt$post_processing
+  )
   if (is.null(data) || nrow(data) == 0) {
-    rlang::abort('No data available for plotting. Please check the variable mapping and filering options.')
+    rlang::abort("No data available for plotting. Please check the variable mapping and filering options.")
   }
 
   # Update _opts defauls
@@ -114,7 +115,7 @@ xplot_pairs <- function(
   dist_opts <- use_upt(dist_opts)
   xpose::check_plot_type(dist_opts$type, allowed = c("d", "h", "r"))
   cat_opts <- use_upt(cat_opts)
-  xpose::check_plot_type(cat_opts$type, allowed = c('b', "p","v","o","l"))
+  xpose::check_plot_type(cat_opts$type, allowed = c("b", "p", "v", "o", "l"))
 
   # Check other options
   contcont_opts <- use_upt(contcont_opts)
@@ -122,7 +123,7 @@ xplot_pairs <- function(
   catcat_opts <- use_upt(catcat_opts)
 
   # Assign xp_theme
-  if (!missing(xp_theme)) xpdb <- xpose::update_themes(xpdb = xpdb, xp_theme = xp_theme)
+  if (!missing(xp_theme)) xpdb <- xpose::update_themes(xpdb = xpdb, xp_theme = xp_xtra_theme(xp_theme))
 
   # Update theme of non-xp_xtra object
   if (!is_xp_xtras(xpdb)) xpdb <- xpose::update_themes(xpdb = xpdb, xp_theme = xp_xtra_theme(xpdb$xp_theme))
@@ -147,10 +148,10 @@ xplot_pairs <- function(
       type = cont_opts$type,
       guide = cont_opts$guid,
       opt = opt,
-      gg_theme=xpdb$gg_theme,
-      xp_theme=xpdb$xp_theme,
-      quiet=quiet,
-      smooth_formula=y~x
+      gg_theme = xpdb$gg_theme,
+      xp_theme = xpdb$xp_theme,
+      quiet = quiet,
+      smooth_formula = y ~ x
     )
   }
   wrapped_dist <- function(data = NULL, mapping = NULL) {
@@ -161,23 +162,23 @@ xplot_pairs <- function(
       type = dist_opts$type,
       guide = dist_opts$guid,
       opt = opt,
-      gg_theme=xpdb$gg_theme,
-      xp_theme=xpdb$xp_theme,
-      quiet=quiet
+      gg_theme = xpdb$gg_theme,
+      xp_theme = xpdb$xp_theme,
+      quiet = quiet
     )
   }
   wrapped_box <- function(data = NULL, mapping = NULL) {
-    orientation = formals(xplot_boxplot)$orientation
+    orientation <- formals(xplot_boxplot)$orientation
     var_x <- rlang::eval_tidy(mapping$x, data)
     var_y <- rlang::eval_tidy(mapping$y, data)
     if (inherits(var_x, "factor") && inherits(var_y, "numeric")) {
       orientation <- "x"
-      xscale = "discrete"
-      yscale = xpose::check_scales("y", cat_opts$log)
+      xscale <- "discrete"
+      yscale <- xpose::check_scales("y", cat_opts$log)
     } else {
       orientation <- "y"
-      yscale = "discrete"
-      xscale = xpose::check_scales("x", cat_opts$log)
+      yscale <- "discrete"
+      xscale <- xpose::check_scales("x", cat_opts$log)
     }
 
     xplot_boxplot(
@@ -190,9 +191,9 @@ xplot_pairs <- function(
       yscale = yscale,
       orientation = orientation,
       opt = opt,
-      gg_theme=xpdb$gg_theme,
-      xp_theme=xpdb$xp_theme,
-      quiet=quiet
+      gg_theme = xpdb$gg_theme,
+      xp_theme = xpdb$xp_theme,
+      quiet = quiet
     )
   }
   ## Upper cells
@@ -212,8 +213,8 @@ xplot_pairs <- function(
     xp_aov <- catcont_opts$other_fun
   } else {
     if ("other_fun" %in% names(catcont_opts)) catcont_opts <- within(catcont_opts, rm(other_fun))
-    rho_fun <-  function(x, y) {
-      corObj <- stats::cor.test(as.numeric(y),as.numeric(x), method="spearman", exact = FALSE)
+    rho_fun <- function(x, y) {
+      corObj <- stats::cor.test(as.numeric(y), as.numeric(x), method = "spearman", exact = FALSE)
       cor_est <- as.numeric(corObj$estimate)
       cor_txt <- formatC(cor_est, digits = catcont_opts$digits, format = "f")
       if (isTRUE(catcont_opts$stars)) {
@@ -221,7 +222,7 @@ xplot_pairs <- function(
       }
       cor_txt
     }
-    xp_rho <- GGally::wrap("statistic", text_fn = rho_fun, title = catcont_opts$title, sep=":\n")
+    xp_rho <- GGally::wrap("statistic", text_fn = rho_fun, title = catcont_opts$title, sep = ":\n")
   }
 
   if (catcat_opts$use_rho && exists("xp_rho")) {
@@ -240,8 +241,10 @@ xplot_pairs <- function(
     GGally::ggpairs(
       data,
       diag = list(continuous = wrapped_dist, discrete = wrap_xp_ggally("barDiag", xp_theme = xpdb$xp_theme), na = "naDiag"),
-      lower = list(continuous = wrapped_scatter, combo = wrapped_box, discrete = wrap_xp_ggally("facetbar", xp_theme = xpdb$xp_theme), na =
-                     "na"),
+      lower = list(
+        continuous = wrapped_scatter, combo = wrapped_box, discrete = wrap_xp_ggally("facetbar", xp_theme = xpdb$xp_theme), na =
+          "na"
+      ),
       upper = list(continuous = xp_cor, combo = xp_rho, discrete = catcat_upper, na = "na"),
       progress = progress,
       labeller = use_labeller,
@@ -252,71 +255,145 @@ xplot_pairs <- function(
   # Add labels
   xp <- xp + ggplot2::labs(title = title, subtitle = subtitle, caption = caption)
 
-  if (utils::packageVersion('ggplot2') >= '3.0.0') {
+  if (utils::packageVersion("ggplot2") >= "3.0.0") {
     xp <- xp + ggplot2::labs(tag = tag)
   }
 
   # Add metadata to plots
-  xp$xpose <- list(fun      = plot_name,
-                   summary  = xpdb$summary,
-                   problem  = attr(data, 'problem'),
-                   subprob  = attr(data, 'subprob'),
-                   method   = attr(data, 'method'),
-                   quiet    = quiet,
-                   xp_theme = xpdb$xp_theme[stringr::str_c(c('title', 'subtitle',
-                                                             'caption', 'tag'), '_suffix')])
+  xp$xpose <- list(
+    fun = plot_name,
+    summary = xpdb$summary,
+    problem = attr(data, "problem"),
+    subprob = attr(data, "subprob"),
+    method = attr(data, "method"),
+    quiet = quiet,
+    xp_theme = xpdb$xp_theme[stringr::str_c(c(
+      "title", "subtitle",
+      "caption", "tag"
+    ), "_suffix")]
+  )
+
 
   # Output the plot
   xpose::as.xpose.plot(xp) %>%
-   structure(class=c("xp_xtra_plot", class(.)))
+    structure(class = c("xp_xtra_plot", class(.)))
 }
 
 #' @method print xp_xtra_plot
 #' @export
 print.xp_xtra_plot <- function(x, page, ...) {
-  if (!inherits(x, "ggmatrix")) return(NextMethod())
+  if (!inherits(x, "ggmatrix")) {
+    return(NextMethod())
+  }
 
   if (xpose::is.xpose.plot(x)) {
-    x$title <- xpose::append_suffix(x$xpose, x$title,
-                                    "title")
-    x$gg$labs$subtitle <- xpose::append_suffix(x$xpose, x$gg$labs$subtitle,
-                                       "subtitle")
-    x$gg$labs$caption <- xpose::append_suffix(x$xpose, x$gg$labs$caption,
-                                      "caption")
-    if (utils::packageVersion("ggplot2") >= "3.0.0") {
-      x$gg$labs$tag <- xpose::append_suffix(x$xpose, x$gg$labs$tag,
-                                    "tag")
-    }
-    var_map <- x$mapping %>% as.character() %>% stringr::str_remove(pattern = "^~") %>%
-      ifelse(stringr::str_detect(., "\\.data\\[\\[\"\\w+\"]]"),
-             yes = stringr::str_remove_all(., "(\\.data\\[\\[\")|(\"]])"),
-             no = .) %>% purrr::set_names(names(x$mapping))
-    tr_vals <- function(xx) {
-      if (is.null(xx)) return(xx)
-      xx %>%
-        {`if`(
-          rlang::is_character(.),
-          list(.),
-          .
-        )} %>%
-        structure(class="list") %>%
-        purrr::map_if(stringr::str_detect(purrr::list_c(.), "@"),
-                      .f = xpose::parse_title, xpdb = x$xpose, problem = x$xpose$problem,
-                      quiet = x$xpose$quiet, ignore_key = c("page", "lastpage"),
-                      extra_key = c("plotfun", "timeplot", names(var_map)),
-                      extra_value = c(x$xpose$fun, format(Sys.time(), "%a %b %d %X %Z %Y"),
-                                      var_map)) %>%
-        structure(class=class(xx))
+    if (utils::packageVersion("ggplot2") > "3.5.2") {
+      ## GGally isn't amenable to get_labs, so...
+      x_labs <- list(
+        title = x@title,
+        subtitle = x@gg$labs$subtitle,
+        caption = x@gg$labs$caption,
+        tag = x@gg$labs$tag
+      )
+
+      # Add prefix to title subtitle, caption and tags
+      x <- x + ggplot2::labs(
+        title    = xpose::append_suffix(x$xpose, x_labs$title, "title"),
+        subtitle = xpose::append_suffix(x$xpose, x_labs$subtitle, "subtitle"),
+        caption  = xpose::append_suffix(x$xpose, x_labs$caption, "caption"),
+        tag      = xpose::append_suffix(x$xpose, x_labs$tag, "tag")
+      )
+    } else {
+      x$title <- xpose::append_suffix(
+        x$xpose, x$title,
+        "title"
+      )
+      x$gg$labs$subtitle <- xpose::append_suffix(
+        x$xpose, x$gg$labs$subtitle,
+        "subtitle"
+      )
+      x$gg$labs$caption <- xpose::append_suffix(
+        x$xpose, x$gg$labs$caption,
+        "caption"
+      )
+      if (utils::packageVersion("ggplot2") >= "3.0.0") {
+        x$gg$labs$tag <- xpose::append_suffix(
+          x$xpose, x$gg$labs$tag,
+          "tag"
+        )
+      }
     }
 
-    x$gg$labs <- x$gg$labs %>% tr_vals()
-    x$title <- x$title %>% tr_vals()
+    # I don't think this does anything now, but will leave it until
+    # it breaks something so I can update it to work again.
+    var_map <- x$mapping %>%
+      as.character() %>%
+      stringr::str_remove(pattern = "^~") %>%
+      ifelse(stringr::str_detect(., "\\.data\\[\\[\"\\w+\"]]"),
+        yes = stringr::str_remove_all(., "(\\.data\\[\\[\")|(\"]])"),
+        no = .
+      ) %>%
+      purrr::set_names(names(x$mapping))
+
+
+    if (utils::packageVersion("ggplot2") > "3.5.2") {
+      # Process the keywords
+      x <- x + do.call(
+        what = ggplot2::labs,
+        args = list(
+          title = x@title,
+          subtitle = x@gg$labs$subtitle,
+          caption = x@gg$labs$caption,
+          tag = x@gg$labs$tag
+        ) %>%
+          purrr::compact() %>%
+          purrr::map_if(
+            .p = stringr::str_detect(., "@"),
+            .f = xpose::parse_title,
+            xpdb = x$xpose,
+            problem = x$xpose$problem, quiet = x$xpose$quiet,
+            ignore_key = c("page", "lastpage"),
+            extra_key = c("plotfun", "timeplot", names(var_map)),
+            extra_value = c(
+              x$xpose$fun,
+              format(Sys.time(), "%a %b %d %X %Z %Y"),
+              var_map
+            )
+          )
+      )
+    } else {
+      tr_vals <- function(xx) {
+        if (is.null(xx)) {
+          return(xx)
+        }
+        xx %>%
+          {
+            `if`(
+              rlang::is_character(.),
+              list(.),
+              .
+            )
+          } %>%
+          structure(class = "list") %>%
+          purrr::map_if(stringr::str_detect(purrr::list_c(.), "@"),
+            .f = xpose::parse_title, xpdb = x$xpose, problem = x$xpose$problem,
+            quiet = x$xpose$quiet, ignore_key = c("page", "lastpage"),
+            extra_key = c("plotfun", "timeplot", names(var_map)),
+            extra_value = c(
+              x$xpose$fun, format(Sys.time(), "%a %b %d %X %Z %Y"),
+              var_map
+            )
+          ) %>%
+          structure(class = class(xx))
+      }
+
+      x$gg$labs <- x$gg$labs %>% tr_vals()
+      x$title <- x$title %>% tr_vals()
+    }
   }
   if (!missing(page)) NULL
   nm_x <- x
-  class(nm_x) <- class(x)[!class(x) %in% c("xp_xtra_plot","xpose_plot")]
+  class(nm_x) <- class(x)[!class(x) %in% c("xp_xtra_plot", "xpose_plot")]
   print(nm_x)
   invisible(x)
 }
-
-

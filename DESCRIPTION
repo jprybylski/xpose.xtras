@@ -2,7 +2,7 @@ Package: xpose.xtras
 Title: Extra Functionality for the 'xpose' Package
 Version: 0.1.0.9000
 Authors@R: 
-    person("John", "Prybylski", , "john.prybylski@pfizer.com", role = c("aut", "cre"),
+    person("John", "Prybylski", , "jprybylski@gmail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-5802-0539"))
 Description: Adding some at-present missing functionality, or functions 
     unlikely to be added to the base 'xpose' package.  This includes some 
