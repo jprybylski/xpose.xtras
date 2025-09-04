@@ -90,7 +90,14 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
 #'
 #' Bugfix for \code{\link[xpose]{irep}}.
 #'
-#' @description Add a column containing a simulation counter (irep). A new simulation is counted every time
+#' @description
+#' For `xpose` version > 0.5.0  `r lifecycle::badge("deprecated")`
+#'
+#' Because this has been fixed in the parent package, the fix will be removed
+#' in an upcoming release.
+#'
+#'
+#' Add a column containing a simulation counter (irep). A new simulation is counted every time
 #' a value in x is different than its previous value and is a duplicate.
 #'
 #' This version of the function does not require IDs be ascending, but does not work for
@@ -112,6 +119,11 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
 #'
 #' @export
 irep <- function(x, quiet = FALSE) {
+  if (utils::packageVersion("xpose") >= "0.5.0") {
+    lifecycle::deprecate_soft("0.1.0", "irep()", "xpose::irep()")
+    # Forward to corrected base version
+    return(xpose::irep(x,quiet = quiet))
+  }
   if (missing(x)) stop('argument "x" is missing, with no default', call. = FALSE)
   if (is.factor(x)) x <- as.numeric(as.character(x))
   lagcheck <- dplyr::lag(x, default = x[1]) != x

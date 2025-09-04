@@ -638,8 +638,8 @@ list_vars.xp_xtras <- function(xpdb, .problem = NULL, ...) {
   full_probs <- dplyr::bind_rows(get_index(xpdb, .problem = .problem)$probs)
 
   order <- c(
-    "id", "dv", "catdv", "dvprobs", "expdv", "idv", "dvid",
-    "occ", "amt", "evid", "mdv", "pred", "ipred",
+    "id", "dv", "catdv", "dvprobs", "expdv", "idv", "tad",
+    "dvid", "occ", "amt", "evid", "mdv", "pred", "ipred",
     "param", "eta", "iofv", "res", "catcov", "contcov",
     "a", "bin", "na"
   )
@@ -714,6 +714,7 @@ list_vars.xp_xtras <- function(xpdb, .problem = NULL, ...) {
                 type == "na" ~ "Not attributed",
                 type == "amt" ~ "Dose amount",
                 type == "idv" ~ "Independent variable",
+                type == 'tad' ~ 'Time after dose (tad)',
                 type == "ipred" ~ "Model individual predictions",
                 type == "pred" ~ "Model typical predictions",
                 type == "res" ~ "Residuals",

@@ -6,6 +6,8 @@
 
   if (!is_loading_for_tests()) {
     conflicted::conflict_prefer_all("xpose.xtras", c("xpose","stats"), quiet=TRUE)
+    if (utils::packageVersion("xpose") >= "0.5.0")
+      conflicted::conflict_prefer("irep", "xpose", "xpose.xtras", quiet=TRUE)
   }
 
   ## Make sure print.xpose_plot is not overwritten by xpose

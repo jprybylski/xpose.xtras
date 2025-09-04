@@ -15,6 +15,11 @@ irep(x, quiet = FALSE)
 \verb{<numeric>} vector tracking the number of simulations based on unique subject IDs.
 }
 \description{
+For \code{xpose} version > 0.5.0  \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+
+Because this has been fixed in the parent package, the fix will be removed
+in an upcoming release.
+
 Add a column containing a simulation counter (irep). A new simulation is counted every time
 a value in x is different than its previous value and is a duplicate.
 
