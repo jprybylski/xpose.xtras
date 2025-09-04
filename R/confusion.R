@@ -6,7 +6,7 @@
 #' @param ... For future extension
 #' @param threshold <`double`> Number that defines probability as positive.
 #' @param pos_val <`integer`> Positive value in `true_vec`
-#' @param prepend <`character`> Preprend column names with this to prevent name conflicts
+#' @param prepend <`character`> Prepend column names with this to prevent name conflicts
 #'
 #' @returns dataframe of confusion matrix indices
 #' @keywords internal
