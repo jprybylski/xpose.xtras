@@ -10,6 +10,8 @@
 coverage](https://codecov.io/gh/jprybylski/xpose.xtras/graph/badge.svg)](https://app.codecov.io/gh/jprybylski/xpose.xtras)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/xpose.xtras)](https://CRAN.R-project.org/package=xpose.xtras)
+[![CRAN
+downloads](http://cranlogs.r-pkg.org/badges/grand-total/xpose.xtras?color=blue)](https://cran.r-project.org/package=xpose.xtras)
 <!-- badges: end -->
 
 ## Introduction
