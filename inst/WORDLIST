@@ -2,6 +2,7 @@ Apgar
 Backfill
 Beal
 Bugfix
+Bugfixes
 CMD
 CPT
 CVs
@@ -50,6 +51,7 @@ arcsine
 arg
 args
 backfill
+bestiarium
 bugfix
 bugfixes
 catcov
@@ -67,6 +69,7 @@ facto
 functionalized
 getter
 ggpairs
+ggplot
 github
 hline
 https

@@ -8,7 +8,19 @@
     conflicted::conflict_prefer_all("xpose.xtras", c("xpose","stats"), quiet=TRUE)
   }
 
-
+  ## Make sure print.xpose_plot is not overwritten by xpose
+  reg <- function(...) {
+    registerS3method(
+      "print", "xpose_plot",
+      get("print.xpose_plot", envir = asNamespace("xpose.xtras")),
+      envir = asNamespace("xpose")
+    )
+  }
+  # If xpose is already loaded, register now
+  if (requireNamespace("xpose", quietly = TRUE)) reg()
+  # Also register every time xpose loads/attaches
+  setHook(packageEvent("xpose", "onLoad"),   function(...) reg())
+  setHook(packageEvent("xpose", "attach"), function(...) reg())
 }
 
 # These functions are from tidyverse

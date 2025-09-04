@@ -77,7 +77,6 @@ For type-based customization of plots:
 }
 }
 \examples{
-
 # Test M3 model
 pkpd_m3 \%>\%
   # Need to ensure var types are set

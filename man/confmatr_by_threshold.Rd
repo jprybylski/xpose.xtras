@@ -25,7 +25,7 @@ confmatr_by_threshold(
 
 \item{pos_val}{<\code{integer}> Positive value in \code{true_vec}}
 
-\item{prepend}{<\code{character}> Preprend column names with this to prevent name conflicts}
+\item{prepend}{<\code{character}> Prepend column names with this to prevent name conflicts}
 }
 \value{
 dataframe of confusion matrix indices

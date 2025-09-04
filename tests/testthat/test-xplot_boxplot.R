@@ -9,8 +9,15 @@ test_that("xplot_boxplot", {
   # test desired geoms are included
   # wrapper function to get geom type and outliers
   geoms_lists <- function(gg) purrr::map_chr(gg$layers, ~class(.x$geom)[1])
-  has_outliers <- function(gg) any(purrr::map_lgl(gg$layers, ~"outlier.shape" %in% names(.x$geom_params) &&
-                                                   !is.na(.x$geom_params$outlier.shape)))
+  has_outliers <- function(gg) {
+    if (utils::packageVersion("ggplot2") > "3.5.2") {
+      any(purrr::map_lgl(gg$layers, ~"outliers" %in% names(.x$geom_params) &&
+                           .x$geom_params$outliers==TRUE))
+    } else {
+      any(purrr::map_lgl(gg$layers, ~"outlier.shape" %in% names(.x$geom_params) &&
+                           !is.na(.x$geom_params$outlier.shape)))
+    }
+  }
 
   # bo is default
   def_bp <- xplot_boxplot(xpdb_x, aes(MED1,ETA1), quiet = TRUE)
@@ -101,7 +108,7 @@ test_that("xplot_boxplot", {
   ))
   expect_error(
     print(xplot_boxplot(xpdb_x, aes(MED1,ETA1), orientation = "y", quiet=TRUE)),
-    "Discrete value(s)? supplied to continuous scale"
+    "Discrete value.* supplied .* continuous scale"
   )
 
   # test facet effects
@@ -116,17 +123,17 @@ test_that("xplot_boxplot", {
   )
 
   # test ggtheme
-  expect_contains(
+  expect_equal(
     xplot_boxplot(xpdb_x,
                   aes(MED1,ETA1),
                   gg_theme = xpose::theme_bw2(),
-                  quiet=TRUE)$theme,
-    xpose::theme_bw2()
+                  quiet=TRUE)$theme$panel.border,
+    xpose::theme_bw2()$panel.border
     )
   expect_failure(
-    expect_contains(
-      def_bp$theme,
-      xpose::theme_bw2()
+    expect_equal(
+      def_bp$theme$panel.border,
+      xpose::theme_bw2()$panel.border
     ))
 
   # xp-theme basic check

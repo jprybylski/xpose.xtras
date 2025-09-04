@@ -50,7 +50,6 @@
 #' @returns The desired plot
 #'
 #' @examples
-#'
 #' # Test M3 model
 #' pkpd_m3 %>%
 #'   # Need to ensure var types are set
