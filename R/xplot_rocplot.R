@@ -153,7 +153,7 @@ xplot_rocplot <- function(xpdb,
       tidyr::unnest(confmatr) %>%
       # allow threshold to be found without the avoid_conflict part
       dplyr::rename(
-        ...threshold... = .data[[paste0(avoid_conflict, "threshold")]]
+        ...threshold... = dplyr::all_of(paste0(avoid_conflict, "threshold"))
       )
   }
   # For points

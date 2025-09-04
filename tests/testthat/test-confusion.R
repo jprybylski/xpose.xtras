@@ -1,7 +1,7 @@
 test_that("confmatr_by_threshold calculates all metrics correctly", {
   test_vec <- c(0.8, 0.7, 0.6, 0.3, 0.4, 0.2)
   true_vec <- c(1L, 1L, 0L, 0L, 1L, 0L)
-  res <- xpose.xtras:::confmatr_by_threshold(test_vec, true_vec, threshold = 0.5, pos_val = 1)
+  res <- confmatr_by_threshold(test_vec, true_vec, threshold = 0.5, pos_val = 1)
 
   expect_equal(res$threshold, 0.5)                     # evaluated at cutoff 0.5
   expect_equal(res$P, 3)                                # three positives in truth vector
@@ -41,7 +41,7 @@ test_that("confmatr_by_threshold handles multiple thresholds and options", {
   test_vec <- c(0.8, 0.7, 0.6, 0.3, 0.4, 0.2)
   true_vec <- c(1L, 1L, 0L, 0L, 1L, 0L)
 
-  res <- xpose.xtras:::confmatr_by_threshold(test_vec, true_vec, threshold = c(0.5, 0.7), pos_val = 1)
+  res <- confmatr_by_threshold(test_vec, true_vec, threshold = c(0.5, 0.7), pos_val = 1)
   expect_equal(nrow(res), 2)                             # vector thresholds return one row per cutoff
 
   res_high <- res[res$threshold == 0.7, ]
@@ -60,9 +60,9 @@ test_that("confmatr_by_threshold handles multiple thresholds and options", {
   expect_equal(res_high$TS, 2/3)                         # TP / (TP + FN + FP)
   expect_equal(res_high$CSI, 2/3)                        # critical success index
 
-  res_pref <- xpose.xtras:::confmatr_by_threshold(test_vec, true_vec, threshold = c(0.5, 0.7), pos_val = 1, prepend = "x_")
+  res_pref <- confmatr_by_threshold(test_vec, true_vec, threshold = c(0.5, 0.7), pos_val = 1, prepend = "x_")
   expect_true(all(startsWith(names(res_pref), "x_")))    # prefix applied to all columns
 
-  res_cols <- xpose.xtras:::confmatr_by_threshold(test_vec, true_vec, threshold = 0.5, pos_val = 1, cols = c(threshold, TPR, FPR))
+  res_cols <- confmatr_by_threshold(test_vec, true_vec, threshold = 0.5, pos_val = 1, cols = c(threshold, TPR, FPR))
   expect_equal(names(res_cols), c("threshold", "TPR", "FPR")) # only selected columns returned
 })

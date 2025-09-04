@@ -50,7 +50,7 @@ confmatr_by_threshold <- function(
       NPV = TN/(TN+FN),
       LRp=TPR/FPR,
       LRn=FNR/TNR,
-      ACC = (TP+TN)/P+N,
+      ACC = (TP+TN)/(P+N),
       FDR = 1 - PPV,
       FOR = 1 - NPV,
       MK = PPV + NPV - 1,
