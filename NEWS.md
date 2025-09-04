@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # xpose.xtras (development version)
 
 # xpose.xtras 0.1.0
