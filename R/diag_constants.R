@@ -259,20 +259,21 @@ permute_constants <- function(
 
   # ensure the original ordering is permutation 1
   is_orig <- apply(perms, 1, function(r) all(r == rate_cols))
-  if (!is_orig[1]) {
+  if (!all(perms[1, ] == rate_cols)) {
     perms <- rbind(rate_cols, perms[!is_orig, , drop = FALSE])
   }
 
   # Calculate pre-exponential constants for one set of rates.
   # For a single-compartment model the classic closed form is
-  #   A = Ka / (lambda - Ka)
+  #   A = Ka / (Ka - lambda)
   # For multi-compartment models, retain the residue based product
-  #   Ka * prod_{j != i}(lambda_j - Ka) / prod_{j != i}(lambda_j - lambda_i)
+  #   Ka * prod_{j != i}(lambda_j - Ka) / prod_{j != i}(lambda_j - lambda_i) /
+  #   (Ka - lambda_i)
   calc_pre <- function(ka, lambdas) {
     sapply(seq_along(lambdas), function(i) {
       others <- lambdas[-i]
-      num <- ka * prod(ka - others)
-      den <- (lambdas[i] - ka) * prod(lambdas[i] - others)
+      num <- ka * prod(others - ka)
+      den <- (ka - lambdas[i]) * prod(others - lambdas[i])
       num / den
     })
   }
