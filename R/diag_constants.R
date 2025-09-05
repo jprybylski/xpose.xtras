@@ -263,20 +263,22 @@ permute_constants <- function(
     perms <- rbind(rate_cols, perms[!is_orig, , drop = FALSE])
   }
 
-  # Calculate pre-exponential constants for one set of rates using the
-  # standard residue approach: A_i = Ka * prod_{j != i}(lambda_j - Ka) /
-  # prod_{j != i}(lambda_j - lambda_i)
+  # Calculate pre-exponential constants for one set of rates.
+  # For a single-compartment model the classic closed form is
+  #   A = Ka / (lambda - Ka)
+  # For multi-compartment models, retain the residue based product
+  #   Ka * prod_{j != i}(lambda_j - Ka) / prod_{j != i}(lambda_j - lambda_i)
   calc_pre <- function(ka, lambdas) {
-    sapply(seq_along(lambdas), function(i) {
-      others <- lambdas[-i]
-      num <- ka * prod(others - ka)
-      den <- prod(others - lambdas[i])
-      if (length(lambdas) == 1) {
-        num / (ka - lambdas[i])
-      } else {
+    if (length(lambdas) == 1) {
+      ka / (lambdas - ka)
+    } else {
+      sapply(seq_along(lambdas), function(i) {
+        others <- lambdas[-i]
+        num <- ka * prod(others - ka)
+        den <- prod(others - lambdas[i])
         num / den
-      }
-    })
+      })
+    }
   }
 
   purrr::map_dfr(seq_len(nrow(perms)), function(i) {

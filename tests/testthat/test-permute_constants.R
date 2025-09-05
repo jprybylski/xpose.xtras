@@ -40,3 +40,10 @@ test_that("permute_constants can restrict permutations to KA swaps", {
   first <- dplyr::filter(res, permutation == 1)
   expect_equal(dplyr::select(first, KA, ALPHA, BETA), df)
 })
+
+test_that("one-compartment permutations retain positive volume", {
+  skip_if_not_installed("rxode2")
+  df <- tibble::tibble(KA = 1, ALPHA = 0.5)
+  res <- permute_constants(df)
+  expect_true(all(res$V > 0))
+})
