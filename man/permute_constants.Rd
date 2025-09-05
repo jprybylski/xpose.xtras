@@ -41,10 +41,18 @@ customised using convenience keywords or supplied directly.
 }
 
 \details{
-If \code{exp_vars} is set to \code{"alpha_beta"} the macro rate constants are
-assumed to be \code{ALPHA}, \code{BETA}, \code{GAMMA}; if set to
-\code{"lambda"} they are \code{LAMBDA1}, \code{LAMBDA2}, \code{LAMBDA3}. For
-\code{pre_vars}, the keyword \code{"abc"} maps to \code{A}, \code{B}, \code{C}.
-When \code{"custom"} is used for either argument, provide a character vector of
-the desired column names instead. Only columns present in \code{df} are used.
+\code{exp_vars} accepts:
+\itemize{
+\item \code{"alpha_beta"} -- use \code{ALPHA}, \code{BETA}, \code{GAMMA}
+\item \code{"lambda"} -- use \code{LAMBDA1}, \code{LAMBDA2}, \code{LAMBDA3}
+\item a character vector of column names
+}
+
+\code{pre_vars} accepts:
+\itemize{
+\item \code{"abc"} -- use \code{A}, \code{B}, \code{C}
+\item a character vector of column names
+}
+
+Only columns present in \code{df} are used.
 }

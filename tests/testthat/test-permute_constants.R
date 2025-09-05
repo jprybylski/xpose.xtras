@@ -21,6 +21,15 @@ test_that("permute_constants allows custom naming of rates and pre-exponentials"
   expect_true(all(c("permutation", "KABS", "LAMBDA1", "LAMBDA2", "P", "Q") %in% names(res)))
 })
 
+test_that("permute_constants uppercases rxDerived names and overwrites", {
+  skip_if_not_installed("rxode2")
+  df <- tibble::tibble(KA = 1, ALPHA = 0.5, BETA = 0.1, k12 = 0)
+  res <- permute_constants(df)
+  expect_true("K12" %in% names(res))
+  expect_false("k12" %in% names(res))
+  expect_false(any(res$K12 == 0))
+})
+
 test_that("permute_constants can restrict permutations to KA swaps", {
   skip_if_not_installed("rxode2")
   df <- tibble::tibble(KA = 1, ALPHA = 0.5, BETA = 0.1)

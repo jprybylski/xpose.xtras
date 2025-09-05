@@ -146,12 +146,21 @@ greek_letters <- c(
 #' names for the rate constants and the pre-exponential constants can be
 #' customised using convenience keywords or supplied directly.
 #'
-#' @details If `exp_vars` is set to `"alpha_beta"` the macro rate constants are
-#' assumed to be `ALPHA`, `BETA`, `GAMMA`; if set to `"lambda"` they are
-#' `LAMBDA1`, `LAMBDA2`, `LAMBDA3`. For `pre_vars`, the keyword `"abc"` maps to
-#' `A`, `B`, `C`. When `"custom"` is used for either argument, provide a character
-#' vector of the desired column names instead. Only columns present in `df` are
-#' used.
+#' @details
+#' `exp_vars` accepts:
+#' \itemize{
+#'   \item `"alpha_beta"` – use `ALPHA`, `BETA`, `GAMMA`
+#'   \item `"lambda"` – use `LAMBDA1`, `LAMBDA2`, `LAMBDA3`
+#'   \item a character vector of column names
+#' }
+#'
+#' `pre_vars` accepts:
+#' \itemize{
+#'   \item `"abc"` – use `A`, `B`, `C`
+#'   \item a character vector of column names
+#' }
+#'
+#' Only columns present in `df` are used.
 #'
 #' @param df <`data.frame`> of parameters. May contain multiple rows.
 #' @param ka_col Name of the absorption rate constant column. Defaults to
@@ -242,12 +251,19 @@ permute_constants <- function(
     perms <- permute_vec(rate_cols)
   }
 
-  # Calculate pre-exponential constants for one set of rates
+  # Calculate pre-exponential constants for one set of rates using the
+  # standard residue approach: A_i = Ka * prod_{j != i}(lambda_j - Ka) /
+  # prod_{j != i}(lambda_j - lambda_i)
   calc_pre <- function(ka, lambdas) {
     sapply(seq_along(lambdas), function(i) {
-      num <- ka * prod(lambdas[-i] - ka)
-      den <- prod(lambdas[-i] - lambdas[i])
-      num/den
+      others <- lambdas[-i]
+      num <- ka * prod(others - ka)
+      den <- prod(others - lambdas[i])
+      if (length(lambdas) == 1) {
+        num / (ka - lambdas[i])
+      } else {
+        num / den
+      }
     })
   }
 
@@ -271,13 +287,13 @@ permute_constants <- function(
 
     pre_df <- dplyr::bind_cols(permuted_rates, pre_cols)
 
-    derived <- rxode2::rxDerived(pre_df)
+    derived <- rxode2::rxDerived(pre_df) %>%
+      dplyr::rename_with(toupper)
 
-    combined <- dplyr::bind_cols(
-      other_cols,
-      pre_df,
-      dplyr::select(derived, -dplyr::any_of(names(pre_df)))
-    )
+    combined <- dplyr::bind_cols(other_cols, pre_df)
+    for (nm in names(derived)) {
+      combined[[nm]] <- derived[[nm]]
+    }
 
     # Rename rate constants back to original naming
     names(combined)[match(rx_names[1], names(combined))] <- ka_col
