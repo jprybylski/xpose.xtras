@@ -140,39 +140,52 @@ greek_letters <- c(
 #' Permute first-order rates and derive full parameter sets
 #'
 #' Given a data frame of rate parameters, this function generates all
-#' permutations of `KA` and the remaining macro rate constants (either
-#' `ALPHA`/`BETA`/`GAMMA` or `LAMBDA1`-`LAMBDA3`). For each permutation the
-#' pre-exponential constants (`A`, `B`, `C`) are recomputed manually and the
-#' remaining parameters are derived via [`rxode2::rxDerived`]. Column names for
-#' the macro rate constants are preserved from the input (ie, they are not
-#' converted between `ALPHA` and `LAMBDA` naming schemes).
+#' permutations of an absorption rate constant and any macro rate constants.
+#' For each permutation the pre-exponential constants are recomputed manually
+#' and the remaining parameters are derived via
+#' [`rxode2::rxDerived`][rxode2::rxDerived]. Column names for the rate
+#' constants and the pre-exponential constants can be customised through the
+#' `exp_vars` and `pre_vars` arguments. By default, the function expects macro
+#' rate constants named with Greek letters (`ALPHA`, `BETA`, `GAMMA`) and
+#' pre-exponential constants `A`, `B`, `C`.
 #'
 #' @param df <`data.frame`> of parameters. May contain multiple rows.
+#' @param exp_vars Character vector of exponential rate constant names.
+#'   The first element is the absorption rate constant followed by any
+#'   macro rate constants. Defaults to `c("KA", "ALPHA", "BETA", "GAMMA")`.
+#' @param pre_vars Character vector of pre-exponential constant names.
+#'   Defaults to `c("A", "B", "C")` and is truncated to match the number of
+#'   macro rate constants if necessary.
 #'
 #' @return A tibble containing one row per permutation for each input row.
 #' The column `permutation` identifies the permutation number.
 #' @export
-permute_constants <- function(df) {
+permute_constants <- function(
+    df,
+    exp_vars = c("KA", toupper(greek_letters[1:3])),
+    pre_vars = c("A", "B", "C")) {
   if (!rlang::is_installed("rxode2") ||
       !exists("rxDerived", envir = rlang::ns_env("rxode2"))) {
     cli::cli_abort("Need `rxode2` with the function `rxDerived` to use this feature.")
   }
   xpa("data.frame", df, "`df` must be a data frame.")
 
-  # Determine available rate columns and naming scheme
-  lambda_cols <- grep("^LAMBDA\\d$", names(df), value = TRUE)
-  if (length(lambda_cols) > 0) {
-    macro_names <- lambda_cols
-  } else {
-    macro_names <- intersect(toupper(greek_letters[1:3]), names(df))
-  }
-  rate_cols <- c("KA", macro_names)
-  xpa("character", rate_cols, "Need at least `KA` and another rate constant.",
-      min.len = 2)
-  n_macro <- length(rate_cols) - 1
+  rate_cols <- exp_vars
+  missing_cols <- setdiff(rate_cols, names(df))
+  xpa(
+    "true",
+    length(missing_cols) == 0,
+    custom_msg = paste("Missing columns:", paste(missing_cols, collapse = ", "))
+  )
+  xpa("character", rate_cols, "Need at least two rate constants.", min.len = 2)
+  macro_names <- rate_cols[-1]
+  n_macro <- length(macro_names)
 
-  # Drop any existing rate or pre-exponential columns
-  pre_cols_in_df <- grep("^A(\d)?$", names(df), value = TRUE)
+  if (length(pre_vars) < n_macro) {
+    cli::cli_abort("Need at least {n_macro} `pre_vars` names.")
+  }
+  pre_vars <- pre_vars[seq_len(n_macro)]
+  pre_cols_in_df <- intersect(pre_vars, names(df))
   other_cols <- dplyr::select(df, -dplyr::all_of(rate_cols),
                               -dplyr::all_of(pre_cols_in_df))
 
@@ -205,7 +218,7 @@ permute_constants <- function(df) {
       function(KA, ...) {
         lam <- c(...)
         tibble::as_tibble_row(
-          stats::setNames(calc_pre(KA, lam), c("A", "B", "C")[seq_along(lam)])
+          stats::setNames(calc_pre(KA, lam), pre_vars)
         )
       }
     )
@@ -220,7 +233,8 @@ permute_constants <- function(df) {
       dplyr::select(derived, -dplyr::any_of(names(pre_df)))
     )
 
-    # Rename macro constants back to original naming
+    # Rename rate constants back to original naming
+    names(combined)[match(rx_names[1], names(combined))] <- rate_cols[1]
     names(combined)[match(rx_names[-1], names(combined))] <- macro_names
 
     tibble::add_column(combined, permutation = i, .before = 1)

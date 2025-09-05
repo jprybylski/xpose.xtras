@@ -4,14 +4,34 @@
 \alias{permute_constants}
 \title{Permute first-order rates and derive full parameter sets}
 \usage{
-permute_constants(df)
+permute_constants(
+  df,
+  exp_vars = c("KA", "ALPHA", "BETA", "GAMMA"),
+  pre_vars = c("A", "B", "C")
+)
 }
 \arguments{
 \item{df}{<\code{data.frame}> of parameters. May contain multiple rows.}
+
+\item{exp_vars}{Character vector of exponential rate constant names. The
+first element is the absorption rate constant followed by any macro rate
+constants. Defaults to \code{c("KA", "ALPHA", "BETA", "GAMMA")}.}
+
+\item{pre_vars}{Character vector of pre-exponential constant names.
+Defaults to \code{c("A", "B", "C")} and is truncated to match the number
+of macro rate constants if necessary.}
 }
 \value{
 A tibble containing one row per permutation for each input row. The column `permutation` identifies the permutation number.
 }
 \description{
-Given a data frame of rate parameters, this function generates all permutations of \code{KA} and the remaining macro rate constants (either \code{ALPHA}/\code{BETA}/\code{GAMMA} or \code{LAMBDA1}-\code{LAMBDA3}). For each permutation the pre-exponential constants (\code{A}, \code{B}, \code{C}) are recomputed manually and the remaining parameters are derived via \code{\link[rxode2:rxDerived]{rxode2::rxDerived}}. The naming convention of the macro rate constants is preserved from the input.
+Given a data frame of rate parameters, this function generates all permutations
+of an absorption rate constant and any macro rate constants. For each
+permutation the pre-exponential constants are recomputed manually and the
+remaining parameters are derived via \code{\link[rxode2:rxDerived]{rxode2::rxDerived}}.
+Column names for the rate constants and the pre-exponential constants can be
+customised through the \code{exp_vars} and \code{pre_vars} arguments. By
+default, macro rate constants are expected to use Greek letters (\code{ALPHA},
+\code{BETA}, \code{GAMMA}) and pre-exponential constants \code{A}, \code{B},
+\code{C}.
 }
