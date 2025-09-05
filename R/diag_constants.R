@@ -147,6 +147,10 @@ greek_letters <- c(
 #' customised using convenience keywords or supplied directly.
 #'
 #' @details
+#' The `exp_vars` and `pre_vars` arguments describe naming conventions. When a
+#' convention is used, any subset of the associated columns present in `df` is
+#' used.
+#'
 #' `exp_vars` accepts:
 #' \itemize{
 #'   \item `"alpha_beta"` – use `ALPHA`, `BETA`, `GAMMA`
@@ -165,10 +169,12 @@ greek_letters <- c(
 #' @param df <`data.frame`> of parameters. May contain multiple rows.
 #' @param ka_col Name of the absorption rate constant column. Defaults to
 #'   `"KA"`.
-#' @param exp_vars Macro rate constant names or one of `"alpha_beta"`,
-#'   `"lambda"` or `"custom"`; see Details.
-#' @param pre_vars Pre-exponential constant names or one of `"abc"` or
-#'   `"custom"`; see Details. Names are truncated to the number of macro rates.
+#' @param exp_vars Macro rate constant naming convention or column names.
+#'   Defaults to `"alpha_beta"`. When a convention is used, any subset of the
+#'   corresponding columns present in `df` is accepted.
+#' @param pre_vars Pre-exponential naming convention or column names. Defaults
+#'   to `"abc"`. When a convention is used, names are truncated to the number of
+#'   macro rates and a subset of the convention is sufficient.
 #' @param swap_ka Logical; if `TRUE`, only permutations that swap `ka_col` with
 #'   one macro rate are returned.
 #'
@@ -249,6 +255,12 @@ permute_constants <- function(
     perms <- unique(perms)
   } else {
     perms <- permute_vec(rate_cols)
+  }
+
+  # ensure the original ordering is permutation 1
+  is_orig <- apply(perms, 1, function(r) all(r == rate_cols))
+  if (!is_orig[1]) {
+    perms <- rbind(rate_cols, perms[!is_orig, , drop = FALSE])
   }
 
   # Calculate pre-exponential constants for one set of rates using the

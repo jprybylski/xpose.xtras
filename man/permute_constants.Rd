@@ -18,12 +18,13 @@ permute_constants(
 \item{ka_col}{Name of the absorption rate constant column. Defaults to
 \code{"KA"}.}
 
-\item{exp_vars}{Macro rate constant names or one of \code{"alpha_beta"},
-\code{"lambda"} or \code{"custom"}; see Details.}
+\item{exp_vars}{Macro rate constant naming convention or column names.
+Defaults to \code{"alpha_beta"}. When a convention is used, any subset of the
+corresponding columns present in \code{df} is accepted.}
 
-\item{pre_vars}{Pre-exponential constant names or one of \code{"abc"} or
-\code{"custom"}; see Details. Names are truncated to the number of macro
-rates.}
+\item{pre_vars}{Pre-exponential naming convention or column names. Defaults to
+\code{"abc"}. When a convention is used, names are truncated to the number of
+macro rates and a subset of the convention is sufficient.}
 
 \item{swap_ka}{Logical; if \code{TRUE}, only permutations that swap
 \code{ka_col} with one macro rate are returned.}
@@ -41,6 +42,10 @@ customised using convenience keywords or supplied directly.
 }
 
 \details{
+The \code{exp_vars} and \code{pre_vars} arguments describe naming conventions.
+When a convention is used, any subset of the associated columns present in
+\code{df} is used.
+
 \code{exp_vars} accepts:
 \itemize{
 \item \code{"alpha_beta"} -- use \code{ALPHA}, \code{BETA}, \code{GAMMA}
