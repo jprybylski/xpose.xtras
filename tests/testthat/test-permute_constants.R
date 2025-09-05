@@ -10,8 +10,8 @@ test_that("permute_constants produces all permutations and recalculates pre-expo
   expect_true(all(c("permutation", "KA", "ALPHA", "BETA", "A", "B") %in% names(res)))
   first <- dplyr::filter(res, permutation == 1)
   expect_equal(dplyr::select(first, KA, ALPHA, BETA), df)
-  expect_equal(first$A, 4.5)
-  expect_equal(first$B, -1.3888889, tolerance = 1e-7)
+  expect_equal(first$A, -4.5)
+  expect_equal(first$B, 1.3888889, tolerance = 1e-7)
 })
 
 test_that("permute_constants allows custom naming of rates and pre-exponentials", {
@@ -44,6 +44,6 @@ test_that("permute_constants can restrict permutations to KA swaps", {
 test_that("one-compartment permutations retain positive volume", {
   skip_if_not_installed("rxode2")
   df <- tibble::tibble(KA = 1, ALPHA = 0.5)
-  res <- permute_constants(df)
+  res <- permute_constants(df, swap_ka = TRUE)
   expect_true(all(res$V > 0))
 })

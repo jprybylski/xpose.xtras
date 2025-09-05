@@ -271,8 +271,8 @@ permute_constants <- function(
   calc_pre <- function(ka, lambdas) {
     sapply(seq_along(lambdas), function(i) {
       others <- lambdas[-i]
-      num <- ka * prod(others - ka)
-      den <- (ka - lambdas[i]) * prod(others - lambdas[i])
+      num <- ka * prod(ka - others)
+      den <- (lambdas[i] - ka) * prod(lambdas[i] - others)
       num / den
     })
   }
