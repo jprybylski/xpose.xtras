@@ -269,16 +269,12 @@ permute_constants <- function(
   # For multi-compartment models, retain the residue based product
   #   Ka * prod_{j != i}(lambda_j - Ka) / prod_{j != i}(lambda_j - lambda_i)
   calc_pre <- function(ka, lambdas) {
-    if (length(lambdas) == 1) {
-      ka / (lambdas - ka)
-    } else {
-      sapply(seq_along(lambdas), function(i) {
-        others <- lambdas[-i]
-        num <- ka * prod(others - ka)
-        den <- prod(others - lambdas[i])
-        num / den
-      })
-    }
+    sapply(seq_along(lambdas), function(i) {
+      others <- lambdas[-i]
+      num <- ka * prod(others - ka)
+      den <- (ka - lambdas[i]) * prod(others - lambdas[i])
+      num / den
+    })
   }
 
   purrr::map_dfr(seq_len(nrow(perms)), function(i) {
