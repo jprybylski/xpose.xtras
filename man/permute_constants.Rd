@@ -10,8 +10,8 @@ permute_constants(df)
 \item{df}{<\code{data.frame}> of parameters. May contain multiple rows.}
 }
 \value{
-A tibble containing one row per permutation for each input row. The column `perm` identifies the permutation number.
+A tibble containing one row per permutation for each input row. The column `permutation` identifies the permutation number.
 }
 \description{
-Given a data frame of rate parameters, this function generates all permutations of \code{KA} and the remaining macro rate constants (either \code{ALPHA}/\code{BETA}/\code{GAMMA} or \code{LAMBDA1}-\code{LAMBDA3}). For each permutation the pre-exponential constants are recomputed manually and the remaining parameters are derived via \code{\link[rxode2:rxDerived]{rxode2::rxDerived}}.
+Given a data frame of rate parameters, this function generates all permutations of \code{KA} and the remaining macro rate constants (either \code{ALPHA}/\code{BETA}/\code{GAMMA} or \code{LAMBDA1}-\code{LAMBDA3}). For each permutation the pre-exponential constants (\code{A}, \code{B}, \code{C}) are recomputed manually and the remaining parameters are derived via \code{\link[rxode2:rxDerived]{rxode2::rxDerived}}. The naming convention of the macro rate constants is preserved from the input.
 }

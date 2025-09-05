@@ -142,13 +142,15 @@ greek_letters <- c(
 #' Given a data frame of rate parameters, this function generates all
 #' permutations of `KA` and the remaining macro rate constants (either
 #' `ALPHA`/`BETA`/`GAMMA` or `LAMBDA1`-`LAMBDA3`). For each permutation the
-#' pre-exponential constants are recomputed manually and the remaining
-#' parameters are derived via [`rxode2::rxDerived`].
+#' pre-exponential constants (`A`, `B`, `C`) are recomputed manually and the
+#' remaining parameters are derived via [`rxode2::rxDerived`]. Column names for
+#' the macro rate constants are preserved from the input (ie, they are not
+#' converted between `ALPHA` and `LAMBDA` naming schemes).
 #'
 #' @param df <`data.frame`> of parameters. May contain multiple rows.
 #'
 #' @return A tibble containing one row per permutation for each input row.
-#' The column `perm` identifies the permutation number.
+#' The column `permutation` identifies the permutation number.
 #' @export
 permute_constants <- function(df) {
   if (!rlang::is_installed("rxode2") ||
@@ -157,19 +159,22 @@ permute_constants <- function(df) {
   }
   xpa("data.frame", df, "`df` must be a data frame.")
 
-  # Determine available rate columns
+  # Determine available rate columns and naming scheme
   lambda_cols <- grep("^LAMBDA\\d$", names(df), value = TRUE)
-  if (length(lambda_cols) == 0) {
-    lambda_cols <- intersect(toupper(greek_letters[1:3]), names(df))
+  if (length(lambda_cols) > 0) {
+    macro_names <- lambda_cols
+  } else {
+    macro_names <- intersect(toupper(greek_letters[1:3]), names(df))
   }
-  rate_cols <- c("KA", lambda_cols)
+  rate_cols <- c("KA", macro_names)
   xpa("character", rate_cols, "Need at least `KA` and another rate constant.",
       min.len = 2)
-  n_lambda <- length(rate_cols) - 1
+  n_macro <- length(rate_cols) - 1
 
-  # Existing non-rate columns (drop any old pre-exponentials)
+  # Drop any existing rate or pre-exponential columns
+  pre_cols_in_df <- grep("^A(\d)?$", names(df), value = TRUE)
   other_cols <- dplyr::select(df, -dplyr::all_of(rate_cols),
-                              -dplyr::matches("^A\\d$"))
+                              -dplyr::all_of(pre_cols_in_df))
 
   # Simple permutation generator (factorial length <= 4 so recursion is fine)
   permute_vec <- function(x) {
@@ -189,32 +194,36 @@ permute_constants <- function(df) {
 
   purrr::map_dfr(seq_len(nrow(perms)), function(i) {
     p <- perms[i, ]
-    renamed_rates <- df %>%
+
+    rx_names <- c("KA", toupper(greek_letters[seq_len(n_macro)]))
+    permuted_rates <- df %>%
       dplyr::select(dplyr::all_of(p)) %>%
-      rlang::set_names(c("KA", paste0("LAMBDA", seq_len(n_lambda))))
-    renamed <- dplyr::bind_cols(other_cols, renamed_rates)
+      rlang::set_names(rx_names)
 
     pre_cols <- purrr::pmap_dfr(
-      dplyr::select(renamed, KA, dplyr::matches("^LAMBDA")),
+      dplyr::select(permuted_rates, KA, dplyr::all_of(rx_names[-1])),
       function(KA, ...) {
         lam <- c(...)
         tibble::as_tibble_row(
-          stats::setNames(calc_pre(KA, lam), paste0("A", seq_along(lam)))
+          stats::setNames(calc_pre(KA, lam), c("A", "B", "C")[seq_along(lam)])
         )
       }
     )
 
-    pre_df <- dplyr::bind_cols(renamed, pre_cols)
+    pre_df <- dplyr::bind_cols(permuted_rates, pre_cols)
 
-    derived <- rxode2::rxDerived(dplyr::select(pre_df, KA,
-                                               dplyr::matches("^LAMBDA"),
-                                               dplyr::matches("^A")))
+    derived <- rxode2::rxDerived(pre_df)
 
-    dplyr::bind_cols(
-      tibble::tibble(perm = i),
+    combined <- dplyr::bind_cols(
+      other_cols,
       pre_df,
       dplyr::select(derived, -dplyr::any_of(names(pre_df)))
     )
+
+    # Rename macro constants back to original naming
+    names(combined)[match(rx_names[-1], names(combined))] <- macro_names
+
+    tibble::add_column(combined, permutation = i, .before = 1)
   }) %>% tibble::as_tibble()
 }
 
