@@ -54,8 +54,20 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
 
   # Get positions in the data for each column
   .positions <- purrr::map(seq_along(.problem), ~
-    tidyselect::eval_select(dots, env = cenv, data = dat$data[[.x]], error_call = cenv, strict=FALSE)
+    rlang::try_fetch(
+      tidyselect::eval_select(dots, env = cenv, data = dat$data[[.x]], error_call = cenv, strict=TRUE),
+      error = function(s) {
+        rlang::warn(
+          sprintf("A selected column doesn't exist in problem %s", .x),
+          parent = s
+        )
+        return(
+          tidyselect::eval_select(dots, env = cenv, data = dat$data[[.x]], error_call = cenv, strict=FALSE)
+        )
+      }
+    )
   )
+
 
   # get types from ...
   .types <- names(
@@ -213,7 +225,8 @@ edit_xpose_data <- function(.fun, .fname, .data, ..., .problem, .source, .where,
       dplyr::group_by_at(.vars = 'problem')
 
     ## TEMP handling
-    if (xpose::tidyr_new_interface()) {
+    if (exists("tidyr_new_interface", envir = rlang::ns_env("xpose")) &&
+        xpose::tidyr_new_interface()) {
       xpdb[['special']] <- xpdb[['special']] %>%
         tidyr::nest(tmp = -dplyr::one_of('problem')) %>%
         dplyr::ungroup()
