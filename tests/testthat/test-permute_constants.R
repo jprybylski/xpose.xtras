@@ -16,7 +16,15 @@ test_that("permute_constants produces all permutations and recalculates pre-expo
 test_that("permute_constants allows custom naming of rates and pre-exponentials", {
   skip_if_not_installed("rxode2")
   df <- tibble::tibble(KABS = 1, LAMBDA1 = 0.5, LAMBDA2 = 0.1)
-  res <- permute_constants(df, exp_vars = c("KABS", "LAMBDA1", "LAMBDA2"), pre_vars = c("P", "Q"))
+  res <- permute_constants(df, ka_col = "KABS", exp_vars = "lambda", pre_vars = c("P", "Q"))
   expect_equal(nrow(res), factorial(3))
   expect_true(all(c("permutation", "KABS", "LAMBDA1", "LAMBDA2", "P", "Q") %in% names(res)))
+})
+
+test_that("permute_constants can restrict permutations to KA swaps", {
+  skip_if_not_installed("rxode2")
+  df <- tibble::tibble(KA = 1, ALPHA = 0.5, BETA = 0.1)
+  res <- permute_constants(df, swap_ka = TRUE)
+  expect_equal(nrow(res), 3)
+  expect_equal(sort(unique(res$permutation)), 1:3)
 })

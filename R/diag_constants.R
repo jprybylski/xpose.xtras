@@ -139,48 +139,86 @@ greek_letters <- c(
 
 #' Permute first-order rates and derive full parameter sets
 #'
-#' Given a data frame of rate parameters, this function generates all
-#' permutations of an absorption rate constant and any macro rate constants.
-#' For each permutation the pre-exponential constants are recomputed manually
-#' and the remaining parameters are derived via
-#' [`rxode2::rxDerived`][rxode2::rxDerived]. Column names for the rate
-#' constants and the pre-exponential constants can be customised through the
-#' `exp_vars` and `pre_vars` arguments. By default, the function expects macro
-#' rate constants named with Greek letters (`ALPHA`, `BETA`, `GAMMA`) and
-#' pre-exponential constants `A`, `B`, `C`.
+#' Given a data frame of rate parameters, this function generates permutations
+#' of an absorption rate constant and macro rate constants. For each permutation
+#' the pre-exponential constants are recomputed manually and the remaining
+#' parameters are derived via [`rxode2::rxDerived`][rxode2::rxDerived]. Column
+#' names for the rate constants and the pre-exponential constants can be
+#' customised using convenience keywords or supplied directly.
+#'
+#' @details If `exp_vars` is set to `"alpha_beta"` the macro rate constants are
+#' assumed to be `ALPHA`, `BETA`, `GAMMA`; if set to `"lambda"` they are
+#' `LAMBDA1`, `LAMBDA2`, `LAMBDA3`. For `pre_vars`, the keyword `"abc"` maps to
+#' `A`, `B`, `C`. When `"custom"` is used for either argument, provide a character
+#' vector of the desired column names instead. Only columns present in `df` are
+#' used.
 #'
 #' @param df <`data.frame`> of parameters. May contain multiple rows.
-#' @param exp_vars Character vector of exponential rate constant names.
-#'   The first element is the absorption rate constant followed by any
-#'   macro rate constants. Defaults to `c("KA", "ALPHA", "BETA", "GAMMA")`.
-#' @param pre_vars Character vector of pre-exponential constant names.
-#'   Defaults to `c("A", "B", "C")` and is truncated to match the number of
-#'   macro rate constants if necessary.
+#' @param ka_col Name of the absorption rate constant column. Defaults to
+#'   `"KA"`.
+#' @param exp_vars Macro rate constant names or one of `"alpha_beta"`,
+#'   `"lambda"` or `"custom"`; see Details.
+#' @param pre_vars Pre-exponential constant names or one of `"abc"` or
+#'   `"custom"`; see Details. Names are truncated to the number of macro rates.
+#' @param swap_ka Logical; if `TRUE`, only permutations that swap `ka_col` with
+#'   one macro rate are returned.
 #'
 #' @return A tibble containing one row per permutation for each input row.
 #' The column `permutation` identifies the permutation number.
 #' @export
 permute_constants <- function(
     df,
-    exp_vars = c("KA", toupper(greek_letters[1:3])),
-    pre_vars = c("A", "B", "C")) {
+    ka_col = "KA",
+    exp_vars = c("alpha_beta", "lambda", "custom"),
+    pre_vars = c("abc", "custom"),
+    swap_ka = FALSE) {
   if (!rlang::is_installed("rxode2") ||
       !exists("rxDerived", envir = rlang::ns_env("rxode2"))) {
     cli::cli_abort("Need `rxode2` with the function `rxDerived` to use this feature.")
   }
-  xpa("data.frame", df, "`df` must be a data frame.")
+  xpa("data_frame", df, "`df` must be a data frame.")
+  xpa("string", ka_col)
 
-  rate_cols <- exp_vars
+  default_exp <- eval(formals()$exp_vars)
+  if (length(exp_vars) > 1) {
+    if (identical(exp_vars, default_exp)) {
+      exp_vars <- default_exp[1]
+    }
+  } else if (exp_vars == "custom") {
+    cli::cli_abort("Instead of `'custom'`, pass the actual names of the rate parameters as a character vector.")
+  }
+  if (exp_vars %in% default_exp) {
+    macro_names <- switch(exp_vars,
+      alpha_beta = toupper(greek_letters[1:3]),
+      lambda = paste0("LAMBDA", 1:3)
+    )
+  } else {
+    macro_names <- exp_vars
+  }
+  macro_names <- macro_names[macro_names %in% names(df)]
+  rate_cols <- c(ka_col, macro_names)
   missing_cols <- setdiff(rate_cols, names(df))
   xpa(
     "true",
     length(missing_cols) == 0,
     custom_msg = paste("Missing columns:", paste(missing_cols, collapse = ", "))
   )
-  xpa("character", rate_cols, "Need at least two rate constants.", min.len = 2)
-  macro_names <- rate_cols[-1]
+  xpa("character", macro_names, "Need at least one macro rate constant.", min.len = 1)
   n_macro <- length(macro_names)
 
+  default_pre <- eval(formals()$pre_vars)
+  if (length(pre_vars) > 1) {
+    if (identical(pre_vars, default_pre)) {
+      pre_vars <- default_pre[1]
+    }
+  } else if (pre_vars == "custom") {
+    cli::cli_abort("Instead of `'custom'`, pass the actual names of the pre-exponential constants as a character vector.")
+  }
+  if (pre_vars %in% default_pre) {
+    pre_vars <- switch(pre_vars,
+      abc = toupper(letters[1:3])
+    )
+  }
   if (length(pre_vars) < n_macro) {
     cli::cli_abort("Need at least {n_macro} `pre_vars` names.")
   }
@@ -189,12 +227,20 @@ permute_constants <- function(
   other_cols <- dplyr::select(df, -dplyr::all_of(rate_cols),
                               -dplyr::all_of(pre_cols_in_df))
 
-  # Simple permutation generator (factorial length <= 4 so recursion is fine)
   permute_vec <- function(x) {
     if (length(x) == 1) return(matrix(x, nrow = 1))
     do.call(rbind, lapply(seq_along(x), function(i) cbind(x[i], permute_vec(x[-i]))))
   }
-  perms <- permute_vec(rate_cols)
+  if (isTRUE(swap_ka)) {
+    perms <- rbind(rate_cols, t(sapply(seq_along(macro_names), function(i) {
+      tmp <- rate_cols
+      tmp[c(1, i + 1)] <- tmp[c(i + 1, 1)]
+      tmp
+    })))
+    perms <- unique(perms)
+  } else {
+    perms <- permute_vec(rate_cols)
+  }
 
   # Calculate pre-exponential constants for one set of rates
   calc_pre <- function(ka, lambdas) {
@@ -234,7 +280,7 @@ permute_constants <- function(
     )
 
     # Rename rate constants back to original naming
-    names(combined)[match(rx_names[1], names(combined))] <- rate_cols[1]
+    names(combined)[match(rx_names[1], names(combined))] <- ka_col
     names(combined)[match(rx_names[-1], names(combined))] <- macro_names
 
     tibble::add_column(combined, permutation = i, .before = 1)
