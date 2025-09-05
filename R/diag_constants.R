@@ -137,6 +137,85 @@ greek_letters <- c(
   "pi", "rho", "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega"
 )
 
+#' Permute first-order rates and derive full parameter sets
+#'
+#' Given a data frame of rate parameters, this function generates all
+#' permutations of `KA` and the remaining macro rate constants (either
+#' `ALPHA`/`BETA`/`GAMMA` or `LAMBDA1`-`LAMBDA3`). For each permutation the
+#' pre-exponential constants are recomputed manually and the remaining
+#' parameters are derived via [`rxode2::rxDerived`].
+#'
+#' @param df <`data.frame`> of parameters. May contain multiple rows.
+#'
+#' @return A tibble containing one row per permutation for each input row.
+#' The column `perm` identifies the permutation number.
+#' @export
+permute_constants <- function(df) {
+  if (!rlang::is_installed("rxode2") ||
+      !exists("rxDerived", envir = rlang::ns_env("rxode2"))) {
+    cli::cli_abort("Need `rxode2` with the function `rxDerived` to use this feature.")
+  }
+  xpa("data.frame", df, "`df` must be a data frame.")
+
+  # Determine available rate columns
+  lambda_cols <- grep("^LAMBDA\\d$", names(df), value = TRUE)
+  if (length(lambda_cols) == 0) {
+    lambda_cols <- intersect(toupper(greek_letters[1:3]), names(df))
+  }
+  rate_cols <- c("KA", lambda_cols)
+  xpa("character", rate_cols, "Need at least `KA` and another rate constant.",
+      min.len = 2)
+  n_lambda <- length(rate_cols) - 1
+
+  # Existing non-rate columns (drop any old pre-exponentials)
+  other_cols <- dplyr::select(df, -dplyr::all_of(rate_cols),
+                              -dplyr::matches("^A\\d$"))
+
+  # Simple permutation generator (factorial length <= 4 so recursion is fine)
+  permute_vec <- function(x) {
+    if (length(x) == 1) return(matrix(x, nrow = 1))
+    do.call(rbind, lapply(seq_along(x), function(i) cbind(x[i], permute_vec(x[-i]))))
+  }
+  perms <- permute_vec(rate_cols)
+
+  # Calculate pre-exponential constants for one set of rates
+  calc_pre <- function(ka, lambdas) {
+    sapply(seq_along(lambdas), function(i) {
+      num <- ka * prod(lambdas[-i] - ka)
+      den <- prod(lambdas[-i] - lambdas[i])
+      num/den
+    })
+  }
+
+  purrr::map_dfr(seq_len(nrow(perms)), function(i) {
+    p <- perms[i, ]
+    renamed_rates <- df %>%
+      dplyr::select(dplyr::all_of(p)) %>%
+      rlang::set_names(c("KA", paste0("LAMBDA", seq_len(n_lambda))))
+    renamed <- dplyr::bind_cols(other_cols, renamed_rates)
+
+    pre_df <- renamed %>%
+      dplyr::rowwise() %>%
+      dplyr::mutate(
+        !!!{
+          lam <- c_across(dplyr::all_of(paste0("LAMBDA", seq_len(n_lambda))))
+          rlang::set_names(as.list(calc_pre(KA, lam)), paste0("A", seq_len(n_lambda)))
+        }
+      ) %>%
+      dplyr::ungroup()
+
+    derived <- rxode2::rxDerived(dplyr::select(pre_df, KA,
+                                               dplyr::matches("^LAMBDA"),
+                                               dplyr::matches("^A")))
+
+    dplyr::bind_cols(
+      tibble::tibble(perm = i),
+      pre_df,
+      dplyr::select(derived, -dplyr::any_of(names(pre_df)))
+    )
+  }) %>% tibble::as_tibble()
+}
+
 #' Check for potential parameterization issues
 #'
 #' This function can help diagnose potential flip-flop or other
