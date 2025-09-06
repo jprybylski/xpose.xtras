@@ -319,7 +319,7 @@ diagnose_constants <- function(
   check_check <- function(found_val, set_val, label) {
     `if`(
       rlang::is_true(set_val) && !found_val,
-      cli::abort("Needed info not available for check `{label}`"),
+      cli::cli_abort("Needed info not available for check `{label}`"),
       `if`(rlang::is_false(set_val), set_val, found_val)
     )
   }
