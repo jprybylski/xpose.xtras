@@ -140,11 +140,13 @@ greek_letters <- c(
 #' Permute first-order rates and derive full parameter sets
 #'
 #' Given a data frame of rate parameters, this function generates permutations
-#' of an absorption rate constant and macro rate constants. For each permutation
-#' the pre-exponential constants are recomputed manually and the remaining
-#' parameters are derived via [`rxode2::rxDerived`][rxode2::rxDerived]. Column
-#' names for the rate constants and the pre-exponential constants can be
-#' customised using convenience keywords or supplied directly.
+#' of an absorption rate constant and macro rate constants. The missing
+#' pre-exponential for the absorption term is inferred as the negative sum of
+#' the supplied pre-exponential constants. For each permutation the rate and
+#' pre-exponential pairs are relabelled and the remaining parameters are
+#' derived via [`rxode2::rxDerived`][rxode2::rxDerived]. Column names for the
+#' rate constants and the pre-exponential constants can be customised using
+#' convenience keywords or supplied directly.
 #'
 #' @details
 #' The `exp_vars` and `pre_vars` arguments describe naming conventions. When a
@@ -164,9 +166,7 @@ greek_letters <- c(
 #'   \item a character vector of column names
 #' }
 #'
-#' Only columns present in `df` are used. If a `VC` column is supplied, the
-#' recalculated pre-exponential constants are scaled by its inverse so that
-#' the derived `VC` (and matching `V`) remain consistent with the input.
+#' Only columns present in `df` are used.
 #'
 #' @param df <`data.frame`> of parameters. May contain multiple rows.
 #' @param ka_col Name of the absorption rate constant column. Defaults to
@@ -241,7 +241,10 @@ permute_constants <- function(
   }
   pre_vars <- pre_vars[seq_len(n_macro)]
   pre_cols_in_df <- intersect(pre_vars, names(df))
+  xpa("true", length(pre_cols_in_df) == n_macro,
+      custom_msg = "Missing pre-exponential columns")
   rate_mat <- as.matrix(dplyr::select(df, dplyr::all_of(rate_cols)))
+  pre_mat <- as.matrix(dplyr::select(df, dplyr::all_of(pre_cols_in_df)))
   xpa("true", all(is.finite(rate_mat)), custom_msg = "Rate constants must be finite.")
   dup_fun <- function(x, tol = 1e-9) {
     any(outer(x, x, function(a, b) abs(a - b) < tol) & !diag(length(x)))
@@ -275,42 +278,28 @@ permute_constants <- function(
     perms <- rbind(rate_cols, perms[!is_orig, , drop = FALSE])
   }
 
-  # Calculate pre-exponential constants for one set of rates.
-  # For a single-compartment model the classic closed form is
-  #   A = Ka / (Ka - lambda)
-  # For multi-compartment models, retain the residue based product
-  #   Ka * prod_{j != i}(lambda_j - Ka) / prod_{j != i}(lambda_j - lambda_i) /
-  #   (Ka - lambda_i)
-  calc_pre <- function(ka, lambdas, vc = 1) {
-    sapply(seq_along(lambdas), function(i) {
-      others <- lambdas[-i]
-      num <- ka * prod(others - ka)
-      den <- (ka - lambdas[i]) * prod(others - lambdas[i])
-      (num / den) / vc
-    })
-  }
+  pre_mat_full <- cbind(pre_ka = -rowSums(pre_mat), pre_mat)
 
   purrr::map_dfr(seq_len(nrow(perms)), function(i) {
     p <- perms[i, ]
 
     rx_names <- c("KA", toupper(greek_letters[seq_len(n_macro)]))
-    permuted_rates <- df %>%
-      dplyr::select(dplyr::all_of(p)) %>%
+    permuted_rates <- rate_mat[, p, drop = FALSE]
+    permuted_pres <- pre_mat_full[, p, drop = FALSE]
+
+    rate_df <- permuted_rates %>%
+      dplyr::as_tibble() %>%
       rlang::set_names(rx_names)
+    pre_df <- permuted_pres[, -1, drop = FALSE] %>%
+      dplyr::as_tibble() %>%
+      rlang::set_names(pre_vars)
 
-    vc_vec <- if ("VC" %in% names(df)) df$VC else rep(1, nrow(df))
-    pre_list <- lapply(seq_len(nrow(permuted_rates)), function(r) {
-      lam <- as.numeric(permuted_rates[r, rx_names[-1]])
-      stats::setNames(calc_pre(permuted_rates$KA[r], lam, vc_vec[r]), pre_vars)
-    })
-    pre_cols <- dplyr::bind_rows(pre_list)
+    pre_df_full <- dplyr::bind_cols(rate_df, pre_df)
 
-    pre_df <- dplyr::bind_cols(permuted_rates, pre_cols)
-
-    derived <- rxode2::rxDerived(pre_df) %>%
+    derived <- rxode2::rxDerived(pre_df_full) %>%
       dplyr::rename_with(toupper)
 
-    combined <- dplyr::bind_cols(other_cols, pre_df)
+    combined <- dplyr::bind_cols(other_cols, pre_df_full)
     for (nm in names(derived)) {
       combined[[nm]] <- derived[[nm]]
     }

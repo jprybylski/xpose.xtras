@@ -34,11 +34,13 @@ A tibble containing one row per permutation for each input row. The column `perm
 }
 \description{
 Given a data frame of rate parameters, this function generates permutations of
-an absorption rate constant and macro rate constants. For each permutation the
-pre-exponential constants are recomputed manually and the remaining parameters
-are derived via \code{\link[rxode2:rxDerived]{rxode2::rxDerived}}. Column
-names for the rate constants and the pre-exponential constants can be
-customised using convenience keywords or supplied directly.
+an absorption rate constant and macro rate constants. The missing
+pre-exponential for the absorption term is inferred as the negative sum of the
+supplied pre-exponential constants. For each permutation the rate and
+pre-exponential pairs are relabelled and the remaining parameters are derived
+via \code{\link[rxode2:rxDerived]{rxode2::rxDerived}}. Column names for the rate
+constants and the pre-exponential constants can be customised using convenience
+keywords or supplied directly.
 }
 
 \details{
@@ -59,8 +61,6 @@ When a convention is used, any subset of the associated columns present in
 \item a character vector of column names
 }
 
-Only columns present in \code{df} are used. If a \code{VC} column is supplied,
-the recomputed pre-exponential constants are scaled by its inverse so that the
-derived \code{VC} (and matching \code{V}) remain consistent with the input.
+Only columns present in \code{df} are used.
 }
 \note{All rate constants must be finite and distinct within each row of \code{df}.}
