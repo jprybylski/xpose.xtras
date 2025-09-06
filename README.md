@@ -100,3 +100,13 @@ pkpd_m3 %>%
 ```
 
 <img src="man/figures/README-m3-1.png" width="100%" style="display: block; margin: auto;" />
+
+``` r
+nlmixr2_m3 %>%
+  set_var_types(catdv=CENS,dvprobs=BLQLIKE) %>%
+  set_dv_probs(1, 1~BLQLIKE, .dv_var = CENS) %>%
+  set_var_levels(1, CENS = lvl_bin()) %>%
+  roc_plot(quiet = TRUE)
+```
+
+<img src="man/figures/README-m3_roc-1.png" width="100%" style="display: block; margin: auto;" />

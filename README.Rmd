@@ -85,3 +85,11 @@ pkpd_m3 %>%
   set_var_levels(1, BLQ = lvl_bin()) %>%
   catdv_vs_dvprobs(quiet=TRUE)
 ```
+
+```{r m3_roc, fig.width=unit(7,"in"), fig.height=unit(5,"in"), fig.align='center'}
+nlmixr2_m3 %>%
+  set_var_types(catdv=CENS,dvprobs=BLQLIKE) %>%
+  set_dv_probs(1, 1~BLQLIKE, .dv_var = CENS) %>%
+  set_var_levels(1, CENS = lvl_bin()) %>%
+  roc_plot(quiet = TRUE)
+```
