@@ -2,3 +2,90 @@ url: https://jprybylski.github.io/xpose.xtras/
 template:
   bootstrap: 5
 
+reference:
+  - title: "xp_xtras objects"
+    desc: "Functions for creating, checking and manipulating `xp_xtras` objects."
+    contents:
+      - starts_with("as_xp")
+      - starts_with("check_xp")
+      - starts_with("is_xp")
+      - starts_with("set_var")
+      - starts_with("lvl_")
+      - val2lvl
+      - as_leveler
+      - is_leveler
+      - backfill_iofv
+      - backfill_nlmixr2_props
+      - xp_var
+
+  - title: "xpose sets"
+    desc: "Work with collections of models using `xpose_set`."
+    contents:
+      - xpose_set
+      - starts_with("xset_")
+      - starts_with("add_xpdb")
+      - starts_with("focus_")
+      - focused_xpdbs
+      - starts_with("unfocus")
+      - reshape_set
+      - unreshape_set
+      - diagram_lineage
+      - add_prm_association
+      - drop_prm_association
+      - mutate_prm
+      - add_relationship
+      - remove_relationship
+
+  - title: "Plotting helpers"
+    desc: "Additional plotting functions and themes extending xpose."
+    contents:
+      - starts_with("xplot_")
+      - starts_with("iofv_")
+      - starts_with("dofv_")
+      - starts_with("prm_")
+      - starts_with("eta_")
+      - starts_with("dv_")
+      - starts_with("ipred_")
+      - starts_with("pred_")
+      - starts_with("catdv_")
+      - starts_with("roc_")
+      - starts_with("plotfun_")
+      - starts_with("shark_")
+      - ind_roc
+      - xset_waterfall
+      - xp_xtra_theme
+      - xp4_xtra_theme
+      - grab_xpose_plot
+      - wrap_xp_ggally
+
+  - title: "Utilities"
+    desc: "Miscellaneous helpers and integrations."
+    contents:
+      - modavg_xpdb
+      - starts_with("cov")
+      - starts_with("conf")
+      - starts_with("nlmixr2")
+      - desc_from_comments
+      - edit_xpose_data
+      - expose_param
+      - expose_property
+      - get_prop
+      - set_prop
+      - get_index
+      - set_index
+      - get_base_model
+      - set_base_model
+      - unset_base_model
+      - set_dv_probs
+      - list_dv_probs
+      - group_by_x
+      - ungroup_x
+      - mutate_x
+      - rename_x
+      - select_subset
+      - set_option
+      - reportable_digits
+      - test_xpdb
+      - starts_with("franken_")
+      - irep
+
