@@ -1,9 +1,10 @@
-# xpose.xtras (development version)
+# xpose.xtras
 
 # xpose.xtras 0.1.0
 * Bugs regarding covariate plotting functions were resolved.
 * nlmixr2 compatibility implemented
-* ROC curve plots added (vignettes TBD)
+* ROC curve plots added
+* Updated docomentation and pkgdown site
 
 # xpose.xtras 0.0.3
 
