@@ -459,7 +459,7 @@ diagnose_constants <- function(
             (!check_micros || !check_vols),
             !check_fo
           )]
-          fail_check("Units don't match for {failed}")
+          fail_check(glue::glue("Units don't match for {failed}"))
         } else {
           pass_check("All relevant units seem to match.")
         }

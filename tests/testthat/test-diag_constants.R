@@ -43,29 +43,29 @@ test_that('diagnose_constants errors when requested check cannot run', {
 test_that('diagnose_constants flip_flop check works', {
   withr::local_options(list(cli.num_colors = 1))
   df_bad <- data.frame(KA = 0.5, ALPHA = 1)
-  expect_output(
+  suppressMessages(expect_message(
     diagnose_constants(
       df = df_bad,
       fo_rates = 'ALPHA',
       checks = list(flip_flop = TRUE, neg_microvol = FALSE, units_match = FALSE)
     ),
     'suggestive of flip-flop'
-  )
+  ))
   df_good <- data.frame(KA = 1, ALPHA = 0.5)
-  expect_output(
+  suppressMessages(expect_message(
     diagnose_constants(
       df = df_good,
       fo_rates = 'ALPHA',
       checks = list(flip_flop = TRUE, neg_microvol = FALSE, units_match = FALSE)
     ),
     'not suggestive of flip-flop'
-  )
+  ))
 })
 
 test_that('diagnose_constants detects negative microconstants or volumes', {
   withr::local_options(list(cli.num_colors = 1))
   df_bad <- data.frame(KA = 1, KEL = -0.2, V = 5)
-  expect_output(
+  suppressMessages(expect_message(
     diagnose_constants(
       df = df_bad,
       fo_abs = 'KA',
@@ -74,9 +74,9 @@ test_that('diagnose_constants detects negative microconstants or volumes', {
       checks = list(flip_flop = FALSE, neg_microvol = TRUE, units_match = FALSE)
     ),
     'negative microconstants or volumes'
-  )
+  ))
   df_good <- data.frame(KA = 1, KEL = 0.2, V = 5)
-  expect_output(
+  suppressMessages(expect_message(
     diagnose_constants(
       df = df_good,
       fo_abs = 'KA',
@@ -85,14 +85,14 @@ test_that('diagnose_constants detects negative microconstants or volumes', {
       checks = list(flip_flop = FALSE, neg_microvol = TRUE, units_match = FALSE)
     ),
     'do not have negative microconstants or volumes'
-  )
+  ))
 })
 
 test_that('diagnose_constants checks unit consistency', {
   withr::local_options(list(cli.num_colors = 1))
   df <- data.frame(KA = 1, ALPHA = 2)
   bad_units <- list(KA = '1/hr', ALPHA = '1/min')
-  expect_output(
+  suppressMessages(expect_message(
     diagnose_constants(
       df = df,
       fo_rates = 'ALPHA',
@@ -100,9 +100,9 @@ test_that('diagnose_constants checks unit consistency', {
       df_units = bad_units
     ),
     "Units don't match"
-  )
+  ))
   good_units <- list(KA = '1/hr', ALPHA = '1/hr')
-  expect_output(
+  suppressMessages(expect_message(
     diagnose_constants(
       df = df,
       fo_rates = 'ALPHA',
@@ -110,5 +110,5 @@ test_that('diagnose_constants checks unit consistency', {
       df_units = good_units
     ),
     'All relevant units seem to match'
-  )
+  ))
 })
