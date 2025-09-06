@@ -279,6 +279,7 @@ permute_constants <- function(
   }
 
   pre_mat_full <- cbind(pre_ka = -rowSums(pre_mat), pre_mat)
+  colnames(pre_mat_full) <- rate_cols
 
   purrr::map_dfr(seq_len(nrow(perms)), function(i) {
     p <- perms[i, ]
