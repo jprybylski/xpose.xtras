@@ -59,6 +59,8 @@ When a convention is used, any subset of the associated columns present in
 \item a character vector of column names
 }
 
-Only columns present in \code{df} are used.
+Only columns present in \code{df} are used. If a \code{VC} column is supplied,
+the recomputed pre-exponential constants are scaled by its inverse so that the
+derived \code{VC} (and matching \code{V}) remain consistent with the input.
 }
 \note{All rate constants must be finite and distinct within each row of \code{df}.}

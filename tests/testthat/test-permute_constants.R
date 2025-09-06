@@ -47,3 +47,11 @@ test_that("one-compartment permutations retain positive volume", {
   res <- permute_constants(df, swap_ka = TRUE)
   expect_true(all(res$V > 0))
 })
+
+test_that("VC and V are identical in the original permutation", {
+  skip_if_not_installed("rxode2")
+  df <- tibble::tibble(KA = 1, ALPHA = 0.5, BETA = 0.1, VC = 10, V = 10)
+  res <- permute_constants(df)
+  first <- dplyr::filter(res, permutation == 1)
+  expect_equal(first$VC, first$V)
+})

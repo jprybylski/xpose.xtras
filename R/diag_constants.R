@@ -164,7 +164,9 @@ greek_letters <- c(
 #'   \item a character vector of column names
 #' }
 #'
-#' Only columns present in `df` are used.
+#' Only columns present in `df` are used. If a `VC` column is supplied, the
+#' recalculated pre-exponential constants are scaled by its inverse so that
+#' the derived `VC` (and matching `V`) remain consistent with the input.
 #'
 #' @param df <`data.frame`> of parameters. May contain multiple rows.
 #' @param ka_col Name of the absorption rate constant column. Defaults to
@@ -279,12 +281,12 @@ permute_constants <- function(
   # For multi-compartment models, retain the residue based product
   #   Ka * prod_{j != i}(lambda_j - Ka) / prod_{j != i}(lambda_j - lambda_i) /
   #   (Ka - lambda_i)
-  calc_pre <- function(ka, lambdas) {
+  calc_pre <- function(ka, lambdas, vc = 1) {
     sapply(seq_along(lambdas), function(i) {
       others <- lambdas[-i]
       num <- ka * prod(others - ka)
       den <- (ka - lambdas[i]) * prod(others - lambdas[i])
-      num / den
+      (num / den) / vc
     })
   }
 
@@ -296,15 +298,12 @@ permute_constants <- function(
       dplyr::select(dplyr::all_of(p)) %>%
       rlang::set_names(rx_names)
 
-    pre_cols <- purrr::pmap_dfr(
-      dplyr::select(permuted_rates, KA, dplyr::all_of(rx_names[-1])),
-      function(KA, ...) {
-        lam <- c(...)
-        tibble::as_tibble_row(
-          stats::setNames(calc_pre(KA, lam), pre_vars)
-        )
-      }
-    )
+    vc_vec <- if ("VC" %in% names(df)) df$VC else rep(1, nrow(df))
+    pre_list <- lapply(seq_len(nrow(permuted_rates)), function(r) {
+      lam <- as.numeric(permuted_rates[r, rx_names[-1]])
+      stats::setNames(calc_pre(permuted_rates$KA[r], lam, vc_vec[r]), pre_vars)
+    })
+    pre_cols <- dplyr::bind_rows(pre_list)
 
     pre_df <- dplyr::bind_cols(permuted_rates, pre_cols)
 
@@ -314,6 +313,9 @@ permute_constants <- function(
     combined <- dplyr::bind_cols(other_cols, pre_df)
     for (nm in names(derived)) {
       combined[[nm]] <- derived[[nm]]
+    }
+    if ("VC" %in% names(combined) && "V" %in% names(combined)) {
+      combined$V <- combined$VC
     }
 
     # Rename rate constants back to original naming
