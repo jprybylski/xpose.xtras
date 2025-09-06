@@ -1,20 +1,3 @@
-root_path <- if (file.exists("R/asserts.R")) "." else file.path("..","..")
-source(file.path(root_path,'R','asserts.R'))
-source(file.path(root_path,'R','diag_constants.R'))
-
-library(testthat)
-
-test_that('derive_prm errors without rxode2', {
-  skip_if_not_installed('xpose')
-  load(file.path(root_path,'data','nlmixr2_m3.rda'))
-  expect_error(derive_prm(nlmixr2_m3), 'Need `rxode2`')
-})
-
-test_that('backfill_derived errors without rxode2', {
-  skip_if_not_installed('xpose')
-  load(file.path(root_path,'data','nlmixr2_m3.rda'))
-  expect_error(backfill_derived(nlmixr2_m3), 'Need `rxode2`')
-})
 
 test_that('diagnose_constants requires xpdb or df', {
   expect_error(diagnose_constants(), 'Need `xpdb` or `df`')

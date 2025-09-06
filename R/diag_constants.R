@@ -299,7 +299,7 @@ diagnose_constants <- function(
     dplyr::matches(vol_pattern)
   ) %>%
     names()
-  xpa("character", match_cols, "Need some columns that match function specifications.")
+  xpa("character", match_cols, "Need some columns that match function specifications.", min.len=1)
   xpa("character", match_cols[grepl(vol_pattern, match_cols)], "Volume should only match 1 column for checking.",
     min.len = 0, max.len = 1
   )
