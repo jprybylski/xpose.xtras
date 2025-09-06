@@ -112,3 +112,40 @@ test_that('diagnose_constants checks unit consistency', {
     'All relevant units seem to match'
   ))
 })
+
+test_that('derive_prm requires rxode2', {
+  skip_if(requireNamespace('rxode2', quietly = TRUE) &&
+    'rxDerived' %in% getNamespaceExports('rxode2'))
+  expect_error(derive_prm(xpdb = 1), 'Need `rxode2`')
+})
+
+test_that('backfill_derived requires rxode2', {
+  skip_if(requireNamespace('rxode2', quietly = TRUE) &&
+    'rxDerived' %in% getNamespaceExports('rxode2'))
+  expect_error(backfill_derived(xpdb = 1), 'Need `rxode2`')
+})
+
+test_that('derive_prm adds derived parameters', {
+  skip_if_not_installed('xpose')
+  skip_if_not_installed('rxode2')
+  skip_if(!'rxDerived' %in% getNamespaceExports('rxode2'))
+  orig <- xpose::get_data(pheno_base, quiet = TRUE)
+  derived <- derive_prm(pheno_base, .prm = c(CL, V))
+  expect_gt(ncol(derived), ncol(orig))
+  pref <- derive_prm(pheno_base, .prm = c(CL, V), prefix = 'calc_')
+  expect_true(any(grepl('^calc_', names(pref))))
+})
+
+test_that('backfill_derived augments xpdb with derived parameters', {
+  skip_if_not_installed('xpose')
+  skip_if_not_installed('rxode2')
+  skip_if(!'rxDerived' %in% getNamespaceExports('rxode2'))
+  xp1 <- pheno_base
+  orig_cols <- names(xpose::get_data(xp1, quiet = TRUE))
+  xp2 <- backfill_derived(xp1, .prm = c(CL, V))
+  new_cols <- names(xpose::get_data(xp2, quiet = TRUE))
+  expect_gt(length(new_cols), length(orig_cols))
+  orig_params <- xpose::xp_var(xp1, type = 'param')$col
+  new_params <- xpose::xp_var(xp2, type = 'param')$col
+  expect_gt(length(new_params), length(orig_params))
+})
