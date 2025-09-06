@@ -38,6 +38,15 @@ test_that('diagnose_constants errors when requested check cannot run', {
   expect_error(diagnose_constants(df = df, checks = list(flip_flop = TRUE)), 'Needed info not available')
   expect_error(diagnose_constants(df = df, checks = list(neg_microvol = TRUE)), 'Needed info not available')
   expect_error(diagnose_constants(df = df, checks = list(units_match = TRUE)), 'Needed info not available')
+  # In the case where all false (results in no matching columns0:
+  all_false <- eval(formals(diagnose_constants)$checks) %>% purrr::map(~FALSE)
+  expect_error(diagnose_constants(df = df, checks = all_false), 'Need some columns')
+  # In the case where no valid test after checks
+  expect_warning(diagnose_constants(df = df, checks =
+                                      modifyList(all_false,
+                                                 list(flip_flop = NULL),
+                                                 keep.null = TRUE)),
+                 'No valid checks')
 })
 
 test_that('diagnose_constants flip_flop check works', {
@@ -126,26 +135,39 @@ test_that('backfill_derived requires rxode2', {
 })
 
 test_that('derive_prm adds derived parameters', {
-  skip_if_not_installed('xpose')
   skip_if_not_installed('rxode2')
   skip_if(!'rxDerived' %in% getNamespaceExports('rxode2'))
   orig <- xpose::get_data(pheno_base, quiet = TRUE)
-  derived <- derive_prm(pheno_base, .prm = c(CL, V))
+  expect_error(derive_prm(pheno_base, quiet=TRUE),
+               "Need to declare.*prm.*at least one.*param")
+  expect_no_error(derive_prm(xpdb_x, quiet=TRUE),
+               message = "Need to declare.*prm.*at least one.*param")
+  derived <- derive_prm(pheno_base, .prm = c(CL, V), quiet=TRUE)
   expect_gt(ncol(derived), ncol(orig))
-  pref <- derive_prm(pheno_base, .prm = c(CL, V), prefix = 'calc_')
+  pref <- derive_prm(pheno_base, .prm = c(CL, V), prefix = 'calc_', quiet=TRUE)
   expect_true(any(grepl('^calc_', names(pref))))
 })
 
 test_that('backfill_derived augments xpdb with derived parameters', {
-  skip_if_not_installed('xpose')
   skip_if_not_installed('rxode2')
   skip_if(!'rxDerived' %in% getNamespaceExports('rxode2'))
-  xp1 <- pheno_base
+  xp1 <- nlmixr2_m3 %>% set_option(quiet=TRUE)
   orig_cols <- names(xpose::get_data(xp1, quiet = TRUE))
   xp2 <- backfill_derived(xp1, .prm = c(CL, V))
   new_cols <- names(xpose::get_data(xp2, quiet = TRUE))
   expect_gt(length(new_cols), length(orig_cols))
-  orig_params <- xpose::xp_var(xp1, type = 'param')$col
-  new_params <- xpose::xp_var(xp2, type = 'param')$col
+  orig_params <- xp_var(xp1, 1, type = 'param')$col
+  new_params <- xp_var(xp2, 1, type = 'param')$col
   expect_gt(length(new_params), length(orig_params))
+})
+
+test_that("diagnose_constants accepts xpose data", {
+  xp1 <- set_option(nlmixr2_m3 ,quiet=TRUE)
+  suppressMessages(expect_no_error(diagnose_constants(xp1)))
+  bf_xp1 <- backfill_derived(xp1)
+  expect_error(diagnose_constants(bf_xp1),
+               "Volume.*match.*1.*column")
+  suppressMessages(expect_no_error(diagnose_constants(bf_xp1, vol_pattern = "^V$")))
+  # Just make sure vector (meaningless in this case) can be passed to volume
+  suppressMessages(expect_no_error(diagnose_constants(bf_xp1, vol_pattern = c("^V$","^$"))))
 })

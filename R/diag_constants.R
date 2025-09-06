@@ -199,11 +199,11 @@ greek_letters <- c(
 #'    !exists("rxDerived", envir = rlang::ns_env("rxode2"))) {
 #' nlmixr2_m3 %>%
 #'   backfill_derived() %>%
-#'   diagnose_constasts(vol_pattern = "^V$")
+#'   diagnose_constants(vol_pattern = "^V$")
 #'
 #' nlmixr2_m3 %>%
 #'   backfill_derived() %>%
-#'   diagnose_constasts(
+#'   diagnose_constants(
 #'     vol_pattern = "^V$",
 #'     df_units = list(KA = "1/hr", ALPHA = "1/hr"),
 #'     checks = list(neg_microvol = FALSE)
@@ -211,7 +211,7 @@ greek_letters <- c(
 #'
 #' # Using df form
 #' derive_prm(nlmixr2_m3) %>%
-#'   diagnose_constasts(df = ., vol_pattern = "^V$")
+#'   diagnose_constants(df = ., vol_pattern = "^V$")
 #'
 #' }
 diagnose_constants <- function(
