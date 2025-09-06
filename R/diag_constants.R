@@ -92,7 +92,7 @@ derive_prm <- function(
 
 
 #' @param ... Passed to `derive_prm()`
-#' @param group_vars
+#' @param group_vars Variable type(s) to join derived parameters on.
 #'
 #' @export
 #' @rdname derive_prm
