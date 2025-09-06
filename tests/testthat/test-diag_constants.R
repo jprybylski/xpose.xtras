@@ -50,7 +50,6 @@ test_that('diagnose_constants errors when requested check cannot run', {
 })
 
 test_that('diagnose_constants flip_flop check works', {
-  withr::local_options(list(cli.num_colors = 1))
   df_bad <- data.frame(KA = 0.5, ALPHA = 1)
   suppressMessages(expect_message(
     diagnose_constants(
@@ -98,7 +97,6 @@ test_that('diagnose_constants detects negative microconstants or volumes', {
 })
 
 test_that('diagnose_constants checks unit consistency', {
-  withr::local_options(list(cli.num_colors = 1))
   df <- data.frame(KA = 1, ALPHA = 2)
   bad_units <- list(KA = '1/hr', ALPHA = '1/min')
   suppressMessages(expect_message(

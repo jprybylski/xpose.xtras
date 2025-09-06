@@ -237,7 +237,7 @@ child_finder <- function(xpdb_s) {
   check_xpose_set_item(possible_child)
 
   all_parents <- possible_child$parent
-  if (length(all_parents)==0 || is.na(all_parents)) return(FALSE)
+  if (length(all_parents)==0 || all(is.na(all_parents))) return(FALSE)
 
   possible_parent$label %in% all_parents
 }

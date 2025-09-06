@@ -46,7 +46,14 @@ install.packages("xpose.xtras")
 The typical github installation will also work.
 
 ``` r
-remotes::install_github("jprybylski/xpose.xtras")
+pak::pak("jprybylski/xpose.xtras")
+```
+
+The main github branch is reserved for CRAN release-ready versions. The
+dev branch is usually ahead if there is active development.
+
+``` r
+pak::pkg_install("jprybylski/xpose.xtras@dev")
 ```
 
 ## Preview

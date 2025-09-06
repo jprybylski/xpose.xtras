@@ -58,3 +58,4 @@ LazyData: true
 VignetteBuilder: knitr
 URL: https://jprybylski.github.io/xpose.xtras/, https://github.com/jprybylski/xpose.xtras
 Language: en-US
+Config/Needs/website: rmarkdown
