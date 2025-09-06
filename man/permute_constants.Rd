@@ -61,3 +61,4 @@ When a convention is used, any subset of the associated columns present in
 
 Only columns present in \code{df} are used.
 }
+\note{All rate constants must be finite and distinct within each row of \code{df}.}

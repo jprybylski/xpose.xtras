@@ -239,6 +239,16 @@ permute_constants <- function(
   }
   pre_vars <- pre_vars[seq_len(n_macro)]
   pre_cols_in_df <- intersect(pre_vars, names(df))
+  rate_mat <- as.matrix(dplyr::select(df, dplyr::all_of(rate_cols)))
+  xpa("true", all(is.finite(rate_mat)), custom_msg = "Rate constants must be finite.")
+  dup_fun <- function(x, tol = 1e-9) {
+    any(outer(x, x, function(a, b) abs(a - b) < tol) & !diag(length(x)))
+  }
+  xpa(
+    "true",
+    !any(apply(rate_mat, 1, dup_fun)),
+    custom_msg = "Rate constants in each row must be distinct."
+  )
   other_cols <- dplyr::select(df, -dplyr::all_of(rate_cols),
                               -dplyr::all_of(pre_cols_in_df))
 
