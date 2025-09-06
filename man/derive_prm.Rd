@@ -36,7 +36,7 @@ will use \code{xp_var} \code{param} types)}
 
 \item{...}{Passed to \code{derive_prm()}}
 
-\item{group_vars}{}
+\item{group_vars}{Variable type(s) to join derived parameters on.}
 }
 \value{
 <\code{data.frame}> of data with new parameters
