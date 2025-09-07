@@ -76,5 +76,5 @@ for (run in names(flat_xpdbs)) {
   pheno_set <- add_relationship(pheno_set, rel)
 }
 
-usethis::use_data(pheno_set, overwrite = TRUE, compress = "gzip")
+usethis::use_data(pheno_set, overwrite = TRUE, compress = "xz")
 rm(list=ls())

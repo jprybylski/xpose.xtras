@@ -15,3 +15,4 @@ proc_levels(lvl_list)
 \description{
 Consumes formula list and converts into corresponding tibble.
 }
+\keyword{internal}

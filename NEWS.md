@@ -1,3 +1,11 @@
+# xpose.xtras
+
+# xpose.xtras 0.1.0
+* Bugs regarding covariate plotting functions were resolved.
+* nlmixr2 compatibility implemented
+* ROC curve plots added
+* Updated documentation and pkgdown site
+
 # xpose.xtras 0.0.3
 
 * Patch to support 'ggplot2' 4.0.0 release.

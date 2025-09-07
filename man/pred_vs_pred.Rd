@@ -16,6 +16,7 @@ ipred_vs_ipred(
   tag = NULL,
   log = NULL,
   guide = TRUE,
+  axis.text = "@run",
   facets,
   .problem,
   quiet
@@ -32,6 +33,7 @@ pred_vs_pred(
   tag = NULL,
   log = NULL,
   guide = TRUE,
+  axis.text = "@run",
   facets,
   .problem,
   quiet
@@ -57,6 +59,8 @@ pred_vs_pred(
 \item{log}{Log scale covariate value?}
 
 \item{guide}{Add guide line?}
+
+\item{axis.text}{What to show in the axes to distinguish the model values}
 
 \item{facets}{Additional facets}
 

@@ -45,6 +45,7 @@
 #' @param .problem Problem number
 #'
 #' @export
+#' @inherit xplot_boxplot details
 #'
 #' @returns The desired plot
 #'
@@ -108,80 +109,16 @@ catdv_vs_dvprobs <- function(xpdb,
     catdv_cols <- catdv_cols[1]
   }
 
-  # Translate cutpoint
-  # Cutpoint = row number of probs
-  indexx <- get_index(xpdb, .problem)
-  dv_levels <- indexx %>%
-    dplyr::filter(col == catdv_cols) %>%
-    {dplyr::pull(.,levels)[[1]]}
-  dv_probs <- indexx %>%
-    dplyr::filter(col == catdv_cols) %>%
-    {dplyr::pull(.,probs)[[1]]}
-  if (nrow(dv_probs)==0) {
-    rlang::abort("Relationship between probabiliy column and at least one categorical DV level should be defined.")
-  }
-  if (nrow(dv_probs)<cutpoint) {
-    cli::cli_abort("`cutpoint` is the row number of established probability formulae.
-                   There are only {nrow(dv_probs)} rows available, so `cutpoint` {cutpoint} is too high.")
-  }
-  cutpoint_row <- dv_probs[cutpoint,]
-  # Change if any level associated with cutpoint value
-  cp_val_label <- paste(cutpoint_row$value)
-  if (nrow(dv_levels)>0 && cutpoint_row$value %in% dv_levels$value)
-    cp_val_label <- dv_levels$level[match(cutpoint_row$value, dv_levels$value)][1] # first-listed in case level is used multiple times
-  # Full cutpoint label
-  cp_label <- ifelse(
-    is.na(cutpoint_row$qual),  "EQ",
-    toupper(cutpoint_row$qual)
-  ) %>%
-    sprintf("%s(%s)", ., cp_val_label)
-  # opposite label
-  cp_olabel <- dplyr::case_when(
-    is.na(cutpoint_row$qual) ~  "NE",
-    cutpoint_row$qual == "ne" ~ "EQ",
-    cutpoint_row$qual == "ge" ~ "LT",
-    cutpoint_row$qual == "gt" ~ "LE",
-    cutpoint_row$qual == "le" ~ "GT",
-    cutpoint_row$qual == "lt" ~ "GE"
-  ) %>%
-    sprintf("%s(%s)", ., cp_val_label)
-
-  # Comparator from qual
-  qual_c <- `==`
-  if (!is.na(cutpoint_row$qual))
-    qual_c <- switch(
-      cutpoint_row$qual,
-      ne = `!=`,
-      ge = `>=`,
-      gt = `>`,
-      le = `<=`,
-      lt = `<`
-    )
-
-  post_processing <- function(df) {
-    df %>%
-      dplyr::mutate(
-        !!catdv_cols := ifelse(
-          qual_c(.data[[catdv_cols]], cutpoint_row$value),
-          1,
-          0
-        ) %>%
-          forcats::as_factor() %>%
-          forcats::fct_inseq() %>%
-          forcats::fct_relabel(~ifelse(.x=="1", cp_label, cp_olabel))
-      )
-  }
-
-
+  cp <- make_catdv_cutpoint(xpdb, .problem, catdv_cols, cutpoint)
 
   xplot_boxplot(
     xpdb = xpdb, group = NULL, quiet = quiet,
     opt = xpose::data_opt(
       .problem = .problem,
       filter = xpose::only_obs(xpdb, .problem, quiet),
-      post_processing = post_processing
+      post_processing = cp$post_process
       ),
-    mapping = xpose::aes_c(aes(x = .data[[cutpoint_row$prob]],
+    mapping = xpose::aes_c(aes(x = .data[[cp$prob_col]],
                         y = .data[[catdv_cols]],
                         smooth_group = NA,
                         smooth_method = "loess"),
@@ -197,11 +134,74 @@ catdv_vs_dvprobs <- function(xpdb,
     ggplot2::labs(
       x = ifelse(
         xlab=="basic",
-        cutpoint_row$prob,
-        sprintf("Probability %s %s", catdv_cols, cp_label)
+        cp$prob_col,
+        sprintf("Probability %s %s", catdv_cols, cp$cp_label)
       )
     )
 }
+
+make_catdv_cutpoint <- function(xpdb, .problem, catdv_col, cutpoint) {
+  # pull levels & probs from the xpdb index
+  idx   <- get_index(xpdb, .problem)
+  levels_df <- idx %>% dplyr::filter(col == catdv_col) %>% dplyr::pull(levels) %>% .[[1]]
+  probs_df  <- idx %>% dplyr::filter(col == catdv_col) %>% dplyr::pull(probs)  %>% .[[1]]
+  if (nrow(probs_df)==0) {
+    rlang::abort("Relationship between probabiliy column and at least one categorical DV level should be defined.")
+  }
+  if (!cutpoint %in% 1:nrow(probs_df)) {
+    cli::cli_abort("cutpoint is the row number of established probability formulae.
+                   There are {nrow(probs_df)} rows available, so cutpoint {cutpoint} is out of range.")
+  }
+
+  cp_row <- probs_df[cutpoint,]
+  # find human‐readable level label if any
+  val_lab <- cp_row$value
+  if (nrow(levels_df) && cp_row$value %in% levels_df$value) {
+    val_lab <- levels_df$level[match(cp_row$value, levels_df$value)][1]
+  }
+
+  # build EQ/GE/... labels
+  qual  <- cp_row$qual
+  verb  <- if (is.na(qual)) "EQ" else toupper(qual)
+  cp_label  <- sprintf("%s(%s)", verb, val_lab)
+  # opposite
+  opp <- switch(
+    qual,
+    ne = "EQ", ge = "LT", gt = "LE", le = "GT", lt = "GE",
+    "NE"
+  )
+  cp_olabel <- sprintf("%s(%s)", opp, val_lab)
+
+  # comparator function
+  cmp_fun <- switch(
+    qual,
+    ne = `!=`, ge = `>=`, gt = `>`, le = `<=`, lt = `<`,
+    `==`
+  )
+
+  # the post‐processing closure
+  post_fn <- function(df) {
+    df %>%
+      mutate(
+        !!catdv_col := ifelse(
+          cmp_fun(.data[[catdv_col]], cp_row$value),
+          1L, 0L
+        ) %>%
+          forcats::as_factor() %>%
+          forcats::fct_inseq() %>%
+          forcats::fct_relabel(~ifelse(.x=="1", cp_label, cp_olabel))
+      )
+  }
+
+  list(
+    prob_col     = cp_row$prob,
+    cut_val      = cp_row$value,
+    cp_label     = cp_label,
+    cp_olabel    = cp_olabel,
+    post_process = post_fn
+  )
+}
+
 
 #' Set probability columns for categorical endpoints
 #'

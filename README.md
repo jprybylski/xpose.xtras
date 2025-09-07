@@ -8,6 +8,10 @@
 [![R-CMD-check](https://github.com/jprybylski/xpose.xtras/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jprybylski/xpose.xtras/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
 coverage](https://codecov.io/gh/jprybylski/xpose.xtras/graph/badge.svg)](https://app.codecov.io/gh/jprybylski/xpose.xtras)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/xpose.xtras)](https://CRAN.R-project.org/package=xpose.xtras)
+[![CRAN
+downloads](http://cranlogs.r-pkg.org/badges/grand-total/xpose.xtras?color=blue)](https://cran.r-project.org/package=xpose.xtras)
 <!-- badges: end -->
 
 ## Introduction
@@ -42,7 +46,14 @@ install.packages("xpose.xtras")
 The typical github installation will also work.
 
 ``` r
-remotes::install_github("jprybylski/xpose.xtras")
+pak::pak("jprybylski/xpose.xtras")
+```
+
+The main github branch is reserved for CRAN release-ready versions. The
+dev branch is usually ahead if there is active development.
+
+``` r
+pak::pkg_install("jprybylski/xpose.xtras@dev")
 ```
 
 ## Preview
@@ -96,3 +107,13 @@ pkpd_m3 %>%
 ```
 
 <img src="man/figures/README-m3-1.png" width="100%" style="display: block; margin: auto;" />
+
+``` r
+nlmixr2_m3 %>%
+  set_var_types(catdv=CENS,dvprobs=BLQLIKE) %>%
+  set_dv_probs(1, 1~BLQLIKE, .dv_var = CENS) %>%
+  set_var_levels(1, CENS = lvl_bin()) %>%
+  roc_plot(quiet = TRUE)
+```
+
+<img src="man/figures/README-m3_roc-1.png" width="100%" style="display: block; margin: auto;" />

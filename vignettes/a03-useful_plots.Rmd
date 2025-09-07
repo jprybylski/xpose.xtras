@@ -38,6 +38,8 @@ pheno_set %>%
 
 The default title, subtitle and caption for these experimental figures are rough, especially for large sets. Changes for better appearance should be expected in the future.
 
+While a simple demonstration is not presented here, most plots can also be model-averaged using the generic `plotfun_modavg()` function.
+
 ## Categorical dependent variables
 
 Categorical DVs are frequently modeled but there are a variety of methods used to visually diagnose these modeled endpoints, typically model-specific. Along with adding generic support for categorical DVs, `xpose.xtras` also adds a few plots to diagnose models developed for them.
@@ -45,13 +47,14 @@ Categorical DVs are frequently modeled but there are a variety of methods used t
 To use these diagnostics, a model for a categorical DV needs to have the column for that DV stated (if it is "DV" that needs to be ripped away from the `dv` variable type), and have a column predicting the likelihood or probability of that DV having a certain value. An example using an M3 model is below and in the documentation.
 
 ```{r m3, fig.width=unit(7,"in"), fig.height=unit(5,"in")}
-pkpd_m3 %>%
+described_pkpd_m3 <- pkpd_m3 %>%
   # Need to ensure var types are set
   set_var_types(catdv=BLQ,dvprobs=LIKE) %>%
   # Set probs ("LIKE is the probability tht BLQ is 1")
   set_dv_probs(1, 1~LIKE, .dv_var = BLQ) %>%
   # Optional, but useful to set levels
-  set_var_levels(1, BLQ = lvl_bin()) %>%
+  set_var_levels(1, BLQ = lvl_bin())
+described_pkpd_m3 %>%
   catdv_vs_dvprobs(quiet=TRUE)
 ```
 
@@ -72,7 +75,24 @@ vismo_xpdb %>%
   catdv_vs_dvprobs(cutpoint = 3, quiet=TRUE)
 ```
 
-None of the examples can be used to demonstrate this easily, but these plots can also be model-averaged using the generic `plotfun_modavg()` function.
+While boxplots and similar are often used in pharmacometrics to visualize these results (or similar in exposure-response), in the realm of machine learning Receiver Operating Characteristics (ROC) curves are also applied to this purpose. To that end, a collection of ROC curve and space plotting functions have been made available.
+
+Most applications of `catdv_vs_dvprobs()` can be easily repurposed:
+
+```{r roc_ex1, fig.width=unit(7,"in"), fig.height=unit(5,"in")}
+described_pkpd_m3 %>%
+  roc_plot(quiet=TRUE)
+vismo_xpdb %>%
+  # Epsilon shrinkage is still included in default subtitle for M3-like use cases
+  roc_plot(cutpoint = 2, quiet=TRUE, subtitle = "Ofv: @ofv") 
+```
+For ROC space plots, a common grouping is by ID. While there may be a lot of overlap in the upper left region (the section of the plot where BLQs are most accurately predicted), the fewer points with lower accuracy (ID 86, for example) are readily identified as potential outliers.
+
+```{r roc_ex2, fig.width=unit(7,"in"), fig.height=unit(5,"in")}
+described_pkpd_m3 %>%
+  roc_plot(quiet=TRUE, group="ID", type="pt")
+```
+The warning regarding sensitivities and specificities not being calculable is trivial, and refers to study participant data in which there is not a mix of BLQ (in the M3 examples) values; they are either all "true" positives or all "true" negatives.
 
 ## Waterfall and objective function trends
 

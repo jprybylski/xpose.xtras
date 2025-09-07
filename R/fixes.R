@@ -13,7 +13,7 @@
 #'
 #' @param xpdb An \code{xpose_data} object.
 #' @param .problem The problem number to which the edits will be applied.
-#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Passed to \code{\link[xpose]{set_var_types}} after processing.
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Passed to <[`set_var_types`][xpose::set_var_types]> after processing.
 #' @param auto_factor If \code{TRUE} new columns assigned to the type 'catcov' will be converted to
 #' factor.
 #' @param quiet Logical, if \code{FALSE} messages are printed to the console.
@@ -54,8 +54,20 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
 
   # Get positions in the data for each column
   .positions <- purrr::map(seq_along(.problem), ~
-    tidyselect::eval_select(dots, env = cenv, data = dat$data[[.x]], error_call = cenv, strict=FALSE)
+    rlang::try_fetch(
+      tidyselect::eval_select(dots, env = cenv, data = dat$data[[.x]], error_call = cenv, strict=TRUE),
+      error = function(s) {
+        rlang::warn(
+          sprintf("A selected column doesn't exist in problem %s", .x),
+          parent = s
+        )
+        return(
+          tidyselect::eval_select(dots, env = cenv, data = dat$data[[.x]], error_call = cenv, strict=FALSE)
+        )
+      }
+    )
   )
+
 
   # get types from ...
   .types <- names(
@@ -90,7 +102,14 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
 #'
 #' Bugfix for \code{\link[xpose]{irep}}.
 #'
-#' @description Add a column containing a simulation counter (irep). A new simulation is counted every time
+#' @description
+#' For `xpose` version > 0.5.0  `r lifecycle::badge("deprecated")`
+#'
+#' Because this has been fixed in the parent package, the fix will be removed
+#' in an upcoming release.
+#'
+#'
+#' Add a column containing a simulation counter (irep). A new simulation is counted every time
 #' a value in x is different than its previous value and is a duplicate.
 #'
 #' This version of the function does not require IDs be ascending, but does not work for
@@ -112,6 +131,11 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
 #'
 #' @export
 irep <- function(x, quiet = FALSE) {
+  if (utils::packageVersion("xpose") >= "0.5.0") {
+    lifecycle::deprecate_soft("0.1.0", "irep()", "xpose::irep()")
+    # Forward to corrected base version
+    return(xpose::irep(x,quiet = quiet))
+  }
   if (missing(x)) stop('argument "x" is missing, with no default', call. = FALSE)
   if (is.factor(x)) x <- as.numeric(as.character(x))
   lagcheck <- dplyr::lag(x, default = x[1]) != x
@@ -200,16 +224,17 @@ edit_xpose_data <- function(.fun, .fname, .data, ..., .problem, .source, .where,
     xpdb[['special']] <- xpdb[['special']] %>%
       dplyr::group_by_at(.vars = 'problem')
 
-    ## TEMP handling
-    if (xpose::tidyr_new_interface()) {
+    ## TEMP handling (commented as tidyr_new_interface is no longer exported, so probably not relevant)
+    # if (exists("tidyr_new_interface", envir = rlang::ns_env("xpose")) &&
+    #     xpose::tidyr_new_interface()) {
       xpdb[['special']] <- xpdb[['special']] %>%
         tidyr::nest(tmp = -dplyr::one_of('problem')) %>%
         dplyr::ungroup()
-    } else {
-      xpdb[['special']] <- xpdb[['special']] %>%
-        tidyr::nest(.key = 'tmp') %>%
-        dplyr::ungroup()
-    }
+    # } else {
+    #   xpdb[['special']] <- xpdb[['special']] %>%
+    #     tidyr::nest(.key = 'tmp') %>%
+    #     dplyr::ungroup()
+    # }
     ## END TEMP
 
     xpdb[['special']]$tmp <- purrr::map_if(.x = xpdb[['special']]$tmp, .p = xpdb[['special']]$problem %in% .problem,
@@ -322,7 +347,7 @@ ungroup_x <- function(.data, ..., .problem, .source, .where) {
 #' @param page The page number to be drawn. Can be specified as vector or range
 #' of integer values.
 #' @param ... Options to be passed on to the ggplot2 print method.
-#'
+#' @keywords internal
 #' @examples
 #' my_plot <- xpose::dv_vs_ipred(xpose::xpdb_ex_pk) +
 #'             ggplot2::labs(title = 'A label with keywords: @nind individuals & @nobs observations')

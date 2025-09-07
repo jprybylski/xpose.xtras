@@ -4,7 +4,14 @@
 \alias{get_prop}
 \title{Generic function to extract a property from a model summary}
 \usage{
-get_prop(xpdb, prop, .problem = NULL, .subprob = NULL, .method = NULL)
+get_prop(
+  xpdb,
+  prop,
+  .problem = NULL,
+  .subprob = NULL,
+  .method = NULL,
+  .tail = 1
+)
 }
 \arguments{
 \item{xpdb}{<\code{xpose_data}\link[xpose:xpose_data]{xpose::xpose_data}> object}
@@ -16,6 +23,8 @@ get_prop(xpdb, prop, .problem = NULL, .subprob = NULL, .method = NULL)
 \item{.subprob}{<\code{numeric}> Subproblem number to use. Uses the xpose default if not provided.}
 
 \item{.method}{<\code{character}> Method to use. Uses the xpose default if not provided.}
+
+\item{.tail}{<\code{numeric}> Length of terminal values to pull when there are more than 1 result}
 }
 \value{
 Exact value for the property

@@ -353,7 +353,7 @@ waterfall_helper <- function(
     m2col <- xp_var(mod2$xpdb, .problem = .problem, type = type)$col
   },
   error = function(s) {
-    rlang::abort(paste0("No ", mid_sentence_label, "s appear to be available for at least one model.",
+    rlang::abort(paste0("No ", mid_sentence_label, "s appear to be available for at least one model. ",
                         "Make sure to `set_var_type(", type, " = *)` if they are available in the data."),
                  parent = s)
   })

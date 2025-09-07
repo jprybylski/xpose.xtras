@@ -252,3 +252,63 @@ test_that("errors and special plot circumstances are correctly caught", {
 
 
 })
+
+test_that("no cov and no eta cases", {
+
+  ## Any issues with no or few covariates?
+  xpdb_x_nocov <- xpdb_x |>
+    set_var_types(1, na = all_of(c(
+      xp_var(xpdb_x, 1, type = "contcov")$col,
+      xp_var(xpdb_x, 1, type = "catcov")$col
+    )))
+  expect_error(
+    xpdb_x_nocov |>
+      eta_vs_cov_grid(),
+    "No contcov or catcov"
+  )
+  expect_error(
+    xpdb_x_nocov |>
+      set_var_types(catcov=SEX) |>
+      eta_vs_cov_grid(covtypes ="cont"),
+    "No contcov col"
+  )
+  expect_error(
+    xpdb_x_nocov |>
+      set_var_types(contcov=AGE) |>
+      eta_vs_cov_grid(covtypes ="cat"),
+    "No catcov col"
+  )
+  suppressMessages(expect_no_error(
+    xpdb_x_nocov |>
+      set_var_types(catcov=SEX) |>
+      eta_vs_cov_grid(covtypes = "cat")
+  ))
+  suppressMessages(expect_no_error(
+    xpdb_x_nocov |>
+      set_var_types(catcov=SEX) |>
+      eta_vs_cov_grid()
+  ))
+  suppressMessages(expect_no_error(
+    xpdb_x_nocov %>%
+      set_var_types(contcov=AGE) |>
+      eta_vs_cov_grid(covtypes = "cont")
+  ))
+  suppressMessages(expect_no_error(
+    xpdb_x_nocov %>%
+      set_var_types(contcov=AGE) |>
+      eta_vs_cov_grid()
+  ))
+
+
+
+  ## Any issues with no or few etas?
+  xpdb_x_noeta <- xpdb_x |>
+    set_var_types(1, na = all_of(c(
+      xp_var(xpdb_x, 1, type = "eta")$col
+    )))
+  expect_error(
+    xpdb_x_noeta %>%
+      eta_vs_cov_grid(),
+    "No eta col"
+  )
+})

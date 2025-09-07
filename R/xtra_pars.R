@@ -11,6 +11,11 @@
 #' `pmxcv`, but see examples for how associations can be
 #' described for other relationships.
 #'
+#' **_Note:_** When these associations are used to calculate CV%, it is assumed
+#' that the value for the theta parameter is _untransformed_. So, if a parameter is
+#' fitted in the logit scale, the value should be transformed back to normal scale
+#' with [`mutate_prm()`] (eg, `mutate_prm(the~plogis`) before declaring `the~logit(ome)`.
+#'
 #' @rdname add_prm_association
 #'
 #' @param xpdb <`xp_xtras`> object
@@ -31,8 +36,8 @@
 #' \itemize{
 #'   \item `log` typical log-normal. Optional `exact` parameter (if `TRUE`, default, will not
 #'   calculate with integration); this is unrelated to the `cvtype` option. **Note**,
-#'   if `cvtype` is set to `"sqrt"`, log-normal `gte_prm` CVs will use the square root, not any integration
-#'   or analytical estimate, regardless of how this association is specified..
+#'   if `cvtype` option is set to `"sqrt"`, log-normal `get_prm` CVs will use the square root,
+#'   not any integration or analytical estimate, regardless of how this association is specified.
 #'   \item `logexp`* modified log-normal `log(1+X)`
 #'   \item `logit`* logit-normal
 #'   \item `arcsin`* arcsine-transform
@@ -44,7 +49,7 @@
 #' that transform. See Examples.
 #'
 #' Reminder about `qdist` and `pdist`: Consider that `qlogis` transforms a proportion
-#' to a continuous, unbounded number; it is the `logit` transform. The `pdist` function
+#' to a continuous, unbounded number; it is the `logit` transform. The `plogis` function
 #' converts a continuous, unbounded number to a proportion; it is the *inverse* `logit`
 #' transform. Other R `stats` functions work similarly, and as such functions used as
 #' `qdist` and `pdist` values are expected to act similarly.
@@ -91,6 +96,7 @@
 #' ones will be affected. This note is intended to forewarn that this might happen.
 #'
 #'
+#'
 #' @references
 #' Prybylski, J.P. Reporting Coefficient of Variation for Logit, Box-Cox and
 #' Other Non-log-normal Parameters. Clin Pharmacokinet 63, 133-135 (2024).
@@ -132,7 +138,10 @@
 #' # Dropping association is easy
 #' bad_assoc <- pheno_final %>%
 #'    add_prm_association(the1~logit(IIVCL),Vpkg~logit(IIVV))
-#' bad_assoc
+#' bad_assoc %>% get_prm()
+#' bad_assoc %>%
+#'   drop_prm_association(the1) %>%
+#'   get_prm()
 #'
 add_prm_association <- function(
   xpdb,
@@ -163,7 +172,7 @@ add_prm_association <- function(
   # Process
   assoc_proc <- proc_assc(assc_list, .problem=.problem, .subprob=.subprob,.method=.method)
   rlang::try_fetch(
-    got_prm <- xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob=.subprob,.method=.method, quiet=TRUE),
+    got_prm <- hot_swap_base_get_prm(xpdb=xpdb, .problem=.problem, .subprob=.subprob,.method=.method, quiet=TRUE),
     error = function(s)
       rlang::abort(
         paste0("Error getting current available parameters. If using SAEM or Monte Carlo methods, ",
@@ -229,7 +238,8 @@ drop_prm_association <- function(
       method == .method
     )
   if (nrow(current_selectors)==0) return(xpdb)
-  par_tbl <- xpose::get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, transform = FALSE, quiet = TRUE)
+  par_tbl <- hot_swap_base_get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, transform = FALSE, quiet = TRUE)
+
   current_pars <- param_selector(current_selectors$param, prm_tbl = par_tbl)
   rlang::try_fetch({
     todrop <- param_selector(remove_selectors, prm_tbl = par_tbl)
@@ -302,7 +312,7 @@ check_associations <- function(
   # All symbols
   sym_tab <- proc_assc(assc_list, .problem=.problem, .subprob=.subprob,.method=.method)
   rlang::try_fetch(
-    par_tbl <- xpose::get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, transform = FALSE, quiet = TRUE),
+    par_tbl <- hot_swap_base_get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, transform = FALSE, quiet = TRUE),
     error = function(s)
       rlang::abort(
         paste0("Error getting current available parameters. If using SAEM or Monte Carlo methods, ",
@@ -488,17 +498,26 @@ get_prm.default <- function(
     digits = 4,
     transform = TRUE,
     show_all = FALSE,
-    quiet
-) {
+    quiet) {
   if (check_xpdb_x(xpdb, .warn = FALSE)) {
-    return(get_prm.xp_xtras(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
-                            .method = .method, transform = transform,
-                            show_all = show_all, quiet=quiet))
+    return(get_prm.xp_xtras(
+      xpdb = xpdb, .problem = .problem, .subprob = .subprob,
+      .method = .method, transform = transform,
+      show_all = show_all, quiet = quiet
+    ))
   }
 
-  xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
-                 .method = .method, digits = digits, transform = transform,
-                 show_all = show_all, quiet=quiet)
+  implemented_prm_software <- c("nlmixr2")
+  if (xpose::software(xpdb) %in% implemented_prm_software) {
+    cli::cli_abort("For {.strong {xpose::software(xpdb)}} models, convert to {package_flex} object before doing this action.")
+  } else if (xpose::software(xpdb) != "nonmem") {
+    cli::cli_abort("For {.strong {xpose::software(xpdb)}} models, {.emph extra} parameter functionality is not implemented.")
+  }
+  xpose::get_prm(
+    xpdb = xpdb, .problem = .problem, .subprob = .subprob,
+    .method = .method, digits = digits, transform = transform,
+    show_all = show_all, quiet = quiet
+  )
 }
 
 #' @method get_prm xp_xtras
@@ -518,15 +537,32 @@ get_prm.xp_xtras <- function(
   if (missing(quiet)) quiet <- xpdb$options$quiet
   fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
 
+  # TODO: Add a means to get equivalent table for nlmixr2 xpose data objects so associations can work
+
   if (is.null(digits)) digits <- reportable_digits(xpdb,.problem=.problem, .subprob=.subprob, .method=.method)
-  # Get basic param table
-  def_prm <- xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
-                   .method = .method, digits = digits, transform = transform,
-                   show_all = show_all, quiet=quiet)
-  # Get untransformed param table
-  untr_prm <- suppressWarnings(xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
-                            .method = .method, digits = digits, transform = FALSE,
-                            show_all = show_all, quiet=TRUE))
+
+  if (xpose::software(xpdb)=="nonmem") {
+
+    # Get basic param table
+    def_prm <- xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
+                              .method = .method, digits = digits, transform = transform,
+                              show_all = show_all, quiet=quiet)
+    # Get untransformed param table
+    untr_prm <- suppressWarnings(xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
+                                                .method = .method, digits = digits, transform = FALSE,
+                                                show_all = show_all, quiet=TRUE))
+
+  } else if (xpose::software(xpdb)=="nlmixr2") {
+    assert_nlmixr2fit(xpdb)
+
+    # Get basic param table
+    def_prm <- get_prm_nlmixr2(xpdb, transform = transform, show_all = show_all, quiet=quiet)
+    # Get untransformed param table
+    untr_prm <- suppressWarnings(get_prm_nlmixr2(xpdb, transform = FALSE, show_all = show_all, quiet=TRUE))
+  } else {
+    cli::cli_abort("`get_prm` currently only works for nonmem and nlmixr2 models. Sorry.")
+  }
+
 
   # Parameter associations defined for object
   par_asscs <- xpdb$pars %>%
@@ -562,7 +598,7 @@ get_prm.xp_xtras <- function(
     if (!om2cv %in% impacted_omegas) {
       new_cv <- lnorm_transform(untr_prm$value[om2cv])
     } else {
-      # Do this generally so multiple the per ome can be covered
+      # Do this generally so multiple thetas per omega can be covered
       par_rows <- which(impacted_omegas==om2cv)
       new_cv <- purrr::map_dbl(par_rows, function(row) {
         assc_row <- par_asscs %>% dplyr::slice(row)
@@ -667,7 +703,7 @@ print.prm_tbl <- function(x, ...) {
 #' time these transformations are not applied to `param` vars ([`list_vars`]), but that can
 #' already be done with the `mutate` method.
 #'
-#' This only works for theta parameters.
+#' **This only works for theta parameters.**
 #'
 #' All valid mutations are applied sequentially, so a double call to `the2~the2^3`
 #' will result in effectively `the2~the2^9`, for example.
@@ -693,7 +729,7 @@ print.prm_tbl <- function(x, ...) {
 #' @export
 #'
 #' @details
-#' ### Important points about covariance and correlation
+#' ### Important points about covariance and correlation (for NONMEM only)
 #'
 #' Covariance and correlation parameters are adjusted when standard error (SE)
 #' values are changed directly or with `.autose`. When a transformation is applied
@@ -711,8 +747,9 @@ print.prm_tbl <- function(x, ...) {
 #' matrices are being used to define priors for a Bayesian model fitting, as the re-scaling
 #' of off-diagonal elements is handled automatically.
 #'
-#' A function to transform parameters will result in a more accurate `autose` result. If a call
-#' (`the1~exp(the)`) or a value (`the1~2`) are used, the standard error will be simply scaled.
+#' For all software: A function to transform parameters will result in a more accurate `autose`
+#' result. If a call (`the1~exp(the)`) or a value (`the1~2`) are used, the standard error
+#' will be simply scaled.
 #'
 #' @returns An updated `xp_xtras` object with mutated parameters
 #'
@@ -748,7 +785,7 @@ mutate_prm <- function(
   if (missing(quiet)) quiet <- xpdb$options$quiet
   fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
   # Use xpose::get_prm for other checks and to get untransformed values
-  base_df <- suppressWarnings(xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
+  base_df <- suppressWarnings(hot_swap_base_get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
                             .method = .method, digits = 12, # absurd digits so no rounding
                             transform = FALSE, show_all = TRUE, quiet=TRUE)) # Need show_all so cor and cov columns are same length as this
   if (all(is.na(base_df$se))) {
@@ -803,7 +840,7 @@ mutate_prm <- function(
     f # either function or a value
   }
   refresh_calls_prms <- function(xpdb) # Same as call in beginning of function. Get updated parameters
-    calls_env$base_df <- suppressWarnings(xpose::get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
+    calls_env$base_df <- suppressWarnings(hot_swap_base_get_prm(xpdb=xpdb, .problem=.problem, .subprob = .subprob,
                                                          .method = .method, digits = 12,
                                                          transform = FALSE, show_all = TRUE, quiet=TRUE)) # show all is for off-diagonal of cor cov
   for (mn in 1:nrow(mutp_tab)) { # For loop to apply changes initiated from mutp_tab to running updates in new_xpdb
@@ -826,16 +863,24 @@ mutate_prm <- function(
         if (length(change_to)!=1)
           cli::cli_abort("RHS must resolve to a length of {.strong 1}, not {.strong {length(change_to)}}")
         # Change value in ext
-        new_xpdb$files <- mutate_in_file(
-          xpdb = new_xpdb,
-          val = change_to,
-          col = 1 + impacted_prm,
-          row = quote(ITERATION==-1000000000),
-          ext = "ext",
-          problem = .problem,
-          subprob = .subprob,
-          method = .method
-        )
+        if (xpose::software(xpdb)=="nonmem") {
+          new_xpdb$files <- mutate_in_file(
+            xpdb = new_xpdb,
+            val = change_to,
+            col = 1 + impacted_prm,
+            row = quote(ITERATION==-1000000000),
+            ext = "ext",
+            problem = .problem,
+            subprob = .subprob,
+            method = .method
+          )
+        } else if (xpose::software(xpdb)=="nlmixr2") {
+          new_xpdb <- mutate_mask(
+            new_xpdb, fortheta = base_df$name[impacted_prm], newval = change_to
+          )
+        } else {
+          cli::cli_abort("This functionality is not yet implemented for {.strong {xpose::software(xpdb)}}")
+        }
         new_xpdb <- as_xp_xtras(new_xpdb)
         # Update base_df in calls_env
         refresh_calls_prms(new_xpdb)
@@ -846,6 +891,7 @@ mutate_prm <- function(
         if (is.na(exisiting_se) || exisiting_se==0) next # no point in doing the rest if se is 0 or unknown
         if (!mutp_tab$is_se[mn] && .autose==TRUE) {
           if (is.function(new_value)) {
+            set.seed(2323) # ensure reproducible
             nv_fun <- new_value
             new_value <- function(x,y=exisiting_se)
               sd(
@@ -873,19 +919,30 @@ mutate_prm <- function(
         if (length(change_to)!=1)
           cli::cli_abort("RHS must resolve to a length of {.strong 1}, not {.strong {length(change_to)}}")
         # Change value in ext (most times get_prm actually pulls from cov, but can happen here, too)
-        new_xpdb$files <- mutate_in_file(
-          xpdb = new_xpdb,
-          val = abs(change_to),
-          col = 1 + impacted_prm,
-          row = quote(ITERATION==-1000000001),
-          ext = "ext",
-          problem = .problem,
-          subprob = .subprob,
-          method = .method
-        )
+        if (xpose::software(xpdb)=="nonmem") {
+          new_xpdb$files <- mutate_in_file(
+            xpdb = new_xpdb,
+            val = abs(change_to),
+            col = 1 + impacted_prm,
+            row = quote(ITERATION==-1000000001),
+            ext = "ext",
+            problem = .problem,
+            subprob = .subprob,
+            method = .method
+          )
+        } else if (xpose::software(xpdb)=="nlmixr2") {
+          new_xpdb <- mutate_mask(
+            new_xpdb, fortheta = base_df$name[impacted_prm], newval = abs(change_to),
+            se = TRUE
+          )
+        } else {
+          # Since other software would have files processed differently, make SE correction here
+          return(new_xpdb)
+        }
         new_xpdb <- as_xp_xtras(new_xpdb)
         # If Iteration -1...1 exists, there should be cor/cov, but just in case...
-        if ("cov" %in% new_xpdb$files$extension &&
+        if (xpose::software(xpdb)=="nonmem" &&
+            "cov" %in% new_xpdb$files$extension &&
             "cor" %in% new_xpdb$files$extension) {
           # Change value in cor (off-diagonal is invariant to scale; only need to change reporting diagonal)
           new_xpdb$files <- mutate_in_file(
@@ -985,7 +1042,7 @@ mutate_prm_check <- function(
 
   # All symbols
   sym_tab <- mutate_prm_proc(mutp_list, .problem=.problem, .subprob=.subprob,.method=.method)
-  par_tbl <- suppressWarnings(xpose::get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, quiet = TRUE))
+  par_tbl <- suppressWarnings(hot_swap_base_get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, transform = FALSE, quiet = TRUE))
   rlang::try_fetch({
     pars <- sym_tab$param %>% param_selector(prm_tbl = par_tbl)
   },
@@ -1034,6 +1091,7 @@ mutate_prm_proc <- function(mutp_list,.problem,.subprob,.method) {
 # Pulled out to isolate this logic.
 # Surgical update of enclosed file values.
 # Not intended to be used by end users, so can avoid some boilerplate
+# See mutate_files for a generic application
 mutate_in_file <- function(
     xpdb,
     val,
@@ -1069,3 +1127,5 @@ mutate_in_file <- function(
     ) %>%
     dplyr::ungroup()
 }
+
+

@@ -484,7 +484,8 @@ expose_property <- function(
           if (prop %in% prob_props) {
             # fill problem etc info
             fill_prob_subprob_method(
-              xpdb, .problem=.problem, .subprob=.subprob
+              xpdb, .problem=.problem, .subprob=.subprob,
+              for_summary = TRUE
             )
           }
 
@@ -816,6 +817,7 @@ focused_xpdbs <- function(xpdb_s) {
 focus_function <- function(xpdb_s, fn, ...) {
   focused <- focused_xpdbs(xpdb_s)
   if (length(focused)==0) rlang::abort("No xpdb objects are focused.")
+  fn <- purrr::as_mapper(fn)
 
   out <- reshape_set(xpdb_s) %>%
     dplyr::rowwise() %>%
@@ -973,7 +975,7 @@ c.xpose_set <- function(..., .relationships = NULL) {
 #' @param ... Must be empty
 #'
 #' @returns A logical vector or list of logical vectors
-#'
+#' @keywords internal
 #' @method duplicated xpose_set
 #' @export
 duplicated.xpose_set <- function(x, incomparables=FALSE, ...) {
@@ -1090,6 +1092,7 @@ unreshape_set <- function(y) {
 #' @importFrom dplyr mutate
 #' @returns A set with updated top-level data (unless focused)
 #' @rdname mutate.xpose_set
+#' @keywords internal
 #' @export
 mutate.xpose_set <- function(.data, ..., .force = FALSE, .retest = !.force, .rowwise = FALSE) {
   xpdb_s <- .data
@@ -1140,6 +1143,7 @@ mutate.xpose_set <- function(.data, ..., .force = FALSE, .retest = !.force, .row
 #' xpdb_set %>%
 #'   select(mod1, fix1)
 #'
+#' @keywords internal
 #' @importFrom dplyr select
 #' @returns Subset of `xpose` set
 #' @rdname select.xpose_set
@@ -1181,7 +1185,7 @@ select.xpose_set <- function(.data, ...) {
 #'   filter(length(parent)>1, .rowwise=TRUE)
 #'
 #' @returns A filtered `xpose_set`
-#'
+#' @keywords internal
 #' @importFrom dplyr filter
 #' @rdname filter.xpose_set
 #' @export
@@ -1218,7 +1222,7 @@ filter.xpose_set <- function(.data, ..., .rowwise = FALSE) {
 #' xpdb_set %>%
 #'   rename(Mod = mod1)
 #'
-#'
+#' @keywords internal
 #' @importFrom dplyr rename
 #' @returns Re-labeled set
 #' @rdname rename.xpose_set
@@ -1262,7 +1266,7 @@ rename.xpose_set <- function(.data, ...) {
 #'   pull(xpdb)
 #'
 #' @returns The top-level information for a set requested.
-#'
+#' @keywords internal
 #' @importFrom dplyr pull
 #' @rdname pull.xpose_set
 #' @export

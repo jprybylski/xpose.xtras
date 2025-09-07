@@ -11,7 +11,7 @@ An \code{xpose_set} object of length 14 with a branched lineage.
 }
 }
 \source{
-https://doi.org/10.1159/000457062 and nlmixr2data::pheno_sd
+\url{https://doi.org/10.1159/000457062} and nlmixr2data::pheno_sd
 }
 \usage{
 pheno_set

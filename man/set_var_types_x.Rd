@@ -11,7 +11,7 @@ set_var_types_x(xpdb, .problem = NULL, ..., auto_factor = TRUE, quiet)
 
 \item{.problem}{The problem number to which the edits will be applied.}
 
-\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Passed to \code{\link[xpose]{set_var_types}} after processing.}
+\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Passed to <\code{\link[xpose:set_vars]{set_var_types}}> after processing.}
 
 \item{auto_factor}{If \code{TRUE} new columns assigned to the type 'catcov' will be converted to
 factor.}

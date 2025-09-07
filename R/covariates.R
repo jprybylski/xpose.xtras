@@ -264,7 +264,10 @@ eta_vs_cov_grid <- function(xpdb,
   if (missing(quiet)) quiet <- xpdb$options$quiet
 
   # Get eta col(s)
-  all_eta_cols <- xpose::xp_var(xpdb, .problem, type = 'eta')$col
+  all_eta_cols <- xpose::xp_var(xpdb, .problem, type = 'eta', silent = TRUE)$col
+  if (is.null(all_eta_cols)) {
+    cli::cli_abort("No eta column found in the xpdb data index.")
+  }
   if (rlang::quo_is_null(rlang::enquo(etavar))) {
     etavar <- all_eta_cols
   } else {
@@ -280,7 +283,12 @@ eta_vs_cov_grid <- function(xpdb,
     cli::cli_abort("Invalid `covtype`(s): {setdiff(covtypes, valid_covtypes)}")
   }
   get_govs <- paste0(covtypes, "cov")
-  all_cov_cols <- xp_var(xpdb, .problem, type = get_govs)$col
+  all_cov_cols <- c()
+  for (covvar in get_govs) # catch no-/low-covariate situations
+    all_cov_cols <- c(all_cov_cols,xp_var(xpdb, .problem, type = covvar, silent=TRUE)$col)
+  if (length(all_cov_cols)==0) {
+    cli::cli_abort("No {paste(get_govs, collapse=' or ')} column found in the xpdb data index.")
+  }
   if (rlang::quo_is_null(rlang::enquo(cols))) {
     covvar <- all_cov_cols
   } else {
@@ -303,7 +311,7 @@ eta_vs_cov_grid <- function(xpdb,
     cli::cli_abort("`cols` should only include ({covtypes}) covariates, which does not seem to apply to: {setdiff(cov_col, all_cov_cols)}")
   }
   if (any(!eta_col %in% all_eta_cols)) {
-    cli::cli_abort("`etavar` should only include etas, which does not seem to apply to: {setdiff(eta_col, xpose::xp_var(xpdb, .problem, type = 'eta')$col)}")
+    cli::cli_abort("`etavar` should only include etas, which does not seem to apply to: {setdiff(eta_col, xpose::xp_var(xpdb, .problem, type = 'eta', silent=TRUE)$col)}")
   }
 
   # Eta label consistency
@@ -321,7 +329,7 @@ eta_vs_cov_grid <- function(xpdb,
 
 
   # Set cov factor to label and units, if relevant
-  lvld_cov <- cov_col[cov_col %in% xp_var(xpdb, .problem, type = "catcov")$col]
+  lvld_cov <- cov_col[cov_col %in% xp_var(xpdb, .problem, type = "catcov", silent = TRUE)$col] # silent=TRUE or else this throws error
   if (!check_xpdb_x(xpdb, .warn=FALSE)) {
     post_processing_cov <- apply_lul_wide(xpdb = xpdb, cols=cov_col, lvl_cols=lvld_cov, .problem = .problem)
     if (show_n && !quiet) cli::cli_inform("Cannot show N unless xpdb is converted to a cross-compatible xp_xtras object. `as_xpdb_x()` should do this.")

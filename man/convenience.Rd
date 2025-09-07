@@ -15,3 +15,4 @@ is_formula_list(x)
 \description{
 Convenience functions used in package
 }
+\keyword{internal}

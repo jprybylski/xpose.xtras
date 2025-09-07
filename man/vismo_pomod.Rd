@@ -21,12 +21,20 @@ The referenced work presents two alternative modeling approaches
 for muscle spasm response to vismodegib. This is a fit of the
 provided proportional odds model to the 50 participant mock data.
 }
+\examples{
+# To establish as a complete categorical DV example:
+vismo_pomod <- vismo_pomod  \%>\%
+  set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\\\d+$")) \%>\%
+  set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)
+
+
+}
 \references{
 Lu, T., Yang, Y., Jin, J.Y. and Kågedal, M. (2020),
 Analysis of Longitudinal-Ordered Categorical Data for
 Muscle Spasm Adverse Event of Vismodegib: Comparison
 Between Different Pharmacometric Models. CPT
 Pharmacometrics Syst. Pharmacol., 9: 96-105.
-https://doi.org/10.1002/psp4.12487
+\url{https://doi.org/10.1002/psp4.12487}
 }
 \keyword{datasets}

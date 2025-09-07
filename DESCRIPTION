@@ -1,6 +1,6 @@
 Package: xpose.xtras
 Title: Extra Functionality for the 'xpose' Package
-Version: 0.0.3
+Version: 0.1.0
 Authors@R: 
     person("John", "Prybylski", , "jprybylski@gmail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-5802-0539"))
@@ -15,7 +15,7 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports: 
-    assertthat,
+    checkmate,
     cli,
     colorspace,
     conflicted,
@@ -42,12 +42,20 @@ Suggests:
     DiagrammeR,
     grDevices,
     knitr,
+    nlmixr2,
+    nlmixr2data,
+    nlmixr2est,
     rmarkdown,
+    rxode2,
+    spelling,
     testthat (>= 3.0.0),
-    vdiffr
+    vdiffr,
+    xpose.nlmixr2
 Config/testthat/edition: 3
 Depends: 
     R (>= 3.5)
 LazyData: true
 VignetteBuilder: knitr
 URL: https://jprybylski.github.io/xpose.xtras/, https://github.com/jprybylski/xpose.xtras
+Language: en-US
+Config/Needs/website: rmarkdown

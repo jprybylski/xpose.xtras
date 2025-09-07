@@ -115,6 +115,12 @@ xp_xtra_theme <- function(base_on = NULL) {
     shkdntxt_size = base_on$text_size,
     shkdntxt_hjust = base_on$text_hjust,
     shkdntxt_vjust = base_on$text_vjust,
+    label_alpha = base_on$text_alpha,
+    label_color = base_on$text_color,
+    label_family = base_on$text_family,
+    label_fontface = base_on$text_fontface,
+    label_lineheight = base_on$text_lineheight,
+    label_size = base_on$text_size,
   )
 
   # bug fix
@@ -333,7 +339,7 @@ grab_xpose_plot <- function(plot) {
 #'
 #'
 wrap_xp_ggally <- function(fn, xp_theme, ...) {
-  assertthat::is.string(fn)
+  checkmate::assertString(fn)
   ggally_fun <- utils::getFromNamespace(paste0("ggally_",fn), "GGally")
   theme_name <- paste0("gga",fn)
   function(data = NULL, mapping = NULL) {

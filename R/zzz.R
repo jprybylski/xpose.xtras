@@ -6,6 +6,8 @@
 
   if (!is_loading_for_tests()) {
     conflicted::conflict_prefer_all("xpose.xtras", c("xpose","stats"), quiet=TRUE)
+    if (utils::packageVersion("xpose") >= "0.5.0")
+      conflicted::conflict_prefer("irep", "xpose", "xpose.xtras", quiet=TRUE)
   }
 
   ## Make sure print.xpose_plot is not overwritten by xpose
@@ -91,5 +93,53 @@ utils::globalVariables(c(
   "parent",
   "nn",
   "grp_key",
-  "new_variable"
+  "new_variable",
+  "%RSE",
+  "SE",
+  "diagonal",
+  "est",
+  "eta",
+  "etatrans",
+  "fix",
+  "formula",
+  "ignore",
+  "n",
+  "x",
+  "name",
+  "neta1",
+  "neta2",
+  "ntheta",
+  "plogis",
+  "prm_assoc_formula",
+  "probit",
+  "probitInv",
+  "qlogis",
+  "rse",
+  "se",
+  "theta",
+  "thetatrans",
+  "xpdb_x",
+  "n.x",
+  "...threshold...",
+  "FDR",
+  "FN",
+  "FNR",
+  "FOR",
+  "FP",
+  "FPR",
+  "LRn",
+  "LRp",
+  "MK",
+  "N",
+  "NPV",
+  "P",
+  "PPV",
+  "TN",
+  "TNR",
+  "TP",
+  "TPR",
+  "TS",
+  "confmatr",
+  "head",
+  "threshold"
 ))
