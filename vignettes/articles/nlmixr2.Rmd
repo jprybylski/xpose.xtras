@@ -13,15 +13,16 @@ knitr::opts_chunk$set(
 library(nlmixr2)
 library(xpose)
 library(xpose.xtras)
+set.seed(42^2)
 ```
 
-`nlmixr2` fits are fully supported in the current release, including many convenience functions to ensure consumed `nlmixr2` results are fully compatible with all available features of `xpose` and `xpose.xtras`.
+`nlmixr2` fits are fully supported in the current release, including many convenience functions to ensure consumed `nlmixr2` results are fully compatible with most all available features of `xpose` and `xpose.xtras`.
 
 ## Basics
 
-While the `xpose.xtras` package already contains a few `nlmixr2` examples, let's start fresh with a new fit. The model and dataset were based on [in the `nlmixr2` documentation](https://nlmixr2.org/articles/multiple-endpoints.html); to start using the resulting `xpose_data` directly, refer to `nlmixr2_warfarin`.
+While the `xpose.xtras` package already contains a few `nlmixr2` examples, let's start fresh with a new fit. The model below is from [the `nlmixr2` documentation](https://nlmixr2.org/articles/multiple-endpoints.html); to start using the resulting `xpose_data` directly, refer to `?nlmixr2_warfarin`.
 
-```{r fit, message = FALSE}
+```{r fit, message = FALSE, cache=TRUE}
 pk.turnover.emax3 <- function() {
   ini({
     tktr <- log(1)
@@ -78,7 +79,7 @@ fit.TOS <- nlmixr2(pk.turnover.emax3, warfarin, "focei", control=list(print=0),
                   table=list(cwres=TRUE, npde=TRUE))
 ```
 
-Now that we have a fit, we have a few options to consume the results into `xpose`. We could use [`xpose_data_nlmixr2()`][`xpose.nlmixr2::xpose_data_nlmixr2`] and then convert to an `xp_xtras` object from there.
+Now that we have a fit, we have a few options to consume the results into `xpose`. We could use `xpose.nlmixr2::xpose_data_nlmixr2` and then convert to an `xp_xtras` object from there.
 
 ```{r}
 xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
@@ -92,7 +93,7 @@ xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
   as_xp_xtras() %>%
   attach_nlmixr2(fit.TOS)
 ```
-One such convenience function is to backfill some of the missing properties improperly pulled from the fit results (at time of writing, these are condition number and significant digits). That's not these backfills are opinionated, hence it is optional.
+One such convenience function is to backfill some of the `"na"` properties pulled from the fit results (at time of writing, these are condition number and significant digits). It's acknowledged that these backfills are opinionated, hence it is optional.
 
 ```{r}
 xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
@@ -102,20 +103,23 @@ xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
   {print(get_prop(., "condn")); .} %>%
   get_prop("nsig")
 ```
-A more useful application of the attached fit result is a functional application of `get_prm`. Note, `xpose::prm_table()` does not work despite this new feature because it uses the original `get_prm()` defined within `xpose` namespace.
+
+A more useful application of the attached fit result is a method to make `get_prm()` work. Note, `xpose::prm_table()` does not work despite this new feature because it uses the original `get_prm()` defined within `xpose` namespace. Since `prm_table()` is a quick check convenience function to print in place, `get_prm()` was considered a better function to get working. 
 
 ```{r}
 try({
 xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
-    as_xp_xtras() %>% get_prm()
+    as_xp_xtras() %>% xpose::get_prm()
 })
 xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
   as_xp_xtras() %>%
   attach_nlmixr2(fit.TOS) %>%
-  get_prm()
+  get_prm() %>%
+  # Remove some columns for readability
+  dplyr::select(-c(fixed,diagonal,label))
 ```
 
-To build on this, because `nlmixr2` coerces users to use mu-referencing and captures parameter associations automatically, another useful backfill includes mapping these parameter associations via `add_prm_association()`, by way of `nlmixr2_prm_associations()`. In this model, `temax` is logit transformed, so to keep assumptions valid in the CV% calculation it needs to be back-transformed (as indicated in the `cli` message).
+To build on this, because `nlmixr2` coerces users to use mu-referencing and captures parameter associations automatically, another useful backfill includes mapping these parameter associations with `add_prm_association()`, by way of `nlmixr2_prm_associations()`. In this model, `temax` is logit transformed, so to keep assumptions valid in the CV% calculation it needs to be back-transformed (as indicated in a `cli` message).
 
 ```{r}
 xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
@@ -123,10 +127,12 @@ xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
   attach_nlmixr2(fit.TOS) %>%
   nlmixr2_prm_associations() %>%
   mutate_prm(temax ~ plogis) %>%
-  get_prm()
+  get_prm() %>%
+  # Remove some columns for readability
+  dplyr::select(-c(fixed,diagonal,label))
 ```
 
-That's a lot of boilerplate to pipe through, so a convenience function has been developed to cover all of that. Note the parameter associations are mapped automatically, but we could skip that if we weren't planning to use `get_prm()` at all by setting `.skip_assoc=TRUE`.
+That's a lot of boilerplate to pipe through, so a convenience function has been developed to cover all of that. Note the parameter associations are mapped automatically, but we could skip that step if we weren't planning to use `get_prm()` at all by setting `.skip_assoc=TRUE`.
 
 ```{r}
 nlmixr2_warfarin <- nlmixr2_as_xtra(fit.TOS)
@@ -138,7 +144,7 @@ data("nlmixr2_warfarin")
 
 ## General Usage
 
-We covered most of the usage unique to this package in the Basics section, but this section is to illustrate all of the basic functions will continue to work. At time of writing, some missing properties are present and should be added with [pending PR](https://github.com/nlmixr2/xpose.nlmixr2/pull/5) to `xpose.nlmixr2` (these are not backfill candidates since they don't exist in the summary element, violating how `set_prop()` was designed to work).
+We covered most of the usage unique to this package in the Basics section, but this section is to illustrate that common functions will continue to work. At time of writing, some missing properties are present and should be added with a [PR](https://github.com/nlmixr2/xpose.nlmixr2/pull/5) to `xpose.nlmixr2` (these are not backfill candidates since they don't exist in the summary element, violating how `set_prop()` was designed to work).
 
 ```{r}
 list_vars(nlmixr2_warfarin)
@@ -150,17 +156,17 @@ dv_vs_pred(nlmixr2_warfarin, facet="DVID")
 eta_vs_catcov(nlmixr2_warfarin, etavar = eta.cl)
 eta_vs_contcov(nlmixr2_warfarin, etavar = eta.cl)
 
-eta_vs_cov_grid(nlmixr2_warfarin, etavar = c(eta.cl,eta.v,eta.ka))
+eta_vs_cov_grid(nlmixr2_warfarin, etavar = c(eta.cl,eta.v,eta.ka), quiet=TRUE)
 
-eta_vs_cov_grid(nlmixr2_warfarin, etavar = c(eta.kout,eta.e0,eta.emax))
+eta_vs_cov_grid(nlmixr2_warfarin, etavar = c(eta.kout,eta.e0,eta.emax), quiet=TRUE)
 ```
 
 ## Sets
 
-A simple change to the warfarin PK model is to use the same parameters for `ka` and `ktr`. In the PD model, we could also fix `emax` to one (and drop the interindividual variability). An analyst would explore these separately and then maybe combine them.
+A simple change to the warfarin PK model is to use the same parameters for `ka` and `ktr`. In the PD model, we could also fix `emax` to `1` (and drop the interindividual variability). An analyst would explore these separately and then maybe combine them, as we have done below.
 
 
-```{r, message=FALSE}
+```{r, message=FALSE, cache=TRUE}
 fit.TOS.kaktr <- fit.TOS %>%
   model({
     ka <- ktr
@@ -195,11 +201,30 @@ These explorations make up a set which can be examined with an `xpose_set`:
 ```{r}
 # Since these models were created with piping, need to update their labels
 warf_ka <- nlmixr2_as_xtra(fit.TOS.kaktr) %>%
-  set_prop(run="fit.TOS.kaktr")
+  set_prop(run="fit.TOS.kaktr") %>%
+  # Just to remove github action path
+  set_option(
+    dir = paste0("~")
+  ) %>%
+  set_prop(
+    dir = paste0("~")
+  )
 warf_emax <- nlmixr2_as_xtra(fit.TOS.emax1) %>%
-  set_prop(run="fit.TOS.emax1")
+  set_prop(run="fit.TOS.emax1") %>%
+  set_option(
+    dir = paste0("~")
+  ) %>%
+  set_prop(
+    dir = paste0("~")
+  )
 warf_simple <- nlmixr2_as_xtra(fit.TOS.simple) %>%
-  set_prop(run="fit.TOS.simple")
+  set_prop(run="fit.TOS.simple") %>%
+  set_option(
+    dir = paste0("~")
+  ) %>%
+  set_prop(
+    dir = paste0("~")
+  )
 
 warfarin_set <- xpose_set(
   nlmixr2_warfarin, warf_ka, warf_emax, warf_simple,
@@ -211,17 +236,24 @@ warfarin_set <- xpose_set(
 ) %>%
   # Add iOFVs
   focus_qapply(backfill_iofv)
+
 warfarin_set
+
+warfarin_set$warf_simple
 
 warfarin_set %>%
   expose_property(ofv) %>%
   expose_property(condn) %>%
-  reshape_set()
+  reshape_set() %>%
+  # Remove some columns for readability
+  dplyr::select(-c(parent,base,focus))
 
 warfarin_set %>%
   dofv_vs_id(nlmixr2_warfarin, warf_simple, .inorder = TRUE, df=1)
 
 warfarin_set %>%
+  # This comparison should be more interesting
+  focus_qapply(set_var_types, param=c(KA,EC50), na=c(CL, V)) %>%
   prm_waterfall(nlmixr2_warfarin, warf_simple)
 
 warfarin_set %>%
@@ -242,7 +274,7 @@ nlmixr2_m3 %>%
 
 derive_prm(nlmixr2_m3) %>%
   dplyr::select(ID,KA,CL,VSS:(dplyr::last_col())) %>%
-  summary()
+  head()
 
 
 # If param has no vars, .prm should be set
@@ -253,7 +285,7 @@ pheno_base %>%
   list_vars()
 ```
 
-These derived parameters can be fed into `diagnose_constants()` to perform some quick checks for common issues.
+These derived parameters can be fed into `diagnose_constants()` to perform some quick checks for common issues. In this case, we have both `VC` (derived) and `V` (fitted) representing the same quantity, so to avoid catching both in the volume check (which per the documentation should only be one volume) the `vol_pattern` has been updated.
 
 ```{r}
 nlmixr2_m3 %>%
