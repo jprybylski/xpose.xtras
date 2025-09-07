@@ -70,20 +70,22 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nlmixr2.org/" class="external-link">nlmixr2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://uupharmacometrics.github.io/xpose/" class="external-link">xpose</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jprybylski.github.io/xpose.xtras/">xpose.xtras</a></span><span class="op">)</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://jprybylski.github.io/xpose.xtras/">xpose.xtras</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <p><code>nlmixr2</code> fits are fully supported in the current release,
 including many convenience functions to ensure consumed
-<code>nlmixr2</code> results are fully compatible with all available
-features of <code>xpose</code> and <code>xpose.xtras</code>.</p>
+<code>nlmixr2</code> results are fully compatible with most all
+available features of <code>xpose</code> and
+<code>xpose.xtras</code>.</p>
 <div class="section level2">
 <h2 id="basics">Basics<a class="anchor" aria-label="anchor" href="#basics"></a>
 </h2>
 <p>While the <code>xpose.xtras</code> package already contains a few
 <code>nlmixr2</code> examples, let’s start fresh with a new fit. The
-model and dataset were based on <a href="https://nlmixr2.org/articles/multiple-endpoints.html" class="external-link">in the
+model below is from <a href="https://nlmixr2.org/articles/multiple-endpoints.html" class="external-link">the
 <code>nlmixr2</code> documentation</a>; to start using the resulting
 <code>xpose_data</code> directly, refer to
-<code>nlmixr2_warfarin</code>.</p>
+<code><a href="../reference/nlmixr2_warfarin.html">?nlmixr2_warfarin</a></code>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pk.turnover.emax3</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu">ini</span><span class="op">(</span><span class="op">{</span></span>
@@ -154,12 +156,12 @@ model and dataset were based on <a href="https://nlmixr2.org/articles/multiple-e
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; calculating covariance matrix</span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:01:12 </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:01:13 </span></span>
 <span><span class="co">#&gt; done</span></span></code></pre></div>
 <p>Now that we have a fit, we have a few options to consume the results
 into <code>xpose</code>. We could use
-[<code>xpose_data_nlmixr2()</code>][<code><a href="https://rdrr.io/pkg/xpose.nlmixr2/man/xpose_data_nlmixr2.html" class="external-link">xpose.nlmixr2::xpose_data_nlmixr2</a></code>]
-and then convert to an <code>xp_xtras</code> object from there.</p>
+<code><a href="https://rdrr.io/pkg/xpose.nlmixr2/man/xpose_data_nlmixr2.html" class="external-link">xpose.nlmixr2::xpose_data_nlmixr2</a></code> and then convert to an
+<code>xp_xtras</code> object from there.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">xpose.nlmixr2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/xpose.nlmixr2/man/xpose_data_nlmixr2.html" class="external-link">xpose_data_nlmixr2</a></span><span class="op">(</span><span class="va">fit.TOS</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/xp_xtras.html">as_xp_xtras</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -198,10 +200,11 @@ functions for the fit object to be attached to the
 <span><span class="co">#&gt;  - gg_theme: :: xpose theme_readable </span></span>
 <span><span class="co">#&gt;  - xp_theme: xp_xtra_theme new_x$xp_theme </span></span>
 <span><span class="co">#&gt;  - Options: dir = NULL, quiet = TRUE, manual_import = NULL, cvtype = exact</span></span></code></pre></div>
-<p>One such convenience function is to backfill some of the missing
-properties improperly pulled from the fit results (at time of writing,
-these are condition number and significant digits). That’s not these
-backfills are opinionated, hence it is optional.</p>
+<p>One such convenience function is to backfill some of the
+<code>"na"</code> properties pulled from the fit results (at time of
+writing, these are condition number and significant digits). It’s
+acknowledged that these backfills are opinionated, hence it is
+optional.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">xpose.nlmixr2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/xpose.nlmixr2/man/xpose_data_nlmixr2.html" class="external-link">xpose_data_nlmixr2</a></span><span class="op">(</span><span class="va">fit.TOS</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/xp_xtras.html">as_xp_xtras</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -211,54 +214,55 @@ backfills are opinionated, hence it is optional.</p>
 <span>  <span class="fu"><a href="../reference/get_prop.html">get_prop</a></span><span class="op">(</span><span class="st">"nsig"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "32318.0467755017"</span></span>
 <span><span class="co">#&gt; [1] "3"</span></span></code></pre></div>
-<p>A more useful application of the attached fit result is a functional
-application of <code>get_prm</code>. Note,
-<code><a href="https://uupharmacometrics.github.io/xpose/reference/prm_table.html" class="external-link">xpose::prm_table()</a></code> does not work despite this new feature
-because it uses the original <code><a href="../reference/get_prm.html">get_prm()</a></code> defined within
-<code>xpose</code> namespace.</p>
+<p>A more useful application of the attached fit result is a method to
+make <code><a href="../reference/get_prm.html">get_prm()</a></code> work. Note, <code><a href="https://uupharmacometrics.github.io/xpose/reference/prm_table.html" class="external-link">xpose::prm_table()</a></code>
+does not work despite this new feature because it uses the original
+<code><a href="../reference/get_prm.html">get_prm()</a></code> defined within <code>xpose</code> namespace.
+Since <code><a href="https://uupharmacometrics.github.io/xpose/reference/prm_table.html" class="external-link">prm_table()</a></code> is a quick check convenience function to
+print in place, <code><a href="../reference/get_prm.html">get_prm()</a></code> was considered a better function
+to get working.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="op">{</span></span>
 <span><span class="fu">xpose.nlmixr2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/xpose.nlmixr2/man/xpose_data_nlmixr2.html" class="external-link">xpose_data_nlmixr2</a></span><span class="op">(</span><span class="va">fit.TOS</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="../reference/xp_xtras.html">as_xp_xtras</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="../reference/get_prm.html">get_prm</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="../reference/xp_xtras.html">as_xp_xtras</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu">xpose</span><span class="fu">::</span><span class="fu"><a href="https://uupharmacometrics.github.io/xpose/reference/get_prm.html" class="external-link">get_prm</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Error in get_prm(.) : No `nlmixr2` fit object found.</span></span>
-<span><span class="co">#&gt; <span style="font-weight: bold;">Caused by error in `rlang::exec()`:</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Assertion on 'FALSE' failed: Must be TRUE.</span></span>
+<span><span class="co">#&gt; Error : No `files` slot could be found in this xpdb.</span></span>
 <span><span class="fu">xpose.nlmixr2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/xpose.nlmixr2/man/xpose_data_nlmixr2.html" class="external-link">xpose_data_nlmixr2</a></span><span class="op">(</span><span class="va">fit.TOS</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/xp_xtras.html">as_xp_xtras</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/attach_nlmixr2.html">attach_nlmixr2</a></span><span class="op">(</span><span class="va">fit.TOS</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/get_prm.html">get_prm</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 20 × 12</span></span></span>
-<span><span class="co">#&gt;    type  name     label  value      se      rse fixed diagonal     m     n    cv</span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> the   tktr     <span style="color: #949494;">""</span>     0.104  2.20   21.1     FALSE <span style="color: #BB0000;">NA</span>           1    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> the   tka      <span style="color: #949494;">""</span>     0.302  2.18    7.23    FALSE <span style="color: #BB0000;">NA</span>           2    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> the   tcl      <span style="color: #949494;">""</span>    -<span style="color: #BB0000;">2.04</span>   0.109   0.053<span style="text-decoration: underline;">6</span>  FALSE <span style="color: #BB0000;">NA</span>           3    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> the   tv       <span style="color: #949494;">""</span>     2.06   0.091<span style="text-decoration: underline;">6</span>  0.044<span style="text-decoration: underline;">4</span>  FALSE <span style="color: #BB0000;">NA</span>           4    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> the   prop.err <span style="color: #949494;">""</span>     0.148 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE <span style="color: #BB0000;">NA</span>           5    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> the   pkadd.e… <span style="color: #949494;">""</span>     0.172 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE <span style="color: #BB0000;">NA</span>           6    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> the   temax    <span style="color: #949494;">""</span>     4.75   6.20    1.30    FALSE <span style="color: #BB0000;">NA</span>           7    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> the   tec50    <span style="color: #949494;">""</span>     0.157  0.229   1.46    FALSE <span style="color: #BB0000;">NA</span>           8    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> the   tkout    <span style="color: #949494;">""</span>    -<span style="color: #BB0000;">2.93</span>   0.128   0.043<span style="text-decoration: underline;">6</span>  FALSE <span style="color: #BB0000;">NA</span>           9    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> the   te0      <span style="color: #949494;">""</span>     4.57   0.039<span style="text-decoration: underline;">9</span>  0.008<span style="text-decoration: underline;">74</span> FALSE <span style="color: #BB0000;">NA</span>          10    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> the   pdadd.e… <span style="color: #949494;">""</span>     3.76  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE <span style="color: #BB0000;">NA</span>          11    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> ome   eta.ktr  <span style="color: #949494;">"</span>eta…  0.840 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         1     1 101. </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> ome   eta.ka   <span style="color: #949494;">"</span>eta…  0.944 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         2     2 120. </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> ome   eta.cl   <span style="color: #949494;">"</span>eta…  0.268 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         3     3  27.3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> ome   eta.v    <span style="color: #949494;">"</span>eta…  0.221 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         4     4  22.4</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">16</span> ome   eta.emax <span style="color: #949494;">"</span>eta…  0.590 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         5     5  64.5</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">17</span> ome   eta.ec50 <span style="color: #949494;">"</span>eta…  0.453 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         6     6  47.7</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> ome   eta.kout <span style="color: #949494;">"</span>eta…  0.153 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         7     7  15.4</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">19</span> ome   eta.e0   <span style="color: #949494;">"</span>eta…  0.103 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         8     8  10.3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">20</span> sig   sigma(1… <span style="color: #949494;">"</span>err<span style="color: #949494;">"</span>  1     <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       TRUE  TRUE         1     1  <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: shk &lt;num:3&gt;</span></span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/get_prm.html">get_prm</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="co"># Remove some columns for readability</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">fixed</span>,<span class="va">diagonal</span>,<span class="va">label</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 20 × 9</span></span></span>
+<span><span class="co">#&gt;    type  name         value      se      rse     m     n      cv     shk</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> the   tktr         0.104  2.20   21.1         1    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> the   tka          0.302  2.18    7.23        2    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> the   tcl         -<span style="color: #BB0000;">2.04</span>   0.109   0.053<span style="text-decoration: underline;">6</span>      3    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> the   tv           2.06   0.091<span style="text-decoration: underline;">6</span>  0.044<span style="text-decoration: underline;">4</span>      4    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> the   prop.err     0.148 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           5    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> the   pkadd.err    0.172 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           6    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> the   temax        4.75   6.20    1.30        7    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> the   tec50        0.157  0.229   1.46        8    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> the   tkout       -<span style="color: #BB0000;">2.93</span>   0.128   0.043<span style="text-decoration: underline;">6</span>      9    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> the   te0          4.57   0.039<span style="text-decoration: underline;">9</span>  0.008<span style="text-decoration: underline;">74</span>    10    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> the   pdadd.err    3.76  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>          11    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> ome   eta.ktr      0.840 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           1     1   101.     62.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> ome   eta.ka       0.944 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           2     2   120.     60.6</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> ome   eta.cl       0.268 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           3     3    27.3    -<span style="color: #BB0000;">0.1</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> ome   eta.v        0.221 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           4     4    22.4    10.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">16</span> ome   eta.emax     0.590 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           5     5    64.5    95.1</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">17</span> ome   eta.ec50     0.453 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           6     6    47.7     5.2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> ome   eta.kout     0.153 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           7     7    15.4    32.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">19</span> ome   eta.e0       0.103 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           8     8    10.3    39.6</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">20</span> sig   sigma(1,1)   1     <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           1     1    <span style="color: #BB0000;">NA</span>      10.7</span></span></code></pre></div>
 <p>To build on this, because <code>nlmixr2</code> coerces users to use
 mu-referencing and captures parameter associations automatically,
 another useful backfill includes mapping these parameter associations
-via <code><a href="../reference/add_prm_association.html">add_prm_association()</a></code>, by way of
+with <code><a href="../reference/add_prm_association.html">add_prm_association()</a></code>, by way of
 <code><a href="../reference/nlmixr2_prm_associations.html">nlmixr2_prm_associations()</a></code>. In this model,
 <code>temax</code> is logit transformed, so to keep assumptions valid in
-the CV% calculation it needs to be back-transformed (as indicated in the
+the CV% calculation it needs to be back-transformed (as indicated in a
 <code>cli</code> message).</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">xpose.nlmixr2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/xpose.nlmixr2/man/xpose_data_nlmixr2.html" class="external-link">xpose_data_nlmixr2</a></span><span class="op">(</span><span class="va">fit.TOS</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -266,37 +270,38 @@ the CV% calculation it needs to be back-transformed (as indicated in the
 <span>  <span class="fu"><a href="../reference/attach_nlmixr2.html">attach_nlmixr2</a></span><span class="op">(</span><span class="va">fit.TOS</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/nlmixr2_prm_associations.html">nlmixr2_prm_associations</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/mutate_prm.html">mutate_prm</a></span><span class="op">(</span><span class="va">temax</span> <span class="op">~</span> <span class="va">plogis</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/get_prm.html">get_prm</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 20 × 12</span></span></span>
-<span><span class="co">#&gt;    type  name   label  value      se      rse fixed diagonal     m     n      cv</span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> the   tktr   <span style="color: #949494;">""</span>     0.104  2.20   21.1     FALSE <span style="color: #BB0000;">NA</span>           1    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> the   tka    <span style="color: #949494;">""</span>     0.302  2.18    7.23    FALSE <span style="color: #BB0000;">NA</span>           2    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> the   tcl    <span style="color: #949494;">""</span>    -<span style="color: #BB0000;">2.04</span>   0.109   0.053<span style="text-decoration: underline;">6</span>  FALSE <span style="color: #BB0000;">NA</span>           3    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> the   tv     <span style="color: #949494;">""</span>     2.06   0.091<span style="text-decoration: underline;">6</span>  0.044<span style="text-decoration: underline;">4</span>  FALSE <span style="color: #BB0000;">NA</span>           4    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> the   prop.… <span style="color: #949494;">""</span>     0.148 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE <span style="color: #BB0000;">NA</span>           5    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> the   pkadd… <span style="color: #949494;">""</span>     0.172 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE <span style="color: #BB0000;">NA</span>           6    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> the   temax  <span style="color: #949494;">""</span>     0.991  0.362   0.365   FALSE <span style="color: #BB0000;">NA</span>           7    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> the   tec50  <span style="color: #949494;">""</span>     0.157  0.229   1.46    FALSE <span style="color: #BB0000;">NA</span>           8    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> the   tkout  <span style="color: #949494;">""</span>    -<span style="color: #BB0000;">2.93</span>   0.128   0.043<span style="text-decoration: underline;">6</span>  FALSE <span style="color: #BB0000;">NA</span>           9    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> the   te0    <span style="color: #949494;">""</span>     4.57   0.039<span style="text-decoration: underline;">9</span>  0.008<span style="text-decoration: underline;">74</span> FALSE <span style="color: #BB0000;">NA</span>          10    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> the   pdadd… <span style="color: #949494;">""</span>     3.76  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE <span style="color: #BB0000;">NA</span>          11    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> ome   eta.k… <span style="color: #949494;">"</span>eta…  0.840 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         1     1 101.   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> ome   eta.ka <span style="color: #949494;">"</span>eta…  0.944 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         2     2 120.   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> ome   eta.cl <span style="color: #949494;">"</span>eta…  0.268 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         3     3  27.3  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> ome   eta.v  <span style="color: #949494;">"</span>eta…  0.221 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         4     4  22.4  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">16</span> ome   eta.e… <span style="color: #949494;">"</span>eta…  0.590 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         5     5   0.647</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">17</span> ome   eta.e… <span style="color: #949494;">"</span>eta…  0.453 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         6     6  47.7  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> ome   eta.k… <span style="color: #949494;">"</span>eta…  0.153 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         7     7  15.4  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">19</span> ome   eta.e0 <span style="color: #949494;">"</span>eta…  0.103 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       FALSE TRUE         8     8  10.3  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">20</span> sig   sigma… <span style="color: #949494;">"</span>err<span style="color: #949494;">"</span>  1     <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>       TRUE  TRUE         1     1  <span style="color: #BB0000;">NA</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: shk &lt;num:3&gt;</span></span></span>
+<span>  <span class="fu"><a href="../reference/get_prm.html">get_prm</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="co"># Remove some columns for readability</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">fixed</span>,<span class="va">diagonal</span>,<span class="va">label</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 20 × 9</span></span></span>
+<span><span class="co">#&gt;    type  name         value      se      rse     m     n      cv     shk</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> the   tktr         0.104  2.20   21.1         1    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> the   tka          0.302  2.18    7.23        2    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> the   tcl         -<span style="color: #BB0000;">2.04</span>   0.109   0.053<span style="text-decoration: underline;">6</span>      3    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> the   tv           2.06   0.091<span style="text-decoration: underline;">6</span>  0.044<span style="text-decoration: underline;">4</span>      4    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> the   prop.err     0.148 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           5    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> the   pkadd.err    0.172 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           6    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> the   temax        0.991  0.362   0.365       7    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> the   tec50        0.157  0.229   1.46        8    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> the   tkout       -<span style="color: #BB0000;">2.93</span>   0.128   0.043<span style="text-decoration: underline;">6</span>      9    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> the   te0          4.57   0.039<span style="text-decoration: underline;">9</span>  0.008<span style="text-decoration: underline;">74</span>    10    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> the   pdadd.err    3.76  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>          11    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> ome   eta.ktr      0.840 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           1     1 101.       62.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> ome   eta.ka       0.944 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           2     2 120.       60.6</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> ome   eta.cl       0.268 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           3     3  27.3      -<span style="color: #BB0000;">0.1</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> ome   eta.v        0.221 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           4     4  22.4      10.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">16</span> ome   eta.emax     0.590 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           5     5   0.647    95.1</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">17</span> ome   eta.ec50     0.453 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           6     6  47.7       5.2</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> ome   eta.kout     0.153 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           7     7  15.4      32.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">19</span> ome   eta.e0       0.103 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           8     8  10.3      39.6</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">20</span> sig   sigma(1,1)   1     <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           1     1  <span style="color: #BB0000;">NA</span>        10.7</span></span>
 <span><span class="co">#&gt; <span style="color: #555555;"># Parameter table includes the following associations: </span><span style="color: #555555; font-weight: bold;">~log(eta.ktr)</span><span style="color: #555555;">,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555; font-weight: bold;">~log(eta.ka)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">~log(eta.cl)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">~log(eta.v)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">~logit(eta.emax)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">~log(eta.ec50)</span><span style="color: #555555;">,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555; font-weight: bold;">~log(eta.kout)</span><span style="color: #555555;">, and </span><span style="color: #555555; font-weight: bold;">~log(eta.e0)</span></span></span></code></pre></div>
 <p>That’s a lot of boilerplate to pipe through, so a convenience
 function has been developed to cover all of that. Note the parameter
-associations are mapped automatically, but we could skip that if we
+associations are mapped automatically, but we could skip that step if we
 weren’t planning to use <code><a href="../reference/get_prm.html">get_prm()</a></code> at all by setting
 <code>.skip_assoc=TRUE</code>.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
@@ -306,9 +311,9 @@ weren’t planning to use <code><a href="../reference/get_prm.html">get_prm()</a
 <h2 id="general-usage">General Usage<a class="anchor" aria-label="anchor" href="#general-usage"></a>
 </h2>
 <p>We covered most of the usage unique to this package in the Basics
-section, but this section is to illustrate all of the basic functions
-will continue to work. At time of writing, some missing properties are
-present and should be added with <a href="https://github.com/nlmixr2/xpose.nlmixr2/pull/5" class="external-link">pending PR</a> to
+section, but this section is to illustrate that common functions will
+continue to work. At time of writing, some missing properties are
+present and should be added with a <a href="https://github.com/nlmixr2/xpose.nlmixr2/pull/5" class="external-link">PR</a> to
 <code>xpose.nlmixr2</code> (these are not backfill candidates since they
 don’t exist in the summary element, violating how
 <code><a href="../reference/set_prop.html">set_prop()</a></code> was designed to work).</p>
@@ -364,99 +369,15 @@ don’t exist in the summary element, violating how
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-9-4.png" width="700"></p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="../reference/grid_plots.html">eta_vs_cov_grid</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, etavar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">eta.cl</span>,<span class="va">eta.v</span>,<span class="va">eta.ka</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
+<span><span class="fu"><a href="../reference/grid_plots.html">eta_vs_cov_grid</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, etavar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">eta.cl</span>,<span class="va">eta.v</span>,<span class="va">eta.ka</span><span class="op">)</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: nind is not part of the available keywords. Check ?template_titles for</span></span>
-<span><span class="co">#&gt; a full list.</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span></code></pre></div>
+<span><span class="co">#&gt; a full list.</span></span></code></pre></div>
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-9-5.png" width="700"></p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="../reference/grid_plots.html">eta_vs_cov_grid</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, etavar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">eta.kout</span>,<span class="va">eta.e0</span>,<span class="va">eta.emax</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
+<span><span class="fu"><a href="../reference/grid_plots.html">eta_vs_cov_grid</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, etavar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">eta.kout</span>,<span class="va">eta.e0</span>,<span class="va">eta.emax</span><span class="op">)</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: nind is not part of the available keywords. Check ?template_titles for</span></span>
-<span><span class="co">#&gt; a full list.</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span></code></pre></div>
+<span><span class="co">#&gt; a full list.</span></span></code></pre></div>
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-9-6.png" width="700"></p>
 </div>
 <div class="section level2">
@@ -464,9 +385,9 @@ don’t exist in the summary element, violating how
 </h2>
 <p>A simple change to the warfarin PK model is to use the same
 parameters for <code>ka</code> and <code>ktr</code>. In the PD model, we
-could also fix <code>emax</code> to one (and drop the interindividual
-variability). An analyst would explore these separately and then maybe
-combine them.</p>
+could also fix <code>emax</code> to <code>1</code> (and drop the
+interindividual variability). An analyst would explore these separately
+and then maybe combine them, as we have done below.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit.TOS.kaktr</span> <span class="op">&lt;-</span> <span class="va">fit.TOS</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu">model</span><span class="op">(</span><span class="op">{</span></span>
@@ -491,7 +412,7 @@ combine them.</p>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; calculating covariance matrix</span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:43 </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:44 </span></span>
 <span><span class="co">#&gt; done</span></span>
 <span></span>
 <span><span class="va">fit.TOS.emax1</span> <span class="op">&lt;-</span> <span class="va">fit.TOS</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -551,11 +472,30 @@ combine them.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Since these models were created with piping, need to update their labels</span></span>
 <span><span class="va">warf_ka</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nlmixr2_as_xtra.html">nlmixr2_as_xtra</a></span><span class="op">(</span><span class="va">fit.TOS.kaktr</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/set_prop.html">set_prop</a></span><span class="op">(</span>run<span class="op">=</span><span class="st">"fit.TOS.kaktr"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/set_prop.html">set_prop</a></span><span class="op">(</span>run<span class="op">=</span><span class="st">"fit.TOS.kaktr"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="co"># Just to remove github action path</span></span>
+<span>  <span class="fu"><a href="../reference/set_option.html">set_option</a></span><span class="op">(</span></span>
+<span>    dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"~"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_prop.html">set_prop</a></span><span class="op">(</span></span>
+<span>    dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"~"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="va">warf_emax</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nlmixr2_as_xtra.html">nlmixr2_as_xtra</a></span><span class="op">(</span><span class="va">fit.TOS.emax1</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/set_prop.html">set_prop</a></span><span class="op">(</span>run<span class="op">=</span><span class="st">"fit.TOS.emax1"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/set_prop.html">set_prop</a></span><span class="op">(</span>run<span class="op">=</span><span class="st">"fit.TOS.emax1"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_option.html">set_option</a></span><span class="op">(</span></span>
+<span>    dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"~"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_prop.html">set_prop</a></span><span class="op">(</span></span>
+<span>    dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"~"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
 <span><span class="va">warf_simple</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nlmixr2_as_xtra.html">nlmixr2_as_xtra</a></span><span class="op">(</span><span class="va">fit.TOS.simple</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/set_prop.html">set_prop</a></span><span class="op">(</span>run<span class="op">=</span><span class="st">"fit.TOS.simple"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/set_prop.html">set_prop</a></span><span class="op">(</span>run<span class="op">=</span><span class="st">"fit.TOS.simple"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_option.html">set_option</a></span><span class="op">(</span></span>
+<span>    dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"~"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_prop.html">set_prop</a></span><span class="op">(</span></span>
+<span>    dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"~"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">warfarin_set</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xpose_set.html">xpose_set</a></span><span class="op">(</span></span>
 <span>  <span class="va">nlmixr2_warfarin</span>, <span class="va">warf_ka</span>, <span class="va">warf_emax</span>, <span class="va">warf_simple</span>,</span>
@@ -567,6 +507,7 @@ combine them.</p>
 <span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="co"># Add iOFVs</span></span>
 <span>  <span class="fu"><a href="../reference/focus_xpdb.html">focus_qapply</a></span><span class="op">(</span><span class="va">backfill_iofv</span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">warfarin_set</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="color: #0000BB; font-weight: bold;">xpose_set</span><span style="font-weight: bold;"> object</span> <span style="color: #00BBBB;">────────────────────────────────────────────────────────────</span></span></span>
@@ -577,17 +518,42 @@ combine them.</p>
 <span><span class="co">#&gt; • Exposed properties: none</span></span>
 <span><span class="co">#&gt; • Base model: none</span></span>
 <span></span>
+<span><span class="va">warfarin_set</span><span class="op">$</span><span class="va">warf_simple</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Part of an xpose_set, with label: </span><span style="color: #0000BB; font-weight: bold;">warf_simple</span> <span style="color: #00BBBB;">───────────────────────────────</span></span></span>
+<span><span class="co">#&gt; • Parent(s): warf_ka and warf_emax</span></span>
+<span><span class="co">#&gt; • In focus?: no</span></span>
+<span><span class="co">#&gt; • Base model?: no</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── xpdb object (accessible with <span style="color: #0000BB;">{xpose_set}$warf_simple$xpdb</span>): </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── ~ xp_xtras object </span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">Model description</span>: not implemented</span></span>
+<span><span class="co">#&gt; fit.TOS.simple overview: </span></span>
+<span><span class="co">#&gt;  - Software: nlmixr2 4.1.0 </span></span>
+<span><span class="co">#&gt;  - Attached files (memory usage 693.4 Kb): </span></span>
+<span><span class="co">#&gt;    + obs tabs: $prob no.1 (modified): na, nlmixr2 </span></span>
+<span><span class="co">#&gt;    + sim tabs: &lt;none&gt; </span></span>
+<span><span class="co">#&gt;    + output files: &lt;none&gt; </span></span>
+<span><span class="co">#&gt;    + special: &lt;none&gt; </span></span>
+<span><span class="co">#&gt;    + fit: attached as (this)$fit</span></span>
+<span><span class="co">#&gt;  - gg_theme: :: xpose theme_readable </span></span>
+<span><span class="co">#&gt;  - xp_theme: xp_xtra_theme new_x$xp_theme </span></span>
+<span><span class="co">#&gt;  - Options: dir = ~, quiet = TRUE, manual_import = NULL, cvtype = exact</span></span>
+<span></span>
 <span><span class="va">warfarin_set</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/expose_property.html">expose_property</a></span><span class="op">(</span><span class="va">ofv</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/expose_property.html">expose_property</a></span><span class="op">(</span><span class="va">condn</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/reshape_set.html">reshape_set</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 7</span></span></span>
-<span><span class="co">#&gt;   xpdb         label            parent       base  focus ..ofv  ..condn</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;named list&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;named list&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   nlmixr2_warfarin <span style="color: #949494;">&lt;chr [1]&gt;</span>    FALSE FALSE <span style="text-decoration: underline;">1</span>400. 3<span style="text-decoration: underline;">395</span>179.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_ka          <span style="color: #949494;">&lt;chr [1]&gt;</span>    FALSE FALSE <span style="text-decoration: underline;">1</span>338.   <span style="text-decoration: underline;">21</span>266.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_emax        <span style="color: #949494;">&lt;chr [1]&gt;</span>    FALSE FALSE <span style="text-decoration: underline;">1</span>351.     464.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_simple      <span style="color: #949494;">&lt;chr [2]&gt;</span>    FALSE FALSE <span style="text-decoration: underline;">1</span>338.     269.</span></span>
+<span>  <span class="fu"><a href="../reference/reshape_set.html">reshape_set</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="co"># Remove some columns for readability</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">parent</span>,<span class="va">base</span>,<span class="va">focus</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 4</span></span></span>
+<span><span class="co">#&gt;   xpdb         label            ..ofv  ..condn</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;named list&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   nlmixr2_warfarin <span style="text-decoration: underline;">1</span>400. 3<span style="text-decoration: underline;">395</span>179.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_ka          <span style="text-decoration: underline;">1</span>338.   <span style="text-decoration: underline;">21</span>266.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_emax        <span style="text-decoration: underline;">1</span>351.     464.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_simple      <span style="text-decoration: underline;">1</span>338.     269.</span></span>
 <span></span>
 <span><span class="va">warfarin_set</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/shark_plot.html">dofv_vs_id</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, <span class="va">warf_simple</span>, .inorder <span class="op">=</span> <span class="cn">TRUE</span>, df<span class="op">=</span><span class="fl">1</span><span class="op">)</span></span>
@@ -599,6 +565,8 @@ combine them.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">warfarin_set</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="co"># This comparison should be more interesting</span></span>
+<span>  <span class="fu"><a href="../reference/focus_xpdb.html">focus_qapply</a></span><span class="op">(</span><span class="va">set_var_types</span>, param<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">KA</span>,<span class="va">EC50</span><span class="op">)</span>, na<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">CL</span>, <span class="va">V</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/waterfalls.html">prm_waterfall</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, <span class="va">warf_simple</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Using data from $prob no.1</span></span>
 <span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
@@ -649,25 +617,16 @@ parameters as <code>param</code> type variables.</p>
 <span></span>
 <span><span class="fu"><a href="../reference/derive_prm.html">derive_prm</a></span><span class="op">(</span><span class="va">nlmixr2_m3</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">ID</span>,<span class="va">KA</span>,<span class="va">CL</span>,<span class="va">VSS</span><span class="op">:</span><span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">last_col</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Using data from $prob no.1</span></span>
 <span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt;        ID          KA               CL             VSS           T12ALPHA     </span></span>
-<span><span class="co">#&gt;  1      :1   Min.   :0.7002   Min.   :1.729   Min.   :26.25   Min.   : 6.094  </span></span>
-<span><span class="co">#&gt;  2      :1   1st Qu.:1.0031   1st Qu.:2.407   1st Qu.:28.64   1st Qu.: 6.699  </span></span>
-<span><span class="co">#&gt;  3      :1   Median :1.4240   Median :2.974   Median :31.39   Median : 7.408  </span></span>
-<span><span class="co">#&gt;  4      :1   Mean   :1.8523   Mean   :2.921   Mean   :31.31   Mean   : 7.751  </span></span>
-<span><span class="co">#&gt;  5      :1   3rd Qu.:1.9679   3rd Qu.:3.298   3rd Qu.:33.28   3rd Qu.: 7.836  </span></span>
-<span><span class="co">#&gt;  6      :1   Max.   :5.7476   Max.   :4.200   Max.   :36.93   Max.   :11.619  </span></span>
-<span><span class="co">#&gt;  (Other):6                                                                    </span></span>
-<span><span class="co">#&gt;      ALPHA               A               FRACA  </span></span>
-<span><span class="co">#&gt;  Min.   :0.05965   Min.   :0.02708   Min.   :1  </span></span>
-<span><span class="co">#&gt;  1st Qu.:0.08848   1st Qu.:0.03006   1st Qu.:1  </span></span>
-<span><span class="co">#&gt;  Median :0.09359   Median :0.03186   Median :1  </span></span>
-<span><span class="co">#&gt;  Mean   :0.09221   Mean   :0.03229   Mean   :1  </span></span>
-<span><span class="co">#&gt;  3rd Qu.:0.10347   3rd Qu.:0.03493   3rd Qu.:1  </span></span>
-<span><span class="co">#&gt;  Max.   :0.11374   Max.   :0.03809   Max.   :1  </span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   ID        KA       CL      VSS  T12ALPHA      ALPHA          A FRACA</span></span>
+<span><span class="co">#&gt; 1  1 1.7251120 1.729018 28.98376 11.619316 0.05965473 0.03450208     1</span></span>
+<span><span class="co">#&gt; 2 10 0.7766272 1.877865 26.98758  9.961507 0.06958256 0.03705408     1</span></span>
+<span><span class="co">#&gt; 3 11 3.1875227 3.793889 35.58941  6.502218 0.10660165 0.02809825     1</span></span>
+<span><span class="co">#&gt; 4 12 0.9618226 2.418444 26.25119  7.523821 0.09212701 0.03809351     1</span></span>
+<span><span class="co">#&gt; 5  2 1.8883358 3.263475 31.49839  6.690114 0.10360769 0.03174766     1</span></span>
+<span><span class="co">#&gt; 6  3 2.2065158 2.938127 32.87793  7.756385 0.08936472 0.03041554     1</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># If param has no vars, .prm should be set</span></span>
@@ -699,7 +658,10 @@ parameters as <code>param</code> type variables.</p>
 <span><span class="co">#&gt;  - Not attributed (na)                   : IRES, CRES</span></span></code></pre></div>
 <p>These derived parameters can be fed into
 <code><a href="../reference/diagnose_constants.html">diagnose_constants()</a></code> to perform some quick checks for
-common issues.</p>
+common issues. In this case, we have both <code>VC</code> (derived) and
+<code>V</code> (fitted) representing the same quantity, so to avoid
+catching both in the volume check (which per the documentation should
+only be one volume) the <code>vol_pattern</code> has been updated.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nlmixr2_m3</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/derive_prm.html">backfill_derived</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -791,15 +753,15 @@ common issues.</p>
 <span><span class="co">#&gt; [52] jsonlite_2.0.0        PreciseSums_0.7       hms_1.1.3            </span></span>
 <span><span class="co">#&gt; [55] systemfonts_1.2.3     tidyr_1.3.1           jquerylib_0.1.4      </span></span>
 <span><span class="co">#&gt; [58] rxode2ll_2.0.13       glue_1.8.0            pkgdown_2.1.3        </span></span>
-<span><span class="co">#&gt; [61] ggstats_0.10.0        stringi_1.8.7         gtable_0.3.6         </span></span>
-<span><span class="co">#&gt; [64] tibble_3.3.0          pillar_1.11.0         htmltools_0.5.8.1    </span></span>
-<span><span class="co">#&gt; [67] R6_2.6.1              textshaping_1.0.3     conflicted_1.2.0     </span></span>
-<span><span class="co">#&gt; [70] evaluate_1.0.5        lattice_0.22-7        readr_2.1.5          </span></span>
-<span><span class="co">#&gt; [73] backports_1.5.0       vpc_1.2.2             qs_0.27.3            </span></span>
-<span><span class="co">#&gt; [76] memoise_2.0.1         n1qn1_6.0.1-12        bslib_0.9.0          </span></span>
-<span><span class="co">#&gt; [79] Rcpp_1.1.0            nlme_3.1-168          checkmate_2.3.3      </span></span>
-<span><span class="co">#&gt; [82] mgcv_1.9-3            xfun_0.53             fs_1.6.6             </span></span>
-<span><span class="co">#&gt; [85] forcats_1.0.0         pkgconfig_2.0.3</span></span></code></pre></div>
+<span><span class="co">#&gt; [61] ggstats_0.10.0        codetools_0.2-20      stringi_1.8.7        </span></span>
+<span><span class="co">#&gt; [64] gtable_0.3.6          tibble_3.3.0          pillar_1.11.0        </span></span>
+<span><span class="co">#&gt; [67] htmltools_0.5.8.1     R6_2.6.1              textshaping_1.0.3    </span></span>
+<span><span class="co">#&gt; [70] conflicted_1.2.0      evaluate_1.0.5        lattice_0.22-7       </span></span>
+<span><span class="co">#&gt; [73] readr_2.1.5           backports_1.5.0       vpc_1.2.2            </span></span>
+<span><span class="co">#&gt; [76] qs_0.27.3             memoise_2.0.1         n1qn1_6.0.1-12       </span></span>
+<span><span class="co">#&gt; [79] bslib_0.9.0           Rcpp_1.1.0            nlme_3.1-168         </span></span>
+<span><span class="co">#&gt; [82] checkmate_2.3.3       mgcv_1.9-3            xfun_0.53            </span></span>
+<span><span class="co">#&gt; [85] fs_1.6.6              forcats_1.0.0         pkgconfig_2.0.3</span></span></code></pre></div>
 </details>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
