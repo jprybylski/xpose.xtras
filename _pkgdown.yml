@@ -15,8 +15,9 @@ reference:
       - as_leveler
       - is_leveler
       - backfill_iofv
-      - backfill_nlmixr2_props
+      - matches("nlmixr2")
       - xp_var
+      - check_levels
 
   - title: "xpose sets"
     desc: "Work with collections of models using `xpose_set`."
@@ -35,6 +36,7 @@ reference:
       - mutate_prm
       - add_relationship
       - remove_relationship
+      - "%p%"
 
   - title: "Plotting helpers"
     desc: "Additional plotting functions and themes extending xpose."
@@ -88,4 +90,14 @@ reference:
       - test_xpdb
       - starts_with("franken_")
       - irep
+      - derive_prm
+      - diagnose_constants
+      - get_prm
+      - get_shk
+      - list_vars
+
+  - title: "Data"
+    desc: "Example objects for documentation."
+    contents:
+      - has_keyword("datasets")
 

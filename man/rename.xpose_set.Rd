@@ -21,5 +21,5 @@ Renaming method for xpose_set
 xpdb_set \%>\%
   rename(Mod = mod1)
 
-
 }
+\keyword{internal}

@@ -251,7 +251,7 @@ set_index <- function(xpdb, index, ...) {
 #' @returns `<logical>` `TRUE` if is a list of formulas
 #'
 #' @param x object to test
-#'
+#' @keywords internal
 #' @export
 is_formula_list <- function(x) {
   if (!is.list(x)) return(FALSE)
@@ -430,7 +430,7 @@ desc_from_comments <- function(
 #' @param envir <`environment`> in which to assign the problem info.
 #' @param for_summary <`logical`> If used for summary functions, subprob needs to be adjusted for zero-indexing
 #'
-#' @keywords Internal
+#' @keywords internal
 #'
 fill_prob_subprob_method <- function(xpdb, .problem, .subprob, .method, envir=parent.frame(), for_summary = FALSE) {
 

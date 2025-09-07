@@ -30,4 +30,4 @@ fill_prob_subprob_method(
 Since this is a common need, it is being functionalized
 to ensure consistency.
 }
-\keyword{Internal}
+\keyword{internal}

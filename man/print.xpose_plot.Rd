@@ -28,3 +28,4 @@ print(my_plot)
 my_plot
 
 }
+\keyword{internal}

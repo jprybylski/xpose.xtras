@@ -23,3 +23,4 @@ xpdb_set \%>\%
   pull(xpdb)
 
 }
+\keyword{internal}

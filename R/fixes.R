@@ -347,7 +347,7 @@ ungroup_x <- function(.data, ..., .problem, .source, .where) {
 #' @param page The page number to be drawn. Can be specified as vector or range
 #' of integer values.
 #' @param ... Options to be passed on to the ggplot2 print method.
-#'
+#' @keywords internal
 #' @examples
 #' my_plot <- xpose::dv_vs_ipred(xpose::xpdb_ex_pk) +
 #'             ggplot2::labs(title = 'A label with keywords: @nind individuals & @nobs observations')

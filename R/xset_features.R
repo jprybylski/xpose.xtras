@@ -90,6 +90,7 @@ unset_base_model <- function(xpdb_s) {
 #'
 #' @returns <`numeric`> vector of deltaOFV values
 #' @export
+#' @keywords internal
 #' @exportS3Method base::diff
 #'
 diff.xpose_set <- function(x, ...) {

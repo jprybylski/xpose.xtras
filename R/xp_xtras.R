@@ -392,7 +392,7 @@ check_levels <- function(lvl_list, index) {
 #' Consumes formula list and converts into corresponding tibble.
 #'
 #' @param lvl_list <`list`> of formulas
-#'
+#' @keywords internal
 #' @return <`tibble`> of levels
 #'
 proc_levels <-  function(lvl_list) {

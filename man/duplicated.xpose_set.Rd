@@ -19,3 +19,4 @@ A logical vector or list of logical vectors
 \description{
 Check if any xpose_data objects are repeated in xpose_set
 }
+\keyword{internal}
