@@ -41,6 +41,11 @@ as_xpdb_x <- function(x) {
     new_x <- xpose::update_themes(xpdb = xpose::as.xpdb(new_x), xp_theme = xp_xtra_theme(new_x$xp_theme))
 
 
+    # If software is nlmixr2, make sure to apply updated theme
+    if (xpose::software(new_x)=="nlmixr2")
+      new_x <- xpose::update_themes(xpdb = xpose::as.xpdb(new_x), gg_theme = xpose::theme_readable)
+
+
     # Space for pars (empty dummy)
     new_x$pars <- proc_assc(list(a~fun(b,h=1)),1,1,"") %>% dplyr::slice(0)
     # Corresponding option
@@ -48,9 +53,6 @@ as_xpdb_x <- function(x) {
   }
 
 
-  # If software is nlmixr2, make sure to apply updated theme
-  if (xpose::software(new_x)=="nlmixr2")
-    new_x <- xpose::update_themes(xpdb = xpose::as.xpdb(new_x), gg_theme = xpose::theme_readable)
 
   # Now just declare class
   new_x <- structure(
