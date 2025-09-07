@@ -31,6 +31,9 @@ roc_by_mod(
 
 \item{mapping}{\code{ggplot2} style mapping}
 
+\item{cutpoint}{<\code{numeric}> Of defined probabilities, which one to
+use in plots.}
+
 \item{type}{See Details.}
 
 \item{title}{Plot title}

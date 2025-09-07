@@ -75,7 +75,7 @@ vismo_xpdb %>%
   catdv_vs_dvprobs(cutpoint = 3, quiet=TRUE)
 ```
 
-While boxplots and similar are often used in pharmacometrics to visualize these results (or similar in exposure-response), in the realm of machine learning Reciever Operating Characteristics (ROC) curves are also applied to this purpose. To that end, a collection of ROC curve and space plotting functions have been made available.
+While boxplots and similar are often used in pharmacometrics to visualize these results (or similar in exposure-response), in the realm of machine learning Receiver Operating Characteristics (ROC) curves are also applied to this purpose. To that end, a collection of ROC curve and space plotting functions have been made available.
 
 Most applications of `catdv_vs_dvprobs()` can be easily repurposed:
 
@@ -88,7 +88,7 @@ vismo_xpdb %>%
 ```
 For ROC space plots, a common grouping is by ID. While there may be a lot of overlap in the upper left region (the section of the plot where BLQs are most accurately predicted), the fewer points with lower accuracy (ID 86, for example) are readily identified as potential outliers.
 
-```{r roc_ex1, fig.width=unit(7,"in"), fig.height=unit(5,"in")}
+```{r roc_ex2, fig.width=unit(7,"in"), fig.height=unit(5,"in")}
 described_pkpd_m3 %>%
   roc_plot(quiet=TRUE, group="ID", type="pt")
 ```

@@ -72,6 +72,8 @@ confmatr_by_threshold <- function(
 #' ROC Plot for categorical DVs
 #'
 #' @inheritParams catdv_vs_dvprobs
+#' @param group Variable by which to group points or text
+#' @param guide Include unity line?
 #'
 #'
 #' @inherit xplot_rocplot details
@@ -84,6 +86,7 @@ confmatr_by_threshold <- function(
 #' @examples
 #' # Note these examples are similar to catdv_vs_dvprobs
 #'
+#' \dontrun{
 #' # Test M3 model
 #' pkpd_m3 %>%
 #'   # Need to ensure var types are set
@@ -114,7 +117,7 @@ confmatr_by_threshold <- function(
 #'   set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)
 #' vismo_xpdb2 %>%
 #'   roc_plot(cutpoint=2, type = "cak")
-#'
+#' }
 #'
 roc_plot <- function(xpdb,
                         mapping  = NULL,
@@ -193,10 +196,12 @@ roc_plot <- function(xpdb,
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' vismo_pomod  %>%
 #'   set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\d+$")) %>%
 #'   set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23) %>%
 #'   ind_roc()
+#' }
 ind_roc <- function(xpdb,
                     mapping = NULL,
                     cutpoint = 1,
@@ -273,6 +278,8 @@ ind_roc <- function(xpdb,
 #'
 #' @inheritParams xplot_rocplot
 #' @inheritParams iofv_vs_mod
+#' @param cutpoint <`numeric`> Of defined probabilities, which one to
+#' use in plots.
 #' @param roc_args Additional arguments to pass to [xplot_rocplot()]
 #'
 #' @export

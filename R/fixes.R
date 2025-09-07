@@ -224,17 +224,17 @@ edit_xpose_data <- function(.fun, .fname, .data, ..., .problem, .source, .where,
     xpdb[['special']] <- xpdb[['special']] %>%
       dplyr::group_by_at(.vars = 'problem')
 
-    ## TEMP handling
-    if (exists("tidyr_new_interface", envir = rlang::ns_env("xpose")) &&
-        xpose::tidyr_new_interface()) {
+    ## TEMP handling (commented as tidyr_new_interface is no longer exported, so probably not relevant)
+    # if (exists("tidyr_new_interface", envir = rlang::ns_env("xpose")) &&
+    #     xpose::tidyr_new_interface()) {
       xpdb[['special']] <- xpdb[['special']] %>%
         tidyr::nest(tmp = -dplyr::one_of('problem')) %>%
         dplyr::ungroup()
-    } else {
-      xpdb[['special']] <- xpdb[['special']] %>%
-        tidyr::nest(.key = 'tmp') %>%
-        dplyr::ungroup()
-    }
+    # } else {
+    #   xpdb[['special']] <- xpdb[['special']] %>%
+    #     tidyr::nest(.key = 'tmp') %>%
+    #     dplyr::ungroup()
+    # }
     ## END TEMP
 
     xpdb[['special']]$tmp <- purrr::map_if(.x = xpdb[['special']]$tmp, .p = xpdb[['special']]$problem %in% .problem,

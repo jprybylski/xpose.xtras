@@ -1,6 +1,6 @@
 
 
-#' Derive full parameter set for mammilary PK model
+#' Derive full parameter set for mammillary PK model
 #'
 #' This function applies [`rxode2::rxDerived`] to model parameters.
 #'

@@ -3,7 +3,7 @@
 \name{derive_prm}
 \alias{derive_prm}
 \alias{backfill_derived}
-\title{Derive full parameter set for mammilary PK model}
+\title{Derive full parameter set for mammillary PK model}
 \usage{
 derive_prm(
   xpdb,

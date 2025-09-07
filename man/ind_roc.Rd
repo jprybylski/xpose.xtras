@@ -66,8 +66,10 @@ threshold is \code{thres_fixed}) (using \code{geom_point})
 }
 }
 \examples{
+\dontrun{
 vismo_pomod  \%>\%
   set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\\\d+$")) \%>\%
   set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23) \%>\%
   ind_roc()
+}
 }

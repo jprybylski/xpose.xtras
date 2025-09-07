@@ -29,6 +29,8 @@ roc_plot(
 \item{cutpoint}{<\code{numeric}> Of defined probabilities, which one to
 use in plots.}
 
+\item{group}{Variable by which to group points or text}
+
 \item{type}{See Details.}
 
 \item{title}{Plot title}
@@ -38,6 +40,8 @@ use in plots.}
 \item{caption}{Plot caption}
 
 \item{tag}{Plot tag}
+
+\item{guide}{Include unity line?}
 
 \item{facets}{Additional facets}
 
@@ -67,6 +71,7 @@ threshold is \code{thres_fixed}) (using \code{geom_point})
 \examples{
 # Note these examples are similar to catdv_vs_dvprobs
 
+\dontrun{
 # Test M3 model
 pkpd_m3 \%>\%
   # Need to ensure var types are set
@@ -97,7 +102,7 @@ vismo_xpdb2  <- vismo_dtmm   \%>\%
   set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)
 vismo_xpdb2 \%>\%
   roc_plot(cutpoint=2, type = "cak")
-
+}
 
 }
 \seealso{

@@ -1,5 +1,5 @@
 ---
-title: "nlmxir2 Support"
+title: "nlmixr2 Support"
 ---
 
 ```{r, include = FALSE}

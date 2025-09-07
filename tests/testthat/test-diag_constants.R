@@ -71,7 +71,6 @@ test_that('diagnose_constants flip_flop check works', {
 })
 
 test_that('diagnose_constants detects negative microconstants or volumes', {
-  withr::local_options(list(cli.num_colors = 1))
   df_bad <- data.frame(KA = 1, KEL = -0.2, V = 5)
   suppressMessages(expect_message(
     diagnose_constants(

@@ -4,7 +4,7 @@
 * Bugs regarding covariate plotting functions were resolved.
 * nlmixr2 compatibility implemented
 * ROC curve plots added
-* Updated docomentation and pkgdown site
+* Updated documentation and pkgdown site
 
 # xpose.xtras 0.0.3
 

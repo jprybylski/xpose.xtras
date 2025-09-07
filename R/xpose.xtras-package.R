@@ -22,6 +22,7 @@
 #' @importFrom stats setNames
 #' @importFrom utils capture.output
 #' @importFrom utils data
+#' @importFrom utils head
 #' @importFrom utils modifyList
 #' @importFrom utils tail
 ## usethis namespace: end
