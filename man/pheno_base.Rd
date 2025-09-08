@@ -11,7 +11,7 @@ An \code{xp_xtras} object.
 }
 }
 \source{
-\url{https://doi.org/10.1159/000457062} and nlmixr2data::pheno_sd
+\doi{doi:10.1159/000457062} and nlmixr2data::pheno_sd
 }
 \usage{
 pheno_base

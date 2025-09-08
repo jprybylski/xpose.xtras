@@ -100,7 +100,7 @@
 #' @references
 #' Prybylski, J.P. Reporting Coefficient of Variation for Logit, Box-Cox and
 #' Other Non-log-normal Parameters. Clin Pharmacokinet 63, 133-135 (2024).
-#' https://doi.org/10.1007/s40262-023-01343-2
+#' \doi{doi:10.1007/s40262-023-01343-2}
 #'
 #' @seealso [`dist.intcv`][pmxcv::dist.intcv()]
 #'
@@ -457,7 +457,7 @@ param_selector <- function(
 #' @references
 #' Prybylski, J.P. Reporting Coefficient of Variation for Logit, Box-Cox and
 #' Other Non-log-normal Parameters. Clin Pharmacokinet 63, 133-135 (2024).
-#' https://doi.org/10.1007/s40262-023-01343-2
+#' \doi{doi:10.1007/s40262-023-01343-2}
 #'
 #'
 #' @examples
@@ -662,7 +662,11 @@ get_prm.xp_xtras <- function(
 
   store_associations <- NULL
   if (length(impacted_omegas)>0) {
-    store_associations <- stringr::str_c(def_prm$label[par_asscs$thnums],'~',
+    # For nlmixr2, use name instead of label
+    lhs_assoc <- def_prm$label[par_asscs$thnums]
+    if (xpose::software(xpdb)=="nlmixr2")
+      lhs_assoc <- def_prm$name[par_asscs$thnums]
+    store_associations <- stringr::str_c(lhs_assoc,'~',
                    par_asscs$assoc,'(',def_prm$label[par_asscs$omnums],')')
   }
 

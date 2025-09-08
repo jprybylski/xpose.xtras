@@ -11,7 +11,7 @@ An \code{xp_xtras} object.
 }
 }
 \source{
-\url{https://doi.org/10.1002/psp4.13219}
+\doi{doi:10.1002/psp4.13219}
 }
 \usage{
 pkpd_m3_df
@@ -23,6 +23,6 @@ The dataset used to fit the \code{\link{pkpd_m3}} model.
 Prybylski JP. Indirect modeling of derived outcomes:
 Are minor prediction discrepancies a cause for concern?
 CPT Pharmacometrics Syst Pharmacol. 2024; 00: 1-9.
-doi:10.1002/psp4.13219
+\doi{doi:10.1002/psp4.13219}
 }
 \keyword{datasets}

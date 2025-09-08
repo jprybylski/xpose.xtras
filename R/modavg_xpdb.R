@@ -34,7 +34,7 @@
 #' Day, R.O. and Wicha, S.G. (2021), A Model Averaging/Selection Approach
 #' Improves the Predictive Performance of Model-Informed Precision Dosing:
 #' Vancomycin as a Case Study. Clin. Pharmacol. Ther., 109: 175-183.
-#' https://doi.org/10.1002/cpt.2065
+#' \doi{doi:10.1002/cpt.2065}
 #'
 #' @examples
 #'

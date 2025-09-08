@@ -34,6 +34,6 @@ Analysis of Longitudinal-Ordered Categorical Data for
 Muscle Spasm Adverse Event of Vismodegib: Comparison
 Between Different Pharmacometric Models. CPT
 Pharmacometrics Syst. Pharmacol., 9: 96-105.
-\url{https://doi.org/10.1002/psp4.12487}
+\doi{doi:10.1002/psp4.12487}
 }
 \keyword{datasets}
