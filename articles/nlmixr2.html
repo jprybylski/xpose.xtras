@@ -61,7 +61,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>nlmixr2 Support</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jprybylski/xpose.xtras/blob/v0.1.0/vignettes/articles/nlmixr2.Rmd" class="external-link"><code>vignettes/articles/nlmixr2.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jprybylski/xpose.xtras/blob/master/vignettes/articles/nlmixr2.Rmd" class="external-link"><code>vignettes/articles/nlmixr2.Rmd</code></a></small>
       <div class="d-none name"><code>nlmixr2.Rmd</code></div>
     </div>
 
@@ -296,9 +296,9 @@ the CV% calculation it needs to be back-transformed (as indicated in a
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> ome   eta.kout     0.153 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           7     7  15.4      32.3</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">19</span> ome   eta.e0       0.103 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           8     8  10.3      39.6</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">20</span> sig   sigma(1,1)   1     <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           1     1  <span style="color: #BB0000;">NA</span>        10.7</span></span>
-<span><span class="co">#&gt; <span style="color: #555555;"># Parameter table includes the following associations: </span><span style="color: #555555; font-weight: bold;">~log(eta.ktr)</span><span style="color: #555555;">,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555; font-weight: bold;">~log(eta.ka)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">~log(eta.cl)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">~log(eta.v)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">~logit(eta.emax)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">~log(eta.ec50)</span><span style="color: #555555;">,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555; font-weight: bold;">~log(eta.kout)</span><span style="color: #555555;">, and </span><span style="color: #555555; font-weight: bold;">~log(eta.e0)</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #555555;"># Parameter table includes the following associations: </span><span style="color: #555555; font-weight: bold;">tktr~log(eta.ktr)</span><span style="color: #555555;">,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #555555; font-weight: bold;">tka~log(eta.ka)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">tcl~log(eta.cl)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">tv~log(eta.v)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">temax~logit(eta.emax)</span><span style="color: #555555;">,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #555555; font-weight: bold;">tec50~log(eta.ec50)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">tkout~log(eta.kout)</span><span style="color: #555555;">, and </span><span style="color: #555555; font-weight: bold;">te0~log(eta.e0)</span></span></span></code></pre></div>
 <p>That’s a lot of boilerplate to pipe through, so a convenience
 function has been developed to cover all of that. Note the parameter
 associations are mapped automatically, but we could skip that step if we
@@ -412,7 +412,7 @@ and then maybe combine them, as we have done below.</p>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; calculating covariance matrix</span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:44 </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:43 </span></span>
 <span><span class="co">#&gt; done</span></span>
 <span></span>
 <span><span class="va">fit.TOS.emax1</span> <span class="op">&lt;-</span> <span class="va">fit.TOS</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
