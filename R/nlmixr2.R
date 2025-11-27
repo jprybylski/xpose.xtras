@@ -135,6 +135,13 @@ backfill_nlmixr2_props <- function(xpdb) {
   assert_nlmixr2fit(xpdb)
   rlang::check_installed("rxode2") # This would be installed
 
+  sigdig_bc <- 3 # backwards-compatible sigdig
+  if (utils::packageVersion("nlmixr2")<"5.0") {
+    sigdig_bc <- rxode2::rxGetControl(xpdb$fit$ui, "sigdig", 3L)
+  } else {
+    sigdig_bc <- xpdb$fit$control$rxControl$sigdig
+  }
+
   xpdb %>%
   # Condition number
   set_prop(
@@ -142,7 +149,7 @@ backfill_nlmixr2_props <- function(xpdb) {
   ) %>%
   # Significant digits
   set_prop(
-    nsig = rxode2::rxGetControl(xpdb$fit$ui, "sigdig", 3L)
+    nsig = sigdig_bc
   )
 }
 
