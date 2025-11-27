@@ -142,7 +142,7 @@ backfill_nlmixr2_props <- function(xpdb) {
   ) %>%
   # Significant digits
   set_prop(
-    nsig = rxode2::rxGetControl(xpdb$fit$ui, "sigdig", 3L)
+    nsig = xpdb$fit$control$rxControl$sigdig
   )
 }
 
