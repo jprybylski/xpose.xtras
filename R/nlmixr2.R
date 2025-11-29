@@ -149,6 +149,7 @@ backfill_nlmixr2_props <- function(xpdb) {
       )
   }
   if (inherits(sigdig_bc, "try-error")) sigdig_bc <- 3
+  if (length(sigdig_bc)!=1) sigdig_bc <- 3
 
   xpdb %>%
   # Condition number
