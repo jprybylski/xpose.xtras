@@ -1,7 +1,7 @@
 # xpose.xtras
 
 # xpose.xtras 0.1.1
-* Minor compatibility changes for nlmixr2 5.0
+* Improved nlmixr2 5.0 backwards compatibility
 
 # xpose.xtras 0.1.0
 * Bugs regarding covariate plotting functions were resolved.

@@ -135,21 +135,32 @@ backfill_nlmixr2_props <- function(xpdb) {
   assert_nlmixr2fit(xpdb)
   rlang::check_installed("rxode2") # This would be installed
 
-  sigdig_bc <- 3 # backwards-compatible sigdig
-  # Fallback to not implemented for edge cases and until 5.0 release
-  if (utils::packageVersion("nlmixr2est")<"5.0" && rlang::is_installed("qs")) {
+  sigdig_bc <- 3 # backwards-compatible default sigdig
+
+  # Detect nlmixr2est version to determine which API to use
+  # nlmixr2est < 5.0.0: Uses qs serialization and rxGetControl() for sigdig
+  # nlmixr2est >= 5.0.0: No qs dependency, uses fit$control$rxControl$sigdig
+  nlmixr2est_ver <- utils::packageVersion("nlmixr2est")
+
+  if (nlmixr2est_ver < "5.0.0" && rlang::is_installed("qs")) {
+    # Old API: Use rxode2::rxGetControl() to access sigdig from ui object
     sigdig_bc <- try(
       rxode2::rxGetControl(xpdb$fit$ui, "sigdig", 3L),
       silent = TRUE
     )
   } else {
+    # New API: Access sigdig from control$rxControl nested structure
     sigdig_bc <- try(
       xpdb$fit$control$rxControl$sigdig,
       silent = TRUE
-      )
+    )
   }
+
+  # Validate the result and fall back to default if needed
   if (inherits(sigdig_bc, "try-error")) sigdig_bc <- 3
-  if (length(sigdig_bc)!=1) sigdig_bc <- 3
+  if (is.null(sigdig_bc)) sigdig_bc <- 3
+  if (length(sigdig_bc) != 1) sigdig_bc <- 3
+  if (!is.numeric(sigdig_bc)) sigdig_bc <- 3
 
   xpdb %>%
   # Condition number
