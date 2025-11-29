@@ -136,10 +136,12 @@ backfill_nlmixr2_props <- function(xpdb) {
   rlang::check_installed("rxode2") # This would be installed
 
   sigdig_bc <- 3 # backwards-compatible sigdig
-  if (utils::packageVersion("nlmixr2")<"5.0") {
+  if (utils::packageVersion("nlmixr2")<"5.0" && rlang::is_installed("qs")) {
     sigdig_bc <- rxode2::rxGetControl(xpdb$fit$ui, "sigdig", 3L)
   } else {
-    sigdig_bc <- xpdb$fit$control$rxControl$sigdig
+    sigdig_bc <- tryCatch(
+      xpdb$fit$control$rxControl$sigdig,
+      error = function(e) "not implemented")
   }
 
   xpdb %>%
