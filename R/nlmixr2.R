@@ -140,7 +140,7 @@ backfill_nlmixr2_props <- function(xpdb) {
   if (utils::packageVersion("nlmixr2")<"5.0" && rlang::is_installed("qs")) {
     sigdig_bc <- tryCatch(
       rxode2::rxGetControl(xpdb$fit$ui, "sigdig", 3L),
-      "not implemented"
+      error = function(e) "not implemented"
     )
   } else {
     sigdig_bc <- tryCatch(
