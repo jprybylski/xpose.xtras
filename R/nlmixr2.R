@@ -138,16 +138,17 @@ backfill_nlmixr2_props <- function(xpdb) {
   sigdig_bc <- 3 # backwards-compatible sigdig
   # Fallback to not implemented for edge cases and until 5.0 release
   if (utils::packageVersion("nlmixr2")<"5.0" && rlang::is_installed("qs")) {
-    sigdig_bc <- tryCatch(
+    sigdig_bc <- try(
       rxode2::rxGetControl(xpdb$fit$ui, "sigdig", 3L),
-      error = function(e) "not implemented"
+      silent = TRUE
     )
   } else {
-    sigdig_bc <- tryCatch(
+    sigdig_bc <- try(
       xpdb$fit$control$rxControl$sigdig,
-      error = function(e) "not implemented"
+      silent = TRUE
       )
   }
+  if (inherits(sigdig_bc, "try-error")) sigdig_bc <- 3
 
   xpdb %>%
   # Condition number
