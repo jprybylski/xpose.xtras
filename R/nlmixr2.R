@@ -112,30 +112,6 @@ nlmixr2_as_xtra <- function(
   nlmixr2_prm_associations(nlm_xpd, quiet = nlm_xpd$options$quiet)
 }
 
-#' Populate some properties from nlmixr2 fit
-#'
-#' @param xpdb <`xpose_data`> object
-#'
-#'
-#' @details
-#' This function will currently backfill:
-#'
-#' * condn
-#' * nsig
-#'
-#' @export
-#'
-#' @examples
-#'
-#' xpdb_nlmixr2 %>%
-#'   set_prop(condn = "not implemented") %>%
-#'   get_prop("condn")
-#'
-#' xpdb_nlmixr2 %>%
-#'   set_prop(condn = "not implemented") %>%
-#'   backfill_nlmixr2_props() %>%
-#'   get_prop("condn")
-#'
 #' Test if nlmixr2 fit is from an old rxode2 version
 #'
 #' @description

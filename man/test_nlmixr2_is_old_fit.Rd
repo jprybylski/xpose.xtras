@@ -2,7 +2,7 @@
 % Please edit documentation in R/nlmixr2.R
 \name{test_nlmixr2_is_old_fit}
 \alias{test_nlmixr2_is_old_fit}
-\title{Populate some properties from nlmixr2 fit}
+\title{Test if nlmixr2 fit is from an old rxode2 version}
 \usage{
 test_nlmixr2_is_old_fit(xpdb)
 }
@@ -15,26 +15,5 @@ logical: TRUE if old incompatible fit, FALSE if compatible, NA if cannot determi
 \description{
 Detects if an nlmixr2 fit object was created with rxode2 < 5.0, which has
 incompatible rxUi serialization with rxode2 >= 5.0.
-}
-\details{
-This function will currently backfill:
-\itemize{
-\item condn
-\item nsig
-}
-}
-\examples{
-
-xpdb_nlmixr2 \%>\%
-  set_prop(condn = "not implemented") \%>\%
-  get_prop("condn")
-
-xpdb_nlmixr2 \%>\%
-  set_prop(condn = "not implemented") \%>\%
-  backfill_nlmixr2_props() \%>\%
-  get_prop("condn")
-
-Test if nlmixr2 fit is from an old rxode2 version
-
 }
 \keyword{internal}
