@@ -29,13 +29,13 @@ Fidler M (2025). \emph{nlmixr2: Nonlinear Mixed Effects Models in Population PK/
 R package version 3.0.2, \url{https://CRAN.R-project.org/package=nlmixr2}.
 
 Fidler M, Wilkins J, Hooijmaijers R, Post T, Schoemaker R, Trame M, Xiong Y, Wang W
-(2019). “Nonlinear Mixed-Effects Model Development and Simulation Using nlmixr and
-Related R Open-Source Packages.” \emph{CPT: Pharmacometrics & Systems Pharmacology},
+(2019). "Nonlinear Mixed-Effects Model Development and Simulation Using nlmixr and
+Related R Open-Source Packages." \emph{CPT: Pharmacometrics & Systems Pharmacology},
 \emph{8}(9), 621-633. \doi{doi:10.1002/psp4.12445}.
 
 Schoemaker R, Fidler M, Laveille C, Wilkins J, Hooijmaijers R, Post T, Trame M,
-Xiong Y, Wang W (2019). “Performance of the SAEM and FOCEI Algorithms in the
-Open-Source, Nonlinear Mixed Effect Modeling Tool nlmixr.” \emph{CPT: Pharmacometrics &
+Xiong Y, Wang W (2019). "Performance of the SAEM and FOCEI Algorithms in the
+Open-Source, Nonlinear Mixed Effect Modeling Tool nlmixr." \emph{CPT: Pharmacometrics &
 Systems Pharmacology}, \emph{8}(12), 923-930. \doi{doi:10.1002/psp4.12471}.
 }
 \seealso{

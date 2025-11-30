@@ -308,6 +308,8 @@ test_that("pure LL fits can be used", {
   skip_if(utils::packageVersion("rxode2") < "5.0",
           "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
   skip_if_not_installed("nlmixr2est")
+  # Likelihood models in nlmixr2 trigger a dependency on 'qs' package
+  skip_if_not_installed("qs")
 
   # From https://github.com/nlmixr2/nlmixr2est/issues/218#issue-1366433669
   markov_nlmixr <- function() {
