@@ -1,4 +1,53 @@
+test_that("old fit detection works correctly", {
+  # Skip if rxode2 < 5.0 due to serialization incompatibility
+  skip_if(utils::packageVersion("rxode2") < "5.0",
+          "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
+
+  # Test with new (compatible) fit
+  expect_false(
+    test_nlmixr2_is_old_fit(xpdb_nlmixr2)
+  )
+
+  # Test with old (incompatible) fit
+  expect_true(
+    test_nlmixr2_is_old_fit(xpdb_nlmixr2_old)
+  )
+
+  # Test with non-nlmixr2 object
+  expect_true(
+    is.na(test_nlmixr2_is_old_fit(xpdb_x))
+  )
+})
+
+test_that("backfill throws error for old fits", {
+  # Skip if rxode2 < 5.0 due to serialization incompatibility
+  skip_if(utils::packageVersion("rxode2") < "5.0",
+          "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
+
+  expect_error(
+    backfill_nlmixr2_props(xpdb_nlmixr2_old),
+    regexp = "Incompatible nlmixr2/rxode2 fit object"
+  )
+})
+
+test_that("nlmixr2_as_xtra skips backfill for old fits", {
+  # Skip if rxode2 < 5.0 due to serialization incompatibility
+  skip_if(utils::packageVersion("rxode2") < "5.0",
+          "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
+
+  # Old fit should work with nlmixr2_as_xtra (backfill skipped)
+  # but the fit object itself is old, so we can't actually test this
+  # unless we use the attached fit directly
+  expect_no_error(
+    as_xp_xtras(xpdb_nlmixr2_old)
+  )
+})
+
 test_that("nlmixr2 is compatible", {
+  # Skip if rxode2 < 5.0 due to serialization incompatibility
+  skip_if(utils::packageVersion("rxode2") < "5.0",
+          "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
+
   expect_no_error(
     as_xp_xtras(xpdb_nlmixr2)
   )
@@ -256,7 +305,11 @@ test_that("nlmixr2 is compatible", {
 
 
 test_that("pure LL fits can be used", {
+  skip_if(utils::packageVersion("rxode2") < "5.0",
+          "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
   skip_if_not_installed("nlmixr2est")
+  # Likelihood models in nlmixr2 trigger a dependency on 'qs' package
+  skip_if_not_installed("qs")
 
   # From https://github.com/nlmixr2/nlmixr2est/issues/218#issue-1366433669
   markov_nlmixr <- function() {

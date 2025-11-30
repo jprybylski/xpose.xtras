@@ -220,13 +220,13 @@
 #' R package version 3.0.2, <https://CRAN.R-project.org/package=nlmixr2>.
 #'
 #' Fidler M, Wilkins J, Hooijmaijers R, Post T, Schoemaker R, Trame M, Xiong Y, Wang W
-#' (2019). “Nonlinear Mixed-Effects Model Development and Simulation Using nlmixr and
-#' Related R Open-Source Packages.” _CPT: Pharmacometrics & Systems Pharmacology_,
+#' (2019). "Nonlinear Mixed-Effects Model Development and Simulation Using nlmixr and
+#' Related R Open-Source Packages." _CPT: Pharmacometrics & Systems Pharmacology_,
 #' *8*(9), 621-633. \doi{doi:10.1002/psp4.12445}.
 #'
 #' Schoemaker R, Fidler M, Laveille C, Wilkins J, Hooijmaijers R, Post T, Trame M,
-#' Xiong Y, Wang W (2019). “Performance of the SAEM and FOCEI Algorithms in the
-#' Open-Source, Nonlinear Mixed Effect Modeling Tool nlmixr.” _CPT: Pharmacometrics &
+#' Xiong Y, Wang W (2019). "Performance of the SAEM and FOCEI Algorithms in the
+#' Open-Source, Nonlinear Mixed Effect Modeling Tool nlmixr." _CPT: Pharmacometrics &
 #'   Systems Pharmacology_, *8*(12), 923-930. \doi{doi:10.1002/psp4.12471}.
 #'
 #' @source <https://nlmixr2.org/articles/running_nlmixr.html>
@@ -234,6 +234,23 @@
 
 #' @rdname xpdb_nlmixr2
 "xpdb_nlmixr2_saem"
+
+#' Old nlmixr2 test object for backward compatibility detection
+#'
+#' `r lifecycle::badge("deprecated")`
+#'
+#' This object is from an older version of rxode2 (<5.0) and is only included
+#' for testing backward compatibility detection. It should NOT be used in
+#' examples or tests as it is incompatible with rxode2 >= 5.0.
+#'
+#' The `backfill_nlmixr2_props()` function detects these old objects and
+#' provides an informative error message.
+#'
+#' @format ## `xp_xtras`
+#' An `xp_xtras` object created with rxode2 < 5.0 (for testing only).
+#'
+#' @keywords internal
+"xpdb_nlmixr2_old"
 
 #' An `xp_xtra` example based on a complex nlmixr2 fit
 #'

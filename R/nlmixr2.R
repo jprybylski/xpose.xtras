@@ -101,10 +101,55 @@ nlmixr2_as_xtra <- function(
       length(name)==1 & all(name=="obj") ~ mod_name,
       # If the situation changes, fall back to default
       TRUE ~ name
-    )) %>%
-    backfill_nlmixr2_props()
+    ))
+
+  # Skip backfill for old incompatible fits
+  if (!isTRUE(test_nlmixr2_is_old_fit(nlm_xpd))) {
+    nlm_xpd <- backfill_nlmixr2_props(nlm_xpd)
+  }
+
   if (.skip_assoc) return(nlm_xpd)
   nlmixr2_prm_associations(nlm_xpd, quiet = nlm_xpd$options$quiet)
+}
+
+#' Test if nlmixr2 fit is from an old rxode2 version
+#'
+#' @description
+#' Detects if an nlmixr2 fit object was created with rxode2 < 5.0, which has
+#' incompatible rxUi serialization with rxode2 >= 5.0.
+#'
+#' @param xpdb <`xpose_data`> object with nlmixr2 fit attached
+#'
+#' @return logical: TRUE if old incompatible fit, FALSE if compatible, NA if cannot determine
+#' @keywords internal
+#' @export
+#'
+test_nlmixr2_is_old_fit <- function(xpdb) {
+  # Only relevant if we have rxode2 >= 5.0
+  if (!rlang::is_installed("rxode2")) return(NA)
+  if (utils::packageVersion("rxode2") < "5.0") return(NA)
+
+  # Only test if we have a fit
+  if (!test_nlmixr2_has_fit(xpdb)) return(NA)
+
+  # Check if this is an old object by testing if we can access finalUi$iniDf
+  # This property is used in get_prm_nlmixr2 and should work for new fits
+  # but fail for old incompatible fits
+  ui_check <- try(
+    {
+      # Try to access a property that's used elsewhere in the package
+      result <- xpdb$fit$finalUi$iniDf
+      !is.null(result) && inherits(result, "data.frame")
+    },
+    silent = TRUE
+  )
+
+  # If it failed or didn't return TRUE, it's an old fit
+  if (inherits(ui_check, "try-error") || !isTRUE(ui_check)) {
+    return(TRUE)
+  }
+
+  return(FALSE)
 }
 
 #' Populate some properties from nlmixr2 fit
@@ -135,12 +180,32 @@ backfill_nlmixr2_props <- function(xpdb) {
   assert_nlmixr2fit(xpdb)
   rlang::check_installed("rxode2") # This would be installed
 
-  sigdig_bc <- 3 # backwards-compatible sigdig
-  if (utils::packageVersion("nlmixr2")<"5.0") {
-    sigdig_bc <- rxode2::rxGetControl(xpdb$fit$ui, "sigdig", 3L)
-  } else {
-    sigdig_bc <- xpdb$fit$control$rxControl$sigdig
+  # Detect old rxode2 < 5.0 objects by checking if the fit structure is compatible
+  # Old objects have incompatible rxUi serialization
+  if (isTRUE(test_nlmixr2_is_old_fit(xpdb))) {
+    rlang::abort(c(
+      "Incompatible nlmixr2/rxode2 fit object detected",
+      "i" = "This object was created with rxode2 < 5.0 and cannot be used with rxode2 >= 5.0",
+      "x" = "The internal rxUi structure is incompatible between versions",
+      "!" = "Please regenerate the fit object using current versions of nlmixr2est and rxode2"
+    ))
   }
+
+  sigdig_bc <- 3 # backwards-compatible sigdig
+  # Fallback to not implemented for edge cases and until 5.0 release
+  if (utils::packageVersion("nlmixr2est")<"5.0" && rlang::is_installed("qs")) {
+    sigdig_bc <- try(
+      rxode2::rxGetControl(xpdb$fit$ui, "sigdig", 3L),
+      silent = TRUE
+    )
+  } else {
+    sigdig_bc <- try(
+      xpdb$fit$control$rxControl$sigdig,
+      silent = TRUE
+      )
+  }
+  if (inherits(sigdig_bc, "try-error")) sigdig_bc <- 3
+  if (is.null(sigdig_bc) || length(sigdig_bc)!=1) sigdig_bc <- 3
 
   xpdb %>%
   # Condition number
