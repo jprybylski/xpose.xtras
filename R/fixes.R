@@ -87,13 +87,16 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
     unique(cols)
   })
   names(.coltypes) <- .types
+  # remove empty .coltypes
+  .coltypes <- .coltypes[purrr::map_lgl(.coltypes, function(.x) length(.x)>0)]
+  if (length(.coltypes)==0) return(xpdb)
 
-  out <- eval(rlang::call2(xpose::set_var_types,
+  out <- rlang::exec(xpose::set_var_types,
                xpdb = xpdb,
                .problem = .problem,
                !!!.coltypes,
                auto_factor = auto_factor,
-               quiet = quiet))
+               quiet = quiet)
   as_xpdb_x(out)
 }
 
