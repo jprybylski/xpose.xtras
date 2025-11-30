@@ -31,15 +31,15 @@ PK/PD*.
 , R package version 3.0.2, <https://CRAN.R-project.org/package=nlmixr2>.
 
 Fidler M, Wilkins J, Hooijmaijers R, Post T, Schoemaker R, Trame M,
-Xiong Y, Wang W (2019). “Nonlinear Mixed-Effects Model Development and
-Simulation Using nlmixr and Related R Open-Source Packages.” *CPT:
+Xiong Y, Wang W (2019). "Nonlinear Mixed-Effects Model Development and
+Simulation Using nlmixr and Related R Open-Source Packages." *CPT:
 Pharmacometrics & Systems Pharmacology*, *8*(9), 621-633.
 [doi:10.1002/psp4.12445](https://doi.org/10.1002/psp4.12445) .
 
 Schoemaker R, Fidler M, Laveille C, Wilkins J, Hooijmaijers R, Post T,
-Trame M, Xiong Y, Wang W (2019). “Performance of the SAEM and FOCEI
+Trame M, Xiong Y, Wang W (2019). "Performance of the SAEM and FOCEI
 Algorithms in the Open-Source, Nonlinear Mixed Effect Modeling Tool
-nlmixr.” *CPT: Pharmacometrics & Systems Pharmacology*, *8*(12),
+nlmixr." *CPT: Pharmacometrics & Systems Pharmacology*, *8*(12),
 923-930. [doi:10.1002/psp4.12471](https://doi.org/10.1002/psp4.12471) .
 
 ## See also

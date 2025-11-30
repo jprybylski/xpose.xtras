@@ -296,8 +296,6 @@ list_vars(nlmixr2_warfarin)
 #>  - Not attributed (na)                   : NLMIXRLLIKOBS, CMT, EPRED, ERES, NPD, PDE, PD, PRED, ETA.KTR, ETA.KA, ETA.CL, ETA.V, ETA.EMAX, ETA.EC50, ETA.KOUT, ETA.E0, DEPOT, GUT, CENTER, EFFECT, KTR, EMAX, EC50, KOUT, E0, DCP, PD.1, KIN, TAD, DOSENUM
 
 dv_vs_ipred(nlmixr2_warfarin, facet="DVID")
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
@@ -306,8 +304,6 @@ dv_vs_ipred(nlmixr2_warfarin, facet="DVID")
 ``` r
 
 dv_vs_pred(nlmixr2_warfarin, facet="DVID")
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
@@ -316,9 +312,6 @@ dv_vs_pred(nlmixr2_warfarin, facet="DVID")
 ``` r
 
 eta_vs_catcov(nlmixr2_warfarin, etavar = eta.cl)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Tidying data by ID, TIME, AMT, DV, DVID ... and 53 more variables
 #> Warning: nind is not part of the available keywords. Check ?template_titles for
 #> a full list.
 ```
@@ -327,9 +320,6 @@ eta_vs_catcov(nlmixr2_warfarin, etavar = eta.cl)
 
 ``` r
 eta_vs_contcov(nlmixr2_warfarin, etavar = eta.cl)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Tidying data by ID, TIME, AMT, DV, DVID ... and 52 more variables
 #> Warning: nind is not part of the available keywords. Check ?template_titles for
 #> a full list.
 #> `geom_smooth()` using formula = 'y ~ x'
@@ -525,17 +515,15 @@ warfarin_set %>%
   # Remove some columns for readability
   dplyr::select(-c(parent,base,focus))
 #> # A tibble: 4 × 4
-#>   xpdb         label            ..ofv  ..condn
-#>   <named list> <chr>            <dbl>    <dbl>
-#> 1 <xp_xtras>   nlmixr2_warfarin 1400. 3395179.
-#> 2 <xp_xtras>   warf_ka          1338.   21266.
-#> 3 <xp_xtras>   warf_emax        1351.     464.
-#> 4 <xp_xtras>   warf_simple      1338.     269.
+#>   xpdb         label            ..ofv ..condn
+#>   <named list> <chr>            <dbl>   <dbl>
+#> 1 <xp_xtras>   nlmixr2_warfarin 1387    7497.
+#> 2 <xp_xtras>   warf_ka          1338.  21266.
+#> 3 <xp_xtras>   warf_emax        1351.    464.
+#> 4 <xp_xtras>   warf_simple      1338.    269.
 
 warfarin_set %>%
   dofv_vs_id(nlmixr2_warfarin, warf_simple, .inorder = TRUE, df=1)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 #> Warning: nind is not part of the available keywords. Check ?template_titles for
 #> a full list.
 ```
@@ -548,9 +536,6 @@ warfarin_set %>%
   # This comparison should be more interesting
   focus_qapply(set_var_types, param=c(KA,EC50), na=c(CL, V)) %>%
   prm_waterfall(nlmixr2_warfarin, warf_simple)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Tidying data by ID, TIME, AMT, DV, DVID ... and 55 more variables
 #> Warning: nind is not part of the available keywords. Check ?template_titles for
 #> a full list.
 ```
@@ -584,8 +569,6 @@ parameters or to set derived parameters as `param` type variables.
 nlmixr2_m3 %>%
   backfill_derived() %>%
   list_vars()
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 #> List of available variables for problem no. 1
 #>  - Subject identifier (id)               : ID
 #>  - Dependent variable (dv)               : DV
@@ -603,15 +586,13 @@ nlmixr2_m3 %>%
 derive_prm(nlmixr2_m3) %>%
   dplyr::select(ID,KA,CL,VSS:(dplyr::last_col())) %>%
   head()
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 #>   ID        KA       CL      VSS  T12ALPHA      ALPHA          A FRACA
-#> 1  1 1.7251120 1.729018 28.98376 11.619316 0.05965473 0.03450208     1
-#> 2 10 0.7766272 1.877865 26.98758  9.961507 0.06958256 0.03705408     1
-#> 3 11 3.1875227 3.793889 35.58941  6.502218 0.10660165 0.02809825     1
-#> 4 12 0.9618226 2.418444 26.25119  7.523821 0.09212701 0.03809351     1
-#> 5  2 1.8883358 3.263475 31.49839  6.690114 0.10360769 0.03174766     1
-#> 6  3 2.2065158 2.938127 32.87793  7.756385 0.08936472 0.03041554     1
+#> 1  1 1.7262871 1.725758 28.98448 11.641557 0.05954076 0.03450122     1
+#> 2 10 0.7714723 1.880091 26.90314  9.918579 0.06988372 0.03717039     1
+#> 3 11 3.2255861 3.788283 35.71719  6.535222 0.10606329 0.02799772     1
+#> 4 12 0.9557512 2.423387 26.15672  7.481452 0.09264875 0.03823110     1
+#> 5  2 1.8922247 3.262844 31.51880  6.695745 0.10352055 0.03172709     1
+#> 6  3 2.2187556 2.933599 32.93694  7.782299 0.08906715 0.03036105     1
 
 
 # If param has no vars, .prm should be set
@@ -620,10 +601,6 @@ pheno_base %>%
     .prm = c(CL,V)
   ) %>%
   list_vars()
-#> Warning: There was 1 warning in `dplyr::mutate()`.
-#> ℹ In argument: `type = stringr::str_replace(.$type, "\\d$", "")`.
-#> Caused by warning:
-#> ! Unknown or uninitialised column: `type`.
 #> Using data from $prob no.1
 #> Removing duplicated rows based on: ID
 #> List of available variables for problem no. 1
@@ -654,10 +631,6 @@ should only be one volume) the `vol_pattern` has been updated.
 nlmixr2_m3 %>%
   backfill_derived() %>%
   diagnose_constants(vol_pattern = "^V$")
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 #> ℹ Checking for absorption flip-flop (first-order absorption slower than derived rate constants)...
 #> ✔ No parameter sets are suggestive of flip-flop.
 #> ℹ Checking for negative microconstants or volume...
@@ -670,10 +643,6 @@ nlmixr2_m3 %>%
     df_units = list(KA = "1/hr", ALPHA = "1/hr"),
     checks = list(neg_microvol = FALSE)
   )
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 #> ℹ Checking for absorption flip-flop (first-order absorption slower than derived rate constants)...
 #> ✔ No parameter sets are suggestive of flip-flop.
 #> ℹ Checking that compared units match...
@@ -682,8 +651,6 @@ nlmixr2_m3 %>%
 # Using df form
 derive_prm(nlmixr2_m3) %>%
   diagnose_constants(df = ., vol_pattern = "^V$")
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 #> ℹ Checking for absorption flip-flop (first-order absorption slower than derived rate constants)...
 #> ✔ No parameter sets are suggestive of flip-flop.
 #> ℹ Checking for negative microconstants or volume...

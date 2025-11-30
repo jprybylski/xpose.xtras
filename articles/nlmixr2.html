@@ -61,7 +61,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>nlmixr2 Support</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jprybylski/xpose.xtras/blob/v0.1.1/vignettes/articles/nlmixr2.Rmd" class="external-link"><code>vignettes/articles/nlmixr2.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jprybylski/xpose.xtras/blob/master/vignettes/articles/nlmixr2.Rmd" class="external-link"><code>vignettes/articles/nlmixr2.Rmd</code></a></small>
       <div class="d-none name"><code>nlmixr2.Rmd</code></div>
     </div>
 
@@ -336,31 +336,21 @@ don’t exist in the summary element, violating how
 <span><span class="co">#&gt;  - Not attributed (na)                   : NLMIXRLLIKOBS, CMT, EPRED, ERES, NPD, PDE, PD, PRED, ETA.KTR, ETA.KA, ETA.CL, ETA.V, ETA.EMAX, ETA.EC50, ETA.KOUT, ETA.E0, DEPOT, GUT, CENTER, EFFECT, KTR, EMAX, EC50, KOUT, E0, DCP, PD.1, KIN, TAD, DOSENUM</span></span>
 <span></span>
 <span><span class="fu"><a href="https://uupharmacometrics.github.io/xpose/reference/dv_vs_pred.html" class="external-link">dv_vs_ipred</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, facet<span class="op">=</span><span class="st">"DVID"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Filtering data by EVID == 0</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://uupharmacometrics.github.io/xpose/reference/dv_vs_pred.html" class="external-link">dv_vs_pred</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, facet<span class="op">=</span><span class="st">"DVID"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Filtering data by EVID == 0</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-9-2.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/eta_vs_catcov.html">eta_vs_catcov</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, etavar <span class="op">=</span> <span class="va">eta.cl</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Tidying data by ID, TIME, AMT, DV, DVID ... and 53 more variables</span></span>
 <span><span class="co">#&gt; Warning: nind is not part of the available keywords. Check ?template_titles for</span></span>
 <span><span class="co">#&gt; a full list.</span></span></code></pre></div>
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-9-3.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/eta_vs_contcov.html">eta_vs_contcov</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, etavar <span class="op">=</span> <span class="va">eta.cl</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Tidying data by ID, TIME, AMT, DV, DVID ... and 52 more variables</span></span>
 <span><span class="co">#&gt; Warning: nind is not part of the available keywords. Check ?template_titles for</span></span>
 <span><span class="co">#&gt; a full list.</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
@@ -546,17 +536,15 @@ and then maybe combine them, as we have done below.</p>
 <span>  <span class="co"># Remove some columns for readability</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">parent</span>,<span class="va">base</span>,<span class="va">focus</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 4</span></span></span>
-<span><span class="co">#&gt;   xpdb         label            ..ofv  ..condn</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;named list&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   nlmixr2_warfarin <span style="text-decoration: underline;">1</span>400. 3<span style="text-decoration: underline;">395</span>179.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_ka          <span style="text-decoration: underline;">1</span>338.   <span style="text-decoration: underline;">21</span>266.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_emax        <span style="text-decoration: underline;">1</span>351.     464.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_simple      <span style="text-decoration: underline;">1</span>338.     269.</span></span>
+<span><span class="co">#&gt;   xpdb         label            ..ofv ..condn</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;named list&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   nlmixr2_warfarin <span style="text-decoration: underline;">1</span>387    <span style="text-decoration: underline;">7</span>497.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_ka          <span style="text-decoration: underline;">1</span>338.  <span style="text-decoration: underline;">21</span>266.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_emax        <span style="text-decoration: underline;">1</span>351.    464.</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_simple      <span style="text-decoration: underline;">1</span>338.    269.</span></span>
 <span></span>
 <span><span class="va">warfarin_set</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/shark_plot.html">dofv_vs_id</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, <span class="va">warf_simple</span>, .inorder <span class="op">=</span> <span class="cn">TRUE</span>, df<span class="op">=</span><span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
 <span><span class="co">#&gt; Warning: nind is not part of the available keywords. Check ?template_titles for</span></span>
 <span><span class="co">#&gt; a full list.</span></span></code></pre></div>
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" width="700"></p>
@@ -566,9 +554,6 @@ and then maybe combine them, as we have done below.</p>
 <span>  <span class="co"># This comparison should be more interesting</span></span>
 <span>  <span class="fu"><a href="../reference/focus_xpdb.html">focus_qapply</a></span><span class="op">(</span><span class="va">set_var_types</span>, param<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">KA</span>,<span class="va">EC50</span><span class="op">)</span>, na<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">CL</span>, <span class="va">V</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/waterfalls.html">prm_waterfall</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, <span class="va">warf_simple</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Tidying data by ID, TIME, AMT, DV, DVID ... and 55 more variables</span></span>
 <span><span class="co">#&gt; Warning: nind is not part of the available keywords. Check ?template_titles for</span></span>
 <span><span class="co">#&gt; a full list.</span></span></code></pre></div>
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-11-2.png" class="r-plt" width="700"></p>
@@ -596,8 +581,6 @@ parameters as <code>param</code> type variables.</p>
 <code class="sourceCode R"><span><span class="va">nlmixr2_m3</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/derive_prm.html">backfill_derived</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/list_vars.html">list_vars</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
 <span><span class="co">#&gt; List of available variables for problem no. <span style="color: #BB00BB;">1</span></span></span>
 <span><span class="co">#&gt;  - Subject identifier (id)               : ID</span></span>
 <span><span class="co">#&gt;  - Dependent variable (dv)               : DV</span></span>
@@ -615,15 +598,13 @@ parameters as <code>param</code> type variables.</p>
 <span><span class="fu"><a href="../reference/derive_prm.html">derive_prm</a></span><span class="op">(</span><span class="va">nlmixr2_m3</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">ID</span>,<span class="va">KA</span>,<span class="va">CL</span>,<span class="va">VSS</span><span class="op">:</span><span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">last_col</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
 <span><span class="co">#&gt;   ID        KA       CL      VSS  T12ALPHA      ALPHA          A FRACA</span></span>
-<span><span class="co">#&gt; 1  1 1.7251120 1.729018 28.98376 11.619316 0.05965473 0.03450208     1</span></span>
-<span><span class="co">#&gt; 2 10 0.7766272 1.877865 26.98758  9.961507 0.06958256 0.03705408     1</span></span>
-<span><span class="co">#&gt; 3 11 3.1875227 3.793889 35.58941  6.502218 0.10660165 0.02809825     1</span></span>
-<span><span class="co">#&gt; 4 12 0.9618226 2.418444 26.25119  7.523821 0.09212701 0.03809351     1</span></span>
-<span><span class="co">#&gt; 5  2 1.8883358 3.263475 31.49839  6.690114 0.10360769 0.03174766     1</span></span>
-<span><span class="co">#&gt; 6  3 2.2065158 2.938127 32.87793  7.756385 0.08936472 0.03041554     1</span></span>
+<span><span class="co">#&gt; 1  1 1.7262871 1.725758 28.98448 11.641557 0.05954076 0.03450122     1</span></span>
+<span><span class="co">#&gt; 2 10 0.7714723 1.880091 26.90314  9.918579 0.06988372 0.03717039     1</span></span>
+<span><span class="co">#&gt; 3 11 3.2255861 3.788283 35.71719  6.535222 0.10606329 0.02799772     1</span></span>
+<span><span class="co">#&gt; 4 12 0.9557512 2.423387 26.15672  7.481452 0.09264875 0.03823110     1</span></span>
+<span><span class="co">#&gt; 5  2 1.8922247 3.262844 31.51880  6.695745 0.10352055 0.03172709     1</span></span>
+<span><span class="co">#&gt; 6  3 2.2187556 2.933599 32.93694  7.782299 0.08906715 0.03036105     1</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># If param has no vars, .prm should be set</span></span>
@@ -632,10 +613,6 @@ parameters as <code>param</code> type variables.</p>
 <span>    .prm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">CL</span>,<span class="va">V</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/list_vars.html">list_vars</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: There was 1 warning in `dplyr::mutate()`.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> In argument: `type = stringr::str_replace(.$type, "\\d$", "")`.</span></span>
-<span><span class="co">#&gt; Caused by warning:</span></span>
-<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Unknown or uninitialised column: `type`.</span></span>
 <span><span class="co">#&gt; Using data from $prob no.1</span></span>
 <span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
 <span><span class="co">#&gt; List of available variables for problem no. <span style="color: #BB00BB;">1</span></span></span>
@@ -663,10 +640,6 @@ only be one volume) the <code>vol_pattern</code> has been updated.</p>
 <code class="sourceCode R"><span><span class="va">nlmixr2_m3</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/derive_prm.html">backfill_derived</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/diagnose_constants.html">diagnose_constants</a></span><span class="op">(</span>vol_pattern <span class="op">=</span> <span class="st">"^V$"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Checking for absorption flip-flop (first-order absorption slower than derived rate constants)...</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No parameter sets are suggestive of flip-flop.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Checking for negative microconstants or volume...</span></span>
@@ -679,10 +652,6 @@ only be one volume) the <code>vol_pattern</code> has been updated.</p>
 <span>    df_units <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>KA <span class="op">=</span> <span class="st">"1/hr"</span>, ALPHA <span class="op">=</span> <span class="st">"1/hr"</span><span class="op">)</span>,</span>
 <span>    checks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>neg_microvol <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Checking for absorption flip-flop (first-order absorption slower than derived rate constants)...</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No parameter sets are suggestive of flip-flop.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Checking that compared units match...</span></span>
@@ -691,8 +660,6 @@ only be one volume) the <code>vol_pattern</code> has been updated.</p>
 <span><span class="co"># Using df form</span></span>
 <span><span class="fu"><a href="../reference/derive_prm.html">derive_prm</a></span><span class="op">(</span><span class="va">nlmixr2_m3</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/diagnose_constants.html">diagnose_constants</a></span><span class="op">(</span>df <span class="op">=</span> <span class="va">.</span>, vol_pattern <span class="op">=</span> <span class="st">"^V$"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Checking for absorption flip-flop (first-order absorption slower than derived rate constants)...</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No parameter sets are suggestive of flip-flop.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Checking for negative microconstants or volume...</span></span>

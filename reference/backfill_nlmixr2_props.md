@@ -34,5 +34,5 @@ xpdb_nlmixr2 %>%
   set_prop(condn = "not implemented") %>%
   backfill_nlmixr2_props() %>%
   get_prop("condn")
-#> [1] "68.5689852655761"
+#> [1] "68.676527450837"
 ```
