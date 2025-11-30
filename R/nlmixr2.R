@@ -152,6 +152,30 @@ test_nlmixr2_is_old_fit <- function(xpdb) {
   return(FALSE)
 }
 
+#' Populate some properties from nlmixr2 fit
+#'
+#' @param xpdb <`xpose_data`> object
+#'
+#'
+#' @details
+#' This function will currently backfill:
+#'
+#' * condn
+#' * nsig
+#'
+#' @export
+#'
+#' @examples
+#'
+#' xpdb_nlmixr2 %>%
+#'   set_prop(condn = "not implemented") %>%
+#'   get_prop("condn")
+#'
+#' xpdb_nlmixr2 %>%
+#'   set_prop(condn = "not implemented") %>%
+#'   backfill_nlmixr2_props() %>%
+#'   get_prop("condn")
+#'
 backfill_nlmixr2_props <- function(xpdb) {
   assert_nlmixr2fit(xpdb)
   rlang::check_installed("rxode2") # This would be installed
