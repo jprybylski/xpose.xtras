@@ -132,19 +132,36 @@ test_nlmixr2_is_old_fit <- function(xpdb) {
   # Only test if we have a fit
   if (!test_nlmixr2_has_fit(xpdb)) return(NA)
 
-  # Check if this is an old object by testing if we can access finalUi$iniDf
-  # This property is used in get_prm_nlmixr2 and should work for new fits
-  # but fail for old incompatible fits
+  # Check if this is an old object by looking for the warning about
+  # decompression from rxode2 < 4.0 when accessing finalUi properties
+  # With qs installed, old fits can be accessed but generate this warning
+  old_fit_warning <- FALSE
   ui_check <- try(
     {
-      # Try to access a property that's used elsewhere in the package
-      result <- xpdb$fit$finalUi$iniDf
-      !is.null(result) && inherits(result, "data.frame")
+      withCallingHandlers(
+        {
+          # Try to access a property that's used elsewhere in the package
+          result <- xpdb$fit$finalUi$iniDf
+          !is.null(result) && inherits(result, "data.frame")
+        },
+        warning = function(w) {
+          # Check if this is the old rxode2 decompression warning
+          if (grepl("decompression of an rxUi object from rxode2", conditionMessage(w), fixed = TRUE)) {
+            old_fit_warning <<- TRUE
+          }
+          invokeRestart("muffleWarning")
+        }
+      )
     },
     silent = TRUE
   )
 
-  # If it failed or didn't return TRUE, it's an old fit
+  # If we caught the old fit warning, it's an old fit
+  if (old_fit_warning) {
+    return(TRUE)
+  }
+
+  # If it failed or didn't return TRUE, it's also an old fit
   if (inherits(ui_check, "try-error") || !isTRUE(ui_check)) {
     return(TRUE)
   }
