@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/jprybylski/xpose.xtras/blob/master/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/jprybylski/xpose.xtras/blob/v0.1.2/DESCRIPTION)
 
 Prybylski J (2025). *xpose.xtras: Extra Functionality for the 'xpose'
 Package*. R package version 0.1.2,
