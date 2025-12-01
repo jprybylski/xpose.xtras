@@ -91,7 +91,7 @@ fit.TOS <- nlmixr2(pk.turnover.emax3, warfarin, "focei", control=list(print=0),
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> calculating covariance matrix
-#> [====|====|====|====|====|====|====|====|====|====] 0:01:22 
+#> [====|====|====|====|====|====|====|====|====|====] 0:01:21 
 #> done
 ```
 
@@ -682,7 +682,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#>  [1] xpose.xtras_0.1.1   xpose.nlmixr2_0.4.1 xpose_0.4.22       
+#>  [1] xpose.xtras_0.1.2   xpose.nlmixr2_0.4.1 xpose_0.4.22       
 #>  [4] ggplot2_4.0.1       rxode2_4.1.1        nlmixr2plot_3.0.3  
 #>  [7] nlmixr2extra_3.0.2  nlmixr2est_4.1.1    nlmixr2data_2.0.9  
 #> [10] lotri_1.0.2         nlmixr2_4.0.1      

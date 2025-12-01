@@ -1,6 +1,12 @@
 # Changelog
 
+## xpose.xtras 0.1.2
+
+- Additional changes relevant to 0.1.1.
+
 ## xpose.xtras 0.1.1
+
+CRAN release: 2025-11-30
 
 - Minor compatibility changes for nlmixr2 5.0
 
