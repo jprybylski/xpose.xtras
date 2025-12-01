@@ -1,5 +1,6 @@
 test_that("old fit detection works correctly", {
   # Skip if rxode2 < 5.0 due to serialization incompatibility
+  skip_if_not_installed("rxode2")
   skip_if(utils::packageVersion("rxode2") < "5.0",
           "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
 
@@ -21,6 +22,7 @@ test_that("old fit detection works correctly", {
 
 test_that("backfill throws error for old fits", {
   # Skip if rxode2 < 5.0 due to serialization incompatibility
+  skip_if_not_installed("rxode2")
   skip_if(utils::packageVersion("rxode2") < "5.0",
           "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
 
@@ -32,6 +34,7 @@ test_that("backfill throws error for old fits", {
 
 test_that("nlmixr2_as_xtra skips backfill for old fits", {
   # Skip if rxode2 < 5.0 due to serialization incompatibility
+  skip_if_not_installed("rxode2")
   skip_if(utils::packageVersion("rxode2") < "5.0",
           "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
 
@@ -45,6 +48,7 @@ test_that("nlmixr2_as_xtra skips backfill for old fits", {
 
 test_that("nlmixr2 is compatible", {
   # Skip if rxode2 < 5.0 due to serialization incompatibility
+  skip_if_not_installed("rxode2")
   skip_if(utils::packageVersion("rxode2") < "5.0",
           "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
 
@@ -305,6 +309,7 @@ test_that("nlmixr2 is compatible", {
 
 
 test_that("pure LL fits can be used", {
+  skip_if_not_installed("rxode2")
   skip_if(utils::packageVersion("rxode2") < "5.0",
           "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
   skip_if_not_installed("nlmixr2est")
