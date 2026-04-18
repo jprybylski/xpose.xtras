@@ -3,6 +3,8 @@ test_that("old fit detection works correctly", {
   skip_if_not_installed("rxode2")
   skip_if(utils::packageVersion("rxode2") < "5.0",
           "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
+  # Without nlmixr2est the fit $ accessor falls back to data.frame and returns NA
+  skip_if_not_installed("nlmixr2est")
 
   # Test with new (compatible) fit
   expect_false(
@@ -25,6 +27,8 @@ test_that("backfill throws error for old fits", {
   skip_if_not_installed("rxode2")
   skip_if(utils::packageVersion("rxode2") < "5.0",
           "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
+  # Without nlmixr2est, old fit detection returns NA and no error is thrown
+  skip_if_not_installed("nlmixr2est")
 
   expect_error(
     backfill_nlmixr2_props(xpdb_nlmixr2_old),
@@ -51,6 +55,7 @@ test_that("nlmixr2 is compatible", {
   skip_if_not_installed("rxode2")
   skip_if(utils::packageVersion("rxode2") < "5.0",
           "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
+  skip_if_not_installed("nlmixr2est")
 
   expect_no_error(
     as_xp_xtras(xpdb_nlmixr2)

@@ -77,13 +77,13 @@ eta_vs_contcov(described,etavar=ETA1, quiet=TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-<img src="man/figures/README-eta_vs-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="man/figures/README-eta_vs-1.png" alt="" width="100%" style="display: block; margin: auto;" />
 
 ``` r
 eta_vs_catcov(described,etavar=ETA1, quiet=TRUE)
 ```
 
-<img src="man/figures/README-eta_vs-2.png" width="100%" style="display: block; margin: auto;" />
+<img src="man/figures/README-eta_vs-2.png" alt="" width="100%" style="display: block; margin: auto;" />
 
 ### Shark plots
 
@@ -93,7 +93,7 @@ pheno_set %>%
   dofv_vs_id(run6, run9, quiet = TRUE)
 ```
 
-<img src="man/figures/README-shark-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="man/figures/README-shark-1.png" alt="" width="100%" style="display: block; margin: auto;" />
 
 ### Categorical DVs
 
@@ -106,7 +106,7 @@ pkpd_m3 %>%
 #> `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
 ```
 
-<img src="man/figures/README-m3-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="man/figures/README-m3-1.png" alt="" width="100%" style="display: block; margin: auto;" />
 
 ``` r
 nlmixr2_m3 %>%
@@ -116,4 +116,4 @@ nlmixr2_m3 %>%
   roc_plot(quiet = TRUE)
 ```
 
-<img src="man/figures/README-m3_roc-1.png" width="100%" style="display: block; margin: auto;" />
+<img src="man/figures/README-m3_roc-1.png" alt="" width="100%" style="display: block; margin: auto;" />

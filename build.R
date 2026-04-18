@@ -11,7 +11,7 @@ if (tolower(readline(
 source(here::here("data-raw","-regerate_all-R.R"))
 devtools::load_all()
 # Render readme
-rmarkdown::render("README.Rmd")
+devtools::build_readme()
 # Run documentation
 devtools::document()
 # Spell Check

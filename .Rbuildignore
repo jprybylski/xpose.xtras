@@ -17,3 +17,4 @@
 ^build.R$
 ^builds$
 ^vignettes/articles$
+^\.claude$
