@@ -87,6 +87,7 @@ nlmixr2_as_xtra <- function(
   .skip_assoc = FALSE
 ) {
   mod_name <- deparse(substitute(obj))[1]
+  rlang::check_installed("nlmixr2est", reason = "to use nlmixr2_as_xtra (required by xpose.nlmixr2)")
   rlang::check_installed("xpose.nlmixr2")
   rlang::check_installed("nlmixr2")
 
@@ -128,6 +129,10 @@ test_nlmixr2_is_old_fit <- function(xpdb) {
   # Only relevant if we have rxode2 >= 5.0
   if (!rlang::is_installed("rxode2")) return(NA)
   if (utils::packageVersion("rxode2") < "5.0") return(NA)
+
+  # nlmixr2est must be available — without it the fit's $ accessor falls back to
+  # the data.frame column accessor and returns NULL, giving a false positive
+  if (!rlang::is_installed("nlmixr2est")) return(NA)
 
   # Only test if we have a fit
   if (!test_nlmixr2_has_fit(xpdb)) return(NA)
@@ -183,6 +188,8 @@ test_nlmixr2_is_old_fit <- function(xpdb) {
 #' @export
 #'
 #' @examples
+#' if (requireNamespace("rxode2", quietly = TRUE) &&
+#'     requireNamespace("nlmixr2est", quietly = TRUE)) {
 #'
 #' xpdb_nlmixr2 %>%
 #'   set_prop(condn = "not implemented") %>%
@@ -193,6 +200,7 @@ test_nlmixr2_is_old_fit <- function(xpdb) {
 #'   backfill_nlmixr2_props() %>%
 #'   get_prop("condn")
 #'
+#' }
 backfill_nlmixr2_props <- function(xpdb) {
   assert_nlmixr2fit(xpdb)
   rlang::check_installed("rxode2") # This would be installed
@@ -210,7 +218,7 @@ backfill_nlmixr2_props <- function(xpdb) {
 
   sigdig_bc <- 3 # backwards-compatible sigdig
   # Fallback to not implemented for edge cases and until 5.0 release
-  if (utils::packageVersion("nlmixr2est")<"5.0" && rlang::is_installed("qs")) {
+  if (rlang::is_installed("nlmixr2est") && utils::packageVersion("nlmixr2est")<"5.0" && rlang::is_installed("qs")) {
     sigdig_bc <- try(
       rxode2::rxGetControl(xpdb$fit$ui, "sigdig", 3L),
       silent = TRUE
