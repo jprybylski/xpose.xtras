@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">xpose.xtras</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -97,10 +97,10 @@
 <span>  <span class="fu"><a href="reference/set_var_levels.html">set_var_levels</a></span><span class="op">(</span>SEX<span class="op">=</span><span class="fu"><a href="reference/levelers.html">lvl_sex</a></span><span class="op">(</span><span class="op">)</span>, MED1 <span class="op">=</span> <span class="fu"><a href="reference/levelers.html">lvl_bin</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/eta_vs_contcov.html">eta_vs_contcov</a></span><span class="op">(</span><span class="va">described</span>,etavar<span class="op">=</span><span class="va">ETA1</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
-<p><img src="reference/figures/README-eta_vs-1.png" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="reference/figures/README-eta_vs-1.png" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/eta_vs_catcov.html">eta_vs_catcov</a></span><span class="op">(</span><span class="va">described</span>,etavar<span class="op">=</span><span class="va">ETA1</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-eta_vs-2.png" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="reference/figures/README-eta_vs-2.png" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="shark-plots">Shark plots<a class="anchor" aria-label="anchor" href="#shark-plots"></a>
@@ -109,7 +109,7 @@
 <code class="sourceCode R"><span><span class="va">pheno_set</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="reference/focus_xpdb.html">focus_qapply</a></span><span class="op">(</span><span class="va">backfill_iofv</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="reference/shark_plot.html">dofv_vs_id</a></span><span class="op">(</span><span class="va">run6</span>, <span class="va">run9</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-shark-1.png" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="reference/figures/README-shark-1.png" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="categorical-dvs">Categorical DVs<a class="anchor" aria-label="anchor" href="#categorical-dvs"></a>
@@ -121,14 +121,14 @@
 <span>  <span class="fu"><a href="reference/set_var_levels.html">set_var_levels</a></span><span class="op">(</span><span class="fl">1</span>, BLQ <span class="op">=</span> <span class="fu"><a href="reference/levelers.html">lvl_bin</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="reference/catdv_vs_dvprobs.html">catdv_vs_dvprobs</a></span><span class="op">(</span>quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'</span></span></code></pre></div>
-<p><img src="reference/figures/README-m3-1.png" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="reference/figures/README-m3-1.png" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nlmixr2_m3</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="reference/set_var_types.html">set_var_types</a></span><span class="op">(</span>catdv<span class="op">=</span><span class="va">CENS</span>,dvprobs<span class="op">=</span><span class="va">BLQLIKE</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="reference/set_dv_probs.html">set_dv_probs</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">~</span><span class="va">BLQLIKE</span>, .dv_var <span class="op">=</span> <span class="va">CENS</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="reference/set_var_levels.html">set_var_levels</a></span><span class="op">(</span><span class="fl">1</span>, CENS <span class="op">=</span> <span class="fu"><a href="reference/levelers.html">lvl_bin</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="reference/roc_plot.html">roc_plot</a></span><span class="op">(</span>quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-m3_roc-1.png" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="reference/figures/README-m3_roc-1.png" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 </div>
 </div>

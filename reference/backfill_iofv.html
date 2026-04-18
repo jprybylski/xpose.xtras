@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xpose.xtras</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +35,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Add individual objective function to data</h1>
-      <small class="dont-index">Source: <a href="https://github.com/jprybylski/xpose.xtras/blob/v0.1.2/R/xp_xtras.R" class="external-link"><code>R/xp_xtras.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jprybylski/xpose.xtras/blob/master/R/xp_xtras.R" class="external-link"><code>R/xp_xtras.R</code></a></small>
       <div class="d-none name"><code>backfill_iofv.Rd</code></div>
     </div>
 
@@ -92,7 +92,6 @@ called <code>NLMIXRLLIKOBS</code> (this is a current standard, but is checked at
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Subject identifier (id)               : ID</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Dependent variable (dv)               : DV</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Independent variable (idv)            : TIME</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Time after dose (tad) (tad)           : TAD</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Dose amount (amt)                     : AMT</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Event identifier (evid)               : EVID</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Model typical predictions (pred)      : PRED</span>
@@ -104,16 +103,15 @@ called <code>NLMIXRLLIKOBS</code> (this is a current standard, but is checked at
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Categorical covariates (catcov)       : SEX [<span style="color: #BBBB00;">0</span>], MED1 [<span style="color: #BBBB00;">0</span>], MED2 [<span style="color: #BBBB00;">0</span>]</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Continuous covariates (contcov)       : CLCR, AGE, WT</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Compartment amounts (a)               : A1, A2</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Not attributed (na)                   : DOSE, SS, II, CPRED</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Not attributed (na)                   : DOSE, SS, II, TAD, CPRED</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> List of available variables for problem no. <span style="color: #BB00BB;">2</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Subject identifier (id)               : ID</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Dependent variable (dv)               : DV</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Independent variable (idv)            : TIME</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Time after dose (tad) (tad)           : TAD</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Dose amount (amt)                     : AMT</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Event identifier (evid)               : EVID</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>  - Model individual predictions (ipred)  : IPRED</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Not attributed (na)                   : DOSE, SEX, CLCR, AGE, WT</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Not attributed (na)                   : DOSE, TAD, SEX, CLCR, AGE, WT</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

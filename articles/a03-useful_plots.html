@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xpose.xtras</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Useful uncommon plots</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/jprybylski/xpose.xtras/blob/v0.1.2/vignettes/a03-useful_plots.Rmd" class="external-link"><code>vignettes/a03-useful_plots.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/jprybylski/xpose.xtras/blob/master/vignettes/a03-useful_plots.Rmd" class="external-link"><code>vignettes/a03-useful_plots.Rmd</code></a></small>
       <div class="d-none name"><code>a03-useful_plots.Rmd</code></div>
     </div>
 
@@ -101,7 +101,7 @@ argument to automatically apply <code><a href="../reference/backfill_iofv.html">
 <code class="sourceCode R"><span><span class="va">pheno_set</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/modavg_plots.html">ipred_vs_idv_modavg</a></span><span class="op">(</span>auto_backfill <span class="op">=</span> <span class="cn">TRUE</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
-<p><img src="a03-useful_plots_files/figure-html/modavg-1.png" class="r-plt" width="672inches" style="display: block; margin: auto;"></p>
+<p><img src="a03-useful_plots_files/figure-html/modavg-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
 <p>The default title, subtitle and caption for these experimental
 figures are rough, especially for large sets. Changes for better
 appearance should be expected in the future.</p>
@@ -134,7 +134,7 @@ documentation.</p>
 <span><span class="va">described_pkpd_m3</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/catdv_vs_dvprobs.html">catdv_vs_dvprobs</a></span><span class="op">(</span>quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'</span></span></code></pre></div>
-<p><img src="a03-useful_plots_files/figure-html/m3-1.png" class="r-plt" width="672inches" style="display: block; margin: auto;"></p>
+<p><img src="a03-useful_plots_files/figure-html/m3-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
 <p>It is expected that there will be a somewhat sigmoidal or at least
 up- and right-ward relationship between the two sets of observations in
 an adequate model, but as with all diagnostics the interpretation for
@@ -154,17 +154,17 @@ probability of not that observation,</p>
 <span><span class="va">vismo_xpdb</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/catdv_vs_dvprobs.html">catdv_vs_dvprobs</a></span><span class="op">(</span>quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'</span></span></code></pre></div>
-<p><img src="a03-useful_plots_files/figure-html/vismo-1.png" class="r-plt" width="672inches" style="display: block; margin: auto;"></p>
+<p><img src="a03-useful_plots_files/figure-html/vismo-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vismo_xpdb</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/catdv_vs_dvprobs.html">catdv_vs_dvprobs</a></span><span class="op">(</span>cutpoint <span class="op">=</span> <span class="fl">2</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'</span></span></code></pre></div>
-<p><img src="a03-useful_plots_files/figure-html/vismo-2.png" class="r-plt" width="672inches" style="display: block; margin: auto;"></p>
+<p><img src="a03-useful_plots_files/figure-html/vismo-2.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vismo_xpdb</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/catdv_vs_dvprobs.html">catdv_vs_dvprobs</a></span><span class="op">(</span>cutpoint <span class="op">=</span> <span class="fl">3</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'</span></span></code></pre></div>
-<p><img src="a03-useful_plots_files/figure-html/vismo-3.png" class="r-plt" width="672inches" style="display: block; margin: auto;"></p>
+<p><img src="a03-useful_plots_files/figure-html/vismo-3.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
 <p>While boxplots and similar are often used in pharmacometrics to
 visualize these results (or similar in exposure-response), in the realm
 of machine learning Receiver Operating Characteristics (ROC) curves are
@@ -176,13 +176,13 @@ repurposed:</p>
 <code class="sourceCode R"><span><span class="va">described_pkpd_m3</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/roc_plot.html">roc_plot</a></span><span class="op">(</span>quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: Some sensitivies and specificities not calculable due to 0s.</span></span></code></pre></div>
-<p><img src="a03-useful_plots_files/figure-html/roc_ex1-1.png" class="r-plt" width="672inches" style="display: block; margin: auto;"></p>
+<p><img src="a03-useful_plots_files/figure-html/roc_ex1-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vismo_xpdb</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="co"># Epsilon shrinkage is still included in default subtitle for M3-like use cases</span></span>
 <span>  <span class="fu"><a href="../reference/roc_plot.html">roc_plot</a></span><span class="op">(</span>cutpoint <span class="op">=</span> <span class="fl">2</span>, quiet<span class="op">=</span><span class="cn">TRUE</span>, subtitle <span class="op">=</span> <span class="st">"Ofv: @ofv"</span><span class="op">)</span> </span>
 <span><span class="co">#&gt; Warning: Some sensitivies and specificities not calculable due to 0s.</span></span></code></pre></div>
-<p><img src="a03-useful_plots_files/figure-html/roc_ex1-2.png" class="r-plt" width="672inches" style="display: block; margin: auto;">
+<p><img src="a03-useful_plots_files/figure-html/roc_ex1-2.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;">
 For ROC space plots, a common grouping is by ID. While there may be a
 lot of overlap in the upper left region (the section of the plot where
 BLQs are most accurately predicted), the fewer points with lower
@@ -194,7 +194,7 @@ outliers.</p>
 <span><span class="co">#&gt; Warning: Some sensitivies and specificities not calculable due to 0s.</span></span>
 <span><span class="co">#&gt; Warning: Removed 96 rows containing missing values or values outside the scale range</span></span>
 <span><span class="co">#&gt; (`geom_text()`).</span></span></code></pre></div>
-<p><img src="a03-useful_plots_files/figure-html/roc_ex2-1.png" class="r-plt" width="672inches" style="display: block; margin: auto;">
+<p><img src="a03-useful_plots_files/figure-html/roc_ex2-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;">
 The warning regarding sensitivities and specificities not being
 calculable is trivial, and refers to study participant data in which
 there is not a mix of BLQ (in the M3 examples) values; they are either
@@ -214,19 +214,19 @@ estimates (EBEs).</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pheno_set</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/waterfalls.html">eta_waterfall</a></span><span class="op">(</span><span class="va">run3</span>,<span class="va">run6</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a03-useful_plots_files/figure-html/waterfall-1.png" class="r-plt" width="672inches" style="display: block; margin: auto;"></p>
+<p><img src="a03-useful_plots_files/figure-html/waterfall-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
 <p>Waterfalls can also be used as an alternative to shark plots. Scaling
 in that case is off by default.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pheno_set</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/focus_xpdb.html">focus_qapply</a></span><span class="op">(</span><span class="va">backfill_iofv</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/waterfalls.html">iofv_waterfall</a></span><span class="op">(</span><span class="va">run3</span>,<span class="va">run6</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a03-useful_plots_files/figure-html/waterfall2-1.png" class="r-plt" width="672inches" style="display: block; margin: auto;"></p>
+<p><img src="a03-useful_plots_files/figure-html/waterfall2-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
 <p>To track iOFV changes over multiple models, another plot can be
 used.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/iofv_vs_mod.html">iofv_vs_mod</a></span><span class="op">(</span><span class="va">pheno_set</span>, auto_backfill <span class="op">=</span> <span class="cn">TRUE</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a03-useful_plots_files/figure-html/ofv_change-1.png" class="r-plt" width="672inches" style="display: block; margin: auto;"></p>
+<p><img src="a03-useful_plots_files/figure-html/ofv_change-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

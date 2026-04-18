@@ -25,14 +25,18 @@ This function will currently backfill:
 ## Examples
 
 ``` r
+if (requireNamespace("rxode2", quietly = TRUE) &&
+    requireNamespace("nlmixr2est", quietly = TRUE)) {
+
 xpdb_nlmixr2 %>%
   set_prop(condn = "not implemented") %>%
   get_prop("condn")
-#> [1] "not implemented"
 
 xpdb_nlmixr2 %>%
   set_prop(condn = "not implemented") %>%
   backfill_nlmixr2_props() %>%
   get_prop("condn")
-#> [1] "68.676527450837"
+
+}
+#> [1] "68.4618501292695"
 ```

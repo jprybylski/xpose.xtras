@@ -50,7 +50,6 @@ xpdb_x %>%
 #>  - Subject identifier (id)               : ID
 #>  - Dependent variable (dv)               : DV
 #>  - Independent variable (idv)            : TIME
-#>  - Time after dose (tad) (tad)           : TAD
 #>  - Dose amount (amt)                     : AMT
 #>  - Event identifier (evid)               : EVID
 #>  - Model typical predictions (pred)      : PRED
@@ -62,14 +61,13 @@ xpdb_x %>%
 #>  - Categorical covariates (catcov)       : SEX [0], MED1 [0], MED2 [0]
 #>  - Continuous covariates (contcov)       : CLCR, AGE, WT
 #>  - Compartment amounts (a)               : A1, A2
-#>  - Not attributed (na)                   : DOSE, SS, II, CPRED
+#>  - Not attributed (na)                   : DOSE, SS, II, TAD, CPRED
 #> List of available variables for problem no. 2
 #>  - Subject identifier (id)               : ID
 #>  - Dependent variable (dv)               : DV
 #>  - Independent variable (idv)            : TIME
-#>  - Time after dose (tad) (tad)           : TAD
 #>  - Dose amount (amt)                     : AMT
 #>  - Event identifier (evid)               : EVID
 #>  - Model individual predictions (ipred)  : IPRED
-#>  - Not attributed (na)                   : DOSE, SEX, CLCR, AGE, WT
+#>  - Not attributed (na)                   : DOSE, TAD, SEX, CLCR, AGE, WT
 ```

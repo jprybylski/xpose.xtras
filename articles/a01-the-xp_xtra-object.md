@@ -119,7 +119,6 @@ list_vars(w_unit_labs, .problem = 1)
 #>  - Subject identifier (id)               : ID
 #>  - Dependent variable (dv)               : DV
 #>  - Independent variable (idv)            : TIME
-#>  - Time after dose (tad) (tad)           : TAD
 #>  - Dose amount (amt)                     : AMT
 #>  - Event identifier (evid)               : EVID
 #>  - Model typical predictions (pred)      : PRED
@@ -130,7 +129,7 @@ list_vars(w_unit_labs, .problem = 1)
 #>  - Categorical covariates (catcov)       : SEX [0], MED1 ('Digoxin') [0], MED2 [0]
 #>  - Continuous covariates (contcov)       : CLCR, AGE ('Age', yrs), WT
 #>  - Compartment amounts (a)               : A1, A2
-#>  - Not attributed (na)                   : DOSE, SS, II, CPRED
+#>  - Not attributed (na)                   : DOSE, SS, II, TAD, CPRED
 ```
 
 Levels can also be added to any variable, but can be especially useful
@@ -148,7 +147,6 @@ list_vars(w_levels, .problem = 1)
 #>  - Subject identifier (id)               : ID
 #>  - Dependent variable (dv)               : DV
 #>  - Independent variable (idv)            : TIME
-#>  - Time after dose (tad) (tad)           : TAD
 #>  - Dose amount (amt)                     : AMT
 #>  - Event identifier (evid)               : EVID
 #>  - Model typical predictions (pred)      : PRED
@@ -159,7 +157,7 @@ list_vars(w_levels, .problem = 1)
 #>  - Categorical covariates (catcov)       : SEX [2], MED1 ('Digoxin') [2], MED2 [0]
 #>  - Continuous covariates (contcov)       : CLCR, AGE ('Age', yrs), WT
 #>  - Compartment amounts (a)               : A1, A2
-#>  - Not attributed (na)                   : DOSE, SS, II, CPRED
+#>  - Not attributed (na)                   : DOSE, SS, II, TAD, CPRED
 ```
 
 Labels, units and levels also appear in new plotting functions. There

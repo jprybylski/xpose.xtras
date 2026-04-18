@@ -79,14 +79,14 @@ xpdb_f %>%
 #> Model description: na
 #> run6.lst overview: 
 #>  - Software: nonmem 7.5.0 
-#>  - Attached files (memory usage 476.2 Kb): 
+#>  - Attached files (memory usage 504.6 Kb): 
 #>    + obs tabs: $prob no.1 (modified): na, run6tab 
 #>    + sim tabs: <none> 
 #>    + output files: run6.cor, run6.cov, run6.ext, run6.grd, run6.phi, run6.shk 
 #>    + special: <none> 
 #>  - gg_theme: theme_readable 
 #>  - xp_theme: xp_xtra_theme new_x$xp_theme 
-#>  - Options: dir = ~/Step 3/Step 5/Step 6, quiet = FALSE, manual_import = NULL, use_labelunit = TRUE, square_bracket = FALSE, cvtype = exact
+#>  - Options: dir = ~/Step 3/Step 5/Step 6, quiet = FALSE, manual_import = NULL, cvtype = exact
 
 # xpdb_f may have to be written to a few times if
 # and problem-specific combinations are needed:

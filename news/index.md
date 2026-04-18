@@ -1,6 +1,12 @@
 # Changelog
 
+## xpose.xtras 0.1.3
+
+- Fix for nlmixr2 compatibility checks when nlmixr2est is not installed.
+
 ## xpose.xtras 0.1.2
+
+CRAN release: 2025-12-01
 
 - Additional changes relevant to 0.1.1.
 

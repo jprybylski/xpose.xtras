@@ -91,7 +91,7 @@ fit.TOS <- nlmixr2(pk.turnover.emax3, warfarin, "focei", control=list(print=0),
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> calculating covariance matrix
-#> [====|====|====|====|====|====|====|====|====|====] 0:01:23 
+#> [====|====|====|====|====|====|====|====|====|====] 0:01:07 
 #> done
 ```
 
@@ -107,7 +107,7 @@ xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
 #> ── ~ xp_xtras object 
 #> Model description: not implemented
 #> fit.TOS overview: 
-#>  - Software: nlmixr2 4.1.1 
+#>  - Software: nlmixr2 5.0.2 
 #>  - Attached files (memory usage 553.8 Kb): 
 #>    + obs tabs: $prob no.1: nlmixr2 
 #>    + sim tabs: <none> 
@@ -130,7 +130,7 @@ xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
 #> ── ~ xp_xtras object 
 #> Model description: not implemented
 #> fit.TOS overview: 
-#>  - Software: nlmixr2 4.1.1 
+#>  - Software: nlmixr2 5.0.2 
 #>  - Attached files (memory usage 725.7 Kb): 
 #>    + obs tabs: $prob no.1: nlmixr2 
 #>    + sim tabs: <none> 
@@ -154,7 +154,7 @@ xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
   backfill_nlmixr2_props() %>%
   {print(get_prop(., "condn")); .} %>%
   get_prop("nsig")
-#> [1] "32318.0467755017"
+#> [1] "100298.230953542"
 #> [1] "3"
 ```
 
@@ -185,26 +185,26 @@ xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
 #> # A tibble: 20 × 9
 #>    type  name         value      se      rse     m     n      cv     shk
 #>    <chr> <chr>      <num:3> <num:3>  <num:3> <int> <int> <num:3> <num:3>
-#>  1 the   tktr         0.104  2.20   21.1         1    NA    NA      NA  
-#>  2 the   tka          0.302  2.18    7.23        2    NA    NA      NA  
-#>  3 the   tcl         -2.04   0.109   0.0536      3    NA    NA      NA  
-#>  4 the   tv           2.06   0.0916  0.0444      4    NA    NA      NA  
-#>  5 the   prop.err     0.148 NA      NA           5    NA    NA      NA  
-#>  6 the   pkadd.err    0.172 NA      NA           6    NA    NA      NA  
-#>  7 the   temax        4.75   6.20    1.30        7    NA    NA      NA  
-#>  8 the   tec50        0.157  0.229   1.46        8    NA    NA      NA  
-#>  9 the   tkout       -2.93   0.128   0.0436      9    NA    NA      NA  
-#> 10 the   te0          4.57   0.0399  0.00874    10    NA    NA      NA  
-#> 11 the   pdadd.err    3.76  NA      NA          11    NA    NA      NA  
-#> 12 ome   eta.ktr      0.840 NA      NA           1     1   101.     62.3
-#> 13 ome   eta.ka       0.944 NA      NA           2     2   120.     60.6
-#> 14 ome   eta.cl       0.268 NA      NA           3     3    27.3    -0.1
-#> 15 ome   eta.v        0.221 NA      NA           4     4    22.4    10.3
-#> 16 ome   eta.emax     0.590 NA      NA           5     5    64.5    95.1
-#> 17 ome   eta.ec50     0.453 NA      NA           6     6    47.7     5.2
-#> 18 ome   eta.kout     0.153 NA      NA           7     7    15.4    32.3
-#> 19 ome   eta.e0       0.103 NA      NA           8     8    10.3    39.6
-#> 20 sig   sigma(1,1)   1     NA      NA           1     1    NA      10.7
+#>  1 the   tktr        0.168   0.136   0.809       1    NA   NA       NA  
+#>  2 the   tka        -0.0713  0.149   2.09        2    NA   NA       NA  
+#>  3 the   tcl        -2.01    0.0328  0.0163      3    NA   NA       NA  
+#>  4 the   tv          2.07    0.0234  0.0113      4    NA   NA       NA  
+#>  5 the   prop.err    0.135  NA      NA           5    NA   NA       NA  
+#>  6 the   pkadd.err   0.220  NA      NA           6    NA   NA       NA  
+#>  7 the   temax       5.42    0.587   0.108       7    NA   NA       NA  
+#>  8 the   tec50       0.144   0.0541  0.375       8    NA   NA       NA  
+#>  9 the   tkout      -2.94    0.0285  0.00970     9    NA   NA       NA  
+#> 10 the   te0         4.57    0.0166  0.00363    10    NA   NA       NA  
+#> 11 the   pdadd.err   3.78   NA      NA          11    NA   NA       NA  
+#> 12 ome   eta.ktr     0.873  NA      NA           1     1  107.      60.3
+#> 13 ome   eta.ka      0.780  NA      NA           2     2   91.5     61.3
+#> 14 ome   eta.cl      0.264  NA      NA           3     3   26.9     -2.8
+#> 15 ome   eta.v       0.219  NA      NA           4     4   22.2      6.3
+#> 16 ome   eta.emax    0.644  NA      NA           5     5   71.7     96.9
+#> 17 ome   eta.ec50    0.434  NA      NA           6     6   45.5      3.3
+#> 18 ome   eta.kout    0.106  NA      NA           7     7   10.6     28.8
+#> 19 ome   eta.e0      0.0707 NA      NA           8     8    7.08    25.5
+#> 20 sig   sigma(1,1)  1      NA      NA           1     1   NA        9.6
 ```
 
 To build on this, because `nlmixr2` coerces users to use mu-referencing
@@ -227,28 +227,28 @@ xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
   # Remove some columns for readability
   dplyr::select(-c(fixed,diagonal,label))
 #> # A tibble: 20 × 9
-#>    type  name         value      se      rse     m     n      cv     shk
-#>    <chr> <chr>      <num:3> <num:3>  <num:3> <int> <int> <num:3> <num:3>
-#>  1 the   tktr         0.104  2.20   21.1         1    NA  NA        NA  
-#>  2 the   tka          0.302  2.18    7.23        2    NA  NA        NA  
-#>  3 the   tcl         -2.04   0.109   0.0536      3    NA  NA        NA  
-#>  4 the   tv           2.06   0.0916  0.0444      4    NA  NA        NA  
-#>  5 the   prop.err     0.148 NA      NA           5    NA  NA        NA  
-#>  6 the   pkadd.err    0.172 NA      NA           6    NA  NA        NA  
-#>  7 the   temax        0.991  0.362   0.365       7    NA  NA        NA  
-#>  8 the   tec50        0.157  0.229   1.46        8    NA  NA        NA  
-#>  9 the   tkout       -2.93   0.128   0.0436      9    NA  NA        NA  
-#> 10 the   te0          4.57   0.0399  0.00874    10    NA  NA        NA  
-#> 11 the   pdadd.err    3.76  NA      NA          11    NA  NA        NA  
-#> 12 ome   eta.ktr      0.840 NA      NA           1     1 101.       62.3
-#> 13 ome   eta.ka       0.944 NA      NA           2     2 120.       60.6
-#> 14 ome   eta.cl       0.268 NA      NA           3     3  27.3      -0.1
-#> 15 ome   eta.v        0.221 NA      NA           4     4  22.4      10.3
-#> 16 ome   eta.emax     0.590 NA      NA           5     5   0.647    95.1
-#> 17 ome   eta.ec50     0.453 NA      NA           6     6  47.7       5.2
-#> 18 ome   eta.kout     0.153 NA      NA           7     7  15.4      32.3
-#> 19 ome   eta.e0       0.103 NA      NA           8     8  10.3      39.6
-#> 20 sig   sigma(1,1)   1     NA      NA           1     1  NA        10.7
+#>    type  name         value       se      rse     m     n      cv     shk
+#>    <chr> <chr>      <num:3>  <num:3>  <num:3> <int> <int> <num:3> <num:3>
+#>  1 the   tktr        0.168   0.136    0.809       1    NA  NA        NA  
+#>  2 the   tka        -0.0713  0.149    2.09        2    NA  NA        NA  
+#>  3 the   tcl        -2.01    0.0328   0.0163      3    NA  NA        NA  
+#>  4 the   tv          2.07    0.0234   0.0113      4    NA  NA        NA  
+#>  5 the   prop.err    0.135  NA       NA           5    NA  NA        NA  
+#>  6 the   pkadd.err   0.220  NA       NA           6    NA  NA        NA  
+#>  7 the   temax       0.996   0.00332  0.00334     7    NA  NA        NA  
+#>  8 the   tec50       0.144   0.0541   0.375       8    NA  NA        NA  
+#>  9 the   tkout      -2.94    0.0285   0.00970     9    NA  NA        NA  
+#> 10 the   te0         4.57    0.0166   0.00363    10    NA  NA        NA  
+#> 11 the   pdadd.err   3.78   NA       NA          11    NA  NA        NA  
+#> 12 ome   eta.ktr     0.873  NA       NA           1     1 107.       60.3
+#> 13 ome   eta.ka      0.780  NA       NA           2     2  91.5      61.3
+#> 14 ome   eta.cl      0.264  NA       NA           3     3  26.9      -2.8
+#> 15 ome   eta.v       0.219  NA       NA           4     4  22.2       6.3
+#> 16 ome   eta.emax    0.644  NA       NA           5     5   0.385    96.9
+#> 17 ome   eta.ec50    0.434  NA       NA           6     6  45.5       3.3
+#> 18 ome   eta.kout    0.106  NA       NA           7     7  10.6      28.8
+#> 19 ome   eta.e0      0.0707 NA       NA           8     8   7.08     25.5
+#> 20 sig   sigma(1,1)  1      NA       NA           1     1  NA         9.6
 #> # Parameter table includes the following associations: tktr~log(eta.ktr),
 #> tka~log(eta.ka), tcl~log(eta.cl), tv~log(eta.v), temax~logit(eta.emax),
 #> tec50~log(eta.ec50), tkout~log(eta.kout), and te0~log(eta.e0)
@@ -296,6 +296,8 @@ list_vars(nlmixr2_warfarin)
 #>  - Not attributed (na)                   : NLMIXRLLIKOBS, CMT, EPRED, ERES, NPD, PDE, PD, PRED, ETA.KTR, ETA.KA, ETA.CL, ETA.V, ETA.EMAX, ETA.EC50, ETA.KOUT, ETA.E0, DEPOT, GUT, CENTER, EFFECT, KTR, EMAX, EC50, KOUT, E0, DCP, PD.1, KIN, TAD, DOSENUM
 
 dv_vs_ipred(nlmixr2_warfarin, facet="DVID")
+#> Using data from $prob no.1
+#> Filtering data by EVID == 0
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
@@ -304,6 +306,8 @@ dv_vs_ipred(nlmixr2_warfarin, facet="DVID")
 ``` r
 
 dv_vs_pred(nlmixr2_warfarin, facet="DVID")
+#> Using data from $prob no.1
+#> Filtering data by EVID == 0
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
@@ -312,6 +316,9 @@ dv_vs_pred(nlmixr2_warfarin, facet="DVID")
 ``` r
 
 eta_vs_catcov(nlmixr2_warfarin, etavar = eta.cl)
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
+#> Tidying data by ID, TIME, AMT, DV, DVID ... and 53 more variables
 #> Warning: nind is not part of the available keywords. Check ?template_titles for
 #> a full list.
 ```
@@ -320,6 +327,9 @@ eta_vs_catcov(nlmixr2_warfarin, etavar = eta.cl)
 
 ``` r
 eta_vs_contcov(nlmixr2_warfarin, etavar = eta.cl)
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
+#> Tidying data by ID, TIME, AMT, DV, DVID ... and 52 more variables
 #> Warning: nind is not part of the available keywords. Check ?template_titles for
 #> a full list.
 #> `geom_smooth()` using formula = 'y ~ x'
@@ -376,7 +386,7 @@ fit.TOS.kaktr <- fit.TOS %>%
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> calculating covariance matrix
-#> [====|====|====|====|====|====|====|====|====|====] 0:00:51 
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:42 
 #> done
 
 fit.TOS.emax1 <- fit.TOS %>%
@@ -402,7 +412,7 @@ fit.TOS.emax1 <- fit.TOS %>%
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> calculating covariance matrix
-#> [====|====|====|====|====|====|====|====|====|====] 0:00:54 
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:45 
 #> done
 
 fit.TOS.simple <- fit.TOS %>%
@@ -429,7 +439,7 @@ fit.TOS.simple <- fit.TOS %>%
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> calculating covariance matrix
-#> [====|====|====|====|====|====|====|====|====|====] 0:00:33 
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:28 
 #> done
 ```
 
@@ -497,7 +507,7 @@ warfarin_set$warf_simple
 #> ── ~ xp_xtras object 
 #> Model description: not implemented
 #> fit.TOS.simple overview: 
-#>  - Software: nlmixr2 4.1.1 
+#>  - Software: nlmixr2 5.0.2 
 #>  - Attached files (memory usage 693.4 Kb): 
 #>    + obs tabs: $prob no.1 (modified): na, nlmixr2 
 #>    + sim tabs: <none> 
@@ -515,15 +525,17 @@ warfarin_set %>%
   # Remove some columns for readability
   dplyr::select(-c(parent,base,focus))
 #> # A tibble: 4 × 4
-#>   xpdb         label            ..ofv ..condn
-#>   <named list> <chr>            <dbl>   <dbl>
-#> 1 <xp_xtras>   nlmixr2_warfarin 1387    7497.
-#> 2 <xp_xtras>   warf_ka          1338.  21266.
-#> 3 <xp_xtras>   warf_emax        1351.    464.
-#> 4 <xp_xtras>   warf_simple      1338.    269.
+#>   xpdb         label            ..ofv    ..condn
+#>   <named list> <chr>            <dbl>      <dbl>
+#> 1 <xp_xtras>   nlmixr2_warfarin 1382.     5759. 
+#> 2 <xp_xtras>   warf_ka          1362. 11367228. 
+#> 3 <xp_xtras>   warf_emax        1339.    14743. 
+#> 4 <xp_xtras>   warf_simple      1370.       44.3
 
 warfarin_set %>%
   dofv_vs_id(nlmixr2_warfarin, warf_simple, .inorder = TRUE, df=1)
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
 #> Warning: nind is not part of the available keywords. Check ?template_titles for
 #> a full list.
 ```
@@ -536,6 +548,9 @@ warfarin_set %>%
   # This comparison should be more interesting
   focus_qapply(set_var_types, param=c(KA,EC50), na=c(CL, V)) %>%
   prm_waterfall(nlmixr2_warfarin, warf_simple)
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
+#> Tidying data by ID, TIME, AMT, DV, DVID ... and 55 more variables
 #> Warning: nind is not part of the available keywords. Check ?template_titles for
 #> a full list.
 ```
@@ -569,6 +584,8 @@ parameters or to set derived parameters as `param` type variables.
 nlmixr2_m3 %>%
   backfill_derived() %>%
   list_vars()
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
 #> List of available variables for problem no. 1
 #>  - Subject identifier (id)               : ID
 #>  - Dependent variable (dv)               : DV
@@ -586,13 +603,15 @@ nlmixr2_m3 %>%
 derive_prm(nlmixr2_m3) %>%
   dplyr::select(ID,KA,CL,VSS:(dplyr::last_col())) %>%
   head()
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
 #>   ID        KA       CL      VSS  T12ALPHA      ALPHA          A FRACA
-#> 1  1 1.7262871 1.725758 28.98448 11.641557 0.05954076 0.03450122     1
-#> 2 10 0.7714723 1.880091 26.90314  9.918579 0.06988372 0.03717039     1
-#> 3 11 3.2255861 3.788283 35.71719  6.535222 0.10606329 0.02799772     1
-#> 4 12 0.9557512 2.423387 26.15672  7.481452 0.09264875 0.03823110     1
-#> 5  2 1.8922247 3.262844 31.51880  6.695745 0.10352055 0.03172709     1
-#> 6  3 2.2187556 2.933599 32.93694  7.782299 0.08906715 0.03036105     1
+#> 1  1 1.7251486 1.725701 28.98379 11.641669 0.05954019 0.03450204     1
+#> 2 10 0.7749998 1.877278 26.95612  9.953005 0.06964200 0.03709732     1
+#> 3 11 3.1875334 3.805979 35.58422  6.480619 0.10695694 0.02810235     1
+#> 4 12 0.9589018 2.421680 26.19968  7.499023 0.09243166 0.03816840     1
+#> 5  2 1.8854966 3.271027 31.46965  6.668577 0.10394229 0.03177665     1
+#> 6  3 2.2049138 2.942414 32.86581  7.742229 0.08952811 0.03042676     1
 
 
 # If param has no vars, .prm should be set
@@ -631,6 +650,10 @@ should only be one volume) the `vol_pattern` has been updated.
 nlmixr2_m3 %>%
   backfill_derived() %>%
   diagnose_constants(vol_pattern = "^V$")
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
 #> ℹ Checking for absorption flip-flop (first-order absorption slower than derived rate constants)...
 #> ✔ No parameter sets are suggestive of flip-flop.
 #> ℹ Checking for negative microconstants or volume...
@@ -643,6 +666,10 @@ nlmixr2_m3 %>%
     df_units = list(KA = "1/hr", ALPHA = "1/hr"),
     checks = list(neg_microvol = FALSE)
   )
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
 #> ℹ Checking for absorption flip-flop (first-order absorption slower than derived rate constants)...
 #> ✔ No parameter sets are suggestive of flip-flop.
 #> ℹ Checking that compared units match...
@@ -651,6 +678,8 @@ nlmixr2_m3 %>%
 # Using df form
 derive_prm(nlmixr2_m3) %>%
   diagnose_constants(df = ., vol_pattern = "^V$")
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
 #> ℹ Checking for absorption flip-flop (first-order absorption slower than derived rate constants)...
 #> ✔ No parameter sets are suggestive of flip-flop.
 #> ℹ Checking for negative microconstants or volume...
@@ -661,9 +690,9 @@ derive_prm(nlmixr2_m3) %>%
 
 ``` r
 sessionInfo()
-#> R version 4.5.2 (2025-10-31)
+#> R version 4.5.3 (2026-03-11)
 #> Platform: x86_64-pc-linux-gnu
-#> Running under: Ubuntu 24.04.3 LTS
+#> Running under: Ubuntu 24.04.4 LTS
 #> 
 #> Matrix products: default
 #> BLAS:   /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3 
@@ -682,39 +711,39 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#>  [1] xpose.xtras_0.1.2   xpose.nlmixr2_0.4.1 xpose_0.4.22       
-#>  [4] ggplot2_4.0.1       rxode2_4.1.1        nlmixr2plot_3.0.3  
-#>  [7] nlmixr2extra_3.0.2  nlmixr2est_4.1.1    nlmixr2data_2.0.9  
-#> [10] lotri_1.0.2         nlmixr2_4.0.1      
+#>  [1] xpose.xtras_0.1.3   xpose.nlmixr2_0.4.1 xpose_0.4.23       
+#>  [4] ggplot2_4.0.2       rxode2_5.0.2        nlmixr2plot_5.0.1  
+#>  [7] nlmixr2extra_5.0.0  nlmixr2est_5.0.2    nlmixr2data_2.0.9  
+#> [10] lotri_1.0.3         nlmixr2_5.0.0      
 #> 
 #> loaded via a namespace (and not attached):
-#>  [1] tidyselect_1.2.1      dplyr_1.1.4           farver_2.1.2         
-#>  [4] S7_0.2.1              fastmap_1.2.0         lazyeval_0.2.2       
-#>  [7] GGally_2.4.0          tweenr_2.0.3          rex_1.2.1            
-#> [10] stringfish_0.17.0     digest_0.6.39         lifecycle_1.0.4      
-#> [13] magrittr_2.0.4        dparser_1.3.1-13      compiler_4.5.2       
-#> [16] rlang_1.1.6           sass_0.4.10           tools_4.5.2          
-#> [19] utf8_1.2.6            yaml_2.3.10           data.table_1.17.8    
-#> [22] symengine_0.2.10      knitr_1.50            lbfgsb3c_2024-3.5    
-#> [25] labeling_0.4.3        htmlwidgets_1.6.4     pmxcv_0.0.2          
-#> [28] RColorBrewer_1.1-3    withr_3.0.2           purrr_1.2.0          
-#> [31] sys_3.4.3             desc_1.4.3            grid_4.5.2           
-#> [34] polyclip_1.10-7       scales_1.4.0          MASS_7.3-65          
-#> [37] cli_3.6.5             rmarkdown_2.30        crayon_1.5.3         
-#> [40] ragg_1.5.0            generics_0.1.4        RcppParallel_5.1.11-1
-#> [43] rstudioapi_0.17.1     tzdb_0.5.0            cachem_1.1.0         
-#> [46] ggforce_0.5.0         RApiSerialize_0.1.4   stringr_1.6.0        
-#> [49] splines_4.5.2         vctrs_0.6.5           Matrix_1.7-4         
-#> [52] jsonlite_2.0.0        PreciseSums_0.7       hms_1.1.4            
-#> [55] systemfonts_1.3.1     tidyr_1.3.1           jquerylib_0.1.4      
-#> [58] rxode2ll_2.0.13       glue_1.8.0            pkgdown_2.2.0        
-#> [61] ggstats_0.11.0        codetools_0.2-20      stringi_1.8.7        
-#> [64] gtable_0.3.6          tibble_3.3.0          pillar_1.11.1        
-#> [67] htmltools_0.5.8.1     R6_2.6.1              textshaping_1.0.4    
-#> [70] conflicted_1.2.0      evaluate_1.0.5        lattice_0.22-7       
-#> [73] readr_2.1.6           backports_1.5.0       vpc_1.2.2            
-#> [76] qs_0.27.3             memoise_2.0.1         n1qn1_6.0.1-12       
-#> [79] bslib_0.9.0           Rcpp_1.1.0            nlme_3.1-168         
-#> [82] checkmate_2.3.3       mgcv_1.9-3            xfun_0.54            
-#> [85] fs_1.6.6              forcats_1.0.1         pkgconfig_2.0.3
+#>  [1] gtable_0.3.6          n1qn1_6.0.1-14        xfun_0.57            
+#>  [4] bslib_0.10.0          htmlwidgets_1.6.4     GGally_2.4.0         
+#>  [7] lattice_0.22-9        tzdb_0.5.0            vctrs_0.7.3          
+#> [10] tools_4.5.3           generics_0.1.4        tibble_3.3.1         
+#> [13] symengine_0.2.11      pkgconfig_2.0.3       Matrix_1.7-4         
+#> [16] data.table_1.18.2.1   checkmate_2.3.4       RColorBrewer_1.1-3   
+#> [19] S7_0.2.1-1            desc_1.4.3            RcppParallel_5.1.11-2
+#> [22] lifecycle_1.0.5       compiler_4.5.3        farver_2.1.2         
+#> [25] stringr_1.6.0         textshaping_1.0.5     ggforce_0.5.0        
+#> [28] codetools_0.2-20      htmltools_0.5.9       sys_3.4.3            
+#> [31] vpc_1.2.4             sass_0.4.10           yaml_2.3.12          
+#> [34] pillar_1.11.1         pkgdown_2.2.0         crayon_1.5.3         
+#> [37] jquerylib_0.1.4       tidyr_1.3.2           MASS_7.3-65          
+#> [40] cachem_1.1.0          nlme_3.1-168          pmxcv_0.0.2          
+#> [43] qs2_0.1.7             ggstats_0.13.0        conflicted_1.2.0     
+#> [46] tidyselect_1.2.1      digest_0.6.39         stringi_1.8.7        
+#> [49] dplyr_1.2.1           purrr_1.2.2           forcats_1.0.1        
+#> [52] labeling_0.4.3        splines_4.5.3         rxode2ll_2.0.14      
+#> [55] polyclip_1.10-7       fastmap_1.2.0         grid_4.5.3           
+#> [58] cli_3.6.6             dparser_1.3.1-13      magrittr_2.0.5       
+#> [61] utf8_1.2.6            readr_2.2.0           withr_3.0.2          
+#> [64] scales_1.4.0          backports_1.5.1       rmarkdown_2.31       
+#> [67] hms_1.1.4             ragg_1.5.2            stringfish_0.18.0    
+#> [70] memoise_2.0.1         evaluate_1.0.5        knitr_1.51           
+#> [73] rex_1.2.2             mgcv_1.9-4            PreciseSums_0.7      
+#> [76] rlang_1.2.0           Rcpp_1.1.1-1          glue_1.8.1           
+#> [79] tweenr_2.0.3          lbfgsb3c_2024-3.5     rstudioapi_0.18.0    
+#> [82] jsonlite_2.0.0        R6_2.6.1              systemfonts_1.3.2    
+#> [85] fs_2.0.1
 ```

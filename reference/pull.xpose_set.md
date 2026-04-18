@@ -44,7 +44,7 @@ xpdb_set %>%
 #>    + special: <none> 
 #>  - gg_theme: theme_readable 
 #>  - xp_theme: xp_xtra_theme new_x$xp_theme 
-#>  - Options: dir = data, quiet = FALSE, manual_import = NULL, use_labelunit = TRUE, square_bracket = FALSE, cvtype = exact
+#>  - Options: dir = data, quiet = FALSE, manual_import = NULL, cvtype = exact
 #> 
 #> $mod2
 #> 
@@ -59,7 +59,7 @@ xpdb_set %>%
 #>    + special: <none> 
 #>  - gg_theme: theme_readable 
 #>  - xp_theme: xp_xtra_theme new_x$xp_theme 
-#>  - Options: dir = data, quiet = FALSE, manual_import = NULL, use_labelunit = TRUE, square_bracket = FALSE, cvtype = exact
+#>  - Options: dir = data, quiet = FALSE, manual_import = NULL, cvtype = exact
 #> 
 #> $fix1
 #> 
@@ -74,7 +74,7 @@ xpdb_set %>%
 #>    + special: <none> 
 #>  - gg_theme: theme_readable 
 #>  - xp_theme: xp_xtra_theme new_x$xp_theme 
-#>  - Options: dir = data, quiet = FALSE, manual_import = NULL, use_labelunit = TRUE, square_bracket = FALSE, cvtype = exact
+#>  - Options: dir = data, quiet = FALSE, manual_import = NULL, cvtype = exact
 #> 
 #> $fix2
 #> 
@@ -89,6 +89,6 @@ xpdb_set %>%
 #>    + special: <none> 
 #>  - gg_theme: theme_readable 
 #>  - xp_theme: xp_xtra_theme new_x$xp_theme 
-#>  - Options: dir = data, quiet = FALSE, manual_import = NULL, use_labelunit = TRUE, square_bracket = FALSE, cvtype = exact
+#>  - Options: dir = data, quiet = FALSE, manual_import = NULL, cvtype = exact
 #> 
 ```
