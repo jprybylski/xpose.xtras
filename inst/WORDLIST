@@ -79,6 +79,7 @@ iOFVs
 ie
 interindividual
 irep
+jitter
 labelled
 labeller
 magrittr
@@ -113,7 +114,9 @@ un
 uncommented
 unfocusing
 ungroup
+untransformed
 updatable
+vectorized
 vismodegib
 vpc
 warfarin
