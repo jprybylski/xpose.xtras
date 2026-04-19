@@ -70,7 +70,7 @@ threshold is \code{thres_fixed}) (using \code{geom_point})
 }
 }
 \examples{
-
+\donttest{
 pkpd_m3 <- pkpd_m3 \%>\%
   # Need to ensure var types are set
   set_var_types(catdv=BLQ,dvprobs=LIKE) \%>\%
@@ -86,5 +86,5 @@ m3_set <- xpose_set(
 )
 
 roc_by_mod(m3_set, type = "ck", quiet = TRUE)
-
+}
 }

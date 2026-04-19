@@ -287,7 +287,7 @@ ind_roc <- function(xpdb,
 #' @inherit xplot_rocplot details
 #'
 #' @examples
-#'
+#' \donttest{
 #' pkpd_m3 <- pkpd_m3 %>%
 #'   # Need to ensure var types are set
 #'   set_var_types(catdv=BLQ,dvprobs=LIKE) %>%
@@ -303,7 +303,7 @@ ind_roc <- function(xpdb,
 #' )
 #'
 #' roc_by_mod(m3_set, type = "ck", quiet = TRUE)
-#'
+#' }
 roc_by_mod <- function(
     xpdb_s,
     ...,
