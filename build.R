@@ -15,7 +15,7 @@ devtools::build_readme()
 # Run documentation
 devtools::document()
 # Spell Check
-usethis::use_spell_check(error = TRUE)
+#usethis::use_spell_check(error = TRUE)
 devtools::spell_check()
 # final checks (some of the above is re-run)
 devtools::check()
