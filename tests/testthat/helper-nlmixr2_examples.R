@@ -3,8 +3,9 @@
 .nlmixr2_example_cache <- new.env(parent = emptyenv())
 
 cached_nlmixr_example <- function(name) {
+  skip_on_cran()
   if (!exists(name, envir = .nlmixr2_example_cache, inherits = FALSE)) {
-    assign(name, nlmixr_example(name), envir = .nlmixr2_example_cache)
+    assign(name, suppressWarnings(nlmixr_example(name)), envir = .nlmixr2_example_cache)
   }
   get(name, envir = .nlmixr2_example_cache, inherits = FALSE)
 }
