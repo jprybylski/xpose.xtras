@@ -92,6 +92,10 @@ pkpd_m3 %>%
   catdv_vs_dvprobs(quiet=TRUE)
 ```
 
+```{r include=FALSE}
+nlmixr2_m3 <- nlmixr_example("nlmixr2_m3")
+```
+
 ```{r m3_roc, fig.width=unit(7,"in"), fig.height=unit(5,"in"), fig.align='center'}
 nlmixr2_m3 %>%
   set_var_types(catdv=CENS,dvprobs=BLQLIKE) %>%

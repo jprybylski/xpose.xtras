@@ -1,5 +1,9 @@
 # xpose.xtras
 
+# xpose.xtras 0.1.4
+* nlmixr2 example datasets replaced with on-demand `nlmixr_example()` /
+  `nlmixr2_example()` to avoid loading nlmixr2est when not installed.
+
 # xpose.xtras 0.1.3
 * Fix for nlmixr2 compatibility checks when nlmixr2est is not installed.
 

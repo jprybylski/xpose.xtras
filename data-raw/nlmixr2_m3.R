@@ -1,5 +1,9 @@
 # Example based on: https://github.com/nlmixr2/nlmixr2/issues/275#issuecomment-2445469327
-# Turned into theophylline example, but issue example clarified how to do this
+# Data now generated on demand via nlmixr_example("nlmixr2_m3").
+# This script is kept for reference only.
+
+if (FALSE) {
+
 one.cmt <- function() {
   ini({
     ## You may label each parameter with a comment
@@ -44,3 +48,4 @@ nlmixr2_m3 <- nlmixr2_as_xtra(obj = fitcens, .skip_assoc = TRUE) %>%
 usethis::use_data(nlmixr2_m3, overwrite = TRUE, compress = "xz")
 rm(list = ls())
 
+} # end if (FALSE)

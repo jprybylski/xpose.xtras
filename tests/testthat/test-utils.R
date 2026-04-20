@@ -376,9 +376,11 @@ test_that("files df can be mutated", {
   expect_no_error(
     mutate_files(xpdb_x)
   )
-  expect_no_error(
-    mutate_files(nlmixr2_m3)
-  )
+  if (rlang::is_installed(c("nlmixr2est", "nlmixr2data", "xpose.nlmixr2"))) {
+    expect_no_error(
+      mutate_files(cached_nlmixr_example("nlmixr2_m3"))
+    )
+  }
   expect_identical(
     class(mutate_files(xpdb_x)),
     class(xpdb_x)

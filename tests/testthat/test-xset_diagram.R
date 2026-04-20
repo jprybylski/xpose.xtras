@@ -1,4 +1,5 @@
 test_that("diagram gets generated", {
+  skip_if_not_installed("DiagrammeR")
   expect_no_error(
     diagram_lineage(pheno_set)
   )

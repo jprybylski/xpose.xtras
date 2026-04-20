@@ -137,10 +137,6 @@ That's a lot of boilerplate to pipe through, so a convenience function has been 
 ```{r}
 nlmixr2_warfarin <- nlmixr2_as_xtra(fit.TOS)
 ```
-```{r, echo=FALSE}
-# overwrite this object with the package default
-data("nlmixr2_warfarin")
-```
 
 ## General Usage
 
@@ -266,6 +262,10 @@ warfarin_set %>%
 The suggestion to have `nlmixr2` installed enables `rxode2` utility functions to be leveraged for diagnostics (and probably many other unrealized benefits, possibly using `nonmem2rx`). One of those features is exploring the derived parameters for a model.
 
 Now any model (it does not have to be fit with `nlmixr2`) can have derived parameters calculated and checked for signs of misspecification. The `derive_prm()` family of functions can be used to generate a table of derived parameters or to set derived parameters as `param` type variables.
+
+```{r, cache=TRUE}
+nlmixr2_m3 <- nlmixr_example("nlmixr2_m3")
+```
 
 ```{r}
 nlmixr2_m3 %>%

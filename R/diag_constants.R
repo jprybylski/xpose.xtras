@@ -15,15 +15,14 @@
 #' @export
 #' @rdname derive_prm
 #' @examples
-#' if (!rlang::is_installed("rxode2") ||
-#'    !exists("rxDerived", envir = rlang::ns_env("rxode2"))) {
+#' \dontrun{
+#' nlmixr2_m3 <- nlmixr_example("nlmixr2_m3")
 #'
 #' nlmixr2_m3 %>%
 #'   backfill_derived() %>%
 #'   list_vars()
 #'
 #' derive_prm(nlmixr2_m3)
-#'
 #'
 #' # If param has no vars, .prm should be set
 #' pheno_base %>%
@@ -195,8 +194,9 @@ greek_letters <- c(
 #'
 #' @examples
 #'
-#' if (!rlang::is_installed("rxode2") ||
-#'    !exists("rxDerived", envir = rlang::ns_env("rxode2"))) {
+#' \dontrun{
+#' nlmixr2_m3 <- nlmixr_example("nlmixr2_m3")
+#'
 #' nlmixr2_m3 %>%
 #'   backfill_derived() %>%
 #'   diagnose_constants(vol_pattern = "^V$")
@@ -212,7 +212,6 @@ greek_letters <- c(
 #' # Using df form
 #' derive_prm(nlmixr2_m3) %>%
 #'   diagnose_constants(df = ., vol_pattern = "^V$")
-#'
 #' }
 diagnose_constants <- function(
     xpdb,

@@ -141,5 +141,10 @@ utils::globalVariables(c(
   "TS",
   "confmatr",
   "head",
-  "threshold"
+  "threshold",
+  # rxode2/nlmixr2 model DSL symbols used in .nlmixr_example_* helpers
+  "ini", "eta.ka", "eta.cl", "eta.v",
+  "eta.ktr", "eta.emax", "eta.ec50", "eta.kout", "eta.e0",
+  "depot", "cent", "center", "gut", "effect",
+  "LLOQ", "CENS"
 ))

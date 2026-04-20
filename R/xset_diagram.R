@@ -22,9 +22,10 @@
 #' @returns A DiagrammeR-compliant graph object.
 #'
 #' @examples
-#'
+#' \dontrun{
 #' diagram_lineage(pheno_set) %>%
 #'   DiagrammeR::render_graph(layout="tree")
+#' }
 #'
 diagram_lineage <- function(xpdb_s, ...) {
   rlang::check_installed("DiagrammeR")

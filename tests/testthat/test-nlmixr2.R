@@ -8,12 +8,12 @@ test_that("old fit detection works correctly", {
 
   # Test with new (compatible) fit
   expect_false(
-    test_nlmixr2_is_old_fit(xpdb_nlmixr2)
+    test_nlmixr2_is_old_fit(cached_nlmixr_example("xpdb_nlmixr2"))
   )
 
   # Test with old (incompatible) fit
   expect_true(
-    test_nlmixr2_is_old_fit(xpdb_nlmixr2_old)
+    test_nlmixr2_is_old_fit(get_xpdb_nlmixr2_old())
   )
 
   # Test with non-nlmixr2 object
@@ -31,7 +31,7 @@ test_that("backfill throws error for old fits", {
   skip_if_not_installed("nlmixr2est")
 
   expect_error(
-    backfill_nlmixr2_props(xpdb_nlmixr2_old),
+    backfill_nlmixr2_props(get_xpdb_nlmixr2_old()),
     regexp = "Incompatible nlmixr2/rxode2 fit object"
   )
 })
@@ -46,7 +46,7 @@ test_that("nlmixr2_as_xtra skips backfill for old fits", {
   # but the fit object itself is old, so we can't actually test this
   # unless we use the attached fit directly
   expect_no_error(
-    as_xp_xtras(xpdb_nlmixr2_old)
+    as_xp_xtras(get_xpdb_nlmixr2_old())
   )
 })
 
@@ -56,6 +56,11 @@ test_that("nlmixr2 is compatible", {
   skip_if(utils::packageVersion("rxode2") < "5.0",
           "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
   skip_if_not_installed("nlmixr2est")
+
+  xpdb_nlmixr2     <- cached_nlmixr_example("xpdb_nlmixr2")
+  xpdb_nlmixr2_saem <- cached_nlmixr_example("xpdb_nlmixr2_saem")
+  nlmixr2_warfarin  <- cached_nlmixr_example("nlmixr2_warfarin")
+  nlmixr2_m3        <- cached_nlmixr_example("nlmixr2_m3")
 
   expect_no_error(
     as_xp_xtras(xpdb_nlmixr2)
