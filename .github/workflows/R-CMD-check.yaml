@@ -24,7 +24,7 @@ jobs:
           - {os: windows-latest, r: 'release'}
           - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-latest,   r: 'release'}
-          - {os: ubuntu-latest,   r: 'release', no_suggests: 'true'}
+          - {os: ubuntu-latest,   r: 'release', no_suggests: 'true', extra_check_arg: ', "--no-rebuild-vignettes"'}
           - {os: ubuntu-latest,   r: 'oldrel-1'}
 
     env:
@@ -47,13 +47,10 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
-      - name: Install vignette builders (no-suggests check only)
-        if: matrix.config.no_suggests == 'true'
-        run: Rscript -e "install.packages(c('rmarkdown', 'knitr'))"
-
       - uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_DEPENDS_ONLY_: ${{ matrix.config.no_suggests }}
         with:
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
+          args: 'c("--no-manual", "--as-cran"${{ matrix.config.extra_check_arg }})'
