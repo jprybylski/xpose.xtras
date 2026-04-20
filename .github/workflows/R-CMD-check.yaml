@@ -14,7 +14,7 @@ jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})${{ matrix.config.no_suggests == 'true' && ' [no-suggests]' || '' }}
 
     strategy:
       fail-fast: false
@@ -24,6 +24,7 @@ jobs:
           - {os: windows-latest, r: 'release'}
           - {os: ubuntu-latest,   r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-latest,   r: 'release'}
+          - {os: ubuntu-latest,   r: 'release', no_suggests: 'true', extra_check_arg: ', "--no-rebuild-vignettes"'}
           - {os: ubuntu-latest,   r: 'oldrel-1'}
 
     env:
@@ -47,6 +48,9 @@ jobs:
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
+        env:
+          _R_CHECK_DEPENDS_ONLY_: ${{ matrix.config.no_suggests }}
         with:
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
+          args: 'c("--no-manual", "--as-cran"${{ matrix.config.extra_check_arg }})'

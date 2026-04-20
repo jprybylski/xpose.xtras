@@ -28,15 +28,16 @@ relationship between EBEs and individual parameter estimates.
 }
 \examples{
 \dontrun{
+nlmixr2_warfarin <- nlmixr_example("nlmixr2_warfarin")
+
 nlmixr2_warfarin \%>\%
   # This will add all log-normal and the logitnormal params
   nlmixr2_prm_associations() \%>\%
   # Make sure theta is in normal scale
   # rxode::expit could be plogis in this case
-  mutate_prm(temax~rxode2::expit) \%>\%
+  mutate_prm(temax ~ rxode2::expit) \%>\%
   # Review results
   get_prm()
-
 }
 
 

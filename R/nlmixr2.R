@@ -9,36 +9,35 @@
 #' @examples
 #' \dontrun{
 #' # Based on an example from nlmixr2 documentation
-#' if (rlang::is_installed("nlmixr2") &&
-#'     rlang::is_installed("nlmixr2data")) {
-#'   one.cmt <- function() {
-#'     ini({
-#'       tka <- 0.45 # Ka
-#'       tcl <- log(c(0, 2.7, 100)) # Log Cl
-#'       tv <- 3.45; label("log V")
-#'       eta.ka ~ 0.6
-#'       eta.cl ~ 0.3
-#'       eta.v ~ 0.1
-#'       add.sd <- 0.7
-#'     })
-#'     model({
-#'       ka <- exp(tka + eta.ka)
-#'       cl <- exp(tcl + eta.cl)
-#'       v <- exp(tv + eta.v)
-#'       linCmt() ~ add(add.sd)
-#'     })
-#'   }
+#' xpdb_nlmixr2 <- nlmixr_example("xpdb_nlmixr2")
 #'
-#'   theo_sd_fit <- nlmixr2::nlmixr2(one.cmt, nlmixr2data::theo_sd,
-#'       "focei", control=nlmixr2::foceiControl(print=0))
+#' one.cmt <- function() {
+#'   ini({
+#'     tka <- 0.45 # Ka
+#'     tcl <- log(c(0, 2.7, 100)) # Log Cl
+#'     tv <- 3.45; label("log V")
+#'     eta.ka ~ 0.6
+#'     eta.cl ~ 0.3
+#'     eta.v ~ 0.1
+#'     add.sd <- 0.7
+#'   })
+#'   model({
+#'     ka <- exp(tka + eta.ka)
+#'     cl <- exp(tcl + eta.cl)
+#'     v <- exp(tv + eta.v)
+#'     linCmt() ~ add(add.sd)
+#'   })
+#' }
 #'
-#'   attach_nlmixr2(
-#'     xpdb_nlmixr2, theo_sd_fit
-#'   ) %>%
+#' theo_sd_fit <- nlmixr2::nlmixr2(one.cmt, nlmixr2data::theo_sd,
+#'     "focei", control = nlmixr2::foceiControl(print = 0))
+#'
+#' attach_nlmixr2(
+#'   xpdb_nlmixr2, theo_sd_fit
+#' ) %>%
 #'   as_xpdb_x() %>%
 #'   print() # fit will be mentioned in print() method
 #' }
-#'}
 attach_nlmixr2 <- function(
     xpdb,
     obj
@@ -188,8 +187,8 @@ test_nlmixr2_is_old_fit <- function(xpdb) {
 #' @export
 #'
 #' @examples
-#' if (requireNamespace("rxode2", quietly = TRUE) &&
-#'     requireNamespace("nlmixr2est", quietly = TRUE)) {
+#' \dontrun{
+#' xpdb_nlmixr2 <- nlmixr_example("xpdb_nlmixr2")
 #'
 #' xpdb_nlmixr2 %>%
 #'   set_prop(condn = "not implemented") %>%
@@ -199,7 +198,6 @@ test_nlmixr2_is_old_fit <- function(xpdb) {
 #'   set_prop(condn = "not implemented") %>%
 #'   backfill_nlmixr2_props() %>%
 #'   get_prop("condn")
-#'
 #' }
 backfill_nlmixr2_props <- function(xpdb) {
   assert_nlmixr2fit(xpdb)
@@ -499,15 +497,16 @@ mutate_mask <- function(
 #'
 #' @examples
 #' \dontrun{
+#' nlmixr2_warfarin <- nlmixr_example("nlmixr2_warfarin")
+#'
 #' nlmixr2_warfarin %>%
 #'   # This will add all log-normal and the logitnormal params
 #'   nlmixr2_prm_associations() %>%
 #'   # Make sure theta is in normal scale
 #'   # rxode::expit could be plogis in this case
-#'   mutate_prm(temax~rxode2::expit) %>%
+#'   mutate_prm(temax ~ rxode2::expit) %>%
 #'   # Review results
 #'   get_prm()
-#'
 #' }
 #'
 #'

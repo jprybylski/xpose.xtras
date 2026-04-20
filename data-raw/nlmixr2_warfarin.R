@@ -1,4 +1,9 @@
 ## code to prepare `nlmixr2_warfarin` dataset goes here
+## Data now generated on demand via nlmixr_example("nlmixr2_warfarin").
+## This script is kept for reference only.
+
+if (FALSE) {
+
 pk.turnover.emax3 <- function() {
   ini({
     tktr <- log(1)
@@ -66,3 +71,4 @@ nlmixr2_warfarin <- nlmixr2_as_xtra(fit.TOS, .skip_assoc = TRUE) %>%
 usethis::use_data(nlmixr2_warfarin, overwrite = TRUE, compress = "xz")
 rm(list = ls())
 
+} # end if (FALSE)

@@ -1,4 +1,8 @@
 ## Using the example model from xpose.nlmixr2 documentation
+## Data now generated on demand via nlmixr_example("xpdb_nlmixr2_saem").
+## This script is kept for reference only.
+
+if (FALSE) {
 
 one.cmt <- function() {
   ini({
@@ -35,3 +39,5 @@ xpdb_nlmixr2_saem <- nlmixr2_as_xtra(obj = theo_sd_saem, .skip_assoc = TRUE) %>%
 
 usethis::use_data(xpdb_nlmixr2_saem, overwrite = TRUE, compress = "xz")
 rm(list = ls())
+
+} # end if (FALSE)

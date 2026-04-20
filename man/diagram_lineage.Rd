@@ -23,8 +23,9 @@ Functionality and aesthetic enhancements are expected in
 future releases.
 }
 \examples{
-
+\dontrun{
 diagram_lineage(pheno_set) \%>\%
   DiagrammeR::render_graph(layout="tree")
+}
 
 }

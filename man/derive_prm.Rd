@@ -45,15 +45,14 @@ will use \code{xp_var} \code{param} types)}
 This function applies \code{\link[rxode2:rxDerived]{rxode2::rxDerived}} to model parameters.
 }
 \examples{
-if (!rlang::is_installed("rxode2") ||
-   !exists("rxDerived", envir = rlang::ns_env("rxode2"))) {
+\dontrun{
+nlmixr2_m3 <- nlmixr_example("nlmixr2_m3")
 
 nlmixr2_m3 \%>\%
   backfill_derived() \%>\%
   list_vars()
 
 derive_prm(nlmixr2_m3)
-
 
 # If param has no vars, .prm should be set
 pheno_base \%>\%

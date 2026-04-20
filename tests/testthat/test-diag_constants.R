@@ -148,7 +148,8 @@ test_that('derive_prm adds derived parameters', {
 test_that('backfill_derived augments xpdb with derived parameters', {
   skip_if_not_installed('rxode2')
   skip_if(!'rxDerived' %in% getNamespaceExports('rxode2'))
-  xp1 <- nlmixr2_m3 %>% set_option(quiet=TRUE)
+  skip_if_not_installed('nlmixr2est')
+  xp1 <- cached_nlmixr_example("nlmixr2_m3") %>% set_option(quiet=TRUE)
   orig_cols <- names(xpose::get_data(xp1, quiet = TRUE))
   xp2 <- backfill_derived(xp1, .prm = c(CL, V))
   new_cols <- names(xpose::get_data(xp2, quiet = TRUE))
@@ -159,7 +160,10 @@ test_that('backfill_derived augments xpdb with derived parameters', {
 })
 
 test_that("diagnose_constants accepts xpose data", {
-  xp1 <- set_option(nlmixr2_m3 ,quiet=TRUE)
+  skip_if_not_installed('rxode2')
+  skip_if(!'rxDerived' %in% getNamespaceExports('rxode2'))
+  skip_if_not_installed('nlmixr2est')
+  xp1 <- set_option(cached_nlmixr_example("nlmixr2_m3"), quiet=TRUE)
   suppressMessages(expect_no_error(diagnose_constants(xp1)))
   bf_xp1 <- backfill_derived(xp1)
   expect_error(diagnose_constants(bf_xp1),

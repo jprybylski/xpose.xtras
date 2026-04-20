@@ -20,8 +20,8 @@ This function will currently backfill:
 }
 }
 \examples{
-if (requireNamespace("rxode2", quietly = TRUE) &&
-    requireNamespace("nlmixr2est", quietly = TRUE)) {
+\dontrun{
+xpdb_nlmixr2 <- nlmixr_example("xpdb_nlmixr2")
 
 xpdb_nlmixr2 \%>\%
   set_prop(condn = "not implemented") \%>\%
@@ -31,6 +31,5 @@ xpdb_nlmixr2 \%>\%
   set_prop(condn = "not implemented") \%>\%
   backfill_nlmixr2_props() \%>\%
   get_prop("condn")
-
 }
 }

@@ -81,8 +81,9 @@ test will be run if the required parameters are present.
 }
 \examples{
 
-if (!rlang::is_installed("rxode2") ||
-   !exists("rxDerived", envir = rlang::ns_env("rxode2"))) {
+\dontrun{
+nlmixr2_m3 <- nlmixr_example("nlmixr2_m3")
+
 nlmixr2_m3 \%>\%
   backfill_derived() \%>\%
   diagnose_constants(vol_pattern = "^V$")
@@ -98,7 +99,6 @@ nlmixr2_m3 \%>\%
 # Using df form
 derive_prm(nlmixr2_m3) \%>\%
   diagnose_constants(df = ., vol_pattern = "^V$")
-
 }
 }
 \seealso{
