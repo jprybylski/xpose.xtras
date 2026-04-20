@@ -47,6 +47,10 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
+      - name: Install vignette builders (no-suggests check only)
+        if: matrix.config.no_suggests == 'true'
+        run: Rscript -e "install.packages(c('rmarkdown', 'knitr'))"
+
       - uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_DEPENDS_ONLY_: ${{ matrix.config.no_suggests }}
