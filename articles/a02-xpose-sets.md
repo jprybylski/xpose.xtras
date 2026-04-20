@@ -74,8 +74,8 @@ pheno_stem
 #> • Focused xpdb objects: none
 #> • Exposed properties: none
 #> • Base model: none
-diagram_lineage(pheno_stem) %>%
-  DiagrammeR::render_graph(layout="tree")
+if (requireNamespace("DiagrammeR", quietly=TRUE))
+  diagram_lineage(pheno_stem) %>% DiagrammeR::render_graph(layout="tree")
 ```
 
 ``` r
@@ -89,14 +89,14 @@ pheno_branch
 #> • Focused xpdb objects: none
 #> • Exposed properties: none
 #> • Base model: none
-diagram_lineage(pheno_branch) %>%
-  DiagrammeR::render_graph(layout="tree")
+if (requireNamespace("DiagrammeR", quietly=TRUE))
+  diagram_lineage(pheno_branch) %>% DiagrammeR::render_graph(layout="tree")
 ```
 
 Trees can also be concatenated, using typical R/tidyverse syntax.
 
 ``` r
-pheno_tree <- pheno_stem %>% 
+pheno_tree <- pheno_stem %>%
   # drop phrun6 from stem
   select(-phrun6) %>%
   c(
@@ -114,8 +114,8 @@ pheno_tree
 #> • Base model: none
 #> # ℹ 1 more xpdbs
 #> # ℹ Use `print(n = ...)` to see more than n = 5
-diagram_lineage(pheno_tree) %>%
-  DiagrammeR::render_graph(layout="tree")
+if (requireNamespace("DiagrammeR", quietly=TRUE))
+  diagram_lineage(pheno_tree) %>% DiagrammeR::render_graph(layout="tree")
 ```
 
 The documentation for
