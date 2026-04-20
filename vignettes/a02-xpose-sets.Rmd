@@ -34,7 +34,7 @@ xpose_set(base=pheno_base, reparam=pheno_final, reparam_saem=pheno_saem)
 
 The `print` output hints at features that will be explored in this vignette. A few example sets are in the package that can be used to test some of the elements discussed here. A relatively complex example explores typical model-building steps for the common phenobarbital in neonates dataset, called `pheno_set`, diagrammed below.
 
-```{r pheno_set_diagram}
+```{r pheno_set_diagram, eval=requireNamespace("DiagrammeR", quietly=TRUE)}
 diagram_lineage(pheno_set) %>%
   DiagrammeR::render_graph(layout="tree")
 ```
@@ -53,18 +53,18 @@ phrun8 <- pheno_set$run8$xpdb
 phrun9 <- pheno_set$run9$xpdb
 pheno_stem <- xpose_set(phrun3,phrun5,phrun6, .as_ordered = TRUE)
 pheno_stem
-diagram_lineage(pheno_stem) %>%
-  DiagrammeR::render_graph(layout="tree")
+if (requireNamespace("DiagrammeR", quietly=TRUE))
+  diagram_lineage(pheno_stem) %>% DiagrammeR::render_graph(layout="tree")
 pheno_branch <- xpose_set(phrun6,phrun7,phrun8,phrun9, .relationships = c(phrun7+phrun8+phrun9~phrun6))
 pheno_branch
-diagram_lineage(pheno_branch) %>%
-  DiagrammeR::render_graph(layout="tree")
+if (requireNamespace("DiagrammeR", quietly=TRUE))
+  diagram_lineage(pheno_branch) %>% DiagrammeR::render_graph(layout="tree")
 ```
 
 Trees can also be concatenated, using typical R/tidyverse syntax.
 
 ```{r pheno_concat}
-pheno_tree <- pheno_stem %>% 
+pheno_tree <- pheno_stem %>%
   # drop phrun6 from stem
   select(-phrun6) %>%
   c(
@@ -72,8 +72,8 @@ pheno_tree <- pheno_stem %>%
     .relationships = c(phrun6~phrun5)
   )
 pheno_tree
-diagram_lineage(pheno_tree) %>%
-  DiagrammeR::render_graph(layout="tree")
+if (requireNamespace("DiagrammeR", quietly=TRUE))
+  diagram_lineage(pheno_tree) %>% DiagrammeR::render_graph(layout="tree")
 ```
 
 The documentation for `?add_relationship` contains more information about declaring and removing relationships. Users should be aware that model lineage is actually used by some functions that process `xpose_set` objects to generate output, so declaring parentage should be done only when it is valid. This does not mean necessarily that the child should be nested in the parent(s), but lineage is considered relevant in functions that compare models.
