@@ -11,13 +11,13 @@ Source:
 [`DESCRIPTION`](https://github.com/jprybylski/xpose.xtras/blob/master/DESCRIPTION)
 
 Prybylski J (2026). *xpose.xtras: Extra Functionality for the 'xpose'
-Package*. R package version 0.1.3,
+Package*. R package version 0.1.4,
 <https://jprybylski.github.io/xpose.xtras/>.
 
     @Manual{,
       title = {xpose.xtras: Extra Functionality for the 'xpose' Package},
       author = {John Prybylski},
       year = {2026},
-      note = {R package version 0.1.3},
+      note = {R package version 0.1.4},
       url = {https://jprybylski.github.io/xpose.xtras/},
     }

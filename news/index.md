@@ -1,6 +1,16 @@
 # Changelog
 
+## xpose.xtras 0.1.4
+
+- nlmixr2 example datasets replaced with on-demand
+  [`nlmixr_example()`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr_example.md)
+  /
+  [`nlmixr2_example()`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr_example.md)
+  to avoid loading nlmixr2est when not installed.
+
 ## xpose.xtras 0.1.3
+
+CRAN release: 2026-04-19
 
 - Fix for nlmixr2 compatibility checks when nlmixr2est is not installed.
 

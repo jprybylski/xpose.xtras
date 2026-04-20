@@ -19,7 +19,7 @@ examples, let’s start fresh with a new fit. The model below is from [the
 `nlmixr2`
 documentation](https://nlmixr2.org/articles/multiple-endpoints.html); to
 start using the resulting `xpose_data` directly, refer to
-[`?nlmixr2_warfarin`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr2_warfarin.md).
+`?nlmixr2_warfarin`.
 
 ``` r
 pk.turnover.emax3 <- function() {
@@ -91,7 +91,7 @@ fit.TOS <- nlmixr2(pk.turnover.emax3, warfarin, "focei", control=list(print=0),
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> calculating covariance matrix
-#> [====|====|====|====|====|====|====|====|====|====] 0:01:21 
+#> [====|====|====|====|====|====|====|====|====|====] 0:01:22 
 #> done
 ```
 
@@ -296,46 +296,36 @@ list_vars(nlmixr2_warfarin)
 #>  - Not attributed (na)                   : NLMIXRLLIKOBS, CMT, EPRED, ERES, NPD, PDE, PD, PRED, ETA.KTR, ETA.KA, ETA.CL, ETA.V, ETA.EMAX, ETA.EC50, ETA.KOUT, ETA.E0, DEPOT, GUT, CENTER, EFFECT, KTR, EMAX, EC50, KOUT, E0, DCP, PD.1, KIN, TAD, DOSENUM
 
 dv_vs_ipred(nlmixr2_warfarin, facet="DVID")
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-![](nlmixr2_files/figure-html/unnamed-chunk-9-1.png)
+![](nlmixr2_files/figure-html/unnamed-chunk-8-1.png)
 
 ``` r
 
 dv_vs_pred(nlmixr2_warfarin, facet="DVID")
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-![](nlmixr2_files/figure-html/unnamed-chunk-9-2.png)
+![](nlmixr2_files/figure-html/unnamed-chunk-8-2.png)
 
 ``` r
 
 eta_vs_catcov(nlmixr2_warfarin, etavar = eta.cl)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Tidying data by ID, TIME, AMT, DV, DVID ... and 53 more variables
 #> Warning: nind is not part of the available keywords. Check ?template_titles for
 #> a full list.
 ```
 
-![](nlmixr2_files/figure-html/unnamed-chunk-9-3.png)
+![](nlmixr2_files/figure-html/unnamed-chunk-8-3.png)
 
 ``` r
 eta_vs_contcov(nlmixr2_warfarin, etavar = eta.cl)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Tidying data by ID, TIME, AMT, DV, DVID ... and 52 more variables
 #> Warning: nind is not part of the available keywords. Check ?template_titles for
 #> a full list.
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-![](nlmixr2_files/figure-html/unnamed-chunk-9-4.png)
+![](nlmixr2_files/figure-html/unnamed-chunk-8-4.png)
 
 ``` r
 
@@ -344,7 +334,7 @@ eta_vs_cov_grid(nlmixr2_warfarin, etavar = c(eta.cl,eta.v,eta.ka), quiet=TRUE)
 #> a full list.
 ```
 
-![](nlmixr2_files/figure-html/unnamed-chunk-9-5.png)
+![](nlmixr2_files/figure-html/unnamed-chunk-8-5.png)
 
 ``` r
 
@@ -353,7 +343,7 @@ eta_vs_cov_grid(nlmixr2_warfarin, etavar = c(eta.kout,eta.e0,eta.emax), quiet=TR
 #> a full list.
 ```
 
-![](nlmixr2_files/figure-html/unnamed-chunk-9-6.png)
+![](nlmixr2_files/figure-html/unnamed-chunk-8-6.png)
 
 ## Sets
 
@@ -412,7 +402,7 @@ fit.TOS.emax1 <- fit.TOS %>%
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> calculating covariance matrix
-#> [====|====|====|====|====|====|====|====|====|====] 0:00:51 
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:54 
 #> done
 
 fit.TOS.simple <- fit.TOS %>%
@@ -527,20 +517,18 @@ warfarin_set %>%
 #> # A tibble: 4 × 4
 #>   xpdb         label            ..ofv ..condn
 #>   <named list> <chr>            <dbl>   <dbl>
-#> 1 <xp_xtras>   nlmixr2_warfarin 1382.   5759.
+#> 1 <xp_xtras>   nlmixr2_warfarin 1409.  32318.
 #> 2 <xp_xtras>   warf_ka          1338.  21266.
 #> 3 <xp_xtras>   warf_emax        1351.    464.
 #> 4 <xp_xtras>   warf_simple      1338.    269.
 
 warfarin_set %>%
   dofv_vs_id(nlmixr2_warfarin, warf_simple, .inorder = TRUE, df=1)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 #> Warning: nind is not part of the available keywords. Check ?template_titles for
 #> a full list.
 ```
 
-![](nlmixr2_files/figure-html/unnamed-chunk-11-1.png)
+![](nlmixr2_files/figure-html/unnamed-chunk-10-1.png)
 
 ``` r
 
@@ -548,14 +536,11 @@ warfarin_set %>%
   # This comparison should be more interesting
   focus_qapply(set_var_types, param=c(KA,EC50), na=c(CL, V)) %>%
   prm_waterfall(nlmixr2_warfarin, warf_simple)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Tidying data by ID, TIME, AMT, DV, DVID ... and 55 more variables
 #> Warning: nind is not part of the available keywords. Check ?template_titles for
 #> a full list.
 ```
 
-![](nlmixr2_files/figure-html/unnamed-chunk-11-2.png)
+![](nlmixr2_files/figure-html/unnamed-chunk-10-2.png)
 
 ``` r
 
@@ -564,7 +549,7 @@ warfarin_set %>%
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
 
-![](nlmixr2_files/figure-html/unnamed-chunk-11-3.png)
+![](nlmixr2_files/figure-html/unnamed-chunk-10-3.png)
 
 ## Derived parameter explorations
 
@@ -581,11 +566,53 @@ family of functions can be used to generate a table of derived
 parameters or to set derived parameters as `param` type variables.
 
 ``` r
+nlmixr2_m3 <- nlmixr_example("nlmixr2_m3")
+#> ℹ parameter labels from comments are typically ignored in non-interactive mode
+#> ℹ Need to run with the source intact to parse comments
+#> → loading into symengine environment...
+#> → pruning branches (`if`/`else`) of full model...
+#> ✔ done
+#> → calculate jacobian
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00
+#> → calculate sensitivities
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00
+#> → calculate ∂(f)/∂(η)
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00
+#> → calculate ∂(R²)/∂(η)
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00
+#> → finding duplicate expressions in inner model...
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00
+#> → optimizing duplicate expressions in inner model...
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00 
+#> 
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00 
+#> 
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00
+#> → finding duplicate expressions in EBE model...
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00
+#> → optimizing duplicate expressions in EBE model...
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00
+#> → compiling inner model...
+#> ✔ done
+#> → finding duplicate expressions in FD model...
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00
+#> → optimizing duplicate expressions in FD model...
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00
+#> → compiling EBE model...
+#> ✔ done
+#> → compiling events FD model...
+#> ✔ done
+#> calculating covariance matrix
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00 
+#> done
+#> → Calculating residuals/tables
+#> ✔ done
+```
+
+``` r
 nlmixr2_m3 %>%
   backfill_derived() %>%
   list_vars()
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 #> List of available variables for problem no. 1
 #>  - Subject identifier (id)               : ID
 #>  - Dependent variable (dv)               : DV
@@ -603,15 +630,13 @@ nlmixr2_m3 %>%
 derive_prm(nlmixr2_m3) %>%
   dplyr::select(ID,KA,CL,VSS:(dplyr::last_col())) %>%
   head()
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 #>   ID        KA       CL      VSS  T12ALPHA      ALPHA          A FRACA
-#> 1  1 1.7251486 1.725701 28.98379 11.641669 0.05954019 0.03450204     1
-#> 2 10 0.7749998 1.877278 26.95612  9.953005 0.06964200 0.03709732     1
-#> 3 11 3.1875334 3.805979 35.58422  6.480619 0.10695694 0.02810235     1
-#> 4 12 0.9589018 2.421680 26.19968  7.499023 0.09243166 0.03816840     1
-#> 5  2 1.8854966 3.271027 31.46965  6.668577 0.10394229 0.03177665     1
-#> 6  3 2.2049138 2.942414 32.86581  7.742229 0.08952811 0.03042676     1
+#> 1  1 1.7317372 1.719910 29.03783 11.702646 0.05922995 0.03443783     1
+#> 2 10 0.7810446 1.867733 27.09401 10.055041 0.06893529 0.03690853     1
+#> 3 11 3.1687492 3.823335 35.40173  6.418116 0.10799854 0.02824720     1
+#> 4 12 0.9672936 2.411002 26.36037  7.578434 0.09146311 0.03793573     1
+#> 5  2 1.8848654 3.274157 31.44125  6.656189 0.10413573 0.03180535     1
+#> 6  3 2.2003680 2.946867 32.79773  7.714518 0.08984971 0.03048991     1
 
 
 # If param has no vars, .prm should be set
@@ -650,10 +675,6 @@ should only be one volume) the `vol_pattern` has been updated.
 nlmixr2_m3 %>%
   backfill_derived() %>%
   diagnose_constants(vol_pattern = "^V$")
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 #> ℹ Checking for absorption flip-flop (first-order absorption slower than derived rate constants)...
 #> ✔ No parameter sets are suggestive of flip-flop.
 #> ℹ Checking for negative microconstants or volume...
@@ -666,10 +687,6 @@ nlmixr2_m3 %>%
     df_units = list(KA = "1/hr", ALPHA = "1/hr"),
     checks = list(neg_microvol = FALSE)
   )
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 #> ℹ Checking for absorption flip-flop (first-order absorption slower than derived rate constants)...
 #> ✔ No parameter sets are suggestive of flip-flop.
 #> ℹ Checking that compared units match...
@@ -678,8 +695,6 @@ nlmixr2_m3 %>%
 # Using df form
 derive_prm(nlmixr2_m3) %>%
   diagnose_constants(df = ., vol_pattern = "^V$")
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 #> ℹ Checking for absorption flip-flop (first-order absorption slower than derived rate constants)...
 #> ✔ No parameter sets are suggestive of flip-flop.
 #> ℹ Checking for negative microconstants or volume...
@@ -711,7 +726,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#>  [1] xpose.xtras_0.1.3   xpose.nlmixr2_0.4.1 xpose_0.4.23       
+#>  [1] xpose.xtras_0.1.4   xpose.nlmixr2_0.4.1 xpose_0.4.23       
 #>  [4] ggplot2_4.0.2       rxode2_5.0.2        nlmixr2plot_5.0.1  
 #>  [7] nlmixr2extra_5.0.0  nlmixr2est_5.0.2    nlmixr2data_2.0.9  
 #> [10] lotri_1.0.3         nlmixr2_5.0.0      
@@ -745,5 +760,5 @@ sessionInfo()
 #> [76] rlang_1.2.0           Rcpp_1.1.1-1          glue_1.8.1           
 #> [79] tweenr_2.0.3          lbfgsb3c_2024-3.5     rstudioapi_0.18.0    
 #> [82] jsonlite_2.0.0        R6_2.6.1              systemfonts_1.3.2    
-#> [85] fs_2.0.1
+#> [85] fs_2.1.0
 ```

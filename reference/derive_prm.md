@@ -63,8 +63,8 @@ backfill_derived(
 ## Examples
 
 ``` r
-if (!rlang::is_installed("rxode2") ||
-   !exists("rxDerived", envir = rlang::ns_env("rxode2"))) {
+if (FALSE) { # \dontrun{
+nlmixr2_m3 <- nlmixr_example("nlmixr2_m3")
 
 nlmixr2_m3 %>%
   backfill_derived() %>%
@@ -72,12 +72,11 @@ nlmixr2_m3 %>%
 
 derive_prm(nlmixr2_m3)
 
-
 # If param has no vars, .prm should be set
 pheno_base %>%
   backfill_derived(
     .prm = c(CL,V)
   ) %>%
   list_vars()
-}
+} # }
 ```

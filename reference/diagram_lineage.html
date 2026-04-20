@@ -7,7 +7,7 @@ future releases."><meta property="og:description" content="
 In its current state, this function is intended to
 provide a simple visual representation of an xpose_set.
 Functionality and aesthetic enhancements are expected in
-future releases."><meta property="og:image" content="https://jprybylski.github.io/xpose.xtras/logo.png"><!-- dependencies from examples --><script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script><script src="libs/viz-1.8.2/viz.js"></script><link href="libs/DiagrammeR-styles-0.2/styles.css" rel="stylesheet"><script src="libs/grViz-binding-1.0.11/grViz.js"></script></head><body>
+future releases."><meta property="og:image" content="https://jprybylski.github.io/xpose.xtras/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -15,7 +15,7 @@ future releases."><meta property="og:image" content="https://jprybylski.github.i
 
     <a class="navbar-brand me-2" href="../index.html">xpose.xtras</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,11 +79,11 @@ future releases.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="fu">diagram_lineage</span><span class="op">(</span><span class="va">pheno_set</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu">DiagrammeR</span><span class="fu">::</span><span class="fu"><a href="https://rich-iannone.github.io/DiagrammeR/reference/render_graph.html" class="external-link">render_graph</a></span><span class="op">(</span>layout<span class="op">=</span><span class="st">"tree"</span><span class="op">)</span></span></span>
-<div id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:700px;height:432.632880098888px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"diagram":"digraph {\n\ngraph [layout = \"neato\",\n       outputorder = \"edgesfirst\",\n       bgcolor = \"white\"]\n\nnode [fontname = \"Helvetica\",\n      fontsize = \"10\",\n      shape = \"circle\",\n      fixedsize = \"true\",\n      width = \"0.5\",\n      style = \"filled\",\n      fillcolor = \"aliceblue\",\n      color = \"gray70\",\n      fontcolor = \"gray50\"]\n\nedge [fontname = \"Helvetica\",\n     fontsize = \"8\",\n     len = \"1.5\",\n     color = \"gray80\",\n     arrowsize = \"0.5\"]\n\n  \"1\" [label = \"run3\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"-1.5,6!\"] \n  \"2\" [label = \"run4\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"-1,5!\"] \n  \"3\" [label = \"run5\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"-1,5!\"] \n  \"4\" [label = \"run6\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"-1,4!\"] \n  \"5\" [label = \"run10\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"-3,3!\"] \n  \"6\" [label = \"run12\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"-3,2!\"] \n  \"7\" [label = \"run11\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"0,3!\"] \n  \"8\" [label = \"run13\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"0,2!\"] \n  \"9\" [label = \"run7\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"-1,3!\"] \n  \"10\" [label = \"run8\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"-2,3!\"] \n  \"11\" [label = \"run9\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"1,3!\"] \n  \"12\" [label = \"run14\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"1,2!\"] \n  \"13\" [label = \"run15\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"0.5,1!\"] \n  \"14\" [label = \"run16\", fillcolor = \"#F0F8FF\", fontcolor = \"#000000\", pos = \"1.5,1!\"] \n  \"1\"->\"2\" \n  \"1\"->\"3\" \n  \"3\"->\"4\" \n  \"4\"->\"5\" \n  \"5\"->\"6\" \n  \"4\"->\"7\" \n  \"7\"->\"8\" \n  \"4\"->\"9\" \n  \"4\"->\"10\" \n  \"4\"->\"11\" \n  \"11\"->\"12\" \n  \"12\"->\"13\" \n  \"12\"->\"14\" \n}","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script><span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

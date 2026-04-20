@@ -170,25 +170,15 @@ Functions for creating, checking and manipulating `xp_xtras` objects.
   : Convenience function for ingesting an nlmixr2 model to xpose and
   xpose.xtras
 
-- [`nlmixr2_m3`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr2_m3.md)
-  :
-
-  An `xp_xtra` example based on a nlmixr2 fit with M3 censoring
-
 - [`nlmixr2_prm_associations()`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr2_prm_associations.md)
   : Based on associations baked into nlmixr2, automatically add to xpose
   data
 
-- [`nlmixr2_warfarin`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr2_warfarin.md)
+- [`nlmixr_example()`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr_example.md)
+  [`nlmixr2_example()`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr_example.md)
   :
 
-  An `xp_xtra` example based on a complex nlmixr2 fit
-
-- [`xpdb_nlmixr2`](https://jprybylski.github.io/xpose.xtras/reference/xpdb_nlmixr2.md)
-  [`xpdb_nlmixr2_saem`](https://jprybylski.github.io/xpose.xtras/reference/xpdb_nlmixr2.md)
-  :
-
-  An `xp_xtra` example based on an nlmixr2 fit
+  Generate example `xp_xtras` objects from nlmixr2 fits
 
 - [`xp_var()`](https://jprybylski.github.io/xpose.xtras/reference/xp_var.md)
   :
@@ -345,19 +335,15 @@ Miscellaneous helpers and integrations.
   : Convenience function for ingesting an nlmixr2 model to xpose and
   xpose.xtras
 
-- [`nlmixr2_m3`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr2_m3.md)
-  :
-
-  An `xp_xtra` example based on a nlmixr2 fit with M3 censoring
-
 - [`nlmixr2_prm_associations()`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr2_prm_associations.md)
   : Based on associations baked into nlmixr2, automatically add to xpose
   data
 
-- [`nlmixr2_warfarin`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr2_warfarin.md)
+- [`nlmixr_example()`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr_example.md)
+  [`nlmixr2_example()`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr_example.md)
   :
 
-  An `xp_xtra` example based on a complex nlmixr2 fit
+  Generate example `xp_xtras` objects from nlmixr2 fits
 
 - [`desc_from_comments()`](https://jprybylski.github.io/xpose.xtras/reference/desc_from_comments.md)
   : Backfill utility for descriptions
@@ -441,16 +427,6 @@ Miscellaneous helpers and integrations.
 
 Example objects for documentation.
 
-- [`nlmixr2_m3`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr2_m3.md)
-  :
-
-  An `xp_xtra` example based on a nlmixr2 fit with M3 censoring
-
-- [`nlmixr2_warfarin`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr2_warfarin.md)
-  :
-
-  An `xp_xtra` example based on a complex nlmixr2 fit
-
 - [`pheno_base`](https://jprybylski.github.io/xpose.xtras/reference/pheno_base.md)
   :
 
@@ -495,12 +471,6 @@ Example objects for documentation.
 
 - [`vismodegib`](https://jprybylski.github.io/xpose.xtras/reference/vismodegib.md)
   : A tibble of mock data used for fitting vismodegib models
-
-- [`xpdb_nlmixr2`](https://jprybylski.github.io/xpose.xtras/reference/xpdb_nlmixr2.md)
-  [`xpdb_nlmixr2_saem`](https://jprybylski.github.io/xpose.xtras/reference/xpdb_nlmixr2.md)
-  :
-
-  An `xp_xtra` example based on an nlmixr2 fit
 
 - [`xpdb_set`](https://jprybylski.github.io/xpose.xtras/reference/xpdb_set.md)
   :
