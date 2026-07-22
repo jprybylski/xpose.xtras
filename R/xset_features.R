@@ -213,7 +213,7 @@ child_finder <- function(xpdb_s) {
   }
 }
 
-#' Binary check if LHS is parent of LHS
+#' Binary check if LHS is parent of RHS
 #'
 #' @param possible_parent <`xpose_set_item`> object suspected as parent to ...
 #' @param possible_child  ... <`xpose_set_item`> object suspected child
