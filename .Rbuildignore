@@ -1,3 +1,5 @@
+^renv$
+^renv\.lock$
 ^xpose\.xtras\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
@@ -18,3 +20,5 @@
 ^builds$
 ^vignettes/articles$
 ^\.claude$
+^renv$
+^renv\.lock$
