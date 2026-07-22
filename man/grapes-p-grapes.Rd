@@ -2,7 +2,7 @@
 % Please edit documentation in R/xset_features.R
 \name{\%p\%}
 \alias{\%p\%}
-\title{Binary check if LHS is parent of LHS}
+\title{Binary check if LHS is parent of RHS}
 \usage{
 possible_parent \%p\% possible_child
 }
@@ -15,7 +15,7 @@ possible_parent \%p\% possible_child
 \verb{<logical>} \code{TRUE} if LHS is parent of RHS
 }
 \description{
-Binary check if LHS is parent of LHS
+Binary check if LHS is parent of RHS
 }
 \examples{
 
