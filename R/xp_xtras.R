@@ -59,6 +59,10 @@ as_xpdb_x <- function(x) {
     new_x,
     class = c("xp_xtras", "xpose_data", "uneval")
   )
+
+  # xpose.xtras :: Correct xpose:::sum_condn()'s handling of multi-method runs (issue #60)
+  new_x <- patch_condn(new_x)
+
   new_x
 }
 

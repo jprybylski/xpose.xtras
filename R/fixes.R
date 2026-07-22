@@ -152,6 +152,100 @@ irep <- function(x, quiet = FALSE) {
 
 
 
+#' Patch condition number extraction
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
+#' Bugfix for \code{xpose:::sum_condn}, the internal function `xpose` uses to
+#' populate the `'condn'` (condition number) entry of \code{xpdb$summary}.
+#'
+#' For NONMEM runs with more than one estimation method (e.g. `SAEM` followed
+#' by importance sampling), the `.lst` file contains more than one
+#' `EIGENVALUES OF COR MATRIX OF ESTIMATE` block. `xpose` always uses the
+#' *first* block found, which is not necessarily from the final estimation
+#' method, so the reported condition number can be wrong. This patch instead
+#' uses the *last* block, matching the value reported by NONMEM-adjacent
+#' tools such as PsN's `sumo`.
+#'
+#' @param xpdb An \code{xpose_data} or \code{xp_xtras} object.
+#'
+#' @return The \code{xpdb} object, with a corrected `'condn'` entry in
+#' \code{xpdb$summary} (unchanged if \code{xpdb} is not from `nonmem`, or if
+#' no eigenvalues could be found).
+#' @export
+#'
+#' @examples
+#' xpdb_ex_pk <- patch_condn(xpose::xpdb_ex_pk)
+#'
+patch_condn <- function(xpdb) {
+  xpose::check_xpdb(xpdb, check = 'summary')
+
+  if (xpose::software(xpdb) != 'nonmem') return(xpdb)
+
+  xpose::check_xpdb(xpdb, check = 'code')
+  rounding <- xpdb$xp_theme$rounding
+
+  # xpose.xtras :: Duplicated from xpose:::sum_condn(), with a fix for
+  # multi-estimation-method runs: use the last (rather than the first)
+  # 'EIGENVALUES OF COR MATRIX OF ESTIMATE' block found in the .lst file.
+  new_condn <- xpdb$code %>%
+    dplyr::group_by_at(.vars = 'problem') %>%
+    tidyr::nest() %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(value = purrr::map_chr(
+      .x = .$data,
+      .f = ~{
+        ## Find the eigenvalues header(s)
+        eigen_header <- stringr::str_which(.x$code, stringr::fixed('EIGENVALUES OF COR'))
+
+        if (length(eigen_header) == 0) return(NA_character_)
+        # xpose.xtras :: patch for issue #60 -- use the last estimation
+        # method's eigenvalues, not the first
+        if (length(eigen_header) > 1) eigen_header <- max(eigen_header)
+
+        # Find numeric values in the format of eigen values
+        eigen_rows <- eigen_header - 1 + stringr::str_which(.x$code[eigen_header:length(.x$code)], pattern = "\\d\\.\\d{2}E[+-]?\\d+(?=\\s|$)")
+
+        ## Make sure rows are consecutive to prevent possible false positive match
+        diff_rows <- c(1, diff(eigen_rows))
+        if (any(diff_rows != 1)) {
+          eigen_rows <- eigen_rows[1:(which(diff_rows != 1) - 1)]
+        }
+
+        ## Parse the eigen values
+        eigen_values <- .x[eigen_rows, ] %>%
+          dplyr::pull("code") %>%
+          stringr::str_trim(side = 'both') %>%
+          paste(collapse = " ") %>%
+          stringr::str_split(pattern = '\\s+') %>%
+          purrr::flatten_chr() %>%
+          as.numeric()
+
+        ## Compute the condition number
+        eigen_values %>%
+          {max(.)/min(.)} %>%
+          round(digits = rounding) %>%
+          as.character()
+      }
+    )) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(subprob = 0, label = 'condn', descr = 'Condition number') %>%
+    dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'descr', 'value')) %>%
+    dplyr::filter(!is.na(.$value))
+
+  if (nrow(new_condn) == 0) return(xpdb)
+
+  xpdb$summary <- xpdb$summary %>%
+    dplyr::filter(!(.$label == 'condn' & .$problem %in% new_condn$problem)) %>%
+    dplyr::bind_rows(new_condn) %>%
+    dplyr::arrange_at(.vars = c('problem', 'label', 'subprob'))
+
+  xpdb
+}
+
+
+
 ### More direct edit_xpose_data
 ### The current implementation does a bit too many
 ### checks that disrupt expected behavior of imported
