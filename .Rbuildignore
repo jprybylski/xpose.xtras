@@ -20,5 +20,6 @@
 ^builds$
 ^vignettes/articles$
 ^\.claude$
+^CLAUDE\.md$
 ^renv$
 ^renv\.lock$
