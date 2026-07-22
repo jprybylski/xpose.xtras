@@ -180,3 +180,36 @@ test_that("edit_xpose_data is essentially the same as in xpose, with some improv
   )
 
 })
+
+
+test_that("patch_condn corrects the condition number for multi-method runs (issue #60)", {
+  # pheno_saem's run has SAEM followed by importance sampling, each with its own
+  # 'EIGENVALUES OF COR MATRIX OF ESTIMATE' block; xpose's sum_condn() always used
+  # the first block (SAEM) instead of the last (importance sampling, the final
+  # estimate), so the correct condn is max/min of the *last* block: 1.77/0.21
+  expected <- as.character(round(1.77 / 0.21, pheno_saem$xp_theme$rounding))
+
+  # Force a known-wrong value so this doesn't depend on whether the bundled
+  # `pheno_saem` data was (re-)built before or after this patch existed
+  corrupted <- pheno_saem
+  corrupted$summary$value[corrupted$summary$label == "condn"] <- "0"
+
+  patched <- patch_condn(corrupted)
+  expect_equal(
+    patched$summary$value[patched$summary$label == "condn"],
+    expected
+  )
+
+  # automatically applied through as_xpdb_x()
+  reconverted <- as_xpdb_x(corrupted)
+  expect_equal(
+    reconverted$summary$value[reconverted$summary$label == "condn"],
+    expected
+  )
+
+  # single-method models (one EIGENVALUES block) are unaffected
+  expect_identical(
+    patch_condn(xpose::xpdb_ex_pk) %>% xpose::get_summary(),
+    xpose::get_summary(xpose::xpdb_ex_pk)
+  )
+})
