@@ -509,7 +509,7 @@ get_prm.default <- function(
 
   implemented_prm_software <- c("nlmixr2")
   if (xpose::software(xpdb) %in% implemented_prm_software) {
-    cli::cli_abort("For {.strong {xpose::software(xpdb)}} models, convert to {package_flex} object before doing this action.")
+    cli::cli_abort("For {.strong {xpose::software(xpdb)}} models, convert to {package_flex()} object before doing this action.")
   } else if (xpose::software(xpdb) != "nonmem") {
     cli::cli_abort("For {.strong {xpose::software(xpdb)}} models, {.emph extra} parameter functionality is not implemented.")
   }
