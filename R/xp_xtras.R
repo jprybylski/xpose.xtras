@@ -147,7 +147,7 @@ print.xp_xtras <- function(x, ...) {
     )
   }
   cli::cli({
-    cli::cli_h3("{package_flex} object")
+    cli::cli_h3("{package_flex()} object")
     cli::cli_text("{cli::style_bold('Model description')}: {get_prop(x, 'descr', .problem=0, .subprob=0)}")
     cli::cli_verbatim(default_out)
   })
