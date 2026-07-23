@@ -84,6 +84,7 @@ reference:
       - ungroup_x
       - mutate_x
       - rename_x
+      - left_join_x
       - select_subset
       - set_option
       - reportable_digits

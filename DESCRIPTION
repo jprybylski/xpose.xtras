@@ -13,7 +13,6 @@ Description: Adding some at-present missing functionality, or functions
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Imports: 
     checkmate,
     cli,
@@ -61,3 +60,4 @@ VignetteBuilder: knitr
 URL: https://jprybylski.github.io/xpose.xtras/, https://github.com/jprybylski/xpose.xtras
 Language: en-US
 Config/Needs/website: rmarkdown
+Config/roxygen2/version: 8.0.0

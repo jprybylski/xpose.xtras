@@ -302,7 +302,7 @@ edit_xpose_data <- function(.fun, .fname, .data, ..., .problem, .source, .where,
     xpdb[['data']] <- xpdb[['data']] %>%
       dplyr::mutate(modified = dplyr::if_else(.$problem %in% .problem, TRUE, .$modified))
 
-    if (.fname %in% c('mutate', 'select', 'rename')) {
+    if (.fname %in% c('mutate', 'select', 'rename', 'left_join')) {
       xpdb[['data']] <- xpose::xpdb_index_update(xpdb = xpdb, .problem = .problem) # Update index
     }
   } else if (.source == 'special') {
@@ -431,6 +431,108 @@ ungroup_x <- function(.data, ..., .problem, .source, .where) {
 }
 
 
+#' Backfill missing variables via a left join
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
+#' <[`dplyr::left_join`]> wrapper for `xpose_data` (and, by inheritance,
+#' `xp_xtras`) objects. Unlike a plain `left_join()`, a column present in
+#' both `x` and `y` (other than the join keys) is not duplicated with
+#' `.x`/`.y` suffixes: missing (`NA`) values already in `x` are backfilled
+#' from the matching value in `y`, while non-missing values already in `x`
+#' are left untouched. This makes it straightforward to backfill a variable
+#' (or set of variables) that is only partially recorded, from a second data
+#' source keyed on the same join variable(s) (e.g. `ID`).
+#'
+#' `left_join_x()` accepts `xpose_data`/`xp_xtras` objects directly, with an
+#' additional `.problem` argument restricting which problem(s) the join is
+#' applied to.
+#'
+#' `left_join()` without `_x` is defined as an S3 method on `xpose_data`, so
+#' that the usual <[`dplyr::left_join`]> generic dispatches here
+#' automatically (`xp_xtras` objects are handled the same way, via class
+#' inheritance).
+#'
+#' @param x An `xpose_data` or `xp_xtras` object.
+#' @param y A data frame (or another object coercible to one) to join in.
+#' @param by Join specification, as in <[`dplyr::left_join`]>. If `NULL`, a natural join is performed using variables common to `x` and `y`.
+#' @param copy If `x` and `y` are not from the same source and `copy = TRUE`, `y` is copied to bring it into the same source as `x`. See <[`dplyr::left_join`]>.
+#' @param suffix Suffixes used internally to disambiguate a column shared by `x` and `y` before it is backfilled into a single column; not visible in the result.
+#' @param ... Other parameters passed onto <[`dplyr::left_join`]>.
+#' @param keep Passed to <[`dplyr::left_join`]>. Note that duplicate join key columns (`keep = TRUE`) are backfilled together like any other shared column, rather than kept separate.
+#' @param .problem The problem number(s) to which the join will be applied. Uses all problems if `NULL`.
+#'
+#' @return An updated `xpose_data`/`xp_xtras` object.
+#' @export
+#'
+#' @examples
+#' # Some subjects are missing an APGR score in the base dataset
+#' xpdb_missing <- pheno_base %>%
+#'   mutate_x(APGR = dplyr::if_else(ID %in% c("1", "2"), NA, APGR))
+#'
+#' # A separate table with the (complete) values, keyed on ID
+#' apgr_lookup <- xpose::get_data(pheno_base, quiet = TRUE) %>%
+#'   dplyr::distinct(ID, APGR)
+#'
+#' # Existing APGR values are kept; only the missing ones are filled in
+#' left_join_x(xpdb_missing, apgr_lookup, by = "ID")
+#'
+#' @name left_join_x
+left_join_x <- function(x, y, by = NULL, copy = FALSE, suffix = c(".x", ".y"), ..., keep = NULL, .problem = NULL) {
+  if (is.null(.problem)) {
+    edit_xpose_data(
+      .fun = join_backfill, .fname = "left_join", .data = x, .source = "data",
+      y = y, by = by, copy = copy, suffix = suffix, keep = keep, ...
+    )
+  } else {
+    edit_xpose_data(
+      .fun = join_backfill, .fname = "left_join", .data = x, .problem = .problem, .source = "data",
+      y = y, by = by, copy = copy, suffix = suffix, keep = keep, ...
+    )
+  }
+}
+
+#' @rdname left_join_x
+#' @importFrom dplyr left_join
+#' @export
+left_join.xpose_data <- function(x, y, by = NULL, copy = FALSE, suffix = c(".x", ".y"), ..., keep = NULL, .problem = NULL) {
+  left_join_x(x = x, y = y, by = by, copy = copy, suffix = suffix, ..., keep = keep, .problem = .problem)
+}
+
+#' Left join, backfilling shared columns instead of duplicating them
+#'
+#' @description
+#' As <[`dplyr::left_join`]>, but any column present in both `x` and `y`
+#' (besides the join keys) is coalesced instead of suffixed: values already
+#' present in `x` are kept, and only missing (`NA`) values are filled in from
+#' `y`.
+#'
+#' @inheritParams left_join_x
+#'
+#' @return A data frame
+#' @keywords internal
+join_backfill <- function(x, y, by = NULL, copy = FALSE, suffix = c(".x", ".y"), ..., keep = NULL) {
+  joined <- dplyr::left_join(x, y, by = by, copy = copy, suffix = suffix, ..., keep = keep)
+
+  suffix_x <- suffix[[1]]
+  suffix_y <- suffix[[2]]
+  if (!nzchar(suffix_x) || !nzchar(suffix_y)) return(joined)
+
+  x_names <- names(joined)[endsWith(names(joined), suffix_x)]
+  shared <- substr(x_names, 1, nchar(x_names) - nchar(suffix_x))
+  shared <- shared[paste0(shared, suffix_y) %in% names(joined)]
+
+  for (col in shared) {
+    col_x <- paste0(col, suffix_x)
+    col_y <- paste0(col, suffix_y)
+    joined[[col]] <- dplyr::coalesce(joined[[col_x]], joined[[col_y]])
+    joined[[col_x]] <- NULL
+    joined[[col_y]] <- NULL
+  }
+
+  joined
+}
 
 
 ##### Fix for ggplot2 from xpose@cc0e4b2
