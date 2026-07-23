@@ -140,6 +140,144 @@ catdv_vs_dvprobs <- function(xpdb,
     )
 }
 
+#' Binned calibration plot for categorical DVs
+#'
+#' @description
+#' A binned alternative to [catdv_vs_dvprobs()]. The probability column
+#' associated with `cutpoint` is split into `bins` equally-sized groups,
+#' from lowest to highest predicted probability, and for each bin the
+#' observed proportion of the categorical DV meeting the cutpoint
+#' condition is calculated (i.e. the m/M observations in that bin with
+#' the target value).
+#'
+#' For a well-specified model, the mean predicted probability of a bin
+#' should be close to the bin's observed proportion, so plotted points
+#' are expected to fall around the unity (`y = x`) line.
+#'
+#' @inheritParams catdv_vs_dvprobs
+#' @param bins <`numeric`> Number of (roughly) equally-sized bins used to
+#' group the probability column, from lowest to highest.
+#' @param type String setting the type of plot to be used: line `l`,
+#' point `p`, smooth `s` and text `t`, or any combination thereof. See
+#' [xpose::xplot_scatter()].
+#' @param guide Include the unity (`y = x`) guide line?
+#'
+#' @export
+#'
+#' @returns The desired plot
+#'
+#' @seealso [catdv_vs_dvprobs()]
+#'
+#' @examples
+#' # Test M3 model
+#' pkpd_m3 %>%
+#'   # Need to ensure var types are set
+#'   set_var_types(catdv=BLQ,dvprobs=LIKE) %>%
+#'   # Set probs
+#'   set_dv_probs(1, 1~LIKE, .dv_var = BLQ) %>%
+#'   # Optional, but useful to set levels
+#'   set_var_levels(1, BLQ = lvl_bin()) %>%
+#'   # Plot with 5 bins
+#'   catdv_vs_ipred(bins = 5)
+#'
+#' # Test categorical model
+#' vismo_xpdb <- vismo_pomod  %>%
+#'   set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\d+$")) %>%
+#'   set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)
+#'
+#' # Various cutpoints and bin counts
+#' vismo_xpdb %>%
+#'   catdv_vs_ipred(bins = 8, xlab = "basic")
+#' vismo_xpdb %>%
+#'   catdv_vs_ipred(cutpoint = 2, bins = 8, xlab = "basic")
+#' vismo_xpdb %>%
+#'   catdv_vs_ipred(cutpoint = 3, bins = 8, xlab = "basic")
+#'
+catdv_vs_ipred <- function(xpdb,
+                            mapping  = NULL,
+                            cutpoint = 1,
+                            bins     = 10,
+                            type     = 'pl',
+                            guide    = TRUE,
+                            title    = 'Observed frequency vs. predicted probability | @run',
+                            subtitle = 'Ofv: @ofv, Number of individuals: @nind',
+                            caption  = '@dir',
+                            tag      = NULL,
+                            xlab = c("probability","basic"),
+                            facets,
+                            .problem,
+                            quiet,
+                            ...) {
+  # Check input
+  xpose::check_xpdb(xpdb, check = 'data')
+  if (missing(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet))   quiet <- xpdb$options$quiet
+  if (missing(facets))  facets <- xpdb$xp_theme$facets
+  xlab <- rlang::arg_match(xlab, c("basic", "probability"))
+  checkmate::assert_count(bins, positive = TRUE)
+
+  # Get relevant columns (or throw error)
+  dvprob_cols <- xp_var(xpdb, .problem, type = 'dvprobs')$col
+  catdv_cols <- xp_var(xpdb, .problem, type = 'catdv')$col
+  if (length(catdv_cols)>1) {
+    cli::cli_warn("Only one categorical DV will be used ({catdv_cols[1]}).")
+    catdv_cols <- catdv_cols[1]
+  }
+
+  cp <- make_catdv_cutpoint(xpdb, .problem, catdv_cols, cutpoint)
+
+  # Bin/stratify per facet column(s), if supplied as simple column names
+  strata <- character(0)
+  if (is.character(facets)) strata <- facets
+
+  # Bin the probability column into `bins` (roughly) equally-sized groups
+  # (lowest to highest), then summarize observed proportion per bin
+  post_processing <- function(df) {
+    cp$post_process(df) %>%
+      dplyr::mutate(
+        !!catdv_cols := as.numeric(.data[[catdv_cols]]) - 1,
+        `...bin...`   = dplyr::ntile(.data[[cp$prob_col]], bins)
+      ) %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(c(strata, "...bin...")))) %>%
+      dplyr::summarise(
+        !!cp$prob_col := mean(.data[[cp$prob_col]], na.rm = TRUE),
+        !!catdv_cols  := mean(.data[[catdv_cols]], na.rm = TRUE),
+        n = dplyr::n(),
+        .groups = "drop"
+      ) %>%
+      dplyr::arrange(.data[["...bin..."]]) %>%
+      dplyr::mutate(`...group...` = 1L)
+  }
+
+  xpose::xplot_scatter(
+    xpdb = xpdb, group = "...group...", quiet = quiet,
+    opt = xpose::data_opt(
+      .problem = .problem,
+      filter = xpose::only_obs(xpdb, .problem, quiet),
+      post_processing = post_processing
+    ),
+    mapping = xpose::aes_c(aes(x = .data[[cp$prob_col]],
+                        y = .data[[catdv_cols]],
+                        size = .data[["n"]]),
+                        mapping),
+    type = type, guide = guide, facets = facets,
+    xscale = "continuous",
+    yscale = "continuous",
+    title = title, subtitle = subtitle, caption = caption,
+    tag = tag, plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
+    ...
+  ) +
+    ggplot2::labs(
+      x = ifelse(
+        xlab=="basic",
+        cp$prob_col,
+        sprintf("Probability %s %s", catdv_cols, cp$cp_label)
+      ),
+      y = sprintf("Observed frequency %s %s", catdv_cols, cp$cp_label)
+    )
+}
+
 make_catdv_cutpoint <- function(xpdb, .problem, catdv_col, cutpoint) {
   # pull levels & probs from the xpdb index
   idx   <- get_index(xpdb, .problem)
