@@ -38,13 +38,15 @@ Imports:
     utils,
     vctrs,
     xpose
-Suggests: 
+Suggests:
+    callr,
     DiagrammeR,
     grDevices,
     knitr,
     nlmixr2,
     nlmixr2data,
     nlmixr2est,
+    pkgload,
     rmarkdown,
     rxode2,
     spelling,
