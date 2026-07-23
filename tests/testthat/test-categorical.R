@@ -243,3 +243,137 @@ test_that("catdv can be plot against dvprobs", {
     c("GE(2)","LT(2)")
   )
 })
+
+test_that("catdv can be plot as a binned calibration against dvprobs (catdv_vs_ipred)", {
+  geoms_lists <- function(gg) purrr::map_chr(gg$layers, ~class(.x$geom)[1])
+
+  m3_test_dummy <- pkpd_m3 %>%
+    set_var_types(.problem=1, catdv=BLQ, dvprobs=LIKE) %>%
+    set_dv_probs(.problem=1, 1~LIKE)
+
+  expect_warning(
+    m3_test_dummy %>%
+      set_var_types(catdv=DOSE, quiet = TRUE) %>%
+      catdv_vs_ipred(quiet=TRUE),
+    "Only one.*cat.*DV.*used.*BLQ"
+  )
+
+  expect_error(
+    pkpd_m3 %>%
+      set_var_types(.problem=1, catdv=BLQ, dvprobs=LIKE) %>%
+      catdv_vs_ipred(quiet=TRUE),
+    "Relationship between probabiliy column and at least one categorical DV level should be defined"
+  )
+
+  expect_error(
+    m3_test_dummy %>%
+      catdv_vs_ipred(cutpoint = 99, quiet=TRUE),
+    "cutpoint.*is.*row number.*1.*99.*range"
+  )
+
+  expect_error(
+    m3_test_dummy %>%
+      catdv_vs_ipred(bins = 0, quiet=TRUE),
+    "bins"
+  )
+  expect_error(
+    m3_test_dummy %>%
+      catdv_vs_ipred(bins = -1, quiet=TRUE),
+    "bins"
+  )
+  expect_error(
+    m3_test_dummy %>%
+      catdv_vs_ipred(bins = 2.5, quiet=TRUE),
+    "bins"
+  )
+
+  test_plot <- m3_test_dummy %>%
+    catdv_vs_ipred(bins = 5, quiet=TRUE)
+
+  expect_equal(
+    test_plot$mapping$x,
+    quote(~.data[["LIKE"]]),
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    test_plot$mapping$y,
+    quote(~.data[["BLQ"]]),
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    test_plot$labels$x,
+    "Probability BLQ EQ(1)"
+  )
+  expect_equal(
+    test_plot$labels$y,
+    "Observed frequency BLQ EQ(1)"
+  )
+  expect_equal(
+    m3_test_dummy %>%
+      catdv_vs_ipred(quiet=TRUE, xlab = "basic") %>%
+      {.$labels$x},
+    "LIKE"
+  )
+
+  # Exactly `bins` bins are produced (plenty of data to fill them all)
+  expect_equal(nrow(test_plot$data), 5)
+  # Every observation used is accounted for across bins
+  expect_equal(sum(test_plot$data$n), nrow(xpose::only_obs(m3_test_dummy,1,TRUE)(xpose::get_data(m3_test_dummy,.problem=1,quiet=TRUE))))
+  # Observed proportions and mean probabilities are valid probabilities
+  expect_true(all(test_plot$data$LIKE >= 0 & test_plot$data$LIKE <= 1))
+  expect_true(all(test_plot$data$BLQ >= 0 & test_plot$data$BLQ <= 1))
+  # Bins are ordered from lowest to highest predicted probability
+  expect_equal(test_plot$data$LIKE, sort(test_plot$data$LIKE))
+  # A well-specified likelihood model should track closely with unity
+  expect_equal(test_plot$data$LIKE, test_plot$data$BLQ, tolerance = 0.1)
+
+  # Default type includes connecting line and points; guide is unity line
+  expect_true("GeomLine" %in% geoms_lists(test_plot))
+  expect_true("GeomPoint" %in% geoms_lists(test_plot))
+  expect_true("GeomAbline" %in% geoms_lists(test_plot))
+  expect_false(
+    "GeomAbline" %in% geoms_lists(
+      m3_test_dummy %>% catdv_vs_ipred(bins = 5, guide = FALSE, quiet=TRUE)
+    )
+  )
+  expect_false(
+    "GeomLine" %in% geoms_lists(
+      m3_test_dummy %>% catdv_vs_ipred(bins = 5, type = "p", quiet=TRUE)
+    )
+  )
+
+  # Binning can be stratified by a character facet
+  facet_plot <- m3_test_dummy %>%
+    catdv_vs_ipred(bins = 3, facets = "DOSE", quiet=TRUE)
+  expect_equal(nrow(facet_plot$data), 3*length(unique(xpose::get_data(m3_test_dummy,.problem=1,quiet=TRUE)$DOSE)))
+  expect_true("DOSE" %in% names(facet_plot$data))
+
+  vismo_xpdb <- vismo_pomod  %>%
+    set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\d+$")) %>%
+    set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)
+  test_plot2 <- vismo_xpdb %>%
+    catdv_vs_ipred(bins = 4, quiet=TRUE)
+  expect_equal(
+    test_plot2$mapping$x,
+    quote(~.data[["P0"]]),
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    test_plot2$mapping$y,
+    quote(~.data[["DV"]]),
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    vismo_xpdb %>%
+      catdv_vs_ipred(cutpoint=2, bins = 4, quiet=TRUE) %>%
+      {.$mapping$x},
+    quote(~.data[["P1"]]),
+    ignore_attr = TRUE
+  )
+  test_plot3 <- vismo_xpdb %>%
+    catdv_vs_ipred(cutpoint=3, bins = 4, quiet=TRUE)
+  expect_equal(
+    test_plot3$labels$x,
+    "Probability DV GE(2)"
+  )
+})
