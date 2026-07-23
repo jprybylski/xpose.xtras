@@ -9,7 +9,9 @@ list_dv_probs(xpdb, .problem = NULL, .dv_var = NULL)
 \arguments{
 \item{xpdb}{<\code{xp_xtras}> object}
 
-\item{.problem}{<\code{numeric}> Problem number to use. Uses the all problems if \code{NULL}}
+\item{.problem}{<\code{numeric}> Problem number to use. Uses all problems if \code{NULL}
+(the default). May be omitted entirely and left to default, even when
+formulas are supplied positionally in \code{...}.}
 
 \item{.dv_var}{<\code{tidyselect}> of column having the categorical observation. Default is first-listed
 \code{catdv}.}

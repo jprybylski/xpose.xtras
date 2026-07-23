@@ -98,6 +98,61 @@ test_that("DV probabilities can be set", {
 
 })
 
+test_that(".problem can be omitted from set_dv_probs/list_dv_probs (#63)", {
+  xpx_w_types <- pkpd_m3 %>%
+    set_var_types(.problem=1, catdv=BLQ, dvprobs=LIKE)
+
+  # .problem omitted, first dot is a formula: used to be swallowed by
+  # .problem positionally and crash instead of being treated as a dot.
+  expect_identical(
+    xpx_w_types %>%
+      set_dv_probs(1~LIKE, .dv_var = BLQ),
+    xpx_w_types %>%
+      set_dv_probs(.problem=1, 1~LIKE, .dv_var = BLQ)
+  )
+
+  # .problem and .dv_var both omitted
+  expect_identical(
+    xpx_w_types %>%
+      set_dv_probs(1~LIKE),
+    xpx_w_types %>%
+      set_dv_probs(.problem=1, 1~LIKE, .dv_var = BLQ)
+  )
+
+  # .problem still works when named after the formula dots
+  expect_identical(
+    xpx_w_types %>%
+      set_dv_probs(1~LIKE, .dv_var = BLQ, .problem = 1),
+    xpx_w_types %>%
+      set_dv_probs(.problem=1, 1~LIKE, .dv_var = BLQ)
+  )
+
+  # positional .problem (legacy calling style) still works
+  expect_identical(
+    xpx_w_types %>%
+      set_dv_probs(1, 1~LIKE, .dv_var = BLQ),
+    xpx_w_types %>%
+      set_dv_probs(.problem=1, 1~LIKE, .dv_var = BLQ)
+  )
+
+  # an invalid problem number is still caught, whether .problem is
+  # positional, named before the dots, or named after them
+  suppressMessages(expect_error(
+    xpx_w_types %>% set_dv_probs(1~LIKE, .dv_var = BLQ, .problem = 99),
+    "99.*not valid"
+  ))
+
+  # list_dv_probs() shares the same .dv_var-inference codepath
+  expect_identical(
+    xpx_w_types %>%
+      set_dv_probs(1~LIKE) %>%
+      list_dv_probs(),
+    xpx_w_types %>%
+      set_dv_probs(.problem=1, 1~LIKE, .dv_var = BLQ) %>%
+      list_dv_probs(.dv_var = BLQ)
+  )
+})
+
 test_that("errors in DV prob declarations can be caught", {
   xpx_w_types <- pkpd_m3 %>%
     set_var_types(.problem=1, catdv=BLQ, dvprobs=LIKE)

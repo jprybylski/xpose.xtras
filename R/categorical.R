@@ -350,7 +350,9 @@ make_catdv_cutpoint <- function(xpdb, .problem, catdv_col, cutpoint) {
 #'
 #'
 #' @param xpdb <`xp_xtras`> object
-#' @param .problem <`numeric`> Problem number to use. Uses the all problems if `NULL`
+#' @param .problem <`numeric`> Problem number to use. Uses all problems if `NULL`
+#' (the default). May be omitted entirely and left to default, even when
+#' formulas are supplied positionally in `...`.
 #' @param ... Formulas where LHS are levels or pseudo-functions (see Details), and RHS
 #' are columns with probabilities of those levels.
 #' @param .dv_var <`tidyselect`> of column having the categorical observation. Default is first-listed
@@ -399,6 +401,12 @@ make_catdv_cutpoint <- function(xpdb, .problem, catdv_col, cutpoint) {
 #'  set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)%>%
 #'  list_vars()
 #'
+#' # .problem can be omitted for single-problem models
+#' pkpd_m3 %>%
+#'  set_var_types(catdv=BLQ, dvprobs=LIKE) %>%
+#'  set_dv_probs(1~LIKE, .dv_var = BLQ) %>%
+#'  list_vars()
+#'
 set_dv_probs <- function(
     xpdb,
     .problem = NULL,
@@ -407,6 +415,16 @@ set_dv_probs <- function(
     .handle_missing = c("quiet","warn","error")
     ) {
   #### Top part is similar to set_var_levels
+  # .problem is positioned before `...` so it can still be supplied
+  # positionally (`set_dv_probs(1, 1~LIKE)`), but that means an omitted
+  # .problem lets the first unnamed formula bind to it instead. Detect
+  # that and shift it back into the formula dots.
+  leading_dot <- list()
+  if (rlang::is_formula(.problem)) {
+    leading_dot <- list(.problem)
+    .problem <- NULL
+  }
+
   # Basic check
   if (!check_xpdb_x(xpdb)) rlang::abort("xp_xtras object required.")
   xpose::check_xpdb(xpdb, check = "data")
@@ -430,8 +448,11 @@ set_dv_probs <- function(
   full_data <- xpose::get_data(xpdb, .problem=.problem, quiet = TRUE)
   # Set null dvvar
   if (rlang::quo_is_null(rlang::enquo(.dv_var))) {
+    # xp_var() needs exactly one problem (unlike get_index()/get_data(),
+    # which treat NULL as "all problems"), so fall back to the default
+    # plot problem when .problem was not supplied.
     rlang::try_fetch(
-      .dv_var <- xp_var(xpdb, .problem = .problem, type = "catdv")$col[1],
+      .dv_var <- xp_var(xpdb, .problem = if (is.null(.problem)) xpose::default_plot_problem(xpdb) else .problem, type = "catdv")$col[1],
       error = function(s)
         rlang::abort("No categorical DV in data. Perhaps DV var type should be changed?",
                      parent = s)
@@ -442,7 +463,7 @@ set_dv_probs <- function(
   }
 
   # Consume dots
-  prb_list <- rlang::dots_list(..., .ignore_empty = "all", .homonyms = "keep")
+  prb_list <- c(leading_dot, rlang::dots_list(..., .ignore_empty = "all", .homonyms = "keep"))
   prb_tab <- check_probs(prb_list, full_index, .dv_var)
   # Add all probs
 
@@ -590,8 +611,11 @@ list_dv_probs <- function(
   full_data <- xpose::get_data(xpdb, .problem=.problem, quiet = TRUE)
   # Set null dvvar
   if (rlang::quo_is_null(rlang::enquo(.dv_var))) {
+    # xp_var() needs exactly one problem (unlike get_index()/get_data(),
+    # which treat NULL as "all problems"), so fall back to the default
+    # plot problem when .problem was not supplied.
     rlang::try_fetch(
-      .dv_var <- xp_var(xpdb, .problem = .problem, type = "catdv")$col[1],
+      .dv_var <- xp_var(xpdb, .problem = if (is.null(.problem)) xpose::default_plot_problem(xpdb) else .problem, type = "catdv")$col[1],
       error = function(s)
         rlang::abort("No categorical DV in data. Perhaps DV var type should be changed?",
                      parent = s)
