@@ -72,7 +72,7 @@ this check applies to parameterization of microconstants, so only a single volum
 (parameterizations with multiple volumes do not use microconstants) should match
 \code{vol_pattern}.
 \item \code{units_match} For any checks, verifies units are consistent. This
-check requires units are defined by \code{\link[xpose:set_vars]{set_var_units()}}
+check requires units are defined by \code{\link[xpose:set_var_units]{set_var_units()}}
 or \code{df_units} for parameters applicable to a requested check.
 }
 Checks must be requested as a named list of these elements, either \code{TRUE} or

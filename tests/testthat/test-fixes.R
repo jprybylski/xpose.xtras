@@ -182,6 +182,144 @@ test_that("edit_xpose_data is essentially the same as in xpose, with some improv
 })
 
 
+test_that("join_backfill coalesces shared columns instead of suffixing them", {
+  x <- tibble::tibble(id = 1:3, val = c(1, NA, 3))
+  y <- tibble::tibble(id = 1:3, val = c(10, 20, 30), extra = c("a", "b", "c"))
+
+  out <- join_backfill(x, y, by = "id")
+
+  # Missing values are backfilled, existing values are untouched
+  expect_equal(out$val, c(1, 20, 3))
+  # No .x/.y suffix columns leak through
+  expect_false(any(grepl("\\.[xy]$", names(out))))
+  # Columns only present in y are still brought in as-is
+  expect_equal(out$extra, c("a", "b", "c"))
+
+  # A plain left_join would have produced val.x/val.y instead
+  plain <- dplyr::left_join(x, y, by = "id")
+  expect_true(all(c("val.x", "val.y") %in% names(plain)))
+
+  # Custom suffixes are honored and still fully consumed
+  out_suffix <- join_backfill(x, y, by = "id", suffix = c("_x", "_y"))
+  expect_equal(out_suffix$val, c(1, 20, 3))
+  expect_false(any(grepl("_[xy]$", names(out_suffix))))
+
+  # No shared non-key columns: behaves like a plain left_join
+  y_no_overlap <- tibble::tibble(id = 1:3, extra = c("a", "b", "c"))
+  expect_identical(
+    join_backfill(x, y_no_overlap, by = "id"),
+    dplyr::left_join(x, y_no_overlap, by = "id")
+  )
+
+  # Empty suffixes short-circuit to the plain left_join result
+  expect_identical(
+    join_backfill(x, y_no_overlap, by = "id", suffix = c("", "")),
+    dplyr::left_join(x, y_no_overlap, by = "id", suffix = c("", ""))
+  )
+
+  # keep = TRUE duplicates the join key with the suffix pattern too, so it
+  # gets coalesced back into a single key column like any other shared column
+  out_keep <- join_backfill(x, y, by = "id", keep = TRUE)
+  expect_equal(out_keep$id, 1:3)
+  expect_false(any(grepl("\\.[xy]$", names(out_keep))))
+})
+
+test_that("left_join_x() backfills a partially-missing variable via a join key", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  # WT is missing for two subjects
+  xpdb_missing <- mutate_x(
+    xpdb_ex_pk,
+    WT = dplyr::if_else(ID %in% c("110", "112"), NA, WT)
+  )
+  wt_lookup <- xpose::get_data(xpdb_ex_pk, quiet = TRUE) %>%
+    dplyr::distinct(ID, WT)
+
+  filled <- left_join_x(xpdb_missing, wt_lookup, by = "ID")
+
+  # Class is unchanged (xpdb_ex_pk is a plain xpose_data object)
+  expect_identical(class(filled), class(xpdb_ex_pk))
+
+  d_orig <- xpose::get_data(xpdb_ex_pk, quiet = TRUE)
+  d_missing <- xpose::get_data(xpdb_missing, quiet = TRUE)
+  d_filled <- xpose::get_data(filled, quiet = TRUE)
+
+  expect_true(any(is.na(d_missing$WT)))
+  expect_false(any(is.na(d_filled$WT)))
+  expect_equal(d_filled$WT, d_orig$WT)
+  expect_false(any(grepl("\\.[xy]$", names(d_filled))))
+
+  # Invalid .problem is rejected the same way as the other _x functions
+  expect_error(
+    left_join_x(xpdb_missing, wt_lookup, by = "ID", .problem = 99),
+    "99"
+  )
+
+  # Explicit .problem restricts which problem's data is joined into;
+  # xpdb_ex_pk has two problems, so problem 2 is left untouched here
+  scoped <- left_join_x(xpdb_missing, wt_lookup, by = "ID", .problem = 1)
+  expect_identical(scoped$data$data[[2]], xpdb_missing$data$data[[2]])
+  expect_false(identical(scoped$data$data[[1]], xpdb_missing$data$data[[1]]))
+})
+
+test_that("left_join_x() preserves the class of its input (xpose_data stays xpose_data, xp_xtras stays xp_xtras)", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  lookup <- xpose::get_data(xpdb_ex_pk, quiet = TRUE) %>%
+    dplyr::distinct(ID, WT)
+
+  # Plain xpose_data in -> plain xpose_data out (not promoted to xp_xtras)
+  plain_out <- left_join_x(xpdb_ex_pk, lookup, by = "ID")
+  expect_identical(class(plain_out), c("xpose_data", "uneval"))
+  expect_false(is_xp_xtras(plain_out))
+
+  # xp_xtras in -> xp_xtras out
+  xtras_out <- left_join_x(as_xpdb_x(xpdb_ex_pk), lookup, by = "ID")
+  expect_identical(class(xtras_out), c("xp_xtras", "xpose_data", "uneval"))
+  expect_true(is_xp_xtras(xtras_out))
+})
+
+test_that("left_join() S3 method dispatches like left_join_x() for xpose_data and xp_xtras", {
+  apgr_lookup <- xpose::get_data(pheno_base, quiet = TRUE) %>%
+    dplyr::distinct(ID, APGR)
+  xpdb_missing <- mutate_x(
+    pheno_base,
+    APGR = dplyr::if_else(ID %in% c("1", "2"), NA, APGR)
+  )
+
+  # pheno_base is already xp_xtras; dispatch relies on xpose_data inheritance
+  expect_true(is_xp_xtras(xpdb_missing))
+  via_generic <- dplyr::left_join(xpdb_missing, apgr_lookup, by = "ID")
+  via_x <- left_join_x(xpdb_missing, apgr_lookup, by = "ID")
+  expect_identical(via_generic, via_x)
+  expect_true(is_xp_xtras(via_generic))
+  expect_false(any(is.na(xpose::get_data(via_generic, quiet = TRUE)$APGR)))
+
+  # Also works starting from a plain xpose_data object
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  wt_lookup <- xpose::get_data(xpdb_ex_pk, quiet = TRUE) %>%
+    dplyr::distinct(ID, WT)
+  xpdb_missing_plain <- mutate_x(
+    xpdb_ex_pk,
+    WT = dplyr::if_else(ID %in% c("110", "112"), NA, WT)
+  )
+  expect_false(is_xp_xtras(xpdb_missing_plain))
+  expect_identical(
+    dplyr::left_join(xpdb_missing_plain, wt_lookup, by = "ID"),
+    left_join_x(xpdb_missing_plain, wt_lookup, by = "ID")
+  )
+})
+
+test_that("left_join_x() updates the index when the join introduces a new column", {
+  id_lookup <- xpose::get_data(pheno_base, quiet = TRUE) %>%
+    dplyr::distinct(ID) %>%
+    dplyr::mutate(NEWVAR = as.numeric(ID))
+
+  joined <- left_join_x(pheno_base, id_lookup, by = "ID")
+
+  expect_true("NEWVAR" %in% get_index(joined)$col)
+  expect_true("NEWVAR" %in% names(xpose::get_data(joined, quiet = TRUE)))
+})
+
 test_that("patch_condn corrects the condition number for multi-method runs (issue #60)", {
   # pheno_saem's run has SAEM followed by importance sampling, each with its own
   # 'EIGENVALUES OF COR MATRIX OF ESTIMATE' block; xpose's sum_condn() always used

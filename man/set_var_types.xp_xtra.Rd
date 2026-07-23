@@ -11,7 +11,7 @@
 
 \item{.problem}{The problem number to which the edits will be applied.}
 
-\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Passed to <\code{\link[xpose:set_vars]{set_var_types}}> after processing.}
+\item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> Passed to <\code{\link[xpose:set_var_types]{set_var_types}}> after processing.}
 
 \item{auto_factor}{If \code{TRUE} new columns assigned to the type 'catcov' will be converted to
 factor.}
@@ -24,13 +24,13 @@ An xpose_data object
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 
-<\code{\link[xpose:set_vars]{set_var_types}}> wrapper that accepts tidyselect syntax.
+<\code{\link[xpose:set_var_types]{set_var_types}}> wrapper that accepts tidyselect syntax.
 Character vector-based selection still works.
 
 \code{set_var_types_x} accepts \code{xpose_data} or \code{xp_xtras} objects.
 
 \code{set_var_types} without \verb{_x} is defined with S3 methods. To maintain \code{xpose} expectations,
-the default method is <\code{\link[xpose:set_vars]{set_var_types}}>, but if an \code{xp_xtras} object
+the default method is <\code{\link[xpose:set_var_types]{set_var_types}}>, but if an \code{xp_xtras} object
 is used, the method uses \code{set_var_types_x}.
 }
 \examples{

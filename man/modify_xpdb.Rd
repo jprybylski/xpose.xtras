@@ -31,5 +31,5 @@ An updated \code{xpose} data object
 \code{select()} keeps only the listed variables; \code{rename()} keeps all variables.
 
 \strong{Note:} this function uses \code{xpose.xtras::edit_xpose_data}, but is otherwise
-the same as <\code{\link[xpose:reexports]{xpose::mutate}}>.
+the same as <\code{\link[xpose:mutate]{xpose::mutate}}>.
 }

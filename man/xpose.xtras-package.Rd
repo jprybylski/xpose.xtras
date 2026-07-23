@@ -21,5 +21,10 @@ Useful links:
 \author{
 \strong{Maintainer}: John Prybylski \email{jprybylski@gmail.com} (\href{https://orcid.org/0000-0001-5802-0539}{ORCID}) [copyright holder]
 
+Authors:
+\itemize{
+  \item John Prybylski \email{jprybylski@gmail.com} (\href{https://orcid.org/0000-0001-5802-0539}{ORCID}) [copyright holder]
+}
+
 }
 \keyword{internal}

@@ -17,6 +17,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{dplyr}{\code{\link[dplyr:reexports]{all_of}}, \code{\link[dplyr:reexports]{any_of}}, \code{\link[dplyr]{filter}}, \code{\link[dplyr]{mutate}}, \code{\link[dplyr]{pull}}, \code{\link[dplyr]{rename}}, \code{\link[dplyr]{select}}}
+  \item{dplyr}{\code{\link[dplyr:all_of]{all_of}}, \code{\link[dplyr:any_of]{any_of}}, \code{\link[dplyr:filter]{filter()}}, \code{\link[dplyr:mutate]{mutate()}}, \code{\link[dplyr:pull]{pull()}}, \code{\link[dplyr:rename]{rename()}}, \code{\link[dplyr:select]{select()}}}
 }}
 
