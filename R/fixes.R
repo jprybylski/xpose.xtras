@@ -556,6 +556,7 @@ join_backfill <- function(x, y, by = NULL, copy = FALSE, suffix = c(".x", ".y"),
 #' # Or simply by writing the plot object name
 #' my_plot
 #'
+#' @exportS3Method print xpose_plot
 print.xpose_plot <- function(x, page, ...) {
 
   # Parse template titles
