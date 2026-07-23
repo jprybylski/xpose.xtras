@@ -15,7 +15,6 @@ reference:
       - as_leveler
       - is_leveler
       - backfill_iofv
-      - matches("nlmixr2")
       - xp_var
       - check_levels
 
@@ -66,7 +65,7 @@ reference:
       - modavg_xpdb
       - starts_with("cov")
       - starts_with("conf")
-      - starts_with("nlmixr2")
+      - matches("nlmixr2")
       - desc_from_comments
       - edit_xpose_data
       - expose_param
@@ -91,6 +90,7 @@ reference:
       - test_xpdb
       - starts_with("franken_")
       - irep
+      - patch_condn
       - derive_prm
       - diagnose_constants
       - get_prm

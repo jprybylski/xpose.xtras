@@ -160,7 +160,7 @@ print.xp_xtras <- function(x, ...) {
 #' Allow assignment without conversion to class uneval
 #'
 #' @description
-#' Based on a PR from Bill Denney to `xpose` ([see here][https://github.com/UUPharmacometrics/xpose/pull/153]).
+#' Based on a PR from Bill Denney to `xpose` ([see here](https://github.com/UUPharmacometrics/xpose/pull/153)).
 #'
 #' @param x object from which to extract element(s) or in which to replace element(s).
 #' @param i index specifying element to replace.
