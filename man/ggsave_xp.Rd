@@ -6,53 +6,70 @@
 \usage{
 ggsave_xp(
   plot = ggplot2::last_plot(),
-  file = NULL,
-  dir = getOption("xpose.xtras.save_dir"),
+  filename,
+  path = getOption("xpose.xtras.save_dir"),
   width = getOption("xpose.xtras.save_width", 7),
   height = getOption("xpose.xtras.save_height", 6),
   xpdb = NULL,
   apply_labs = TRUE,
+  save_fun = getOption("xpose.xtras.save_fun", ggplot2::ggsave),
   ...
 )
 }
 \arguments{
-\item{plot}{A xpose plot object.}
+\item{plot}{<\code{ggplot}> or <\code{xpose_plot}> object}
 
-\item{file}{A name with file extension (if device is \code{NULL}) to be given
-to the output file. Template variables such as \code{@run} (run number) and
-\code{@plotfun} (plot function) can be used to automatically name files
-e.g. \code{file = '@run_@plotfun.pdf'}.}
+\item{filename}{<\code{character}> File name, optionally with \verb{@keyword}
+placeholders (e.g. \code{"@run_@plotfun.pdf"}, see \code{\link[xpose:parse_title]{xpose::parse_title()}})}
 
-\item{dir}{Directory under which the xpose plots will be saved. Template
-variables such as \code{@dir} can be used to generate template names.}
+\item{path}{<\code{character}> Directory to save in; falls back to the
+\code{xpose.xtras.save_dir} R option}
 
-\item{width, height}{<\code{numeric}> Plot size (in \code{units}, see
-\code{\link[xpose:xpose_save]{xpose::xpose_save()}}); fall back to the \code{xpose.xtras.save_width}/
-\code{xpose.xtras.save_height} R options}
+\item{width, height}{<\code{numeric}> Plot size (in inches by default,
+see \code{save_fun}'s own \code{units} argument if it has one); fall back to the
+\code{xpose.xtras.save_width}/\code{xpose.xtras.save_height} R options}
 
 \item{xpdb}{<\code{\link[xpose:xpose_data]{xpose_data}}> or <\code{xp_xtras}> object
 \code{plot} was built from, forwarded to \code{\link[=apply_default_labs]{apply_default_labs()}} (see its
-\code{xpdb} argument)}
+\code{xpdb} argument) and used to resolve \verb{@keyword} placeholders}
 
 \item{apply_labs}{<\code{logical}> Apply \code{\link[=apply_default_labs]{apply_default_labs()}} to \code{plot}
 before saving (default \code{TRUE})}
 
-\item{...}{Passed on to \code{\link[xpose:xpose_save]{xpose::xpose_save()}}}
+\item{save_fun}{<\code{function}> The actual save function to call, e.g.
+\code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} (the default) or a drop-in alternative such as
+\code{reportifyr::ggsave_with_metadata()}; falls back to the
+\code{xpose.xtras.save_fun} R option, then \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}}}
+
+\item{...}{Passed on to \code{save_fun} (e.g. \code{device}, \code{dpi}, \code{units}, \code{bg})}
 }
 \value{
-the saved file path (see \code{\link[xpose:xpose_save]{xpose::xpose_save()}})
+the result of \code{save_fun} (for the default \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}},
+the saved file path, invisibly)
 }
 \description{
-Thin wrapper around \code{\link[xpose:xpose_save]{xpose::xpose_save()}}. Before saving, resolved
-labels are applied via \code{\link[=apply_default_labs]{apply_default_labs()}} (see \code{apply_labs}), and
-\code{dir}/\code{width}/\code{height} fall back to the \code{xpose.xtras.save_dir},
-\code{xpose.xtras.save_width}, and \code{xpose.xtras.save_height} R options when
-not supplied explicitly, so a project can set output defaults once.
+A \code{ggplot2::ggsave()}-compatible wrapper (defaulting to
+\code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} itself, but swappable via \code{save_fun} -- e.g. for
+\code{reportifyr::ggsave_with_metadata()} or any other function sharing
+\code{ggsave()}'s \code{plot}/\code{filename}/\code{path}/\code{width}/\code{height} signature).
+Before saving: resolved labels are applied via \code{\link[=apply_default_labs]{apply_default_labs()}}
+(see \code{apply_labs}); \code{filename}/\code{path} have any \verb{@keyword} placeholders
+expanded via \code{\link[xpose:parse_title]{xpose::parse_title()}}, the same way \code{\link[xpose:xpose_save]{xpose::xpose_save()}}
+does (independent of which \code{save_fun} is used, since most save
+functions don't do this themselves); and \code{path}/\code{width}/\code{height}/
+\code{save_fun} fall back to the \code{xpose.xtras.save_dir},
+\code{xpose.xtras.save_width}, \code{xpose.xtras.save_height}, and
+\code{xpose.xtras.save_fun} R options when not supplied explicitly, so a
+project can set output defaults once (see \code{\link[=set_xtras_options]{set_xtras_options()}}).
 }
 \examples{
 \dontrun{
 options(xpose.xtras.save_dir = "figures", xpose.xtras.save_width = 8)
 p <- xpose::dv_vs_ipred(xpose::xpdb_ex_pk)
-ggsave_xp(p, file = "dv_vs_ipred.png")
+ggsave_xp(p, filename = "dv_vs_ipred.png")
 }
+}
+\seealso{
+\code{\link[=set_xtras_options]{set_xtras_options()}} for the full list of \verb{xpose.xtras.*}
+session options.
 }

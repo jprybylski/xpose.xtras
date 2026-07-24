@@ -25,3 +25,8 @@ xpdb_x <- set_default_watermark(xpdb_x, label = "PRELIMINARY", colour = "red")
 p <- xpose::dv_vs_ipred(xpdb_x)
 add_watermark(p, xpdb = xpdb_x)
 }
+\seealso{
+\code{\link[=set_xtras_options]{set_xtras_options()}} for the session-option equivalent
+(\code{xpose.xtras.default_watermark}), and \code{\link[=get_xtras_option]{get_xtras_option()}} to check
+which one is currently dominant.
+}

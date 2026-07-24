@@ -26,6 +26,9 @@ default_watermark_args <- c("label", "colour", "alpha", "size", "angle", "fontfa
 #' `label`, `colour`, `alpha`, `size`, `angle`, `fontface`
 #'
 #' @return `xp_xtras` object
+#' @seealso [set_xtras_options()] for the session-option equivalent
+#' (`xpose.xtras.default_watermark`), and [get_xtras_option()] to check
+#' which one is currently dominant.
 #' @export
 #'
 #' @examples
@@ -72,6 +75,9 @@ set_default_watermark <- function(xpdb, ...) {
 #' [set_default_watermark()])
 #'
 #' @return `plot`, with the watermark layer added
+#' @seealso [set_xtras_options()] for the full list of `xpose.xtras.*`
+#' session options, and [get_xtras_option()] to check which tier
+#' (option/`xpdb`) is currently dominant for a given `xpdb`.
 #' @export
 #'
 #' @examples

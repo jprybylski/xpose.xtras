@@ -14,6 +14,31 @@
 
 default_lab_types <- c("title", "subtitle", "caption", "tag")
 
+# Shared by apply_default_labs() and ggsave_xp(): resolves the xpdb-like
+# context xpose::parse_title() needs to expand @keyword placeholders,
+# preferring an explicitly-supplied xpdb but falling back to the reduced
+# context xpose attaches to xpose_plot objects (see the file-level comment
+# above for why that reduced object -- not a full xpdb -- is all a
+# rendered plot carries).
+resolve_keyword_ctx <- function(plot, xpdb) {
+  if (!is.null(xpdb)) {
+    list(xpdb = xpdb, problem = utils::tail(xpdb$summary$problem, 1), quiet = xpdb$options$quiet)
+  } else if (xpose::is.xpose.plot(plot)) {
+    list(xpdb = plot$xpose, problem = plot$xpose$problem, quiet = plot$xpose$quiet)
+  } else NULL
+}
+
+# Expands @keyword placeholders in a single string, if `ctx` is available
+# and the string actually contains any
+resolve_keywords <- function(string, ctx) {
+  if (is.null(ctx) || is.null(string) || !grepl("@", string)) return(string)
+  xpose::parse_title(
+    string,
+    xpdb = ctx$xpdb, problem = ctx$problem, quiet = ctx$quiet,
+    ignore_key = c("page", "lastpage")
+  )
+}
+
 #' Set default plot label overrides on an `xp_xtras` object
 #'
 #' @description
@@ -29,6 +54,9 @@ default_lab_types <- c("title", "subtitle", "caption", "tag")
 #' `title`, `subtitle`, `caption`, `tag`, given as character strings
 #'
 #' @return `xp_xtras` object
+#' @seealso [set_xtras_options()] for the session-option equivalent
+#' (`xpose.xtras.default_labs`), and [get_xtras_option()] to check which
+#' one is currently dominant.
 #' @export
 #'
 #' @examples
@@ -79,6 +107,9 @@ set_default_labs <- function(xpdb, ...) {
 #' (default `FALSE`, meaning only missing labels are filled in)
 #'
 #' @return `plot`, with resolved labels applied
+#' @seealso [set_xtras_options()] for the full list of `xpose.xtras.*`
+#' session options, and [get_xtras_option()] to check which tier
+#' (option/`xpdb`) is currently dominant for a given `xpdb`.
 #' @export
 #'
 #' @examples
@@ -111,25 +142,8 @@ apply_default_labs <- function(plot, ..., xpdb = NULL, overwrite = FALSE) {
   }
   if (length(resolved) == 0) return(plot)
 
-  # Resolve @keyword placeholders, preferring the supplied xpdb but falling
-  # back to the reduced context xpose attaches to xpose_plot objects
-  keyword_ctx <- if (!is.null(xpdb)) {
-    list(xpdb = xpdb, problem = utils::tail(xpdb$summary$problem, 1), quiet = xpdb$options$quiet)
-  } else if (xpose::is.xpose.plot(plot)) {
-    list(xpdb = plot$xpose, problem = plot$xpose$problem, quiet = plot$xpose$quiet)
-  } else NULL
-
-  if (!is.null(keyword_ctx)) {
-    resolved <- purrr::map_if(
-      resolved,
-      .p = ~ grepl("@", .x),
-      .f = xpose::parse_title,
-      xpdb = keyword_ctx$xpdb,
-      problem = keyword_ctx$problem,
-      quiet = keyword_ctx$quiet,
-      ignore_key = c("page", "lastpage")
-    )
-  }
+  keyword_ctx <- resolve_keyword_ctx(plot, xpdb)
+  resolved <- lapply(resolved, resolve_keywords, ctx = keyword_ctx)
 
   plot + do.call(ggplot2::labs, resolved)
 }
@@ -137,44 +151,70 @@ apply_default_labs <- function(plot, ..., xpdb = NULL, overwrite = FALSE) {
 #' Save a plot with `xpose.xtras` default output resolution
 #'
 #' @description
-#' Thin wrapper around [xpose::xpose_save()]. Before saving, resolved
-#' labels are applied via [apply_default_labs()] (see `apply_labs`), and
-#' `dir`/`width`/`height` fall back to the `xpose.xtras.save_dir`,
-#' `xpose.xtras.save_width`, and `xpose.xtras.save_height` R options when
-#' not supplied explicitly, so a project can set output defaults once.
+#' A `ggplot2::ggsave()`-compatible wrapper (defaulting to
+#' [ggplot2::ggsave()] itself, but swappable via `save_fun` -- e.g. for
+#' `reportifyr::ggsave_with_metadata()` or any other function sharing
+#' `ggsave()`'s `plot`/`filename`/`path`/`width`/`height` signature).
+#' Before saving: resolved labels are applied via [apply_default_labs()]
+#' (see `apply_labs`); `filename`/`path` have any `@keyword` placeholders
+#' expanded via [xpose::parse_title()], the same way [xpose::xpose_save()]
+#' does (independent of which `save_fun` is used, since most save
+#' functions don't do this themselves); and `path`/`width`/`height`/
+#' `save_fun` fall back to the `xpose.xtras.save_dir`,
+#' `xpose.xtras.save_width`, `xpose.xtras.save_height`, and
+#' `xpose.xtras.save_fun` R options when not supplied explicitly, so a
+#' project can set output defaults once (see [set_xtras_options()]).
 #'
-#' @inheritParams xpose::xpose_save
-#' @param width,height <`numeric`> Plot size (in `units`, see
-#' [xpose::xpose_save()]); fall back to the `xpose.xtras.save_width`/
-#' `xpose.xtras.save_height` R options
+#' @param plot <`ggplot`> or <`xpose_plot`> object
+#' @param filename <`character`> File name, optionally with `@keyword`
+#' placeholders (e.g. `"@run_@plotfun.pdf"`, see [xpose::parse_title()])
+#' @param path <`character`> Directory to save in; falls back to the
+#' `xpose.xtras.save_dir` R option
+#' @param width,height <`numeric`> Plot size (in inches by default,
+#' see `save_fun`'s own `units` argument if it has one); fall back to the
+#' `xpose.xtras.save_width`/`xpose.xtras.save_height` R options
 #' @param xpdb <[`xpose_data`][xpose::xpose_data]> or <`xp_xtras`> object
 #' `plot` was built from, forwarded to [apply_default_labs()] (see its
-#' `xpdb` argument)
+#' `xpdb` argument) and used to resolve `@keyword` placeholders
 #' @param apply_labs <`logical`> Apply [apply_default_labs()] to `plot`
 #' before saving (default `TRUE`)
-#' @param ... Passed on to [xpose::xpose_save()]
+#' @param save_fun <`function`> The actual save function to call, e.g.
+#' [ggplot2::ggsave()] (the default) or a drop-in alternative such as
+#' `reportifyr::ggsave_with_metadata()`; falls back to the
+#' `xpose.xtras.save_fun` R option, then [ggplot2::ggsave()]
+#' @param ... Passed on to `save_fun` (e.g. `device`, `dpi`, `units`, `bg`)
 #'
-#' @return the saved file path (see [xpose::xpose_save()])
+#' @return the result of `save_fun` (for the default [ggplot2::ggsave()],
+#' the saved file path, invisibly)
+#' @seealso [set_xtras_options()] for the full list of `xpose.xtras.*`
+#' session options.
 #' @export
 #'
 #' @examples
 #' \dontrun{
 #' options(xpose.xtras.save_dir = "figures", xpose.xtras.save_width = 8)
 #' p <- xpose::dv_vs_ipred(xpose::xpdb_ex_pk)
-#' ggsave_xp(p, file = "dv_vs_ipred.png")
+#' ggsave_xp(p, filename = "dv_vs_ipred.png")
 #' }
 ggsave_xp <- function(plot = ggplot2::last_plot(),
-                       file = NULL,
-                       dir = getOption("xpose.xtras.save_dir"),
+                       filename,
+                       path = getOption("xpose.xtras.save_dir"),
                        width = getOption("xpose.xtras.save_width", 7),
                        height = getOption("xpose.xtras.save_height", 6),
                        xpdb = NULL,
                        apply_labs = TRUE,
+                       save_fun = getOption("xpose.xtras.save_fun", ggplot2::ggsave),
                        ...) {
   checkmate::assert_class(plot, "ggplot")
+  checkmate::assert_string(filename)
   checkmate::assert_flag(apply_labs)
+  checkmate::assert_function(save_fun)
 
   if (apply_labs) plot <- apply_default_labs(plot, xpdb = xpdb)
 
-  xpose::xpose_save(plot = plot, file = file, dir = dir, width = width, height = height, ...)
+  keyword_ctx <- resolve_keyword_ctx(plot, xpdb)
+  filename <- resolve_keywords(filename, keyword_ctx)
+  path <- resolve_keywords(path, keyword_ctx)
+
+  save_fun(plot = plot, filename = filename, path = path, width = width, height = height, ...)
 }

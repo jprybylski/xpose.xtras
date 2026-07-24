@@ -9,20 +9,21 @@
 # xpdb-level default of the *same name* under xpdb$options -- set via
 # set_option(), which merges list-valued options recursively (see
 # set_option()), so set_default_labs()/set_default_watermark() and direct
-# set_option() calls behave identically. The rest (save_dir/width/height,
-# gg_theme, xp_theme) are option-only: there's no separate xpdb-level
+# set_option() calls behave identically. The rest (save_dir/width/height/
+# fun, gg_theme, xp_theme) are option-only: there's no separate xpdb-level
 # tier to compare against, either because there's nothing on xpdb to
-# compare with (ggsave_xp()'s dir/width/height) or because the option is
-# applied once, at as_xpdb_x() conversion time, becoming indistinguishable
-# from the xpdb's own gg_theme/xp_theme rather than a resolved-per-use
-# default.
+# compare with (ggsave_xp()'s path/width/height/save_fun) or because the
+# option is applied once, at as_xpdb_x() conversion time, becoming
+# indistinguishable from the xpdb's own gg_theme/xp_theme rather than a
+# resolved-per-use default.
 
 xtras_option_registry <- c(
   default_labs      = "default title/subtitle/caption/tag templates for apply_default_labs()",
   default_watermark = "default add_watermark() arguments",
-  save_dir          = "default `dir` for ggsave_xp()",
+  save_dir          = "default `path` for ggsave_xp()",
   save_width        = "default `width` for ggsave_xp()",
   save_height       = "default `height` for ggsave_xp()",
+  save_fun          = "default save function for ggsave_xp(), e.g. ggplot2::ggsave()",
   gg_theme          = "default ggplot2 theme applied by as_xpdb_x()",
   xp_theme          = "default xpose xp_theme applied by as_xpdb_x()"
 )
@@ -60,8 +61,12 @@ xtras_two_tier_options <- c("default_labs", "default_watermark")
 #'   arguments passed directly to `add_watermark()` both take precedence
 #'   over this option.}
 #'   \item{`save_dir`, `save_width`, `save_height`}{Defaults for the
-#'   `dir`/`width`/`height` arguments of [ggsave_xp()], used whenever
+#'   `path`/`width`/`height` arguments of [ggsave_xp()], used whenever
 #'   those arguments aren't supplied explicitly.}
+#'   \item{`save_fun`}{Default save function for [ggsave_xp()] (itself
+#'   defaulting to [ggplot2::ggsave()] when this is unset), for swapping
+#'   in a drop-in alternative such as `reportifyr::ggsave_with_metadata()`
+#'   project-wide instead of passing `save_fun` to every [ggsave_xp()] call.}
 #'   \item{`gg_theme`, `xp_theme`}{Default `ggplot2` theme / `xpose`
 #'   `xp_theme` (see [xpose::update_themes()]) applied to an `xpose_data`
 #'   object the first time it's converted via [as_xpdb_x()],
@@ -72,10 +77,14 @@ xtras_two_tier_options <- c("default_labs", "default_watermark")
 #'
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more of
 #' `default_labs`, `default_watermark`, `save_dir`, `save_width`,
-#' `save_height`, `gg_theme`, `xp_theme`, given as `name = value`
+#' `save_height`, `save_fun`, `gg_theme`, `xp_theme`, given as `name = value`
 #'
 #' @return the previous values of the options that were set, invisibly
 #' (see [options()])
+#' @seealso [get_xtras_option()] to inspect which tier is currently
+#' dominant for a two-tier option; [apply_default_labs()],
+#' [add_watermark()], [ggsave_xp()], and [as_xpdb_x()], which consume
+#' these options.
 #' @export
 #'
 #' @examples

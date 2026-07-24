@@ -49,3 +49,8 @@ p <- xpose::dv_vs_ipred(xpose::xpdb_ex_pk)
 apply_default_labs(p)
 options(xpose.xtras.default_labs = NULL)
 }
+\seealso{
+\code{\link[=set_xtras_options]{set_xtras_options()}} for the full list of \verb{xpose.xtras.*}
+session options, and \code{\link[=get_xtras_option]{get_xtras_option()}} to check which tier
+(option/\code{xpdb}) is currently dominant for a given \code{xpdb}.
+}

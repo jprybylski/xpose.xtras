@@ -28,3 +28,8 @@ xpdb_x <- set_default_labs(xpdb_x, caption = "@nobs observations in @nind indivi
 p <- xpose::dv_vs_ipred(xpdb_x)
 apply_default_labs(p, xpdb = xpdb_x)
 }
+\seealso{
+\code{\link[=set_xtras_options]{set_xtras_options()}} for the session-option equivalent
+(\code{xpose.xtras.default_labs}), and \code{\link[=get_xtras_option]{get_xtras_option()}} to check which
+one is currently dominant.
+}

@@ -9,7 +9,7 @@ set_xtras_options(...)
 \arguments{
 \item{...}{<\code{\link[rlang:dyn-dots]{dynamic-dots}}> One or more of
 \code{default_labs}, \code{default_watermark}, \code{save_dir}, \code{save_width},
-\code{save_height}, \code{gg_theme}, \code{xp_theme}, given as \code{name = value}}
+\code{save_height}, \code{save_fun}, \code{gg_theme}, \code{xp_theme}, given as \code{name = value}}
 }
 \value{
 the previous values of the options that were set, invisibly
@@ -44,8 +44,12 @@ source -- xpdb-level defaults (see \code{\link[=set_default_watermark]{set_defau
 arguments passed directly to \code{add_watermark()} both take precedence
 over this option.}
 \item{\code{save_dir}, \code{save_width}, \code{save_height}}{Defaults for the
-\code{dir}/\code{width}/\code{height} arguments of \code{\link[=ggsave_xp]{ggsave_xp()}}, used whenever
+\code{path}/\code{width}/\code{height} arguments of \code{\link[=ggsave_xp]{ggsave_xp()}}, used whenever
 those arguments aren't supplied explicitly.}
+\item{\code{save_fun}}{Default save function for \code{\link[=ggsave_xp]{ggsave_xp()}} (itself
+defaulting to \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} when this is unset), for swapping
+in a drop-in alternative such as \code{reportifyr::ggsave_with_metadata()}
+project-wide instead of passing \code{save_fun} to every \code{\link[=ggsave_xp]{ggsave_xp()}} call.}
 \item{\code{gg_theme}, \code{xp_theme}}{Default \code{ggplot2} theme / \code{xpose}
 \code{xp_theme} (see \code{\link[xpose:update_themes]{xpose::update_themes()}}) applied to an \code{xpose_data}
 object the first time it's converted via \code{\link[=as_xpdb_x]{as_xpdb_x()}},
@@ -58,4 +62,10 @@ no effect on \code{xpdb}s that are already \code{xp_xtras} objects.}
 set_xtras_options(save_dir = "figures", default_watermark = list(label = "DRAFT"))
 getOption("xpose.xtras.save_dir")
 set_xtras_options(save_dir = NULL, default_watermark = NULL)
+}
+\seealso{
+\code{\link[=get_xtras_option]{get_xtras_option()}} to inspect which tier is currently
+dominant for a two-tier option; \code{\link[=apply_default_labs]{apply_default_labs()}},
+\code{\link[=add_watermark]{add_watermark()}}, \code{\link[=ggsave_xp]{ggsave_xp()}}, and \code{\link[=as_xpdb_x]{as_xpdb_x()}}, which consume
+these options.
 }

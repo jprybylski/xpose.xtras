@@ -106,7 +106,7 @@ test_that("apply_default_labs validates its inputs", {
   expect_error(apply_default_labs(p, xpdb = "not an xpdb"), regexp = "xpose_data|xp_xtras")
 })
 
-test_that("ggsave_xp applies default labels and forwards output options to xpose::xpose_save", {
+test_that("ggsave_xp applies default labels and forwards output options to save_fun", {
   data("xpdb_ex_pk", package = "xpose", envir = environment())
 
   old_opts <- options(
@@ -121,23 +121,103 @@ test_that("ggsave_xp applies default labels and forwards output options to xpose
   expect_null(ggplot2::get_labs(p)$tag)
 
   captured <- NULL
-  testthat::local_mocked_bindings(
-    xpose_save = function(plot, file, dir, width, height, ...) {
-      captured <<- list(plot = plot, file = file, dir = dir, width = width, height = height)
-      "mocked/path.png"
-    },
-    .package = "xpose"
-  )
+  mock_save <- function(plot, filename, path, width, height, ...) {
+    captured <<- list(plot = plot, filename = filename, path = path, width = width, height = height)
+    "mocked/path.png"
+  }
 
-  out <- ggsave_xp(p, file = "out.png")
+  out <- ggsave_xp(p, filename = "out.png", save_fun = mock_save)
 
   expect_identical(out, "mocked/path.png")
-  expect_identical(captured$dir, "some_dir")
+  expect_identical(captured$path, "some_dir")
   expect_identical(captured$width, 9)
   expect_identical(captured$height, 5)
   expect_identical(ggplot2::get_labs(captured$plot)$tag, "A")
 
   # apply_labs = FALSE skips apply_default_labs()
-  ggsave_xp(p, file = "out2.png", apply_labs = FALSE)
+  ggsave_xp(p, filename = "out2.png", apply_labs = FALSE, save_fun = mock_save)
   expect_null(ggplot2::get_labs(captured$plot)$tag)
+})
+
+test_that("ggsave_xp defaults to ggplot2::ggsave() and actually writes a file", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  old_opts <- options(xpose.xtras.default_labs = NULL)
+  on.exit(options(old_opts), add = TRUE)
+
+  p <- xpose::dv_vs_ipred(xpdb_ex_pk)
+  tmp_dir <- tempfile()
+  dir.create(tmp_dir)
+  on.exit(unlink(tmp_dir, recursive = TRUE), add = TRUE)
+
+  out <- ggsave_xp(p, filename = "out.png", path = tmp_dir, width = 4, height = 3)
+  expect_true(file.exists(file.path(tmp_dir, "out.png")))
+  expect_identical(out, file.path(tmp_dir, "out.png"))
+})
+
+test_that("ggsave_xp resolves @keyword placeholders in filename/path", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  old_opts <- options(xpose.xtras.default_labs = NULL)
+  on.exit(options(old_opts), add = TRUE)
+
+  p <- xpose::dv_vs_ipred(xpdb_ex_pk)
+  captured <- NULL
+  mock_save <- function(plot, filename, path, ...) {
+    captured <<- list(filename = filename, path = path)
+    "mocked"
+  }
+
+  ggsave_xp(p, filename = "@run.png", path = "out_@run", save_fun = mock_save)
+  expect_false(grepl("@run", captured$filename))
+  expect_false(grepl("@run", captured$path))
+})
+
+test_that("ggsave_xp works with a save_fun whose signature differs from ggplot2::ggsave (e.g. reportifyr::ggsave_with_metadata)", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  # mirrors reportifyr::ggsave_with_metadata()'s actual signature: filename
+  # first, plot second, extra meta_* args, and -- critically -- no `path`
+  # formal at all (it's only ever received via `...` and forwarded on to
+  # ggplot2::ggsave() itself), so a caller's `path`/xpose.xtras.save_dir
+  # must still reach it correctly
+  mock_reportifyr <- function(filename, plot = ggplot2::last_plot(), meta_type = "NA",
+                               meta_equations = NULL, meta_notes = NULL, meta_abbrevs = NULL, ...) {
+    extra <- list(...)
+    list(filename = filename, plot = plot, meta_type = meta_type, path = extra$path)
+  }
+
+  p <- xpose::dv_vs_ipred(xpdb_ex_pk)
+  res <- ggsave_xp(
+    p, filename = "out.png", path = "custom_dir",
+    save_fun = mock_reportifyr, meta_type = "table"
+  )
+
+  expect_identical(res$filename, "out.png")
+  expect_identical(res$path, "custom_dir")
+  expect_identical(res$meta_type, "table")
+  expect_s3_class(res$plot, "ggplot")
+})
+
+test_that("ggsave_xp's save_fun falls back to the xpose.xtras.save_fun option", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  old_opts <- options(xpose.xtras.save_fun = NULL)
+  on.exit(options(old_opts), add = TRUE)
+
+  captured <- NULL
+  options(xpose.xtras.save_fun = function(plot, filename, path, ...) {
+    captured <<- filename
+    "from option"
+  })
+
+  p <- xpose::dv_vs_ipred(xpdb_ex_pk)
+  out <- ggsave_xp(p, filename = "via_option.png")
+  expect_identical(out, "from option")
+  expect_identical(captured, "via_option.png")
+})
+
+test_that("ggsave_xp validates its inputs", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  p <- xpose::dv_vs_ipred(xpdb_ex_pk)
+  expect_error(ggsave_xp("not a plot", filename = "out.png"), regexp = "ggplot")
+  expect_error(ggsave_xp(p, filename = 1), regexp = "character|string")
+  expect_error(ggsave_xp(p, filename = "out.png", save_fun = "not a function"), regexp = "function")
 })

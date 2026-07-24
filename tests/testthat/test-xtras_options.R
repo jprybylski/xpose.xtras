@@ -20,6 +20,19 @@ test_that("set_xtras_options rejects names outside the recognized registry", {
   expect_error(set_xtras_options(not_a_real_option = TRUE), regexp = "not_a_real_option")
 })
 
+test_that("set_xtras_options accepts save_fun and it's picked up by ggsave_xp", {
+  old_opts <- options(xpose.xtras.save_fun = NULL)
+  on.exit(options(old_opts), add = TRUE)
+
+  mock_save <- function(plot, filename, path, ...) "from set_xtras_options"
+  set_xtras_options(save_fun = mock_save)
+  expect_identical(getOption("xpose.xtras.save_fun"), mock_save)
+
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  p <- xpose::dv_vs_ipred(xpdb_ex_pk)
+  expect_identical(ggsave_xp(p, filename = "out.png"), "from set_xtras_options")
+})
+
 test_that("set_xtras_options returns previous values invisibly, like options()", {
   old_opts <- options(xpose.xtras.save_dir = "old")
   on.exit(options(old_opts), add = TRUE)
