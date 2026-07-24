@@ -9,6 +9,7 @@ set_var_levels(
   .problem = NULL,
   ...,
   .missing = "Other",
+  .ordered = character(),
   .handle_missing = c("quiet", "warn", "error")
 )
 }
@@ -20,6 +21,12 @@ set_var_levels(
 \item{...}{<\code{list}> of formulas or leveler functions, where the relevant variable is provided as the argument,}
 
 \item{.missing}{<\code{character}> Value to use for missing levels}
+
+\item{.ordered}{<\code{character}> Names of columns whose levels should be
+treated as an ordered factor (see \code{\link[base:factor]{base::factor}}), even when supplied
+as a plain formula list rather than via \code{\link[=lvl_inord]{lvl_inord()}}. Columns leveled
+with \code{\link[=lvl_inord]{lvl_inord()}} are already ordered by default and do not need to
+be listed here.}
 
 \item{.handle_missing}{<\code{character}> How to handle missing levels: "quiet", "warn", or "error"}
 }

@@ -4,12 +4,15 @@
 \alias{check_levels}
 \title{Verify validity of level list}
 \usage{
-check_levels(lvl_list, index)
+check_levels(lvl_list, index, .ordered = character())
 }
 \arguments{
 \item{lvl_list}{<\code{list}> of formulas or leveler functions}
 
 \item{index}{Index of \code{xp_xtras} object}
+
+\item{.ordered}{<\code{character}> Names of columns to be forced to an
+ordered factor, as passed to \code{\link[=set_var_levels]{set_var_levels()}}}
 }
 \value{
 Nothing, warning or error

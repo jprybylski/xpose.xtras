@@ -239,6 +239,11 @@ set_var_types.xp_xtras <- function (xpdb, .problem = NULL, ..., auto_factor = TR
 #' @param .problem <`numeric`> Problem number to use. Uses the all problems if `NULL`
 #' @param ... <`list`> of formulas or leveler functions, where the relevant variable is provided as the argument,
 #' @param .missing <`character`> Value to use for missing levels
+#' @param .ordered <`character`> Names of columns whose levels should be
+#' treated as an ordered factor (see [`base::factor`]), even when supplied
+#' as a plain formula list rather than via [`lvl_inord()`]. Columns leveled
+#' with [`lvl_inord()`] are already ordered by default and do not need to
+#' be listed here.
 #' @param .handle_missing <`character`> How to handle missing levels: "quiet", "warn", or "error"
 #'
 #' @return <`xp_xtras`> object with updated levels
@@ -255,7 +260,7 @@ set_var_types.xp_xtras <- function (xpdb, .problem = NULL, ..., auto_factor = TR
 #'   )
 #' )
 #'
-set_var_levels <- function(xpdb, .problem = NULL, ..., .missing = "Other", .handle_missing = c("quiet","warn","error")) {
+set_var_levels <- function(xpdb, .problem = NULL, ..., .missing = "Other", .ordered = character(), .handle_missing = c("quiet","warn","error")) {
 
   # Basic check
   if (!check_xpdb_x(xpdb)) rlang::abort("xp_xtras object required.")
@@ -273,7 +278,7 @@ set_var_levels <- function(xpdb, .problem = NULL, ..., .missing = "Other", .hand
 
   # Consume dots
   lvl_list <- rlang::dots_list(..., .ignore_empty = "all", .homonyms = "keep")
-  check_levels(lvl_list, full_index)
+  check_levels(lvl_list, full_index, .ordered = .ordered)
 
   # Add all levels
   new_x <- xpdb
@@ -281,6 +286,8 @@ set_var_levels <- function(xpdb, .problem = NULL, ..., .missing = "Other", .hand
   lvl_names <- unique(names(lvl_list))
   for (lvn in lvl_names) {
     lv_sub <- lvl_list[names(lvl_list) == lvn]
+
+    is_ordered <- isTRUE(attr(lv_sub[[1]], "ordered")) || lvn %in% .ordered
 
     if (is_leveler(lv_sub[[1]])) {
       levs <- lv_sub[[1]] # Should only be one, but do this to unlist
@@ -333,6 +340,8 @@ set_var_levels <- function(xpdb, .problem = NULL, ..., .missing = "Other", .hand
       })
     }
 
+    if (is_ordered) attr(plvls, "ordered") <- TRUE
+
     # put processed levels in the index tibble
     new_index <- new_index %>%
       dplyr::rowwise() %>%
@@ -356,15 +365,21 @@ level_types <- c("catcov", "dvid", "occ", "catdv")# catdv is an xp_xtras type
 #'
 #' @param lvl_list <`list`> of formulas or leveler functions
 #' @param index Index of `xp_xtras` object
+#' @param .ordered <`character`> Names of columns to be forced to an
+#' ordered factor, as passed to [`set_var_levels()`]
 #'
 #' @return Nothing, warning or error
-check_levels <- function(lvl_list, index) {
+check_levels <- function(lvl_list, index, .ordered = character()) {
   # Basic check
   #if (!is_formula_list(lvl_list)) rlang::abort("List of formulas required.")
 
   # Make sure all names in lvl_list are in index
   if (!all(names(lvl_list) %in% index$col))
       cli::cli_abort("Levels provided for elements not in data: {setdiff(names(lvl_list), index$col)}")
+
+  # Make sure .ordered only references columns actually being leveled
+  if (!all(.ordered %in% names(lvl_list)))
+    cli::cli_abort(".ordered provided for elements not being leveled: {setdiff(.ordered, names(lvl_list))}")
 
   # Make sure each element of lvl_list is either formula list or levels function
   for (li_ind in seq_along(lvl_list)) {
@@ -425,14 +440,17 @@ proc_levels <-  function(lvl_list) {
 #' @param vals vector of values associated with levels in `lvl_tbl`
 #' @param lvl_tbl tibble of levels
 #'
-#' @returns A vector of levels corresponding to the input vector.
+#' @returns A vector of levels corresponding to the input vector. If
+#' `lvl_tbl` carries an `ordered` attribute set to `TRUE` (see
+#' [`set_var_levels()`]'s `.ordered` argument and [`lvl_inord()`]), the
+#' result is an ordered factor.
 #'
 #' @export
 val2lvl <- function(vals, lvl_tbl = NULL) {
   if (is.null(lvl_tbl)) return(forcats::as_factor(vals))
 
   lvl_v <- lvl_tbl$level[match(vals,lvl_tbl$value)] %>%
-    factor(levels = unique(lvl_tbl$level))
+    factor(levels = unique(lvl_tbl$level), ordered = isTRUE(attr(lvl_tbl, "ordered")))
   lvl_v
 }
 
@@ -442,6 +460,9 @@ val2lvl <- function(vals, lvl_tbl = NULL) {
 #'
 #' @param x <`character`> vector of levels
 #' @param .start_index <`numeric`> starting index for levels
+#' @param .ordered <`logical`> should these levels be treated as an
+#' ordered factor (see [`base::factor`]) wherever they're consumed (eg
+#' [`val2lvl()`])?
 #'
 #' @return Special character vector suitable to be used as leveler
 #' @export
@@ -454,11 +475,12 @@ val2lvl <- function(vals, lvl_tbl = NULL) {
 #'   MED2 = lvl_inord(c("n","y"), .start_index = 0)
 #'   )
 #'
-as_leveler <- function(x, .start_index = 1) {
+as_leveler <- function(x, .start_index = 1, .ordered = FALSE) {
   structure(
     x,
     class = c("xp_levels", class(x)),
-    start = .start_index[1]
+    start = .start_index[1],
+    ordered = isTRUE(.ordered)
   )
 }
 #' @rdname levelers
@@ -481,8 +503,8 @@ lvl_sex <- function() {
 #' @rdname levelers
 #' @order 5
 #' @export
-lvl_inord <- function(x, .start_index = 1) {
-  as_leveler(x, .start_index=.start_index)
+lvl_inord <- function(x, .start_index = 1, .ordered = TRUE) {
+  as_leveler(x, .start_index=.start_index, .ordered=.ordered)
 }
 
 

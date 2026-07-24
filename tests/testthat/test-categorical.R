@@ -432,3 +432,84 @@ test_that("catdv can be plot as a binned calibration against dvprobs (catdv_vs_i
     "Probability DV GE(2)"
   )
 })
+
+test_that("catdv can be plotted longitudinally by occasion (catdv_vs_occ)", {
+  geoms_lists <- function(gg) purrr::map_chr(gg$layers, ~class(.x$geom)[1])
+
+  vismo_base <- vismo_pomod %>%
+    set_var_types(.problem=1, catdv=DV, dvprobs=c(P0,P1,P23)) %>%
+    set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)
+
+  vismo_occ <- vismo_base %>%
+    xpose::mutate(OCC = ceiling((TIME+1)/24), .problem=1) %>%
+    set_var_types(.problem=1, occ=OCC) %>%
+    set_var_levels(.problem=1, OCC = lvl_inord(paste0("Day", 1:12)))
+
+  # No occ-typed column and no explicit `bin`
+  expect_error(
+    vismo_base %>% catdv_vs_occ(quiet=TRUE),
+    "occ.*column found"
+  )
+
+  # More than one occ-typed column, none specified explicitly
+  vismo_2occ <- vismo_occ %>%
+    xpose::mutate(OCC2 = OCC, .problem=1) %>%
+    set_var_types(.problem=1, occ=OCC2)
+  expect_warning(
+    vismo_2occ %>% catdv_vs_occ(quiet=TRUE),
+    "Only one occasion.*used"
+  )
+
+  # Multiple catdv columns, none specified explicitly
+  expect_warning(
+    vismo_occ %>%
+      set_var_types(catdv=ID, quiet=TRUE) %>%
+      catdv_vs_occ(quiet=TRUE),
+    "Only one.*cat.*DV.*used.*DV"
+  )
+
+  test_plot <- vismo_occ %>%
+    catdv_vs_occ(quiet=TRUE)
+
+  # x is the (ordered) occasion column, one row per bin per series
+  expect_equal(test_plot$labels$x, "OCC")
+  expect_true(is.ordered(test_plot$data$OCC))
+  expect_setequal(test_plot$data$variable, c("Observed","Predicted"))
+  expect_true(all(test_plot$data$value >= 0 & test_plot$data$value <= 1))
+  expect_equal(nrow(test_plot$data) %% 2, 0)
+
+  # y label reflects the cutpoint
+  expect_equal(test_plot$labels$y, "Frequency/probability DV EQ(0)")
+  test_plot_cp3 <- vismo_occ %>%
+    catdv_vs_occ(cutpoint = 3, quiet=TRUE)
+  expect_equal(test_plot_cp3$labels$y, "Frequency/probability DV GE(2)")
+
+  expect_error(
+    vismo_occ %>% catdv_vs_occ(cutpoint = 99, quiet=TRUE),
+    "cutpoint.*is.*row number.*99.*range"
+  )
+
+  # Default type includes connecting line and points; "p" drops the line
+  expect_true("GeomLine" %in% geoms_lists(test_plot))
+  expect_true("GeomPoint" %in% geoms_lists(test_plot))
+  expect_false(
+    "GeomLine" %in% geoms_lists(
+      vismo_occ %>% catdv_vs_occ(type = "p", quiet=TRUE)
+    )
+  )
+
+  # `bin` can override the default occ column; an unleveled column falls
+  # back to a plain (unordered) factor, with an informative message
+  expect_message(
+    unleveled_plot <- vismo_occ %>% catdv_vs_occ(bin = COHORT, quiet=FALSE),
+    "no defined levels"
+  )
+  expect_false(is.ordered(unleveled_plot$data$COHORT))
+  expect_equal(unleveled_plot$labels$x, "COHORT")
+
+  # Binning can be stratified by a character facet
+  facet_plot <- vismo_occ %>%
+    catdv_vs_occ(facets = "COHORT", quiet=TRUE)
+  expect_true("COHORT" %in% names(facet_plot$data))
+  expect_equal(nrow(facet_plot$data) %% 2, 0)
+})

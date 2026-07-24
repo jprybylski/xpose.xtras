@@ -169,6 +169,14 @@ test_that("levels can be set for categories", {
   expect_equal(attr(lvl_sex(), "start"), 1)
   expect_setequal(lvl_inord(letters), letters)
 
+  # lvl_inord() is ordered by default; lvl_bin()/lvl_sex() are not
+  expect_true(attr(lvl_inord(letters), "ordered"))
+  expect_false(attr(lvl_inord(letters, .ordered = FALSE), "ordered"))
+  expect_false(attr(lvl_bin(), "ordered"))
+  expect_false(attr(lvl_sex(), "ordered"))
+  expect_false(attr(as_leveler(c("n","y")), "ordered"))
+  expect_true(attr(as_leveler(c("n","y"), .ordered = TRUE), "ordered"))
+
   # Check set_var_levels
   expect_error(set_var_levels(xpdb_x, .problem = 3), "3 not valid")
   expect_error(set_var_levels(xpdb_x, .handle_missing = "not an option abc"), "not an option abc")
@@ -227,6 +235,26 @@ test_that("levels can be set for categories", {
     0
   )
 
+  # val2lvl() defaults to an unordered factor when no ordered attribute
+  # is present (back-compat: existing levels tibbles predate this feature)
+  sex_lvls <- get_index(test_leveled,1) %>% filter(col=="SEX") %>% pull(levels) %>% .[[1]]
+  expect_false(is.ordered(val2lvl(c(1,2,1), sex_lvls)))
+
+  # lvl_inord() levels come out as an ordered factor
+  test_ordered <- set_var_levels(xpdb_x, MED1 = lvl_inord(c("No","Yes"), .start_index = 0))
+  med1_lvls <- get_index(test_ordered,1) %>% filter(col=="MED1") %>% pull(levels) %>% .[[1]]
+  expect_true(is.ordered(val2lvl(c(0,1,0), med1_lvls)))
+
+  # .ordered forces ordering even for a plain formula list
+  test_forced <- set_var_levels(xpdb_x, SEX = c(1~"Male", 2~"Female"), .ordered = "SEX")
+  sex_forced_lvls <- get_index(test_forced,1) %>% filter(col=="SEX") %>% pull(levels) %>% .[[1]]
+  expect_true(is.ordered(val2lvl(c(1,2,1), sex_forced_lvls)))
+
+  # .ordered can only reference columns actually being leveled
+  expect_error(
+    set_var_levels(xpdb_x, SEX = c(1~"Male", 2~"Female"), .ordered = "MED1"),
+    "not being leveled"
+  )
 
 })
 
