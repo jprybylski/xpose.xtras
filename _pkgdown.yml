@@ -54,6 +54,7 @@ reference:
       - starts_with("shark_")
       - ind_roc
       - xset_waterfall
+      - cormat
       - xp_xtra_theme
       - xp4_xtra_theme
       - grab_xpose_plot
@@ -95,6 +96,7 @@ reference:
       - diagnose_constants
       - get_prm
       - get_shk
+      - get_cov_matrix
       - list_vars
 
   - title: "Data"

@@ -121,6 +121,20 @@ xp_xtra_theme <- function(base_on = NULL) {
     label_fontface = base_on$text_fontface,
     label_lineheight = base_on$text_lineheight,
     label_size = base_on$text_size,
+    heatmapfill_low = "steelblue",
+    heatmapfill_mid = "white",
+    heatmapfill_high = "firebrick",
+    heatmap_color = "white",
+    heatmap_linewidth = base_on$histogram_linewidth,
+    heatmaptxt_alpha = base_on$text_alpha,
+    heatmaptxt_angle = base_on$text_angle,
+    heatmaptxt_color = base_on$text_color,
+    heatmaptxt_family = base_on$text_family,
+    heatmaptxt_fontface = base_on$text_fontface,
+    heatmaptxt_lineheight = base_on$text_lineheight,
+    heatmaptxt_size = base_on$text_size,
+    heatmaptxt_hjust = base_on$text_hjust,
+    heatmaptxt_vjust = base_on$text_vjust,
   )
 
   # bug fix
