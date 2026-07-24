@@ -521,3 +521,84 @@ test_that("covariate associations can be dropped", {
   dropped_by_name <- with_assoc %>% drop_cov_association(THETA1 ~ CLCR)
   expect_equal(nrow(dropped_by_name$covs), 1)
 })
+
+test_that("prm_contcov computes continuous covariate effects", {
+  prm <- xpose::get_prm(xpdb_x, .problem = 1, transform = FALSE, quiet = TRUE)
+  theta7 <- prm$value[prm$label == "CRCL on CL"]
+  cldata <- xpose::get_data(xpdb_x, .problem = 1, quiet = TRUE)$CLCR
+  qs <- stats::quantile(cldata, probs = c(0.05, 0.95), na.rm = TRUE, names = FALSE)
+
+  x <- xpdb_x %>% add_cov_association(TVCL ~ power(CLCR, THETA7, ref = 64))
+  out <- x %>% prm_contcov()
+
+  expect_equal(nrow(out), 3)
+  expect_equal(out$level, c("low", "ref", "high"))
+  expect_equal(out$effect[out$level == "ref"], 1)
+  expect_equal(out$ci_low[out$level == "ref"], 1)
+  expect_equal(out$ci_high[out$level == "ref"], 1)
+  expect_equal(out$effect[out$level == "low"], (qs[1]/64)^theta7, tolerance = 1e-6)
+  expect_equal(out$effect[out$level == "high"], (qs[2]/64)^theta7, tolerance = 1e-6)
+  expect_true(all(out$ci_low <= out$effect + 1e-8))
+  expect_true(all(out$effect <= out$ci_high + 1e-8))
+
+  # Delta method gives the same point estimate, and a sane (bracketing) CI
+  out_delta <- x %>% prm_contcov(ci_method = "delta")
+  expect_equal(out_delta$effect, out$effect, tolerance = 1e-6)
+  expect_true(all(out_delta$ci_low <= out_delta$effect + 1e-8))
+  expect_true(all(out_delta$effect <= out_delta$ci_high + 1e-8))
+})
+
+test_that("prm_catcov computes categorical covariate effects", {
+  prm <- xpose::get_prm(xpdb_x, .problem = 1, transform = FALSE, quiet = TRUE)
+  theta4 <- prm$value[prm$label == "LAG"] # reused purely for illustration
+
+  x <- xpdb_x %>% add_cov_association(TVCL ~ catshift(SEX, THETA4, ref = 1))
+  out <- x %>% prm_catcov()
+
+  expect_equal(nrow(out), 2)
+  ref_row <- out[out$level == "1", ]
+  other_row <- out[out$level == "2", ]
+  expect_equal(ref_row$effect, 1)
+  expect_equal(ref_row$ci_low, 1)
+  expect_equal(ref_row$ci_high, 1)
+  expect_equal(other_row$effect, 1 + theta4, tolerance = 1e-8)
+  expect_true(other_row$ci_low <= other_row$effect)
+  expect_true(other_row$effect <= other_row$ci_high)
+})
+
+test_that("prm_cov combines cont+cat and supports selector filtering", {
+  x <- xpdb_x %>%
+    add_cov_association(
+      TVCL ~ power(CLCR, THETA7, ref = 64),
+      TVCL ~ catshift(SEX, THETA4, ref = 1)
+    )
+  full <- x %>% prm_cov()
+  expect_equal(nrow(full), 5)
+  expect_setequal(unique(full$covariate), c("CLCR", "SEX"))
+
+  filtered <- x %>% prm_cov(TVCL ~ CLCR)
+  expect_equal(nrow(filtered), 3)
+  expect_true(all(filtered$covariate == "CLCR"))
+
+  # No associations declared -> empty tibble, not an error
+  empty_out <- xpdb_x %>% prm_cov()
+  expect_equal(nrow(empty_out), 0)
+})
+
+test_that("hockey and additive builtins compute distinct/expected effects", {
+  prm <- xpose::get_prm(xpdb_x, .problem = 1, transform = FALSE, quiet = TRUE)
+  theta7 <- prm$value[prm$label == "CRCL on CL"]
+  theta4 <- prm$value[prm$label == "LAG"]
+  cldata <- xpose::get_data(xpdb_x, .problem = 1, quiet = TRUE)$CLCR
+  qs <- stats::quantile(cldata, probs = c(0.05, 0.95), na.rm = TRUE, names = FALSE)
+
+  x <- xpdb_x %>% add_cov_association(TVCL ~ hockey(CLCR, THETA7, THETA4, ref = 64))
+  out <- x %>% prm_contcov()
+  expect_equal(out$effect[out$level == "low"], 1 + theta7*(qs[1]-64), tolerance = 1e-6)
+  expect_equal(out$effect[out$level == "high"], 1 + theta4*(qs[2]-64), tolerance = 1e-6)
+
+  x2 <- xpdb_x %>% add_cov_association(TVCL ~ additive(CLCR, THETA7, ref = 64))
+  out2 <- x2 %>% prm_contcov()
+  expect_equal(out2$effect[out2$level == "low"], (theta7+qs[1])/(theta7+64), tolerance = 1e-6)
+  expect_equal(out2$effect[out2$level == "high"], (theta7+qs[2])/(theta7+64), tolerance = 1e-6)
+})

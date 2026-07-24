@@ -85,6 +85,10 @@ that \code{effect_ratio == 1} whenever the covariate equals \code{ref},
 \item \code{linear(COV, THETA, ref=)}: \eqn{1 + \theta (COV - ref)}
 \item \code{power(COV, THETA, ref=)}: \eqn{(COV / ref)^\theta} (allometric)
 \item \code{exponential(COV, THETA, ref=)}: \eqn{e^{\theta (COV - ref)}}
+\item \code{additive(COV, THETA, ref=)}: \eqn{(\theta + COV) / (\theta + ref)}.
+An uncommon but simple form where the covariate is added directly (with
+an implicit coefficient of \code{1}, unlike \code{linear}'s explicit slope) to an
+intercept-like \code{THETA}, eg \code{CL = THETA(n) + WT} in the underlying model.
 \item \code{hockey(COV, THETA_LO, THETA_HI, ref=, brk=ref)}: PsN's
 "hockey-stick" two-slope piecewise-linear model --
 \eqn{1 + \theta_{lo} (COV - ref)} when \code{COV <= brk},
