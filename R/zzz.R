@@ -50,6 +50,7 @@ is_loading_for_tests <- function() {
 # Remove CRAN note on no visible binding for global variable
 utils::globalVariables(c(
   '.',
+  ".result",
   "problem",
   "subprob",
   "method",

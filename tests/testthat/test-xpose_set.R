@@ -384,15 +384,29 @@ test_that("focusing works", {
   suppressMessages( expect_no_message(print(focus_xpdb(xpdb_set, mod1)$mod1), message = "focus[^\n]* no") )
   expect_message(print(xpdb_set), regexp = "Focused[^\n]*: none")
 
-  expect_error(focus_function(xpdb_set, typeof), regexp = "No [^\n]* are focused")
+  expect_error(focus_function(xpdb_s = xpdb_set, fn = typeof), regexp = "No [^\n]* are focused")
 
+  # `typeof` is an output-generating function (does not return an xpose_data/xp_xtras
+  # object), so with multiple elements focused, focus_function() returns a named list
+  # of the raw outputs rather than an xpose_set (issue #5).
+  typeof_out <- foc_set %>% focus_function(typeof)
+  expect_false(inherits(typeof_out, "xpose_set"))
+  expect_type(typeof_out, "list")
+  expect_setequal(names(typeof_out), c("mod1", "fix1"))
+  expect_equal(typeof_out$mod1, "list")
+  expect_equal(typeof_out$fix1, "list")
+
+  # With a single element focused, the raw output is returned directly (unwrapped)
+  single_typeof_out <- foc_set %>%
+    focus_xpdb(mod1) %>%
+    focus_function(typeof)
+  expect_equal(single_typeof_out, "list")
+
+  # Output-generating functions applied via focus_qapply() also return raw output,
+  # without erroring trying to unfocus a non-xpose_set result
   expect_equal(
-    foc_set %>% focus_function(typeof) %>% .$mod1 %>% .$xpdb,
+    foc_set %>% focus_qapply(typeof, .mods = mod1),
     "list"
-  )
-  expect_identical(
-    foc_set %>% focus_function(typeof) %>% .$mod2 %>% .$xpdb,
-    foc_set %>% .$mod2 %>% .$xpdb
   )
 
   # Relevant to tests:
@@ -454,6 +468,42 @@ test_that("focusing works", {
     pheno_set %>%
       focus_qapply(backfill_iofv)
   )
+
+})
+
+test_that("focus_function()/focus_qapply() support output-generating functions (#5)", {
+
+  # Single focused element: the output itself is returned, not an xpose_set
+  single_plot <- pheno_set %>%
+    focus_xpdb(run6) %>%
+    focus_function(xpose::dv_vs_ipred)
+  expect_s3_class(single_plot, "xpose_plot")
+
+  # Same, via focus_qapply()
+  single_plot_qa <- pheno_set %>%
+    focus_qapply(xpose::dv_vs_ipred, .mods = run6)
+  expect_s3_class(single_plot_qa, "xpose_plot")
+
+  # Multiple focused elements: a named list of outputs is returned
+  multi_plot <- pheno_set %>%
+    focus_xpdb(run6, run7) %>%
+    focus_function(xpose::dv_vs_ipred)
+  expect_false(inherits(multi_plot, "xpose_set"))
+  expect_type(multi_plot, "list")
+  expect_setequal(names(multi_plot), c("run6", "run7"))
+  expect_s3_class(multi_plot$run6, "xpose_plot")
+  expect_s3_class(multi_plot$run7, "xpose_plot")
+
+  # Non-focused elements are untouched, and not included in the output
+  expect_false("run3" %in% names(multi_plot))
+
+  # Transform functions (returning xpose_data/xp_xtras) still work as before,
+  # i.e. the xpose_set is returned with the focused element(s) transformed in place
+  transformed <- pheno_set %>%
+    focus_xpdb(run6) %>%
+    focus_function(backfill_iofv)
+  expect_s3_class(transformed, "xpose_set")
+  expect_true(inherits(transformed$run6$xpdb, "xpose_data"))
 
 })
 
