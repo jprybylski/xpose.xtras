@@ -32,6 +32,8 @@ reference:
       - diagram_lineage
       - add_prm_association
       - drop_prm_association
+      - add_cov_association
+      - drop_cov_association
       - mutate_prm
       - add_relationship
       - remove_relationship
