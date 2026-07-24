@@ -23,6 +23,8 @@ Imports:
     GGally,
     ggplot2 (>= 3.4.2),
     glue,
+    grDevices,
+    grid,
     lifecycle,
     magrittr,
     pmxcv,
@@ -40,7 +42,6 @@ Imports:
 Suggests:
     callr,
     DiagrammeR,
-    grDevices,
     knitr,
     nlmixr2,
     nlmixr2data,

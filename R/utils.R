@@ -301,6 +301,16 @@ reportable_digits <- function(xpdb, .default = 3, .problem, .subprob, .method) {
 
 #' Set an `xpose` option
 #'
+#' @description
+#' Sets one or more entries in `xpdb$options`, merged in via
+#' [utils::modifyList()] -- which recurses into list-valued options, so
+#' setting a single key of an existing named-list option (e.g. one label
+#' of `default_labs`, see [set_default_labs()]) leaves its other keys
+#' untouched rather than replacing the whole list. This is what
+#' [set_default_labs()] and [set_default_watermark()] are built on, and
+#' calling `set_option()` directly with `default_labs`/`default_watermark`
+#' behaves the same way.
+#'
 #' @param xpdb <`xpose_data`[xpose::xpose_data]> object
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Arguments in
 #' the form of `option = value`

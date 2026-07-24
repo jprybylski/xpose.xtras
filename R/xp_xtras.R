@@ -45,6 +45,14 @@ as_xpdb_x <- function(x) {
     if (xpose::software(new_x)=="nlmixr2")
       new_x <- xpose::update_themes(xpdb = xpose::as.xpdb(new_x), gg_theme = xpose::theme_readable)
 
+    # Apply session-wide default theme, if set (see set_xtras_options()) --
+    # takes precedence over the defaults above, so a project can pin a
+    # look once per session instead of calling update_themes() on every xpdb
+    opt_gg_theme <- getOption("xpose.xtras.gg_theme")
+    opt_xp_theme <- getOption("xpose.xtras.xp_theme")
+    if (!is.null(opt_gg_theme) || !is.null(opt_xp_theme)) {
+      new_x <- xpose::update_themes(xpdb = new_x, gg_theme = opt_gg_theme, xp_theme = opt_xp_theme)
+    }
 
     # Space for pars (empty dummy)
     new_x$pars <- proc_assc(list(a~fun(b,h=1)),1,1,"") %>% dplyr::slice(0)

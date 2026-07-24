@@ -16,7 +16,14 @@ the form of \code{option = value}}
 \code{xp_xtras} object
 }
 \description{
-Set an \code{xpose} option
+Sets one or more entries in \code{xpdb$options}, merged in via
+\code{\link[utils:modifyList]{utils::modifyList()}} -- which recurses into list-valued options, so
+setting a single key of an existing named-list option (e.g. one label
+of \code{default_labs}, see \code{\link[=set_default_labs]{set_default_labs()}}) leaves its other keys
+untouched rather than replacing the whole list. This is what
+\code{\link[=set_default_labs]{set_default_labs()}} and \code{\link[=set_default_watermark]{set_default_watermark()}} are built on, and
+calling \code{set_option()} directly with \code{default_labs}/\code{default_watermark}
+behaves the same way.
 }
 \examples{
 
