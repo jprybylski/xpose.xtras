@@ -63,6 +63,7 @@ bugfix
 bugfixes
 catcov
 colinearity
+colour
 coloured
 condn
 dOFV
@@ -74,6 +75,7 @@ dplyr
 eg
 et
 facto
+fallbacks
 functionalized
 getter
 ggpairs
@@ -102,6 +104,7 @@ pkgdown
 positionally
 prm
 quosures
+recurses
 reportable
 rowwise
 rxUi

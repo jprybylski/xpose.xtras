@@ -484,3 +484,31 @@ test_that("iofv can be backfilled", {
 
 
 })
+
+test_that("as_xpdb_x applies session-wide default gg_theme/xp_theme options", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  old_opts <- options(xpose.xtras.gg_theme = NULL, xpose.xtras.xp_theme = NULL)
+  on.exit(options(old_opts), add = TRUE)
+
+  # no options set: unaffected
+  baseline <- as_xpdb_x(xpdb_ex_pk)
+
+  options(xpose.xtras.gg_theme = ggplot2::theme_bw)
+  x_gg <- as_xpdb_x(xpdb_ex_pk)
+  expect_false(identical(x_gg$gg_theme, baseline$gg_theme))
+  expect_true(check_xpdb_x(x_gg, .warn = FALSE))
+  options(xpose.xtras.gg_theme = NULL)
+
+  options(xpose.xtras.xp_theme = list(point_color = "red"))
+  x_xp <- as_xpdb_x(xpdb_ex_pk)
+  expect_identical(x_xp$xp_theme$point_color, "red")
+  expect_true(check_xpdb_x(x_xp, .warn = FALSE))
+  options(xpose.xtras.xp_theme = NULL)
+
+  # already-converted xp_xtras objects are untouched by the option
+  options(xpose.xtras.xp_theme = list(point_color = "blue"))
+  x_already <- as_xpdb_x(baseline)
+  expect_identical(x_already$xp_theme$point_color, baseline$xp_theme$point_color)
+  options(xpose.xtras.xp_theme = NULL)
+})
