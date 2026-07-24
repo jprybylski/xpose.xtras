@@ -94,8 +94,9 @@ A \code{prm_cov_tbl} tibble with one row per (parameter, covariate,
 evaluation point):
 \code{param}, \code{covariate}, \code{covtype}, \code{level} (\code{"low"}/\code{"ref"}/\code{"high"} for
 continuous, the raw category value for categorical), \code{value} (the
-covariate value/level backing that row), \code{effect}, \code{ci_low}, \code{ci_high},
-\code{ci_method}.
+covariate value/level backing that row), \code{is_ref} (\code{TRUE} for the
+reference row/level -- always \code{effect}/\code{ci_low}/\code{ci_high} \verb{== 1}, by
+construction), \code{effect}, \code{ci_low}, \code{ci_high}, \code{ci_method}.
 }
 \description{
 Computes, for each covariate association declared with

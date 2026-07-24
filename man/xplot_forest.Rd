@@ -8,6 +8,7 @@ xplot_forest(
   xpdb,
   mapping = NULL,
   type = "pi",
+  region = NULL,
   orientation = "y",
   xscale = "continuous",
   yscale = "discrete",
@@ -19,6 +20,7 @@ xplot_forest(
   gg_theme,
   xp_theme,
   opt,
+  violin_opt,
   quiet,
   ...
 )
@@ -28,9 +30,19 @@ xplot_forest(
 
 \item{mapping}{\code{ggplot2} style mapping. Expected aesthetics: \code{x}/\code{y}
 (the point) and \code{xmin}/\code{xmax} (the interval), or the mirrored roles
-when \code{orientation = "x"}.}
+when \code{orientation = "x"}. For the violin layer (\code{type} includes \code{"v"}),
+also needs \code{violin_x}/\code{violin_y} (prefixed, since this layer's data --
+from \code{violin_opt} -- has a different shape than the rest and can't
+share the plain \code{x}/\code{y} mapping; see \code{\link[xpose:xp_geoms]{xpose::xp_geoms()}}'s
+\verb{\{name\}_\{aes\}} convention for per-layer aesthetic overrides).}
 
 \item{type}{See Details.}
+
+\item{region}{<\code{numeric(2)}> \code{c(low, high)} bounds for the shaded
+"no relevant effect" region (\code{type} includes \code{"r"}), eg
+\code{c(0.8, 1.25)} for a bioequivalence-style band. \code{NULL} (default) falls
+back to \code{c(0.8, 1.25)} whenever \code{"r"} is requested; has no effect
+otherwise.}
 
 \item{orientation}{Defaults to \code{'y'} (categories on the y-axis, values
 on the x-axis -- the conventional forest-plot layout).}
@@ -53,7 +65,13 @@ on the x-axis -- the conventional forest-plot layout).}
 
 \item{xp_theme}{As in \code{xpose}}
 
-\item{opt}{Processing options for fetched data}
+\item{opt}{Processing options for fetched data (one row per category).}
+
+\item{violin_opt}{Processing options for the violin layer's data (one
+row per draw), only used/required when \code{type} includes \code{"v"}. Fetched
+separately from \code{opt} (a distinct \code{xpose::fetch_data()} call, noted via
+\code{cli::cli_inform()} unless \code{quiet = TRUE}) because the two layers need
+different data shapes.}
 
 \item{quiet}{Silence extra debugging output}
 
@@ -85,12 +103,11 @@ interval
 \item \code{l} reference line through the theme's \code{vline_xintercept}/
 \code{hline_yintercept} (\code{0} by default; a ratio-style forest plot will
 typically override this to \code{1}, see \code{\link[=cov_forest]{cov_forest()}})
+\item \code{v} violin/density (from \code{geom_violin}), showing the
+distribution behind an interval (eg simulation draws) -- requires
+\code{violin_opt} and a \code{violin_x}/\code{violin_y} mapping, see above
+\item \code{r} shaded reference region (from \code{geom_rect}) spanning
+\code{region} (default \code{c(0.8, 1.25)}), eg a bioequivalence-style
+"no relevant effect" band; drawn behind every other layer
 }
-
-A violin/density layer (eg showing the simulation draws behind an
-interval) is a natural future addition to this function but is not yet
-implemented -- the data shape it needs (one row per draw, rather than
-one row per category) is different enough from the point/interval
-layers' shape that it needs its own design pass rather than being
-bolted on.
 }

@@ -139,6 +139,8 @@ xp_xtra_theme <- function(base_on = NULL) {
     linerange_linewidth = base_on$line_linewidth,
     linerange_linetype = base_on$line_linetype,
     linerange_alpha = base_on$line_alpha,
+    rect_fill = "grey60",
+    rect_alpha = 0.25,
   )
 
   # bug fix

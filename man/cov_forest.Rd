@@ -7,7 +7,10 @@
 cov_forest(
   xpdb,
   ...,
-  log = "x",
+  type = "pilr",
+  region = NULL,
+  show_ref = TRUE,
+  log = TRUE,
   forest_opts = list(),
   title = "Covariate effects on model parameters | @run",
   subtitle = "Ratio to typical parameter value; reference line at 1",
@@ -27,12 +30,38 @@ via \code{\link[=add_cov_association]{add_cov_association()}}}
 \code{\link[=prm_cov]{prm_cov()}} -- eg \code{param ~ covariate} selectors, \code{ci_method},
 \code{probs}, \code{level}, \code{nsim}.}
 
-\item{log}{Passed to \code{\link[xpose:check_scales]{xpose::check_scales()}} for the x-axis; \code{"x"}
-(default) log-scales the effect-ratio axis, \code{NULL} disables it.}
+\item{type}{Passed to \code{\link[=xplot_forest]{xplot_forest()}}; defaults to \code{'pilr'} (point +
+interval + reference line + shaded reference region -- \code{xplot_forest()}'s
+own defaults omit the line and region, since those are \code{cov_forest()}-
+specific opinions, not generic ones).
+Including \code{"v"} adds a violin/density layer of the raw simulation draws
+behind each interval; this forces \code{prm_cov(keep_draws = TRUE)}, which
+in turn requires \code{ci_method = "simulation"} (the default) -- pass
+\code{ci_method = "delta"} in \code{...} together with \code{type} containing \code{"v"}
+and it will error, since no draws exist for the delta method.}
+
+\item{region}{<\code{numeric(2)}> \code{c(low, high)} bounds for the shaded
+reference region (\code{type} includes \code{"r"}, the default); \code{NULL}
+(default) falls back to \code{c(0.8, 1.25)}, a common bioequivalence-style
+"no relevant effect" band.}
+
+\item{show_ref}{<\code{logical}> Include the reference row(s) (\code{effect}/
+\code{ci_low}/\code{ci_high} always \code{1}, by construction, for every reference
+covariate value/level)? Defaults to \code{TRUE}; set \code{FALSE} to drop them
+from the plot -- they carry no information beyond what the reference
+line already shows, and cutting them can reduce clutter when there are
+many covariates.}
+
+\item{log}{<\code{logical}> Log-scale the effect-ratio (x) axis? Defaults to
+\code{TRUE}. Unlike most of the package's \code{log} arguments (eg
+\code{\link[=eta_vs_contcov]{eta_vs_contcov()}}'s), this is a plain boolean rather than an
+\code{"x"}/\code{"y"}/\code{NULL} axis-selector string -- \code{cov_forest()}'s orientation
+isn't user-configurable, so the axis being logged is never ambiguous.}
 
 \item{forest_opts}{<\code{list}> Extra named arguments forwarded to
-\code{\link[=xplot_forest]{xplot_forest()}} (eg \code{type}, or theme overrides), the same way
-\code{pairs_opts} works for \code{\link[=cov_grid]{cov_grid()}}/\code{\link[=eta_grid]{eta_grid()}}.}
+\code{\link[=xplot_forest]{xplot_forest()}} (eg theme overrides), the same way \code{pairs_opts}
+works for \code{\link[=cov_grid]{cov_grid()}}/\code{\link[=eta_grid]{eta_grid()}}. Rarely needed since the most
+common override, \code{type}, is already its own argument.}
 
 \item{title}{Plot title}
 

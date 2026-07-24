@@ -118,6 +118,34 @@ which could coincidentally pass while \code{fun} is still wrong for other
 theta values) and requires each to equal \code{1}; if it doesn't, the error
 states the required invariant and shows what \code{fun} actually returned,
 rather than failing silently or only much later during plotting.
+\subsection{A note on parameter/theta scale}{
+
+The computed effect ratio never touches the LHS parameter's own fitted
+value -- only the covariate-effect theta(s), the covariate value, and
+\code{ref} -- so it does not matter whether the LHS was itself parameterized
+on a log, logit, or identity scale in the control stream (\code{\link[=get_prm]{get_prm()}}'s
+\code{transform} argument only affects diagonal OMEGA/SIGMA reporting
+(variance -> SD, covariance -> correlation); THETA values are always
+the raw fitted estimate regardless of \code{transform}, so there is nothing
+to reconcile there either).
+
+What \emph{is} assumed is that the chosen association -- a builtin or
+\code{custom()} -- is an exact match for the functional form actually used
+in the model code, including any scale factor baked into that code
+(eg a covariate effect entered as \code{THETA(n)*(COV-ref)/100}). There is
+no way to verify this from the \code{xpdb} alone; if a builtin's literal
+formula (see above) doesn't match the real model, the result will be
+a numerically valid but silently wrong effect ratio, not an error --
+the same caveat \code{\link[=add_prm_association]{add_prm_association()}} already carries for CV\%
+calculation.
+
+If the covariate-effect theta itself is not already on the scale a
+builtin expects (eg it was fitted on a logit or other transformed
+scale, or needs some other rescaling to match one of the literal
+formulas above), transform it back with \code{\link[=mutate_prm]{mutate_prm()}} \emph{before}
+declaring the association -- the same recommended workflow as
+\code{\link[=add_prm_association]{add_prm_association()}}'s own untransformed-theta requirement.
+}
 }
 \examples{
 
@@ -157,5 +185,5 @@ bad_assoc \%>\%
 
 }
 \seealso{
-\code{\link[=add_prm_association]{add_prm_association()}}, \code{\link[=prm_cov]{prm_cov()}}
+\code{\link[=add_prm_association]{add_prm_association()}}, \code{\link[=prm_cov]{prm_cov()}}, \code{\link[=mutate_prm]{mutate_prm()}}
 }

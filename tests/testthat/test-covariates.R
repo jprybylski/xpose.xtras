@@ -347,3 +347,68 @@ test_that("cov_forest", {
     "GeomPoint"
   )
 })
+
+test_that("cov_forest violin layer (type includes 'v')", {
+  x <- xpdb_x %>%
+    add_cov_association(
+      TVCL ~ power(CLCR, THETA7, ref = 64),
+      TVCL ~ catshift(SEX, THETA4, ref = 1)
+    )
+
+  p <- cov_forest(x, type = "pilv", nsim = 200, quiet = TRUE)
+  geoms <- purrr::map_chr(p$layers, ~class(.x$geom)[1])
+  expect_setequal(geoms, c("GeomVline", "GeomLinerange", "GeomPoint", "GeomViolin"))
+
+  violin_layer <- p$layers[[which(geoms == "GeomViolin")]]
+  expect_false(violin_layer$inherit.aes)
+  # one row per draw per category (5 categories x 200 draws)
+  expect_equal(nrow(violin_layer$data), 5 * 200)
+  # reference-level rows are degenerate (all draws == 1), by construction
+  expect_true(all(violin_layer$data$draws[violin_layer$data$row_label == "SEX: 1"] == 1))
+
+  # violin requires simulation draws; delta + "v" errors clearly
+  expect_error(
+    cov_forest(x, type = "pilv", ci_method = "delta", quiet = TRUE),
+    "simulation"
+  )
+})
+
+test_that("cov_forest show_ref, region, and log", {
+  x <- xpdb_x %>%
+    add_cov_association(
+      TVCL ~ power(CLCR, THETA7, ref = 64),
+      TVCL ~ catshift(SEX, THETA4, ref = 1)
+    )
+
+  # default includes the shaded reference region (type='pilr')
+  p <- cov_forest(x, quiet = TRUE)
+  geoms <- purrr::map_chr(p$layers, ~class(.x$geom)[1])
+  expect_true("GeomRect" %in% geoms)
+  rect_layer <- p$layers[[which(geoms == "GeomRect")]]
+  expect_equal(rect_layer$data$xmin, 0.8)
+  expect_equal(rect_layer$data$xmax, 1.25)
+
+  # custom region flows through
+  p_region <- cov_forest(x, region = c(0.7, 1.43), quiet = TRUE)
+  rect_layer2 <- p_region$layers[[which(purrr::map_chr(p_region$layers, ~class(.x$geom)[1]) == "GeomRect")]]
+  expect_equal(rect_layer2$data$xmin, 0.7)
+  expect_equal(rect_layer2$data$xmax, 1.43)
+
+  # show_ref = FALSE drops reference rows
+  expect_equal(nrow(p$data), 5)
+  p_noref <- cov_forest(x, show_ref = FALSE, quiet = TRUE)
+  expect_equal(nrow(p_noref$data), 3)
+  expect_false(any(p_noref$data$is_ref))
+
+  # log is a plain boolean now (not the "x"/NULL axis-selector convention);
+  # verify via the built panel range, since a narrow x range makes log vs
+  # linear labels look identical (both round to the same displayed values)
+  p_log <- cov_forest(x, log = TRUE, quiet = TRUE)
+  p_linear <- cov_forest(x, log = FALSE, quiet = TRUE)
+  b_log <- ggplot2::ggplot_build(p_log)
+  b_linear <- ggplot2::ggplot_build(p_linear)
+  expect_false(isTRUE(all.equal(
+    b_log$layout$panel_scales_x[[1]]$range$range,
+    b_linear$layout$panel_scales_x[[1]]$range$range
+  )))
+})

@@ -723,11 +723,34 @@ eta_vs_catcov <- function(xpdb,
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Forwarded to
 #' [`prm_cov()`] -- eg `param ~ covariate` selectors, `ci_method`,
 #' `probs`, `level`, `nsim`.
-#' @param log Passed to [`xpose::check_scales()`] for the x-axis; `"x"`
-#' (default) log-scales the effect-ratio axis, `NULL` disables it.
+#' @param type Passed to [`xplot_forest()`]; defaults to `'pilr'` (point +
+#' interval + reference line + shaded reference region -- `xplot_forest()`'s
+#' own defaults omit the line and region, since those are `cov_forest()`-
+#' specific opinions, not generic ones).
+#' Including `"v"` adds a violin/density layer of the raw simulation draws
+#' behind each interval; this forces `prm_cov(keep_draws = TRUE)`, which
+#' in turn requires `ci_method = "simulation"` (the default) -- pass
+#' `ci_method = "delta"` in `...` together with `type` containing `"v"`
+#' and it will error, since no draws exist for the delta method.
+#' @param region <`numeric(2)`> `c(low, high)` bounds for the shaded
+#' reference region (`type` includes `"r"`, the default); `NULL`
+#' (default) falls back to `c(0.8, 1.25)`, a common bioequivalence-style
+#' "no relevant effect" band.
+#' @param show_ref <`logical`> Include the reference row(s) (`effect`/
+#' `ci_low`/`ci_high` always `1`, by construction, for every reference
+#' covariate value/level)? Defaults to `TRUE`; set `FALSE` to drop them
+#' from the plot -- they carry no information beyond what the reference
+#' line already shows, and cutting them can reduce clutter when there are
+#' many covariates.
+#' @param log <`logical`> Log-scale the effect-ratio (x) axis? Defaults to
+#' `TRUE`. Unlike most of the package's `log` arguments (eg
+#' [`eta_vs_contcov()`]'s), this is a plain boolean rather than an
+#' `"x"`/`"y"`/`NULL` axis-selector string -- `cov_forest()`'s orientation
+#' isn't user-configurable, so the axis being logged is never ambiguous.
 #' @param forest_opts <`list`> Extra named arguments forwarded to
-#' [`xplot_forest()`] (eg `type`, or theme overrides), the same way
-#' `pairs_opts` works for [`cov_grid()`]/[`eta_grid()`].
+#' [`xplot_forest()`] (eg theme overrides), the same way `pairs_opts`
+#' works for [`cov_grid()`]/[`eta_grid()`]. Rarely needed since the most
+#' common override, `type`, is already its own argument.
 #' @param title Plot title
 #' @param subtitle Plot subtitle
 #' @param caption Plot caption
@@ -755,7 +778,10 @@ eta_vs_catcov <- function(xpdb,
 #' }
 cov_forest <- function(xpdb,
                        ...,
-                       log = "x",
+                       type     = 'pilr',
+                       region   = NULL,
+                       show_ref = TRUE,
+                       log = TRUE,
                        forest_opts = list(),
                        title    = 'Covariate effects on model parameters | @run',
                        subtitle = 'Ratio to typical parameter value; reference line at 1',
@@ -769,9 +795,17 @@ cov_forest <- function(xpdb,
   if (missing(quiet)) quiet <- xpdb$options$quiet
   if (is.null(.problem)) .problem <- xpose::default_plot_problem(xpdb)
 
-  cov_tbl <- prm_cov(xpdb, ..., .problem=.problem, .subprob=.subprob, .method=.method, quiet=quiet)
+  needs_violin <- stringr::str_detect(type, stringr::fixed('v', ignore_case = TRUE))
+
+  cov_tbl <- prm_cov(xpdb, ..., .problem=.problem, .subprob=.subprob, .method=.method,
+                     keep_draws = needs_violin, quiet=quiet)
   if (nrow(cov_tbl)==0) {
     rlang::abort("No covariate associations found to plot. Declare some with `add_cov_association()` first.")
+  }
+
+  if (!show_ref) cov_tbl <- dplyr::filter(cov_tbl, !is_ref)
+  if (nrow(cov_tbl)==0) {
+    rlang::abort("No rows left to plot after `show_ref = FALSE` removed all reference rows (every continuous covariate only had a reference point, or every categorical covariate only had its reference level).")
   }
 
   plot_data <- cov_tbl %>%
@@ -791,14 +825,30 @@ cov_forest <- function(xpdb,
 
   opt <- xpose::data_opt(.problem = .problem, post_processing = function(x) plot_data)
 
+  violin_opt <- NULL
+  if (needs_violin) {
+    # One row per draw, not one row per category -- a different shape than
+    # `plot_data`, so it's its own data_opt() rather than reusing `opt`
+    draws_long <- plot_data %>%
+      dplyr::select(row_label, draws) %>%
+      tidyr::unnest(draws)
+    violin_opt <- xpose::data_opt(.problem = .problem, post_processing = function(x) draws_long)
+    vars <- xpose::aes_c(vars, ggplot2::aes(
+      violin_x = .data[["draws"]],
+      violin_y = .data[["row_label"]]
+    ))
+  }
+
   forest_args <- utils::modifyList(
     list(
       xpdb = xpdb,
       mapping = vars,
-      type = 'pil', # point + interval + reference line (xplot_forest's own default omits the line)
+      type = type,
+      region = region,
       opt = opt,
+      violin_opt = violin_opt,
       facets = facets,
-      xscale = xpose::check_scales('x', log),
+      xscale = if (isTRUE(log)) "log10" else "continuous",
       vline_xintercept = 1,
       title = title,
       subtitle = subtitle,

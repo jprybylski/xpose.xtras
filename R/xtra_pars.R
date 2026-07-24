@@ -538,7 +538,35 @@ param_selector <- function(
 #' states the required invariant and shows what `fun` actually returned,
 #' rather than failing silently or only much later during plotting.
 #'
-#' @seealso [`add_prm_association()`], [`prm_cov()`]
+#' ### A note on parameter/theta scale
+#'
+#' The computed effect ratio never touches the LHS parameter's own fitted
+#' value -- only the covariate-effect theta(s), the covariate value, and
+#' `ref` -- so it does not matter whether the LHS was itself parameterized
+#' on a log, logit, or identity scale in the control stream ([`get_prm()`]'s
+#' `transform` argument only affects diagonal OMEGA/SIGMA reporting
+#' (variance -> SD, covariance -> correlation); THETA values are always
+#' the raw fitted estimate regardless of `transform`, so there is nothing
+#' to reconcile there either).
+#'
+#' What *is* assumed is that the chosen association -- a builtin or
+#' `custom()` -- is an exact match for the functional form actually used
+#' in the model code, including any scale factor baked into that code
+#' (eg a covariate effect entered as `THETA(n)*(COV-ref)/100`). There is
+#' no way to verify this from the `xpdb` alone; if a builtin's literal
+#' formula (see above) doesn't match the real model, the result will be
+#' a numerically valid but silently wrong effect ratio, not an error --
+#' the same caveat [`add_prm_association()`] already carries for CV%
+#' calculation.
+#'
+#' If the covariate-effect theta itself is not already on the scale a
+#' builtin expects (eg it was fitted on a logit or other transformed
+#' scale, or needs some other rescaling to match one of the literal
+#' formulas above), transform it back with [`mutate_prm()`] *before*
+#' declaring the association -- the same recommended workflow as
+#' [`add_prm_association()`]'s own untransformed-theta requirement.
+#'
+#' @seealso [`add_prm_association()`], [`prm_cov()`], [`mutate_prm()`]
 #'
 #' @export
 #'
@@ -1328,8 +1356,9 @@ filter_cov_selectors <- function(covs, dots, par_tbl) {
 #' evaluation point):
 #' `param`, `covariate`, `covtype`, `level` (`"low"`/`"ref"`/`"high"` for
 #' continuous, the raw category value for categorical), `value` (the
-#' covariate value/level backing that row), `effect`, `ci_low`, `ci_high`,
-#' `ci_method`.
+#' covariate value/level backing that row), `is_ref` (`TRUE` for the
+#' reference row/level -- always `effect`/`ci_low`/`ci_high` `== 1`, by
+#' construction), `effect`, `ci_low`, `ci_high`, `ci_method`.
 #'
 #' @seealso [`add_cov_association()`], [`xplot_forest()`]
 #'
@@ -1409,6 +1438,7 @@ prm_contcov <- function(
       covtype = "cont",
       level = names(eval_pts),
       value = as.character(signif(eval_pts, 4)),
+      is_ref = names(eval_pts)=="ref",
       effect = as.numeric(point_effect),
       ci_low = ci$low,
       ci_high = ci$high,
@@ -1473,7 +1503,7 @@ prm_catcov <- function(
         point_effect <- fun(lv, ref, theta_val)
         ci <- cov_effect_ci(fun=fun, cov=lv, ref=ref, theta=theta_val, se=theta_se,
                              ci_method=ci_method, level=level, nsim=nsim, keep_draws=keep_draws)
-        row <- tibble::tibble(level = obs_chr[i], value = obs_chr[i],
+        row <- tibble::tibble(level = obs_chr[i], value = obs_chr[i], is_ref = identical(obs_chr[i], ref_chr),
                        effect = as.numeric(point_effect), ci_low = ci$low, ci_high = ci$high)
         if (keep_draws) row$draws <- ci$draws
         row
@@ -1487,7 +1517,7 @@ prm_catcov <- function(
       rows <- purrr::map_dfr(seq_along(obs_levels), function(i) {
         lv <- obs_levels[i]
         if (identical(obs_chr[i], ref_chr)) {
-          row <- tibble::tibble(level = obs_chr[i], value = obs_chr[i], effect = 1, ci_low = 1, ci_high = 1)
+          row <- tibble::tibble(level = obs_chr[i], value = obs_chr[i], is_ref = TRUE, effect = 1, ci_low = 1, ci_high = 1)
           if (keep_draws) row$draws <- list(rep(1, nsim)) # no uncertainty at the reference level, by construction
           return(row)
         }
@@ -1495,7 +1525,7 @@ prm_catcov <- function(
         shift_fun <- function(cov, r, theta) 1 + theta[1]
         ci <- cov_effect_ci(fun=shift_fun, cov=lv, ref=ref, theta=theta_val[j], se=theta_se[j],
                              ci_method=ci_method, level=level, nsim=nsim, keep_draws=keep_draws)
-        row <- tibble::tibble(level = obs_chr[i], value = obs_chr[i],
+        row <- tibble::tibble(level = obs_chr[i], value = obs_chr[i], is_ref = FALSE,
                        effect = 1 + theta_val[j], ci_low = ci$low, ci_high = ci$high)
         if (keep_draws) row$draws <- ci$draws
         row
@@ -1506,7 +1536,7 @@ prm_catcov <- function(
     rows$covariate <- covariate
     rows$covtype <- "cat"
     rows$ci_method <- ci_method
-    dplyr::relocate(rows, param, covariate, covtype, level, value, effect, ci_low, ci_high, ci_method)
+    dplyr::relocate(rows, param, covariate, covtype, level, value, is_ref, effect, ci_low, ci_high, ci_method)
   })
   as_prm_cov_tbl(out)
 }
@@ -1543,7 +1573,7 @@ prm_cov <- function(
 empty_prm_cov_tbl <- function() {
   tibble::tibble(
     param = character(), covariate = character(), covtype = character(),
-    level = character(), value = character(), effect = double(),
+    level = character(), value = character(), is_ref = logical(), effect = double(),
     ci_low = double(), ci_high = double(), ci_method = character()
   )
 }
