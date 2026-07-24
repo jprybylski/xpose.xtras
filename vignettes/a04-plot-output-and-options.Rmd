@@ -52,7 +52,7 @@ p_labelled
 Because `dv_vs_ipred()` already sets its own caption, that one wasn't touched -- `apply_default_labs()` only fills in labels that are still empty. Passing `overwrite = TRUE` replaces existing labels too, and the value can use the same `@keyword` placeholders `xpose::parse_title()` understands elsewhere in the package:
 
 ```{r default_labs_overwrite}
-apply_default_labs(p, caption = "Run @runno -- @nobs observations", overwrite = TRUE)
+apply_default_labs(p, caption = "Run @run -- @nobs observations", overwrite = TRUE)
 options(xpose.xtras.default_labs = NULL)
 ```
 
@@ -60,7 +60,7 @@ A single global caption is a blunt instrument once more than one model is in pla
 
 ```{r default_labs_xpdb}
 xpdb_draft <- xpdb_x %>%
-  set_default_labs(caption = "Model @runno -- interim, subject to change")
+  set_default_labs(caption = "Model @run -- interim, subject to change")
 
 dv_vs_ipred(xpdb_draft, quiet = TRUE) %>%
   apply_default_labs(xpdb = xpdb_draft, overwrite = TRUE)
@@ -96,6 +96,22 @@ dv_vs_ipred(xpdb_ex_pk, quiet = TRUE, facets = "SEX") %>%
   add_watermark(label = "DRAFT")
 ```
 
+Because the watermark is drawn at a fixed rotation, it can visually merge into a plot that already has a strong diagonal of its own -- like the line of unity on a `dv_vs_pred()` plot. The default 30 degree angle sits close to that line and gets lost among the points around it:
+
+```{r watermark_angle_unity_default}
+pred_plot <- dv_vs_pred(xpdb_ex_pk, quiet = TRUE)
+
+pred_plot %>%
+  add_watermark(alpha = 0.6)
+```
+
+Crossing the other way keeps the watermark clearly legible instead, without competing with the plot's own diagonal -- this is exactly the kind of case `angle` (and `alpha`/`size`/`colour`) exist for:
+
+```{r watermark_angle_unity_adjusted}
+pred_plot %>%
+  add_watermark(alpha = 0.6, angle = -45)
+```
+
 Like the label functions, watermark settings resolve from the `xpose.xtras.default_watermark` option, then an `xpdb`-level default set with `set_default_watermark()`, then whatever is passed directly -- so a whole project can default to (say) a red "CONFIDENTIAL" stamp without repeating those arguments at every call site:
 
 ```{r watermark_option}
@@ -112,18 +128,24 @@ options(xpose.xtras.default_watermark = NULL)
 ```{r ggsave_xp_basic}
 out_dir <- tempdir()
 
-ggsave_xp(p, filename = "dv_vs_ipred.png", path = out_dir, width = 6, height = 4)
-list.files(out_dir, pattern = "dv_vs_ipred")
+saved_path <- ggsave_xp(p, filename = "dv_vs_ipred.png", path = out_dir, width = 6, height = 4)
+basename(saved_path)
+```
+
+That's a real file on disk -- here's what actually got written:
+
+```{r ggsave_xp_basic_preview, echo = FALSE, out.width = "80%"}
+knitr::include_graphics(saved_path)
 ```
 
 `filename`/`path` can also use `@keyword` placeholders, expanded the same way `xpose::xpose_save()` does it:
 
 ```{r ggsave_xp_keywords}
-ggsave_xp(dv_vs_ipred(xpdb_ex_pk, quiet = TRUE), filename = "@run_@plotfun.png", path = out_dir)
-list.files(out_dir, pattern = "run001")
+run_path <- ggsave_xp(dv_vs_ipred(xpdb_ex_pk, quiet = TRUE), filename = "@run_@plotfun.png", path = out_dir)
+basename(run_path)
 ```
 
-What actually does the saving is itself swappable, via `save_fun` -- the default is `ggplot2::ggsave()`, but anything sharing its signature works, including third-party wrappers like `reportifyr::ggsave_with_metadata()`. As a self-contained illustration, here's a `save_fun` that writes a plain-text note alongside the image:
+What actually does the saving is itself swappable, via `save_fun` -- the default is `ggplot2::ggsave()`, but anything sharing its signature works, including third-party wrappers like `reportifyr::ggsave_with_metadata()`. As a self-contained illustration (so this vignette doesn't need to depend on a third-party package just to demonstrate the idea), here's a `save_fun` that writes a plain-text note alongside the image:
 
 ```{r ggsave_xp_custom_backend}
 save_with_note <- function(plot, filename, path = NULL, width, height, note = "", ...) {
@@ -132,18 +154,16 @@ save_with_note <- function(plot, filename, path = NULL, width, height, note = ""
   saved
 }
 
-ggsave_xp(
+annotated_path <- ggsave_xp(
   p, filename = "dv_vs_ipred_annotated.png", path = out_dir,
   save_fun = save_with_note, note = "Generated for the Q3 interim analysis."
 )
-list.files(out_dir, pattern = "dv_vs_ipred_annotated")
+
+# the .png was written by ggplot2::ggsave() as usual; the .txt is new
+readLines(sub("\\.png$", ".txt", annotated_path))
 ```
 
 Any function accepting `plot`/`filename`/`path`/`width`/`height` (plus whatever else it needs via `...`) can be dropped in this way -- there's nothing `xpose.xtras`-specific about `save_fun` itself.
-
-```{r ggsave_xp_cleanup, include = FALSE}
-unlink(list.files(out_dir, pattern = "dv_vs_ipred|run001", full.names = TRUE))
-```
 
 ## Tying it together with session options
 
@@ -158,7 +178,7 @@ set_xtras_options(
   save_height = 4
 )
 
-dv_vs_pred(xpdb_ex_pk, quiet = TRUE) %>%
+dv_vs_ipred(xpdb_ex_pk, quiet = TRUE) %>%
   apply_default_labs() %>%
   add_watermark()
 ```

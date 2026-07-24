@@ -19,12 +19,16 @@ default_lab_types <- c("title", "subtitle", "caption", "tag")
 # preferring an explicitly-supplied xpdb but falling back to the reduced
 # context xpose attaches to xpose_plot objects (see the file-level comment
 # above for why that reduced object -- not a full xpdb -- is all a
-# rendered plot carries).
+# rendered plot carries). `@plotfun` isn't a real xpdb$summary column --
+# xpose's own functions (print.xpose_plot(), xpose::xpose_save()) inject it
+# as an extra_key/extra_value pair from the reduced object's $fun field, so
+# it's only resolvable there, never from a bare xpdb (which has no notion
+# of "the function that built this plot").
 resolve_keyword_ctx <- function(plot, xpdb) {
   if (!is.null(xpdb)) {
-    list(xpdb = xpdb, problem = utils::tail(xpdb$summary$problem, 1), quiet = xpdb$options$quiet)
+    list(xpdb = xpdb, problem = utils::tail(xpdb$summary$problem, 1), quiet = xpdb$options$quiet, fun = NULL)
   } else if (xpose::is.xpose.plot(plot)) {
-    list(xpdb = plot$xpose, problem = plot$xpose$problem, quiet = plot$xpose$quiet)
+    list(xpdb = plot$xpose, problem = plot$xpose$problem, quiet = plot$xpose$quiet, fun = plot$xpose$fun)
   } else NULL
 }
 
@@ -32,11 +36,16 @@ resolve_keyword_ctx <- function(plot, xpdb) {
 # and the string actually contains any
 resolve_keywords <- function(string, ctx) {
   if (is.null(ctx) || is.null(string) || !grepl("@", string)) return(string)
-  xpose::parse_title(
-    string,
+  args <- list(
+    string = string,
     xpdb = ctx$xpdb, problem = ctx$problem, quiet = ctx$quiet,
     ignore_key = c("page", "lastpage")
   )
+  if (!is.null(ctx$fun)) {
+    args$extra_key <- "plotfun"
+    args$extra_value <- ctx$fun
+  }
+  do.call(xpose::parse_title, args)
 }
 
 #' Set default plot label overrides on an `xp_xtras` object
@@ -46,7 +55,7 @@ resolve_keywords <- function(string, ctx) {
 #' [apply_default_labs()] will use to fill in (or overwrite) labels on any
 #' plot built from this `xpdb`, when `xpdb` is passed to it. Values may
 #' contain the same `@keyword` placeholders understood by
-#' [xpose::parse_title()] (e.g. `"@nind"`, `"@nobs"`, `"@runno"`), since
+#' [xpose::parse_title()] (e.g. `"@nind"`, `"@nobs"`, `"@run"`), since
 #' they are resolved the same way.
 #'
 #' @param xpdb <[`xpose_data`][xpose::xpose_data]> or <`xp_xtras`> object
@@ -167,7 +176,10 @@ apply_default_labs <- function(plot, ..., xpdb = NULL, overwrite = FALSE) {
 #'
 #' @param plot <`ggplot`> or <`xpose_plot`> object
 #' @param filename <`character`> File name, optionally with `@keyword`
-#' placeholders (e.g. `"@run_@plotfun.pdf"`, see [xpose::parse_title()])
+#' placeholders (e.g. `"@run_@plotfun.pdf"`, see [xpose::parse_title()]).
+#' `@plotfun` (the name of the function that built `plot`, e.g.
+#' `"dv_vs_ipred"`) only resolves when `plot` is an `xpose_plot`, since
+#' it isn't something a bare `xpdb` knows about
 #' @param path <`character`> Directory to save in; falls back to the
 #' `xpose.xtras.save_dir` R option
 #' @param width,height <`numeric`> Plot size (in inches by default,

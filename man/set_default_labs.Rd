@@ -20,7 +20,7 @@ Stores \code{title}/\code{subtitle}/\code{caption}/\code{tag} templates on \code
 \code{\link[=apply_default_labs]{apply_default_labs()}} will use to fill in (or overwrite) labels on any
 plot built from this \code{xpdb}, when \code{xpdb} is passed to it. Values may
 contain the same \verb{@keyword} placeholders understood by
-\code{\link[xpose:parse_title]{xpose::parse_title()}} (e.g. \code{"@nind"}, \code{"@nobs"}, \code{"@runno"}), since
+\code{\link[xpose:parse_title]{xpose::parse_title()}} (e.g. \code{"@nind"}, \code{"@nobs"}, \code{"@run"}), since
 they are resolved the same way.
 }
 \examples{

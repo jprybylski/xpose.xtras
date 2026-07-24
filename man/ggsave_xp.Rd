@@ -20,7 +20,10 @@ ggsave_xp(
 \item{plot}{<\code{ggplot}> or <\code{xpose_plot}> object}
 
 \item{filename}{<\code{character}> File name, optionally with \verb{@keyword}
-placeholders (e.g. \code{"@run_@plotfun.pdf"}, see \code{\link[xpose:parse_title]{xpose::parse_title()}})}
+placeholders (e.g. \code{"@run_@plotfun.pdf"}, see \code{\link[xpose:parse_title]{xpose::parse_title()}}).
+\verb{@plotfun} (the name of the function that built \code{plot}, e.g.
+\code{"dv_vs_ipred"}) only resolves when \code{plot} is an \code{xpose_plot}, since
+it isn't something a bare \code{xpdb} knows about}
 
 \item{path}{<\code{character}> Directory to save in; falls back to the
 \code{xpose.xtras.save_dir} R option}

@@ -171,6 +171,33 @@ test_that("ggsave_xp resolves @keyword placeholders in filename/path", {
   expect_false(grepl("@run", captured$path))
 })
 
+test_that("@plotfun resolves from a plot's own context but not from a bare xpdb", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  old_opts <- options(xpose.xtras.default_labs = NULL)
+  on.exit(options(old_opts), add = TRUE)
+
+  p <- xpose::dv_vs_ipred(xpdb_ex_pk)
+
+  p1 <- apply_default_labs(p, caption = "made by @plotfun", overwrite = TRUE)
+  expect_identical(ggplot2::get_labs(p1)$caption, "made by dv_vs_ipred")
+
+  # @plotfun isn't a real xpdb$summary column -- it only comes from the
+  # reduced context attached to a rendered xpose_plot, so a bare xpdb can't
+  # resolve it (parse_title() warns and leaves it untouched)
+  suppressWarnings(
+    p2 <- apply_default_labs(p, caption = "made by @plotfun", xpdb = xpdb_ex_pk, overwrite = TRUE)
+  )
+  expect_identical(ggplot2::get_labs(p2)$caption, "made by @plotfun")
+
+  captured <- NULL
+  mock_save <- function(plot, filename, path, ...) {
+    captured <<- filename
+    "mocked"
+  }
+  ggsave_xp(p, filename = "@run_@plotfun.png", save_fun = mock_save)
+  expect_identical(captured, "run001_dv_vs_ipred.png")
+})
+
 test_that("ggsave_xp works with a save_fun whose signature differs from ggplot2::ggsave (e.g. reportifyr::ggsave_with_metadata)", {
   data("xpdb_ex_pk", package = "xpose", envir = environment())
 
