@@ -21,5 +21,6 @@
 ^vignettes/articles$
 ^\.claude$
 ^CLAUDE\.md$
+^dev-notes$
 ^renv$
 ^renv\.lock$

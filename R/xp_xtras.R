@@ -62,6 +62,9 @@ as_xpdb_x <- function(x) {
     new_x$pars <- proc_assc(list(a~fun(b,h=1)),1,1,"") %>% dplyr::slice(0)
     # Corresponding option
     new_x$options$cvtype <- "exact"
+
+    # Space for covariate associations (empty dummy; see add_cov_association())
+    new_x$covs <- empty_covs_tbl()
   }
 
 
@@ -135,6 +138,11 @@ check_xpdb_x <- function(x, .warn=TRUE) {
   }
   ### check for "pars" in top level
   if (!"pars" %in% names(x)
+  ) {
+    return(FALSE)
+  }
+  ### check for "covs" in top level (see add_cov_association())
+  if (!"covs" %in% names(x)
   ) {
     return(FALSE)
   }

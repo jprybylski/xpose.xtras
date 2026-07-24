@@ -334,6 +334,25 @@ check_associations <- function(
   return()
 }
 
+# Empty `xpdb$covs` tibble, defining the storage schema for parameter/covariate
+# associations (see add_cov_association()). Used in as_xpdb_x(), so changes to
+# the schema should be made with caution -- anything reading xpdb$covs should
+# tolerate these columns/types.
+empty_covs_tbl <- function() {
+  tibble::tibble(
+    param = character(),     # LHS selector, as typed (e.g. "the1")
+    covariate = character(), # RHS covariate column selector (e.g. "WT")
+    covtype = character(),   # "cont" or "cat"
+    assoc = character(),     # one of builtin_cov_asscs or "custom"
+    thetas = list(),         # list<character>: 1+ theta selectors (one per non-ref level for multi-level catshift)
+    ref = list(),            # required reference covariate value/level (no implicit default)
+    argus = list(),          # extra named args (e.g. custom()'s `fun`)
+    problem = numeric(),
+    subprob = numeric(),
+    method = character()
+  )
+}
+
 # Process associations list
 # This is used in as_xp_xtras, so changes to behavior should be made with caution
 proc_assc <- function(assc_list,.problem,.subprob,.method) {
