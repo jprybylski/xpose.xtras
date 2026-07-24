@@ -1,0 +1,193 @@
+---
+title: "Polishing plot output: labels, watermarks, and session options"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Polishing plot output: labels, watermarks, and session options}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align='center'
+)
+```
+
+```{r setup, echo=FALSE, include = FALSE}
+library(dplyr)
+library(xpose)
+library(xpose.xtras)
+```
+
+## Introduction
+
+A model diagnostic is rarely just a diagnostic once it leaves an R session: it becomes a figure in a report, and figures in reports want consistent titles, an obvious "this is a draft" stamp while a model is still in flux, and a predictable place to land on disk. Doing all of that by hand, plot-by-plot and model-by-model, gets old fast.
+
+`xpose.xtras` adds a small, composable toolkit for this last mile:
+
+- `apply_default_labs()` / `set_default_labs()` fill in (or overwrite) plot titles, subtitles, captions and tags.
+- `add_watermark()` / `set_default_watermark()` stamp a plot with draft/preliminary/confidential-style text.
+- `ggsave_xp()` saves a plot, applying the above first, with a swappable save backend.
+
+All three read from the same kind of layered defaults, resolved in the same order every time: a session-wide R option, then a per-model (`xpdb`) default, then whatever is passed directly to the function call. `set_xtras_options()` and `get_xtras_option()` round this out by giving the whole `xpose.xtras.*` option family one place to be set and inspected.
+
+None of this is wired into `print()` -- every function here is opt-in, called explicitly on a plot (or a save call) when you want it.
+
+## Default labels
+
+`apply_default_labs()` takes a `ggplot`/`xpose_plot` object and fills in any of `title`/`subtitle`/`caption`/`tag` that aren't already set, using (in increasing precedence) the `xpose.xtras.default_labs` option, an `xpdb`-level default, and anything passed directly.
+
+The simplest use is a session-wide option, handy for something that should apply to every plot in a script or report -- a draft caption, say:
+
+```{r default_labs_option}
+options(xpose.xtras.default_labs = list(caption = "DRAFT -- do not distribute"))
+
+p <- dv_vs_ipred(xpdb_ex_pk, quiet = TRUE)
+p_labelled <- apply_default_labs(p)
+p_labelled
+```
+
+Because `dv_vs_ipred()` already sets its own caption, that one wasn't touched -- `apply_default_labs()` only fills in labels that are still empty. Passing `overwrite = TRUE` replaces existing labels too, and the value can use the same `@keyword` placeholders `xpose::parse_title()` understands elsewhere in the package:
+
+```{r default_labs_overwrite}
+apply_default_labs(p, caption = "Run @runno -- @nobs observations", overwrite = TRUE)
+options(xpose.xtras.default_labs = NULL)
+```
+
+A single global caption is a blunt instrument once more than one model is in play. `set_default_labs()` attaches label defaults to a specific `xpdb` instead, and those take precedence over the option -- useful when different models in the same report need different framing:
+
+```{r default_labs_xpdb}
+xpdb_draft <- xpdb_x %>%
+  set_default_labs(caption = "Model @runno -- interim, subject to change")
+
+dv_vs_ipred(xpdb_draft, quiet = TRUE) %>%
+  apply_default_labs(xpdb = xpdb_draft, overwrite = TRUE)
+```
+
+`apply_default_labs()` can't reach back into the `xpdb` a plot was built from on its own -- `xpose`'s plotting functions only carry a reduced summary forward onto the plot object, not the full `xpdb` -- so the `xpdb` argument has to be supplied explicitly whenever the `xpdb`-level tier (or `@keyword` resolution) should be used. Whatever is passed directly to `apply_default_labs()` still wins over both tiers:
+
+```{r default_labs_direct}
+dv_vs_ipred(xpdb_draft, quiet = TRUE) %>%
+  apply_default_labs(caption = "Final for submission", xpdb = xpdb_draft, overwrite = TRUE)
+```
+
+## Watermarks
+
+`add_watermark()` overlays large, semi-transparent, rotated text across a plot -- the kind of stamp that makes it obvious at a glance that a figure isn't final yet.
+
+```{r watermark_basic}
+p %>%
+  add_watermark()
+```
+
+`label`, `colour`, `alpha`, `size`, `angle` and `fontface` are all adjustable:
+
+```{r watermark_custom}
+p %>%
+  add_watermark(label = "PRELIMINARY", colour = "firebrick", alpha = 0.15, angle = 20)
+```
+
+The watermark is added as an ordinary `ggplot2` layer, so it survives faceting and pagination -- one watermark per panel, automatically:
+
+```{r watermark_facets}
+dv_vs_ipred(xpdb_ex_pk, quiet = TRUE, facets = "SEX") %>%
+  add_watermark(label = "DRAFT")
+```
+
+Like the label functions, watermark settings resolve from the `xpose.xtras.default_watermark` option, then an `xpdb`-level default set with `set_default_watermark()`, then whatever is passed directly -- so a whole project can default to (say) a red "CONFIDENTIAL" stamp without repeating those arguments at every call site:
+
+```{r watermark_option}
+options(xpose.xtras.default_watermark = list(label = "CONFIDENTIAL", colour = "firebrick"))
+p %>%
+  add_watermark()
+options(xpose.xtras.default_watermark = NULL)
+```
+
+## Saving with `ggsave_xp()`
+
+`ggsave_xp()` is a drop-in, `ggplot2::ggsave()`-compatible way to write a plot to disk: same `plot`/`filename`/`path`/`width`/`height` arguments, but it applies `apply_default_labs()` first (`apply_labs = FALSE` to skip that), and `path`/`width`/`height` fall back to the `xpose.xtras.save_dir`/`save_width`/`save_height` options when not supplied.
+
+```{r ggsave_xp_basic}
+out_dir <- tempdir()
+
+ggsave_xp(p, filename = "dv_vs_ipred.png", path = out_dir, width = 6, height = 4)
+list.files(out_dir, pattern = "dv_vs_ipred")
+```
+
+`filename`/`path` can also use `@keyword` placeholders, expanded the same way `xpose::xpose_save()` does it:
+
+```{r ggsave_xp_keywords}
+ggsave_xp(dv_vs_ipred(xpdb_ex_pk, quiet = TRUE), filename = "@run_@plotfun.png", path = out_dir)
+list.files(out_dir, pattern = "run001")
+```
+
+What actually does the saving is itself swappable, via `save_fun` -- the default is `ggplot2::ggsave()`, but anything sharing its signature works, including third-party wrappers like `reportifyr::ggsave_with_metadata()`. As a self-contained illustration, here's a `save_fun` that writes a plain-text note alongside the image:
+
+```{r ggsave_xp_custom_backend}
+save_with_note <- function(plot, filename, path = NULL, width, height, note = "", ...) {
+  saved <- ggplot2::ggsave(filename = filename, plot = plot, path = path, width = width, height = height, ...)
+  writeLines(note, sub("\\.[^.]+$", ".txt", saved))
+  saved
+}
+
+ggsave_xp(
+  p, filename = "dv_vs_ipred_annotated.png", path = out_dir,
+  save_fun = save_with_note, note = "Generated for the Q3 interim analysis."
+)
+list.files(out_dir, pattern = "dv_vs_ipred_annotated")
+```
+
+Any function accepting `plot`/`filename`/`path`/`width`/`height` (plus whatever else it needs via `...`) can be dropped in this way -- there's nothing `xpose.xtras`-specific about `save_fun` itself.
+
+```{r ggsave_xp_cleanup, include = FALSE}
+unlink(list.files(out_dir, pattern = "dv_vs_ipred|run001", full.names = TRUE))
+```
+
+## Tying it together with session options
+
+Setting several of the options above one at a time is easy to get wrong -- a typo in an option name just silently does nothing, since `options()` doesn't validate names. `set_xtras_options()` is a small, validated wrapper for the whole `xpose.xtras.*` family (prefix added automatically), good for pinning a project's defaults once at the top of a script:
+
+```{r set_xtras_options}
+set_xtras_options(
+  default_labs = list(caption = "DRAFT"),
+  default_watermark = list(label = "DRAFT"),
+  save_dir = tempdir(),
+  save_width = 6,
+  save_height = 4
+)
+
+dv_vs_pred(xpdb_ex_pk, quiet = TRUE) %>%
+  apply_default_labs() %>%
+  add_watermark()
+```
+
+The same family also covers a session-wide default theme -- `gg_theme`/`xp_theme` -- picked up automatically the first time an `xpose_data` object is converted with `as_xpdb_x()`, so a project look can be set once instead of calling `xpose::update_themes()` on every model:
+
+```{r set_xtras_options_theme}
+set_xtras_options(gg_theme = theme_bw)
+
+xpdb_ex_pk %>%
+  as_xpdb_x() %>%
+  dv_vs_ipred(quiet = TRUE)
+```
+
+`get_xtras_option()` reports, for a given option and (optionally) a specific `xpdb`, what's currently set at each tier and which one would win:
+
+```{r get_xtras_option}
+xpdb_labelled <- xpdb_x %>%
+  set_default_labs(caption = "Model-specific caption")
+
+get_xtras_option("default_labs", xpdb_labelled)
+```
+
+```{r set_xtras_options_reset, include = FALSE}
+set_xtras_options(
+  default_labs = NULL, default_watermark = NULL,
+  save_dir = NULL, save_width = NULL, save_height = NULL,
+  gg_theme = NULL
+)
+```
+
+The full list of recognized options -- what each one does, and which ones have an `xpdb`-level counterpart -- is documented on `?set_xtras_options`.
