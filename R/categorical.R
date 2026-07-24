@@ -278,6 +278,169 @@ catdv_vs_ipred <- function(xpdb,
     )
 }
 
+#' Longitudinal binned observed vs. predicted plot for categorical DVs
+#'
+#' @description
+#' A longitudinal alternative to [catdv_vs_ipred()] and to `xpose`'s own
+#' [xpose::dv_preds_vs_idv()] for categorical outcomes. Rather than binning
+#' by predicted probability (as [catdv_vs_ipred()] does) or plotting raw
+#' per-subject values against a continuous independent variable, this bins
+#' observations by a discrete, typically ordered grouping variable (eg an
+#' `occ`-typed occasion column) and plots the observed proportion meeting
+#' the cutpoint condition alongside the mean predicted probability, one
+#' point/line per bin.
+#'
+#' @inheritParams catdv_vs_ipred
+#' @param bin <`tidyselect`> Column to bin/group by. Defaults to the first
+#' `occ`-typed column (see [`set_var_types()`]). If that column has
+#' defined levels (see [`set_var_levels()`]), those labels (and their
+#' order) are used; otherwise raw values are coerced to a factor as-is.
+#' @param type String setting the type of plot to be used: point `p`, line
+#' `l`, and smooth `s`, or any combination thereof. See [`xplot_binned()`].
+#'
+#' @export
+#'
+#' @returns The desired plot
+#'
+#' @seealso [catdv_vs_ipred()], [catdv_vs_dvprobs()]
+#'
+#' @examples
+#' # Derive an occasion column (TIME is in hours here) and level it in
+#' # visit order
+#' vismo_xpdb <- vismo_pomod %>%
+#'   set_var_types(.problem = 1, catdv = DV, dvprobs = matches("^P\\d+$")) %>%
+#'   set_dv_probs(.problem = 1, 0~P0, 1~P1, ge(2)~P23) %>%
+#'   xpose::mutate(OCC = ceiling((TIME + 1) / 24), .problem = 1) %>%
+#'   set_var_types(.problem = 1, occ = OCC) %>%
+#'   set_var_levels(.problem = 1, OCC = lvl_inord(paste("Day", 1:12)))
+#'
+#' vismo_xpdb %>%
+#'   catdv_vs_occ()
+#'
+#' vismo_xpdb %>%
+#'   catdv_vs_occ(cutpoint = 3)
+#'
+catdv_vs_occ <- function(xpdb,
+                          mapping  = NULL,
+                          bin      = NULL,
+                          cutpoint = 1,
+                          type     = 'pl',
+                          title    = 'Observed and predicted probability vs. @x | @run',
+                          subtitle = 'Ofv: @ofv, Number of individuals: @nind',
+                          caption  = '@dir',
+                          tag      = NULL,
+                          facets,
+                          .problem,
+                          quiet,
+                          ...) {
+  # Check input
+  xpose::check_xpdb(xpdb, check = 'data')
+  if (missing(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet))   quiet <- xpdb$options$quiet
+  if (missing(facets))  facets <- xpdb$xp_theme$facets
+
+  # Get relevant columns (or throw error)
+  catdv_cols <- xp_var(xpdb, .problem, type = 'catdv')$col
+  if (length(catdv_cols)>1) {
+    cli::cli_warn("Only one categorical DV will be used ({catdv_cols[1]}).")
+    catdv_cols <- catdv_cols[1]
+  }
+
+  # Resolve the binning/grouping column
+  if (rlang::quo_is_null(rlang::enquo(bin))) {
+    occ_cols <- xp_var(xpdb, .problem, type = "occ", silent = TRUE)$col
+    if (length(occ_cols) == 0) {
+      cli::cli_abort(paste(
+        "No {.code occ}-typed column found. Set one via",
+        "{.code set_var_types(occ = ...)}, or pass {.arg bin} explicitly."
+      ))
+    }
+    if (length(occ_cols) > 1) {
+      cli::cli_warn("Only one occasion column will be used ({occ_cols[1]}).")
+    }
+    bin_col <- occ_cols[1]
+  } else {
+    bin_col <- xpose::get_data(xpdb, .problem = .problem, quiet = TRUE) %>%
+      dplyr::select({{bin}}) %>%
+      names()
+  }
+
+  cp <- make_catdv_cutpoint(xpdb, .problem, catdv_cols, cutpoint)
+
+  # Level lookup for the binning column, mirroring make_catdv_cutpoint()'s
+  # handling of catdv levels; falls back to a plain factor if unleveled
+  bin_lvl_tbl <- get_index(xpdb, .problem) %>%
+    dplyr::filter(col == bin_col) %>%
+    dplyr::pull(levels) %>%
+    .[[1]]
+  if (is.null(bin_lvl_tbl) || nrow(bin_lvl_tbl) == 0) {
+    if (!quiet) cli::cli_alert_info(paste(
+      "{bin_col} has no defined levels; using raw values as-is. Consider",
+      "{.code set_var_levels()} (eg with {.code lvl_inord()}) for readable,",
+      "explicitly ordered labels."
+    ))
+    bin_lvl_tbl <- NULL
+  }
+
+  # Bin/stratify per facet column(s), if supplied as simple column names
+  strata <- character(0)
+  if (is.character(facets)) strata <- facets
+
+  post_processing <- function(df) {
+    cp$post_process(df) %>%
+      dplyr::mutate(
+        !!catdv_cols := as.numeric(.data[[catdv_cols]]) - 1,
+        !!bin_col := val2lvl(.data[[bin_col]], bin_lvl_tbl)
+      ) %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(c(strata, bin_col)))) %>%
+      dplyr::summarise(
+        !!cp$prob_col := mean(.data[[cp$prob_col]], na.rm = TRUE),
+        !!catdv_cols  := mean(.data[[catdv_cols]], na.rm = TRUE),
+        n = dplyr::n(),
+        .groups = "drop"
+      ) %>%
+      tidyr::pivot_longer(
+        cols = dplyr::all_of(c(cp$prob_col, catdv_cols)),
+        names_to = "variable", values_to = "value"
+      ) %>%
+      dplyr::mutate(
+        variable = dplyr::recode(variable, !!cp$prob_col := "Predicted", !!catdv_cols := "Observed")
+      )
+  }
+
+  xplot_binned(
+    xpdb = xpdb, group = "variable", quiet = quiet,
+    opt = xpose::data_opt(
+      .problem = .problem,
+      filter = xpose::only_obs(xpdb, .problem, quiet),
+      post_processing = post_processing
+    ),
+    mapping = xpose::aes_c(aes(x = .data[[bin_col]],
+                        y = .data[["value"]]),
+                        mapping),
+    type = type, facets = facets,
+    xscale = "discrete",
+    yscale = "continuous",
+    title = title, subtitle = subtitle, caption = caption,
+    tag = tag, plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
+    ...
+  ) +
+    # Observed reuses the theme's standard data-line colour; Predicted
+    # reuses its model/regression colour -- consistent with how existing
+    # multi-series xpose colouring is theme-driven (eg xset_shark's
+    # sharkup_color/sharkdn_color) rather than an arbitrary ggplot default
+    ggplot2::scale_colour_manual(values = c(
+      Observed  = xpdb$xp_theme$line_color,
+      Predicted = xpdb$xp_theme$smooth_color
+    )) +
+    ggplot2::labs(
+      x = bin_col,
+      y = sprintf("Frequency/probability %s %s", catdv_cols, cp$cp_label),
+      colour = NULL
+    )
+}
+
 make_catdv_cutpoint <- function(xpdb, .problem, catdv_col, cutpoint) {
   # pull levels & probs from the xpdb index
   idx   <- get_index(xpdb, .problem)

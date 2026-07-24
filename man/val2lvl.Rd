@@ -12,7 +12,10 @@ val2lvl(vals, lvl_tbl = NULL)
 \item{lvl_tbl}{tibble of levels}
 }
 \value{
-A vector of levels corresponding to the input vector.
+A vector of levels corresponding to the input vector. If
+\code{lvl_tbl} carries an \code{ordered} attribute set to \code{TRUE} (see
+\code{\link[=set_var_levels]{set_var_levels()}}'s \code{.ordered} argument and \code{\link[=lvl_inord]{lvl_inord()}}), the
+result is an ordered factor.
 }
 \description{
 This is intended to be used as a convenience function
