@@ -51,8 +51,13 @@ set_default_watermark <- function(xpdb, ...) {
 #' @description
 #' Overlays large, semi-transparent, rotated text across a `ggplot` or
 #' `xpose_plot` object (e.g. `"DRAFT"`, `"PRELIMINARY"`, `"CONFIDENTIAL"`).
-#' Purely opt-in: call it on a plot when you want the watermark, there is
-#' no automatic/global trigger.
+#' Calling it directly always adds a watermark (falling back to the
+#' built-in defaults below if nothing else is configured). It is also
+#' applied automatically by [print.xpose_plot()][print.xpose_plot] and
+#' [ggsave_xp()] whenever a `default_watermark` is actually configured
+#' (see the `auto_apply` entry in [set_xtras_options()]) -- unlike this
+#' function, that automatic trigger never invents an unconfigured
+#' watermark on its own.
 #'
 #' `label`/`colour`/`alpha`/`size`/`angle`/`fontface` resolve with the same
 #' precedence as [apply_default_labs()]: (in increasing precedence) the

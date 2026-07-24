@@ -27,9 +27,22 @@ Current values can be read back with regular \code{\link[=getOption]{getOption()
 \code{xpdb}-level default.
 }
 \details{
-Recognized options (all unset, i.e. \code{NULL}, by default):
+Recognized options (all unset, i.e. \code{NULL}, by default, except
+\code{auto_apply} which defaults to \code{TRUE}):
 
 \describe{
+\item{\code{auto_apply}}{Whether \link[=print.xpose_plot]{print.xpose_plot()} and
+\code{\link[=ggsave_xp]{ggsave_xp()}} automatically apply configured \code{default_labs}/
+\code{default_watermark} (labels always; a watermark only if
+\code{default_watermark} is actually set at some tier -- there's no
+unprompted default watermark). Defaults to \code{TRUE}, but is a no-op
+until \code{default_labs}/\code{default_watermark} are themselves configured, so
+leaving it at its default has no visible effect on its own; set it to
+\code{FALSE} to opt out of the auto-apply behavior everywhere at once (or
+pass \code{apply_labs}/\code{apply_watermark} to a specific \code{\link[=ggsave_xp]{ggsave_xp()}} call
+to opt out just there). \code{print.xpose_plot()} only ever sees the
+session-wide option tier (not an \code{xpdb}-level one) for the same reason
+noted under \code{default_labs} below.}
 \item{\code{default_labs}}{Named list of default \code{title}/\code{subtitle}/
 \code{caption}/\code{tag} templates (may contain \verb{@keyword} placeholders, see
 \code{\link[xpose:parse_title]{xpose::parse_title()}}). Used by \code{\link[=apply_default_labs]{apply_default_labs()}} (and by

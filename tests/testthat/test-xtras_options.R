@@ -99,3 +99,90 @@ test_that("get_xtras_option validates its inputs", {
   expect_error(get_xtras_option("not_a_real_option"), regexp = "not_a_real_option")
   expect_error(get_xtras_option("default_labs", "not an xpdb"), regexp = "xpose_data|xp_xtras")
 })
+
+test_that("has_default_watermark checks both the option and xpdb tiers", {
+  old_opts <- options(xpose.xtras.default_watermark = NULL)
+  on.exit(options(old_opts), add = TRUE)
+
+  expect_false(has_default_watermark())
+  expect_false(has_default_watermark(xpdb_x))
+
+  options(xpose.xtras.default_watermark = list(label = "DRAFT"))
+  expect_true(has_default_watermark())
+  expect_true(has_default_watermark(xpdb_x))
+  options(xpose.xtras.default_watermark = NULL)
+
+  xpdb2 <- set_default_watermark(xpdb_x, label = "DRAFT")
+  expect_true(has_default_watermark(xpdb2))
+  expect_false(has_default_watermark(xpdb_x))
+})
+
+test_that("auto_apply_defaults respects xpose.xtras.auto_apply and only watermarks when configured", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  old_opts <- options(
+    xpose.xtras.auto_apply = NULL,
+    xpose.xtras.default_labs = NULL,
+    xpose.xtras.default_watermark = NULL
+  )
+  on.exit(options(old_opts), add = TRUE)
+
+  p <- xpose::dv_vs_ipred(xpdb_ex_pk, quiet = TRUE)
+  n_layers <- length(p$layers)
+
+  # nothing configured: auto_apply defaults to TRUE but is a no-op
+  p0 <- auto_apply_defaults(p)
+  expect_identical(ggplot2::get_labs(p0), ggplot2::get_labs(p))
+  expect_length(p0$layers, n_layers)
+
+  # labels: applied automatically once configured
+  options(xpose.xtras.default_labs = list(tag = "A"))
+  expect_identical(ggplot2::get_labs(auto_apply_defaults(p))$tag, "A")
+
+  # watermark: only added once default_watermark is configured (never an
+  # unprompted "DRAFT" just because auto_apply defaults to TRUE)
+  expect_length(auto_apply_defaults(p)$layers, n_layers)
+  options(xpose.xtras.default_watermark = list(label = "DRAFT"))
+  expect_length(auto_apply_defaults(p)$layers, n_layers + 1)
+
+  # the master switch disables both, regardless of what's configured
+  options(xpose.xtras.auto_apply = FALSE)
+  p_off <- auto_apply_defaults(p)
+  expect_identical(ggplot2::get_labs(p_off), ggplot2::get_labs(p))
+  expect_length(p_off$layers, n_layers)
+})
+
+test_that("ggsave_xp's apply_labs/apply_watermark default to xpose.xtras.auto_apply", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  old_opts <- options(
+    xpose.xtras.auto_apply = NULL,
+    xpose.xtras.default_labs = list(tag = "A"),
+    xpose.xtras.default_watermark = list(label = "DRAFT")
+  )
+  on.exit(options(old_opts), add = TRUE)
+
+  p <- xpose::dv_vs_ipred(xpdb_ex_pk, quiet = TRUE)
+  n_layers <- length(p$layers)
+
+  captured <- NULL
+  mock_save <- function(plot, filename, path, ...) {
+    captured <<- plot
+    "mocked"
+  }
+
+  # auto_apply = TRUE (the default): both labels and watermark applied
+  ggsave_xp(p, filename = "out.png", save_fun = mock_save)
+  expect_identical(ggplot2::get_labs(captured)$tag, "A")
+  expect_length(captured$layers, n_layers + 1)
+
+  # auto_apply = FALSE: neither applied, without touching apply_labs/apply_watermark explicitly
+  options(xpose.xtras.auto_apply = FALSE)
+  ggsave_xp(p, filename = "out2.png", save_fun = mock_save)
+  expect_null(ggplot2::get_labs(captured)$tag)
+  expect_length(captured$layers, n_layers)
+  options(xpose.xtras.auto_apply = NULL)
+
+  # a per-call override still wins over the option
+  ggsave_xp(p, filename = "out3.png", save_fun = mock_save, apply_watermark = FALSE)
+  expect_identical(ggplot2::get_labs(captured)$tag, "A")
+  expect_length(captured$layers, n_layers)
+})

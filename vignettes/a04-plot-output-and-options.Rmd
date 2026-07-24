@@ -23,7 +23,7 @@ library(xpose.xtras)
 
 ## Introduction
 
-A model diagnostic is rarely just a diagnostic once it leaves an R session: it becomes a figure in a report, and figures in reports want consistent titles, an obvious "this is a draft" stamp while a model is still in flux, and a predictable place to land on disk. Doing all of that by hand, plot-by-plot and model-by-model, gets old fast.
+A model diagnostic is rarely just a diagnostic once it leaves an R session. It becomes a figure in a report, and figures in reports want consistent titles, an obvious "this is a draft" stamp while a model is still in flux, and a predictable place to land on disk. Doing all of that by hand, plot-by-plot and model-by-model, gets old fast.
 
 `xpose.xtras` adds a small, composable toolkit for this last mile:
 
@@ -33,40 +33,40 @@ A model diagnostic is rarely just a diagnostic once it leaves an R session: it b
 
 All three read from the same kind of layered defaults, resolved in the same order every time: a session-wide R option, then a per-model (`xpdb`) default, then whatever is passed directly to the function call. `set_xtras_options()` and `get_xtras_option()` round this out by giving the whole `xpose.xtras.*` option family one place to be set and inspected.
 
-None of this is wired into `print()` -- every function here is opt-in, called explicitly on a plot (or a save call) when you want it.
+Once a default is actually configured, it applies itself. `print.xpose_plot()` and `ggsave_xp()` both pick up a configured `default_labs`/`default_watermark` automatically, with nothing else to call. That behavior is controlled by the `xpose.xtras.auto_apply` option, `TRUE` unless changed; it's a no-op until something is configured, so nothing changes for existing code until a default is actually set. The functions below are still the way to configure those defaults in the first place, apply them explicitly on demand, or reach an `xpdb`-level default (which, unlike the option, `print()` has no way to pick up on its own; see the note under `apply_default_labs()`). The last section, [Automatic application], covers the auto-apply behavior itself.
 
 ## Default labels
 
 `apply_default_labs()` takes a `ggplot`/`xpose_plot` object and fills in any of `title`/`subtitle`/`caption`/`tag` that aren't already set, using (in increasing precedence) the `xpose.xtras.default_labs` option, an `xpdb`-level default, and anything passed directly.
 
-The simplest use is a session-wide option, handy for something that should apply to every plot in a script or report -- a draft caption, say:
+The simplest use is a session-wide option, handy for something that should apply to every plot in a script or report, like a draft caption:
 
 ```{r default_labs_option}
-options(xpose.xtras.default_labs = list(caption = "DRAFT -- do not distribute"))
+options(xpose.xtras.default_labs = list(caption = "DRAFT: do not distribute"))
 
 p <- dv_vs_ipred(xpdb_ex_pk, quiet = TRUE)
 p_labelled <- apply_default_labs(p)
 p_labelled
 ```
 
-Because `dv_vs_ipred()` already sets its own caption, that one wasn't touched -- `apply_default_labs()` only fills in labels that are still empty. Passing `overwrite = TRUE` replaces existing labels too, and the value can use the same `@keyword` placeholders `xpose::parse_title()` understands elsewhere in the package:
+Because `dv_vs_ipred()` already sets its own caption, that one wasn't touched. `apply_default_labs()` only fills in labels that are still empty. Passing `overwrite = TRUE` replaces existing labels too, and the value can use the same `@keyword` placeholders `xpose::parse_title()` understands elsewhere in the package:
 
 ```{r default_labs_overwrite}
-apply_default_labs(p, caption = "Run @run -- @nobs observations", overwrite = TRUE)
+apply_default_labs(p, caption = "Run @run, @nobs observations", overwrite = TRUE)
 options(xpose.xtras.default_labs = NULL)
 ```
 
-A single global caption is a blunt instrument once more than one model is in play. `set_default_labs()` attaches label defaults to a specific `xpdb` instead, and those take precedence over the option -- useful when different models in the same report need different framing:
+A single global caption is a blunt instrument once more than one model is in play. `set_default_labs()` attaches label defaults to a specific `xpdb` instead, and those take precedence over the option. This is useful when different models in the same report need different framing:
 
 ```{r default_labs_xpdb}
 xpdb_draft <- xpdb_x %>%
-  set_default_labs(caption = "Model @run -- interim, subject to change")
+  set_default_labs(caption = "Model @run, interim, subject to change")
 
 dv_vs_ipred(xpdb_draft, quiet = TRUE) %>%
   apply_default_labs(xpdb = xpdb_draft, overwrite = TRUE)
 ```
 
-`apply_default_labs()` can't reach back into the `xpdb` a plot was built from on its own -- `xpose`'s plotting functions only carry a reduced summary forward onto the plot object, not the full `xpdb` -- so the `xpdb` argument has to be supplied explicitly whenever the `xpdb`-level tier (or `@keyword` resolution) should be used. Whatever is passed directly to `apply_default_labs()` still wins over both tiers:
+`apply_default_labs()` can't reach back into the `xpdb` a plot was built from on its own. `xpose`'s plotting functions only carry a reduced summary forward onto the plot object, not the full `xpdb`, so the `xpdb` argument has to be supplied explicitly whenever the `xpdb`-level tier (or `@keyword` resolution) should be used. Whatever is passed directly to `apply_default_labs()` still wins over both tiers:
 
 ```{r default_labs_direct}
 dv_vs_ipred(xpdb_draft, quiet = TRUE) %>%
@@ -75,7 +75,7 @@ dv_vs_ipred(xpdb_draft, quiet = TRUE) %>%
 
 ## Watermarks
 
-`add_watermark()` overlays large, semi-transparent, rotated text across a plot -- the kind of stamp that makes it obvious at a glance that a figure isn't final yet.
+`add_watermark()` overlays large, semi-transparent, rotated text across a plot, the kind of stamp that makes it obvious at a glance that a figure isn't final yet.
 
 ```{r watermark_basic}
 p %>%
@@ -89,14 +89,14 @@ p %>%
   add_watermark(label = "PRELIMINARY", colour = "firebrick", alpha = 0.15, angle = 20)
 ```
 
-The watermark is added as an ordinary `ggplot2` layer, so it survives faceting and pagination -- one watermark per panel, automatically:
+The watermark is added as an ordinary `ggplot2` layer, so it survives faceting and pagination: one watermark per panel, automatically:
 
 ```{r watermark_facets}
 dv_vs_ipred(xpdb_ex_pk, quiet = TRUE, facets = "SEX") %>%
   add_watermark(label = "DRAFT")
 ```
 
-Because the watermark is drawn at a fixed rotation, it can visually merge into a plot that already has a strong diagonal of its own -- like the line of unity on a `dv_vs_pred()` plot. The default 30 degree angle sits close to that line and gets lost among the points around it:
+Because the watermark is drawn at a fixed rotation, it can visually merge into a plot that already has a strong diagonal of its own, like the line of unity on a `dv_vs_pred()` plot. The default 30 degree angle sits close to that line and gets lost among the points around it:
 
 ```{r watermark_angle_unity_default}
 pred_plot <- dv_vs_pred(xpdb_ex_pk, quiet = TRUE)
@@ -105,14 +105,14 @@ pred_plot %>%
   add_watermark(alpha = 0.6)
 ```
 
-Crossing the other way keeps the watermark clearly legible instead, without competing with the plot's own diagonal -- this is exactly the kind of case `angle` (and `alpha`/`size`/`colour`) exist for:
+Crossing the other way keeps the watermark clearly legible instead, without competing with the plot's own diagonal. This is exactly the kind of case `angle` (and `alpha`/`size`/`colour`) exist for:
 
 ```{r watermark_angle_unity_adjusted}
 pred_plot %>%
   add_watermark(alpha = 0.6, angle = -45)
 ```
 
-Like the label functions, watermark settings resolve from the `xpose.xtras.default_watermark` option, then an `xpdb`-level default set with `set_default_watermark()`, then whatever is passed directly -- so a whole project can default to (say) a red "CONFIDENTIAL" stamp without repeating those arguments at every call site:
+Like the label functions, watermark settings resolve from the `xpose.xtras.default_watermark` option, then an `xpdb`-level default set with `set_default_watermark()`, then whatever is passed directly. A whole project can default to, say, a red "CONFIDENTIAL" stamp without repeating those arguments at every call site:
 
 ```{r watermark_option}
 options(xpose.xtras.default_watermark = list(label = "CONFIDENTIAL", colour = "firebrick"))
@@ -123,7 +123,7 @@ options(xpose.xtras.default_watermark = NULL)
 
 ## Saving with `ggsave_xp()`
 
-`ggsave_xp()` is a drop-in, `ggplot2::ggsave()`-compatible way to write a plot to disk: same `plot`/`filename`/`path`/`width`/`height` arguments, but it applies `apply_default_labs()` first (`apply_labs = FALSE` to skip that), and `path`/`width`/`height` fall back to the `xpose.xtras.save_dir`/`save_width`/`save_height` options when not supplied.
+`ggsave_xp()` is a drop-in, `ggplot2::ggsave()`-compatible way to write a plot to disk: same `plot`/`filename`/`path`/`width`/`height` arguments, but it applies `apply_default_labs()`/`add_watermark()` first (`apply_labs`/`apply_watermark`, more on those in [Automatic application]), and `path`/`width`/`height` fall back to the `xpose.xtras.save_dir`/`save_width`/`save_height` options when not supplied.
 
 ```{r ggsave_xp_basic}
 out_dir <- tempdir()
@@ -132,7 +132,7 @@ saved_path <- ggsave_xp(p, filename = "dv_vs_ipred.png", path = out_dir, width =
 basename(saved_path)
 ```
 
-That's a real file on disk -- here's what actually got written:
+That's a real file on disk. Here's what actually got written:
 
 ```{r ggsave_xp_basic_preview, echo = FALSE, out.width = "80%"}
 knitr::include_graphics(saved_path)
@@ -145,7 +145,7 @@ run_path <- ggsave_xp(dv_vs_ipred(xpdb_ex_pk, quiet = TRUE), filename = "@run_@p
 basename(run_path)
 ```
 
-What actually does the saving is itself swappable, via `save_fun` -- the default is `ggplot2::ggsave()`, but anything sharing its signature works, including third-party wrappers like `reportifyr::ggsave_with_metadata()`. As a self-contained illustration (so this vignette doesn't need to depend on a third-party package just to demonstrate the idea), here's a `save_fun` that writes a plain-text note alongside the image:
+What actually does the saving is itself swappable, via `save_fun`. The default is `ggplot2::ggsave()`, but anything sharing its signature works, including third-party wrappers like `reportifyr::ggsave_with_metadata()`. As a self-contained illustration, so this vignette doesn't need to depend on a third-party package just to demonstrate the idea, here's a `save_fun` that writes a plain-text note alongside the image:
 
 ```{r ggsave_xp_custom_backend}
 save_with_note <- function(plot, filename, path = NULL, width, height, note = "", ...) {
@@ -163,11 +163,46 @@ annotated_path <- ggsave_xp(
 readLines(sub("\\.png$", ".txt", annotated_path))
 ```
 
-Any function accepting `plot`/`filename`/`path`/`width`/`height` (plus whatever else it needs via `...`) can be dropped in this way -- there's nothing `xpose.xtras`-specific about `save_fun` itself.
+Any function accepting `plot`/`filename`/`path`/`width`/`height` (plus whatever else it needs via `...`) can be dropped in this way. There's nothing `xpose.xtras`-specific about `save_fun` itself.
+
+## Automatic application
+
+Everything above can be called explicitly, but it doesn't have to be. Once a `default_labs`/`default_watermark` is actually configured, at the option level, as in the examples so far, `print.xpose_plot()` and `ggsave_xp()` apply it on their own:
+
+```{r auto_apply_demo}
+options(
+  xpose.xtras.default_labs = list(caption = "DRAFT: do not distribute"),
+  xpose.xtras.default_watermark = list(label = "DRAFT")
+)
+
+dv_vs_ipred(xpdb_ex_pk, quiet = TRUE)
+```
+
+No `apply_default_labs()`, no `add_watermark()`, just an ordinary `dv_vs_ipred()` call, printed the ordinary way. This is exactly what happens when a plot auto-prints at the console or in a knitted report. It's controlled by the `xpose.xtras.auto_apply` option, `TRUE` unless changed. Note that it's the *configured* default that's applied automatically, not an unconditional one: with `default_watermark` left unset, `auto_apply = TRUE` would not stamp a "DRAFT" on every plot on its own. It's purely "apply what was already configured, without asking again."
+
+To turn this off everywhere at once:
+
+```{r auto_apply_off}
+options(xpose.xtras.auto_apply = FALSE)
+
+dv_vs_ipred(xpdb_ex_pk, quiet = TRUE)
+```
+
+```{r auto_apply_reset, include = FALSE}
+options(
+  xpose.xtras.auto_apply = NULL,
+  xpose.xtras.default_labs = NULL,
+  xpose.xtras.default_watermark = NULL
+)
+```
+
+Or, to opt out for one `ggsave_xp()` call without touching the option, pass `apply_labs = FALSE`/`apply_watermark = FALSE` directly to that call.
+
+Either way, this only ever reaches the session-wide option tier. `print()` has no way to receive the `xpdb` a plot was built from, so an `xpdb`-level default (set via `set_default_labs()`/`set_default_watermark()`) still needs `apply_default_labs()`/`add_watermark()`, or `ggsave_xp()`'s `xpdb` argument, called explicitly. Auto-apply covers the common "one default for the whole session" case, not the per-model one.
 
 ## Tying it together with session options
 
-Setting several of the options above one at a time is easy to get wrong -- a typo in an option name just silently does nothing, since `options()` doesn't validate names. `set_xtras_options()` is a small, validated wrapper for the whole `xpose.xtras.*` family (prefix added automatically), good for pinning a project's defaults once at the top of a script:
+Setting several of the options above one at a time is easy to get wrong: a typo in an option name just silently does nothing, since `options()` doesn't validate names. `set_xtras_options()` is a small, validated wrapper for the whole `xpose.xtras.*` family (prefix added automatically), good for pinning a project's defaults once at the top of a script:
 
 ```{r set_xtras_options}
 set_xtras_options(
@@ -178,12 +213,17 @@ set_xtras_options(
   save_height = 4
 )
 
-dv_vs_ipred(xpdb_ex_pk, quiet = TRUE) %>%
-  apply_default_labs() %>%
-  add_watermark()
+# labels and watermark are auto-applied, and save_dir/save_width/save_height
+# supply filename's path/width/height: one call, nothing else configured
+saved_together <- ggsave_xp(dv_vs_ipred(xpdb_ex_pk, quiet = TRUE), filename = "tied_together.png")
+basename(saved_together)
 ```
 
-The same family also covers a session-wide default theme -- `gg_theme`/`xp_theme` -- picked up automatically the first time an `xpose_data` object is converted with `as_xpdb_x()`, so a project look can be set once instead of calling `xpose::update_themes()` on every model:
+```{r tied_together_preview, echo = FALSE, out.width = "80%"}
+knitr::include_graphics(saved_together)
+```
+
+The same family also covers a session-wide default theme, `gg_theme`/`xp_theme`, picked up automatically the first time an `xpose_data` object is converted with `as_xpdb_x()`. A project look can be set once instead of calling `xpose::update_themes()` on every model:
 
 ```{r set_xtras_options_theme}
 set_xtras_options(gg_theme = theme_bw)
@@ -210,4 +250,4 @@ set_xtras_options(
 )
 ```
 
-The full list of recognized options -- what each one does, and which ones have an `xpdb`-level counterpart -- is documented on `?set_xtras_options`.
+The full list of recognized options, what each one does, and which ones have an `xpdb`-level counterpart, is documented on `?set_xtras_options`.

@@ -18,6 +18,7 @@
 # resolved-per-use default.
 
 xtras_option_registry <- c(
+  auto_apply        = "whether print.xpose_plot()/ggsave_xp() auto-apply default_labs/default_watermark",
   default_labs      = "default title/subtitle/caption/tag templates for apply_default_labs()",
   default_watermark = "default add_watermark() arguments",
   save_dir          = "default `path` for ggsave_xp()",
@@ -29,6 +30,35 @@ xtras_option_registry <- c(
 )
 
 xtras_two_tier_options <- c("default_labs", "default_watermark")
+
+# Shared by print.xpose_plot() (R/fixes.R) and ggsave_xp() (R/xtra_labs.R).
+#
+# has_default_watermark() gates auto-watermarking on there being an actual
+# configured default -- add_watermark() itself always has something to draw
+# (built-in fallbacks like "DRAFT"), so unconditionally auto-calling it
+# would stamp every single plot the first time this package is loaded,
+# which is not what "auto-apply *your configured* defaults" should mean.
+# apply_default_labs() needs no equivalent guard: it already no-ops when
+# there's nothing configured to fill in.
+has_default_watermark <- function(xpdb = NULL) {
+  !is.null(getOption("xpose.xtras.default_watermark")) || !is.null(xpdb$options$default_watermark)
+}
+
+# auto_apply_defaults() is the print.xpose_plot() hook: gated entirely by
+# the auto_apply option (print() has no argument to override it per-call),
+# and -- since print() never has the plot's source xpdb -- only ever sees
+# the option-level tier of default_labs/default_watermark, never an
+# xpdb-level one (see the file-level comment in xtra_labs.R). ggsave_xp()
+# has its own apply_labs/apply_watermark arguments instead, since it does
+# receive an optional xpdb and per-call overrides make sense there.
+auto_apply_defaults <- function(plot, xpdb = NULL) {
+  if (!isTRUE(getOption("xpose.xtras.auto_apply", TRUE))) return(plot)
+
+  plot <- apply_default_labs(plot, xpdb = xpdb)
+  if (has_default_watermark(xpdb)) plot <- add_watermark(plot, xpdb = xpdb)
+
+  plot
+}
 
 #' Set `xpose.xtras` session options
 #'
@@ -44,9 +74,22 @@ xtras_two_tier_options <- c("default_labs", "default_watermark")
 #' `xpdb`-level default.
 #'
 #' @details
-#' Recognized options (all unset, i.e. `NULL`, by default):
+#' Recognized options (all unset, i.e. `NULL`, by default, except
+#' `auto_apply` which defaults to `TRUE`):
 #'
 #' \describe{
+#'   \item{`auto_apply`}{Whether [print.xpose_plot()][print.xpose_plot] and
+#'   [ggsave_xp()] automatically apply configured `default_labs`/
+#'   `default_watermark` (labels always; a watermark only if
+#'   `default_watermark` is actually set at some tier -- there's no
+#'   unprompted default watermark). Defaults to `TRUE`, but is a no-op
+#'   until `default_labs`/`default_watermark` are themselves configured, so
+#'   leaving it at its default has no visible effect on its own; set it to
+#'   `FALSE` to opt out of the auto-apply behavior everywhere at once (or
+#'   pass `apply_labs`/`apply_watermark` to a specific [ggsave_xp()] call
+#'   to opt out just there). `print.xpose_plot()` only ever sees the
+#'   session-wide option tier (not an `xpdb`-level one) for the same reason
+#'   noted under `default_labs` below.}
 #'   \item{`default_labs`}{Named list of default `title`/`subtitle`/
 #'   `caption`/`tag` templates (may contain `@keyword` placeholders, see
 #'   [xpose::parse_title()]). Used by [apply_default_labs()] (and by

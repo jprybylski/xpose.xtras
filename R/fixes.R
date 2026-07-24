@@ -561,6 +561,13 @@ print.xpose_plot <- function(x, page, ...) {
 
   # Parse template titles
   if (xpose::is.xpose.plot(x)) {
+    # xpose.xtras :: auto-apply configured default labels/watermark (see
+    # ?set_xtras_options's `auto_apply` entry). Option-level tier only --
+    # print() has no way to receive the plot's source xpdb, so xpdb-level
+    # defaults still require calling apply_default_labs()/add_watermark()
+    # explicitly with `xpdb=`.
+    x <- auto_apply_defaults(x)
+
     if (utils::packageVersion("ggplot2") > "3.5.2") {
       x_labs <- suppressMessages(ggplot2::get_labs(plot = x))
 

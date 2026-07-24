@@ -1,6 +1,9 @@
-# Default label overrides, applied on demand rather than baked into
-# print.xpose_plot (see issue #37 -- print.xpose_plot is itself slated for
-# eventual removal, see issue #36).
+# Default label overrides (issue #37). apply_default_labs() is a
+# standalone function usable on its own, but is also invoked automatically
+# by print.xpose_plot() (see auto_apply_defaults() in xtras_options.R) --
+# note that hook is option-level only (see below), and print.xpose_plot()
+# is itself slated for eventual removal (issue #36), at which point that
+# particular auto-apply hook will need a new home.
 #
 # apply_default_labs() takes an explicit `xpdb` argument for the xpdb-level
 # tier rather than trying to auto-discover it from `plot`. xpose plotting
@@ -97,10 +100,13 @@ set_default_labs <- function(xpdb, ...) {
 #' 3. values passed directly via `...`.
 #'
 #' By default only labels not already set on the plot are filled in; set
-#' `overwrite = TRUE` to replace existing labels too. This is a standalone
-#' function rather than something wired into `print.xpose_plot()`, so it
-#' works the same regardless of whether that print method still exists
-#' (see issue #36).
+#' `overwrite = TRUE` to replace existing labels too.
+#' [print.xpose_plot()][print.xpose_plot] calls this automatically
+#' whenever `xpose.xtras.auto_apply` is enabled (the default; see
+#' [set_xtras_options()]), but `apply_default_labs()` itself is a
+#' standalone function that doesn't depend on that print method existing,
+#' so it works the same regardless of whether that method survives issue
+#' #36's eventual removal.
 #'
 #' @param plot <`ggplot`> or <`xpose_plot`> object
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Direct overrides for
@@ -165,14 +171,19 @@ apply_default_labs <- function(plot, ..., xpdb = NULL, overwrite = FALSE) {
 #' `reportifyr::ggsave_with_metadata()` or any other function sharing
 #' `ggsave()`'s `plot`/`filename`/`path`/`width`/`height` signature).
 #' Before saving: resolved labels are applied via [apply_default_labs()]
-#' (see `apply_labs`); `filename`/`path` have any `@keyword` placeholders
-#' expanded via [xpose::parse_title()], the same way [xpose::xpose_save()]
-#' does (independent of which `save_fun` is used, since most save
-#' functions don't do this themselves); and `path`/`width`/`height`/
-#' `save_fun` fall back to the `xpose.xtras.save_dir`,
-#' `xpose.xtras.save_width`, `xpose.xtras.save_height`, and
-#' `xpose.xtras.save_fun` R options when not supplied explicitly, so a
-#' project can set output defaults once (see [set_xtras_options()]).
+#' and a configured watermark (if any) via [add_watermark()] -- see
+#' `apply_labs`/`apply_watermark`, both of which default to the
+#' `xpose.xtras.auto_apply` option (`TRUE` unless changed), the same
+#' switch [print.xpose_plot()][print.xpose_plot] uses, so a plot looks the
+#' same whether it's viewed interactively or saved with `ggsave_xp()`.
+#' `filename`/`path` have any `@keyword` placeholders expanded via
+#' [xpose::parse_title()], the same way [xpose::xpose_save()] does
+#' (independent of which `save_fun` is used, since most save functions
+#' don't do this themselves); and `path`/`width`/`height`/`save_fun` fall
+#' back to the `xpose.xtras.save_dir`, `xpose.xtras.save_width`,
+#' `xpose.xtras.save_height`, and `xpose.xtras.save_fun` R options when not
+#' supplied explicitly, so a project can set output defaults once (see
+#' [set_xtras_options()]).
 #'
 #' @param plot <`ggplot`> or <`xpose_plot`> object
 #' @param filename <`character`> File name, optionally with `@keyword`
@@ -186,10 +197,16 @@ apply_default_labs <- function(plot, ..., xpdb = NULL, overwrite = FALSE) {
 #' see `save_fun`'s own `units` argument if it has one); fall back to the
 #' `xpose.xtras.save_width`/`xpose.xtras.save_height` R options
 #' @param xpdb <[`xpose_data`][xpose::xpose_data]> or <`xp_xtras`> object
-#' `plot` was built from, forwarded to [apply_default_labs()] (see its
-#' `xpdb` argument) and used to resolve `@keyword` placeholders
+#' `plot` was built from, forwarded to [apply_default_labs()]/
+#' [add_watermark()] (see their `xpdb` argument) and used to resolve
+#' `@keyword` placeholders
 #' @param apply_labs <`logical`> Apply [apply_default_labs()] to `plot`
-#' before saving (default `TRUE`)
+#' before saving; defaults to the `xpose.xtras.auto_apply` option (`TRUE`
+#' unless changed)
+#' @param apply_watermark <`logical`> Apply [add_watermark()] to `plot`
+#' before saving, if a `default_watermark` is configured at some tier (see
+#' [add_watermark()]) -- otherwise a no-op regardless; defaults to the
+#' `xpose.xtras.auto_apply` option (`TRUE` unless changed)
 #' @param save_fun <`function`> The actual save function to call, e.g.
 #' [ggplot2::ggsave()] (the default) or a drop-in alternative such as
 #' `reportifyr::ggsave_with_metadata()`; falls back to the
@@ -214,15 +231,18 @@ ggsave_xp <- function(plot = ggplot2::last_plot(),
                        width = getOption("xpose.xtras.save_width", 7),
                        height = getOption("xpose.xtras.save_height", 6),
                        xpdb = NULL,
-                       apply_labs = TRUE,
+                       apply_labs = getOption("xpose.xtras.auto_apply", TRUE),
+                       apply_watermark = getOption("xpose.xtras.auto_apply", TRUE),
                        save_fun = getOption("xpose.xtras.save_fun", ggplot2::ggsave),
                        ...) {
   checkmate::assert_class(plot, "ggplot")
   checkmate::assert_string(filename)
   checkmate::assert_flag(apply_labs)
+  checkmate::assert_flag(apply_watermark)
   checkmate::assert_function(save_fun)
 
   if (apply_labs) plot <- apply_default_labs(plot, xpdb = xpdb)
+  if (apply_watermark && has_default_watermark(xpdb)) plot <- add_watermark(plot, xpdb = xpdb)
 
   keyword_ctx <- resolve_keyword_ctx(plot, xpdb)
   filename <- resolve_keywords(filename, keyword_ctx)

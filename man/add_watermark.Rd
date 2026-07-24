@@ -32,8 +32,13 @@ add_watermark(plot, label, colour, alpha, size, angle, fontface, xpdb = NULL)
 \description{
 Overlays large, semi-transparent, rotated text across a \code{ggplot} or
 \code{xpose_plot} object (e.g. \code{"DRAFT"}, \code{"PRELIMINARY"}, \code{"CONFIDENTIAL"}).
-Purely opt-in: call it on a plot when you want the watermark, there is
-no automatic/global trigger.
+Calling it directly always adds a watermark (falling back to the
+built-in defaults below if nothing else is configured). It is also
+applied automatically by \link[=print.xpose_plot]{print.xpose_plot()} and
+\code{\link[=ggsave_xp]{ggsave_xp()}} whenever a \code{default_watermark} is actually configured
+(see the \code{auto_apply} entry in \code{\link[=set_xtras_options]{set_xtras_options()}}) -- unlike this
+function, that automatic trigger never invents an unconfigured
+watermark on its own.
 
 \code{label}/\code{colour}/\code{alpha}/\code{size}/\code{angle}/\code{fontface} resolve with the same
 precedence as \code{\link[=apply_default_labs]{apply_default_labs()}}: (in increasing precedence) the

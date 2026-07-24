@@ -38,10 +38,13 @@ supplied (a rendered plot does not retain enough of its source
 }
 
 By default only labels not already set on the plot are filled in; set
-\code{overwrite = TRUE} to replace existing labels too. This is a standalone
-function rather than something wired into \code{print.xpose_plot()}, so it
-works the same regardless of whether that print method still exists
-(see issue #36).
+\code{overwrite = TRUE} to replace existing labels too.
+\link[=print.xpose_plot]{print.xpose_plot()} calls this automatically
+whenever \code{xpose.xtras.auto_apply} is enabled (the default; see
+\code{\link[=set_xtras_options]{set_xtras_options()}}), but \code{apply_default_labs()} itself is a
+standalone function that doesn't depend on that print method existing,
+so it works the same regardless of whether that method survives issue
+#36's eventual removal.
 }
 \examples{
 options(xpose.xtras.default_labs = list(caption = "Draft -- do not distribute"))

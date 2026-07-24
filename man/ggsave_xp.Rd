@@ -11,7 +11,8 @@ ggsave_xp(
   width = getOption("xpose.xtras.save_width", 7),
   height = getOption("xpose.xtras.save_height", 6),
   xpdb = NULL,
-  apply_labs = TRUE,
+  apply_labs = getOption("xpose.xtras.auto_apply", TRUE),
+  apply_watermark = getOption("xpose.xtras.auto_apply", TRUE),
   save_fun = getOption("xpose.xtras.save_fun", ggplot2::ggsave),
   ...
 )
@@ -33,11 +34,18 @@ see \code{save_fun}'s own \code{units} argument if it has one); fall back to the
 \code{xpose.xtras.save_width}/\code{xpose.xtras.save_height} R options}
 
 \item{xpdb}{<\code{\link[xpose:xpose_data]{xpose_data}}> or <\code{xp_xtras}> object
-\code{plot} was built from, forwarded to \code{\link[=apply_default_labs]{apply_default_labs()}} (see its
-\code{xpdb} argument) and used to resolve \verb{@keyword} placeholders}
+\code{plot} was built from, forwarded to \code{\link[=apply_default_labs]{apply_default_labs()}}/
+\code{\link[=add_watermark]{add_watermark()}} (see their \code{xpdb} argument) and used to resolve
+\verb{@keyword} placeholders}
 
 \item{apply_labs}{<\code{logical}> Apply \code{\link[=apply_default_labs]{apply_default_labs()}} to \code{plot}
-before saving (default \code{TRUE})}
+before saving; defaults to the \code{xpose.xtras.auto_apply} option (\code{TRUE}
+unless changed)}
+
+\item{apply_watermark}{<\code{logical}> Apply \code{\link[=add_watermark]{add_watermark()}} to \code{plot}
+before saving, if a \code{default_watermark} is configured at some tier (see
+\code{\link[=add_watermark]{add_watermark()}}) -- otherwise a no-op regardless; defaults to the
+\code{xpose.xtras.auto_apply} option (\code{TRUE} unless changed)}
 
 \item{save_fun}{<\code{function}> The actual save function to call, e.g.
 \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} (the default) or a drop-in alternative such as
@@ -56,14 +64,19 @@ A \code{ggplot2::ggsave()}-compatible wrapper (defaulting to
 \code{reportifyr::ggsave_with_metadata()} or any other function sharing
 \code{ggsave()}'s \code{plot}/\code{filename}/\code{path}/\code{width}/\code{height} signature).
 Before saving: resolved labels are applied via \code{\link[=apply_default_labs]{apply_default_labs()}}
-(see \code{apply_labs}); \code{filename}/\code{path} have any \verb{@keyword} placeholders
-expanded via \code{\link[xpose:parse_title]{xpose::parse_title()}}, the same way \code{\link[xpose:xpose_save]{xpose::xpose_save()}}
-does (independent of which \code{save_fun} is used, since most save
-functions don't do this themselves); and \code{path}/\code{width}/\code{height}/
-\code{save_fun} fall back to the \code{xpose.xtras.save_dir},
-\code{xpose.xtras.save_width}, \code{xpose.xtras.save_height}, and
-\code{xpose.xtras.save_fun} R options when not supplied explicitly, so a
-project can set output defaults once (see \code{\link[=set_xtras_options]{set_xtras_options()}}).
+and a configured watermark (if any) via \code{\link[=add_watermark]{add_watermark()}} -- see
+\code{apply_labs}/\code{apply_watermark}, both of which default to the
+\code{xpose.xtras.auto_apply} option (\code{TRUE} unless changed), the same
+switch \link[=print.xpose_plot]{print.xpose_plot()} uses, so a plot looks the
+same whether it's viewed interactively or saved with \code{ggsave_xp()}.
+\code{filename}/\code{path} have any \verb{@keyword} placeholders expanded via
+\code{\link[xpose:parse_title]{xpose::parse_title()}}, the same way \code{\link[xpose:xpose_save]{xpose::xpose_save()}} does
+(independent of which \code{save_fun} is used, since most save functions
+don't do this themselves); and \code{path}/\code{width}/\code{height}/\code{save_fun} fall
+back to the \code{xpose.xtras.save_dir}, \code{xpose.xtras.save_width},
+\code{xpose.xtras.save_height}, and \code{xpose.xtras.save_fun} R options when not
+supplied explicitly, so a project can set output defaults once (see
+\code{\link[=set_xtras_options]{set_xtras_options()}}).
 }
 \examples{
 \dontrun{

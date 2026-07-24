@@ -351,3 +351,22 @@ test_that("patch_condn corrects the condition number for multi-method runs (issu
     xpose::get_summary(xpose::xpdb_ex_pk)
   )
 })
+
+test_that("print.xpose_plot() auto-applies configured defaults via auto_apply_defaults()", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  p <- xpose::dv_vs_ipred(xpdb_ex_pk, quiet = TRUE)
+
+  called_with <- NULL
+  testthat::local_mocked_bindings(
+    auto_apply_defaults = function(plot, xpdb = NULL) {
+      called_with <<- plot
+      plot
+    }
+  )
+
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  print(p)
+
+  expect_identical(called_with, p)
+})
