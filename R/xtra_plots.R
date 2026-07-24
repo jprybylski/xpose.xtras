@@ -135,6 +135,10 @@ xp_xtra_theme <- function(base_on = NULL) {
     heatmaptxt_size = base_on$text_size,
     heatmaptxt_hjust = base_on$text_hjust,
     heatmaptxt_vjust = base_on$text_vjust,
+    linerange_color = base_on$line_color,
+    linerange_linewidth = base_on$line_linewidth,
+    linerange_linetype = base_on$line_linetype,
+    linerange_alpha = base_on$line_alpha,
   )
 
   # bug fix

@@ -704,3 +704,112 @@ eta_vs_catcov <- function(xpdb,
     plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
     ...))
 }
+
+#' Covariate effect forest plot
+#'
+#' @description
+#' Visualizes the effect of covariates on structural parameters, as
+#' declared with [`add_cov_association()`], as a forest plot: one row per
+#' (parameter, covariate, evaluation point), the point estimate and
+#' interval as a ratio to the parameter's typical value, with a reference
+#' line at `1`.
+#'
+#' This is the covariate-specific wrapper: it calls [`prm_cov()`] to
+#' compute the effect-size table and [`xplot_forest()`] (a generic,
+#' forest-plot-agnostic renderer, see its own documentation) to draw it.
+#'
+#' @param xpdb <`xp_xtras`> object with covariate associations declared
+#' via [`add_cov_association()`]
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Forwarded to
+#' [`prm_cov()`] -- eg `param ~ covariate` selectors, `ci_method`,
+#' `probs`, `level`, `nsim`.
+#' @param log Passed to [`xpose::check_scales()`] for the x-axis; `"x"`
+#' (default) log-scales the effect-ratio axis, `NULL` disables it.
+#' @param forest_opts <`list`> Extra named arguments forwarded to
+#' [`xplot_forest()`] (eg `type`, or theme overrides), the same way
+#' `pairs_opts` works for [`cov_grid()`]/[`eta_grid()`].
+#' @param title Plot title
+#' @param subtitle Plot subtitle
+#' @param caption Plot caption
+#' @param tag Plot tag
+#' @param .problem <`numeric`> Problem number
+#' @param .subprob <`numeric`> Subprob number
+#' @param .method <`numeric`> Method
+#' @param quiet Silence extra output
+#'
+#' @export
+#'
+#' @returns The desired plot
+#'
+#' @seealso [`add_cov_association()`], [`prm_cov()`], [`xplot_forest()`]
+#'
+#' @examples
+#' \donttest{
+#'
+#' xpdb_x %>%
+#'   add_cov_association(
+#'     TVCL ~ power(CLCR, THETA7, ref = 64),
+#'     TVCL ~ catshift(SEX, THETA4, ref = 1)
+#'   ) %>%
+#'   cov_forest()
+#' }
+cov_forest <- function(xpdb,
+                       ...,
+                       log = "x",
+                       forest_opts = list(),
+                       title    = 'Covariate effects on model parameters | @run',
+                       subtitle = 'Ratio to typical parameter value; reference line at 1',
+                       caption  = '@dir',
+                       tag      = NULL,
+                       .problem = NULL,
+                       .subprob = NULL,
+                       .method  = NULL,
+                       quiet) {
+  xpose::check_xpdb(xpdb, check = 'data')
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+  if (is.null(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+
+  cov_tbl <- prm_cov(xpdb, ..., .problem=.problem, .subprob=.subprob, .method=.method, quiet=quiet)
+  if (nrow(cov_tbl)==0) {
+    rlang::abort("No covariate associations found to plot. Declare some with `add_cov_association()` first.")
+  }
+
+  plot_data <- cov_tbl %>%
+    dplyr::mutate(
+      row_label = paste0(covariate, ": ", level),
+      row_label = forcats::fct_inorder(row_label) %>% forcats::fct_rev()
+    )
+
+  facets <- xpose::add_facet_var(facets = xpdb$xp_theme$facets, variable = 'param')
+
+  vars <- ggplot2::aes(
+    x = .data[["effect"]],
+    y = .data[["row_label"]],
+    xmin = .data[["ci_low"]],
+    xmax = .data[["ci_high"]]
+  )
+
+  opt <- xpose::data_opt(.problem = .problem, post_processing = function(x) plot_data)
+
+  forest_args <- utils::modifyList(
+    list(
+      xpdb = xpdb,
+      mapping = vars,
+      type = 'pil', # point + interval + reference line (xplot_forest's own default omits the line)
+      opt = opt,
+      facets = facets,
+      xscale = xpose::check_scales('x', log),
+      vline_xintercept = 1,
+      title = title,
+      subtitle = subtitle,
+      caption = caption,
+      tag = tag,
+      plot_name = 'cov_forest',
+      quiet = quiet
+    ),
+    forest_opts
+  )
+
+  do.call(xplot_forest, forest_args) +
+    ggplot2::labs(x = "Effect ratio (relative to typical parameter value)", y = NULL)
+}

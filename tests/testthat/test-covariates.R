@@ -312,3 +312,38 @@ test_that("no cov and no eta cases", {
     "No eta col"
   )
 })
+
+test_that("cov_forest", {
+  x <- xpdb_x %>%
+    add_cov_association(
+      TVCL ~ power(CLCR, THETA7, ref = 64),
+      TVCL ~ catshift(SEX, THETA4, ref = 1)
+    )
+
+  p <- cov_forest(x, quiet = TRUE)
+  expect_s3_class(p, "xpose_plot")
+  expect_equal(nrow(p$data), 5)
+  expect_true(all(c("effect", "ci_low", "ci_high", "row_label", "param") %in% names(p$data)))
+
+  # Faceted by param
+  expect_s3_class(p$facet, "FacetWrap")
+  expect_true("param" %in% names(p$facet$params$facets))
+
+  # No associations declared -> informative error, not a downstream crash
+  expect_error(
+    xpdb_x %>% cov_forest(quiet = TRUE),
+    "add_cov_association"
+  )
+
+  # Dots are forwarded to prm_cov() for selector filtering
+  p_filtered <- cov_forest(x, TVCL ~ CLCR, quiet = TRUE)
+  expect_equal(nrow(p_filtered$data), 3)
+  expect_true(all(p_filtered$data$covariate == "CLCR"))
+
+  # forest_opts flows through to xplot_forest()
+  p_point_only <- cov_forest(x, forest_opts = list(type = "p"), quiet = TRUE)
+  expect_setequal(
+    purrr::map_chr(p_point_only$layers, ~class(.x$geom)[1]),
+    "GeomPoint"
+  )
+})
