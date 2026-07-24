@@ -158,5 +158,6 @@ utils::globalVariables(c(
   "ini", "eta.ka", "eta.cl", "eta.v",
   "eta.ktr", "eta.emax", "eta.ec50", "eta.kout", "eta.e0",
   "depot", "cent", "center", "gut", "effect",
-  "LLOQ", "CENS"
+  "LLOQ", "CENS",
+  "PAR1", "PAR2"
 ))

@@ -16,11 +16,16 @@
 #'   \item{`"nlmixr2_m3"`}{Theophylline one-compartment model with censoring
 #'     applied to provoke M3 likelihood handling. Includes a `BLQLIKE` output
 #'     variable for use as a categorical DV example with [catdv_vs_dvprobs()].}
+#'   \item{`"xpdb_nlmixr2_nocov"`}{The same one-compartment theophylline FOCEI
+#'     fit as `"xpdb_nlmixr2"`, but with the covariance step skipped
+#'     (`covMethod = ""`). Useful for exercising code paths that depend on
+#'     parameter uncertainty, such as [get_cov_matrix()], when it is not
+#'     available.}
 #' }
 #'
 #' @param name <`character`> Name of the example to generate. One of
 #'   `"xpdb_nlmixr2"`, `"xpdb_nlmixr2_saem"`, `"nlmixr2_warfarin"`,
-#'   `"nlmixr2_m3"`.
+#'   `"nlmixr2_m3"`, `"xpdb_nlmixr2_nocov"`.
 #'
 #' @return An `xp_xtras` object with the nlmixr2 fit attached.
 #' @export
@@ -76,10 +81,11 @@ nlmixr_example <- function(name) {
   name <- rlang::arg_match(name, .nlmixr_example_names())
   switch(
     name,
-    xpdb_nlmixr2      = .nlmixr_example_xpdb_nlmixr2(),
-    xpdb_nlmixr2_saem = .nlmixr_example_xpdb_nlmixr2_saem(),
-    nlmixr2_warfarin  = .nlmixr_example_nlmixr2_warfarin(),
-    nlmixr2_m3        = .nlmixr_example_nlmixr2_m3()
+    xpdb_nlmixr2       = .nlmixr_example_xpdb_nlmixr2(),
+    xpdb_nlmixr2_saem  = .nlmixr_example_xpdb_nlmixr2_saem(),
+    nlmixr2_warfarin   = .nlmixr_example_nlmixr2_warfarin(),
+    nlmixr2_m3         = .nlmixr_example_nlmixr2_m3(),
+    xpdb_nlmixr2_nocov = .nlmixr_example_xpdb_nlmixr2_nocov()
   )
 }
 
@@ -88,7 +94,10 @@ nlmixr_example <- function(name) {
 nlmixr2_example <- nlmixr_example
 
 .nlmixr_example_names <- function() {
-  c("xpdb_nlmixr2", "xpdb_nlmixr2_saem", "nlmixr2_warfarin", "nlmixr2_m3")
+  c(
+    "xpdb_nlmixr2", "xpdb_nlmixr2_saem", "nlmixr2_warfarin", "nlmixr2_m3",
+    "xpdb_nlmixr2_nocov"
+  )
 }
 
 # --- unexported helpers (code adapted from data-raw/) ------------------------
@@ -116,6 +125,33 @@ nlmixr2_example <- nlmixr_example
     control = nlmixr2est::foceiControl(print = 0)
   )
   nlmixr2_as_xtra(theo_sd_fit, .skip_assoc = TRUE) %>%
+    set_option(dir = "~") %>%
+    set_prop(dir = "~")
+}
+
+.nlmixr_example_xpdb_nlmixr2_nocov <- function() {
+  one.cmt <- function() {
+    ini({
+      tka <- 0.45
+      tcl <- log(c(0, 2.7, 100))
+      tv <- 3.45; label("log V")
+      eta.ka ~ 0.6
+      eta.cl ~ 0.3
+      eta.v ~ 0.1
+      add.sd <- 0.7
+    })
+    model({
+      ka <- exp(tka + eta.ka)
+      cl <- exp(tcl + eta.cl)
+      v <- exp(tv + eta.v)
+      linCmt() ~ add(add.sd)
+    })
+  }
+  theo_sd_fit_nocov <- nlmixr2est::nlmixr2(
+    one.cmt, nlmixr2data::theo_sd, "focei",
+    control = nlmixr2est::foceiControl(print = 0, covMethod = "")
+  )
+  nlmixr2_as_xtra(theo_sd_fit_nocov, .skip_assoc = TRUE) %>%
     set_option(dir = "~") %>%
     set_prop(dir = "~")
 }

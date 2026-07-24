@@ -22,7 +22,7 @@ nlmixr2_example(name)
 \arguments{
 \item{name}{<\code{character}> Name of the example to generate. One of
 \code{"xpdb_nlmixr2"}, \code{"xpdb_nlmixr2_saem"}, \code{"nlmixr2_warfarin"},
-\code{"nlmixr2_m3"}.}
+\code{"nlmixr2_m3"}, \code{"xpdb_nlmixr2_nocov"}.}
 }
 \value{
 An \code{xp_xtras} object with the nlmixr2 fit attached.
@@ -45,6 +45,11 @@ data useful for eta diagnostic examples.}
 \item{\code{"nlmixr2_m3"}}{Theophylline one-compartment model with censoring
 applied to provoke M3 likelihood handling. Includes a \code{BLQLIKE} output
 variable for use as a categorical DV example with \code{\link[=catdv_vs_dvprobs]{catdv_vs_dvprobs()}}.}
+\item{\code{"xpdb_nlmixr2_nocov"}}{The same one-compartment theophylline FOCEI
+fit as \code{"xpdb_nlmixr2"}, but with the covariance step skipped
+(\code{covMethod = ""}). Useful for exercising code paths that depend on
+parameter uncertainty, such as \code{\link[=get_cov_matrix]{get_cov_matrix()}}, when it is not
+available.}
 }
 }
 \examples{
