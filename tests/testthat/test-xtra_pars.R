@@ -386,3 +386,138 @@ test_that("mutations to parameters are applied as expected", {
     tolerance = 0.01
   ))
 })
+
+test_that("covariate associations can be added", {
+  # Successful builtins
+  expect_no_error(
+    xpdb_x %>% add_cov_association(TVCL ~ power(CLCR, THETA7, ref = 64))
+  )
+  expect_no_error(
+    xpdb_x %>% add_cov_association(TVCL ~ linear(CLCR, THETA7, ref = 64))
+  )
+  expect_no_error(
+    xpdb_x %>% add_cov_association(TVCL ~ exponential(CLCR, THETA7, ref = 64))
+  )
+  expect_no_error(
+    xpdb_x %>% add_cov_association(TVCL ~ hockey(CLCR, THETA7, THETA4, ref = 64))
+  )
+  expect_no_error(
+    xpdb_x %>% add_cov_association(TVCL ~ catshift(SEX, THETA4, ref = 1))
+  )
+  expect_no_error(
+    xpdb_x %>% add_cov_association(
+      TVCL ~ custom(CLCR, THETA7, ref = 64,
+                    fun = function(cov, ref, theta) (cov/ref)^theta)
+    )
+  )
+
+  # Sharing one association across multiple parameters (LHS with `+`)
+  expect_no_error(
+    xpdb_x %>% add_cov_association(TVCL + TVV ~ power(CLCR, THETA7, ref = 64))
+  )
+
+  # Empty dots is a no-op, identical object returned
+  expect_identical(
+    xpdb_x %>% add_cov_association(),
+    xpdb_x
+  )
+
+  # `ref` is always required, no implicit default
+  expect_error(
+    xpdb_x %>% add_cov_association(TVCL ~ power(CLCR, THETA7)),
+    "ref"
+  )
+
+  # Wrong theta count for a given builtin
+  expect_error(
+    xpdb_x %>% add_cov_association(TVCL ~ power(CLCR, THETA7, THETA4, ref = 64)),
+    "exactly one theta"
+  )
+  expect_error(
+    xpdb_x %>% add_cov_association(TVCL ~ hockey(CLCR, THETA7, ref = 64)),
+    "exactly two theta"
+  )
+  expect_error(
+    xpdb_x %>% add_cov_association(TVCL ~ catshift(SEX, THETA4, THETA6, ref = 1)),
+    "one theta per non-reference level"
+  )
+
+  # covtype/assoc mismatches
+  expect_error(
+    xpdb_x %>% add_cov_association(TVCL ~ catshift(CLCR, THETA4, ref = 1)),
+    "continuous"
+  )
+  expect_error(
+    xpdb_x %>% add_cov_association(TVCL ~ power(SEX, THETA4, ref = 1)),
+    "categorical"
+  )
+
+  # Unknown covariate / bad selectors
+  expect_error(
+    xpdb_x %>% add_cov_association(TVCL ~ power(NOTACOL, THETA7, ref = 64)),
+    "contcov"
+  )
+  expect_error(
+    xpdb_x %>% add_cov_association(TVCL ~ power(CLCR, ome1, ref = 64)),
+    "fixed-effect"
+  )
+  expect_error(
+    xpdb_x %>% add_cov_association(NOTAPARAM ~ power(CLCR, THETA7, ref = 64))
+  )
+
+  # Duplicate (param, covariate) pair in one call
+  expect_error(
+    xpdb_x %>% add_cov_association(
+      TVCL ~ power(CLCR, THETA7, ref = 64),
+      TVCL ~ linear(CLCR, THETA7, ref = 64)
+    ),
+    "same \\(parameter, covariate\\)"
+  )
+
+  # custom() must satisfy fun(ref, ref, theta) == 1 for any theta
+  expect_error(
+    xpdb_x %>% add_cov_association(
+      TVCL ~ custom(CLCR, THETA7, ref = 64,
+                    fun = function(cov, ref, theta) cov/ref + theta)
+    ),
+    "fun\\(ref, ref, theta\\)"
+  )
+
+  # Redeclaring an association for the same (param, covariate) replaces it,
+  # regardless of which valid selector form is used for the parameter
+  replaced <- xpdb_x %>%
+    add_cov_association(TVCL ~ power(CLCR, THETA7, ref = 64)) %>%
+    add_cov_association(THETA1 ~ linear(CLCR, THETA7, ref = 50))
+  expect_equal(nrow(replaced$covs), 1)
+  expect_equal(replaced$covs$assoc, "linear")
+  expect_equal(replaced$covs$ref[[1]], 50)
+})
+
+test_that("covariate associations can be dropped", {
+  with_assoc <- xpdb_x %>%
+    add_cov_association(
+      TVCL ~ power(CLCR, THETA7, ref = 64),
+      TVCL ~ catshift(SEX, THETA4, ref = 1)
+    )
+  expect_equal(nrow(with_assoc$covs), 2)
+
+  dropped_one <- with_assoc %>% drop_cov_association(TVCL ~ CLCR)
+  expect_equal(nrow(dropped_one$covs), 1)
+  expect_equal(dropped_one$covs$covariate, "SEX")
+
+  # Dropping something not present is a no-op
+  expect_equal(
+    nrow((with_assoc %>% drop_cov_association(TVV ~ CLCR))$covs),
+    2
+  )
+
+  # Empty dots is a no-op
+  expect_identical(
+    with_assoc %>% drop_cov_association(),
+    with_assoc
+  )
+
+  # Selector form for the parameter doesn't need to match how it was declared
+  dropped_by_name <- with_assoc %>% drop_cov_association(THETA1 ~ CLCR)
+  expect_equal(nrow(dropped_by_name$covs), 1)
+})
