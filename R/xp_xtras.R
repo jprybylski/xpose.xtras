@@ -28,14 +28,18 @@ as_xpdb_x <- function(x) {
     # If it doesn't, fill info with empty versions of true
 
     # Space for levels and probs in index
-    new_x$data <- new_x$data %>%
-      # add nested levels to index
-      dplyr::mutate(
-        index = purrr::map(index, ~{
-          dplyr::mutate(.x, levels = list(tibble::tibble())) %>%
-            dplyr::mutate(probs = list(tibble::tibble()))
-        })
-      )
+    # (skipped when there is no table data, e.g. a NONMEM run with no
+    # $TABLE output)
+    if (!is.null(new_x$data)) {
+      new_x$data <- new_x$data %>%
+        # add nested levels to index
+        dplyr::mutate(
+          index = purrr::map(index, ~{
+            dplyr::mutate(.x, levels = list(tibble::tibble())) %>%
+              dplyr::mutate(probs = list(tibble::tibble()))
+          })
+        )
+    }
 
     # Update xp_theme with xp_xtras theme
     new_x <- xpose::update_themes(xpdb = xpose::as.xpdb(new_x), xp_theme = xp_xtra_theme(new_x$xp_theme))
@@ -109,14 +113,16 @@ check_xpdb_x <- function(x, .warn=TRUE) {
   if (!inherits(x, "xp_xtras")) return(FALSE)
 
   # Check for xp_xtras list elements in an xpose_data object
+  # (skipped entirely when there is no table data to index, e.g. a
+  # NONMEM run with no $TABLE output)
   ### check for "levels" in index
-  if ("data" %in% names(x) &&
+  if ("data" %in% names(x) && !is.null(x$data) &&
       !"levels" %in% names(x$data$index[[1]])
   ) {
     return(FALSE)
   }
   ### check for "probs" in index
-  if ("data" %in% names(x) &&
+  if ("data" %in% names(x) && !is.null(x$data) &&
       !"probs" %in% names(x$data$index[[1]])
   ) {
     return(FALSE)

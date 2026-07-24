@@ -40,6 +40,7 @@ Imports:
     vctrs,
     xpose
 Suggests:
+    bbr,
     callr,
     DiagrammeR,
     knitr,
@@ -62,3 +63,4 @@ URL: https://jprybylski.github.io/xpose.xtras/, https://github.com/jprybylski/xp
 Language: en-US
 Config/Needs/website: rmarkdown
 Config/roxygen2/version: 8.0.0
+Additional_repositories: https://mpn.metworx.com/snapshots/stable/2026-06-25
