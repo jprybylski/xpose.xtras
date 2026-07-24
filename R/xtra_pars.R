@@ -1205,11 +1205,17 @@ cov_effect_fun <- function(assoc, argus) {
 # Propagate theta uncertainty (SE) through `fun` at fixed evaluation point(s)
 # `cov` (may be a vector), treating each theta independently (no cross-theta
 # covariance -- see dev-notes for why). Returns list(low=, high=), same
-# length as `cov`.
-cov_effect_ci <- function(fun, cov, ref, theta, se, ci_method, level, nsim) {
+# length as `cov`. If `keep_draws=TRUE` (only valid with `ci_method =
+# "simulation"`), also returns `draws`: a list, same length as `cov`, each
+# element the `nsim` raw simulated effect-ratio draws for that evaluation
+# point -- for eg a forest plot violin layer (see xplot_forest()).
+cov_effect_ci <- function(fun, cov, ref, theta, se, ci_method, level, nsim, keep_draws = FALSE) {
   names(cov) <- NULL # keep results unnamed regardless of a named `cov` (eg low/ref/high)
   alpha <- 1 - level
   n_theta <- length(theta)
+
+  if (keep_draws && ci_method != "simulation")
+    cli::cli_abort("`keep_draws` requires `ci_method = \"simulation\"` (no draws exist for the delta method).")
 
   if (any(is.na(se))) {
     if (ci_method=="delta") {
@@ -1226,7 +1232,9 @@ cov_effect_ci <- function(fun, cov, ref, theta, se, ci_method, level, nsim) {
     sim_effects <- apply(theta_draws, 1, function(th) fun(cov, ref, th))
     if (is.null(dim(sim_effects))) sim_effects <- matrix(sim_effects, nrow = 1)
     ci <- apply(sim_effects, 1, stats::quantile, probs = c(alpha/2, 1-alpha/2), na.rm = TRUE)
-    return(list(low = unname(ci[1, ]), high = unname(ci[2, ])))
+    out <- list(low = unname(ci[1, ]), high = unname(ci[2, ]))
+    if (keep_draws) out$draws <- lapply(seq_len(nrow(sim_effects)), function(i) unname(sim_effects[i, ]))
+    return(out)
   }
 
   # Delta method: numerical gradient of log(effect) w.r.t. each theta,
@@ -1309,10 +1317,15 @@ filter_cov_selectors <- function(covs, dots, par_tbl) {
 #' @param level <`numeric`> Confidence level for the effect interval.
 #' @param nsim <`numeric`> Number of simulation draws, when
 #' `ci_method = "simulation"`.
+#' @param keep_draws <`logical`> If `TRUE` (requires
+#' `ci_method = "simulation"`), attach a `draws` list-column: the raw
+#' `nsim` simulated effect-ratio draws behind each row's CI. Mainly
+#' intended for a forest-plot violin/density layer; most users won't need
+#' this.
 #' @param quiet Silence extra output.
 #'
-#' @returns A `prm_cov_tbl` tibble (a plain tibble, classed for a future
-#' print method) with one row per (parameter, covariate, evaluation point):
+#' @returns A `prm_cov_tbl` tibble with one row per (parameter, covariate,
+#' evaluation point):
 #' `param`, `covariate`, `covtype`, `level` (`"low"`/`"ref"`/`"high"` for
 #' continuous, the raw category value for categorical), `value` (the
 #' covariate value/level backing that row), `effect`, `ci_low`, `ci_high`,
@@ -1357,6 +1370,7 @@ prm_contcov <- function(
     probs = c(0.05, 0.95),
     level = 0.95,
     nsim = 1000,
+    keep_draws = FALSE,
     quiet
 ) {
   if (!check_xpdb_x(xpdb, .warn = TRUE))
@@ -1387,9 +1401,9 @@ prm_contcov <- function(
     fun <- cov_effect_fun(assoc, argus)
     point_effect <- fun(eval_pts, ref, theta_val)
     ci <- cov_effect_ci(fun=fun, cov=eval_pts, ref=ref, theta=theta_val, se=theta_se,
-                         ci_method=ci_method, level=level, nsim=nsim)
+                         ci_method=ci_method, level=level, nsim=nsim, keep_draws=keep_draws)
 
-    tibble::tibble(
+    row <- tibble::tibble(
       param = label_or_name(par_tbl, par_idx),
       covariate = covariate,
       covtype = "cont",
@@ -1400,6 +1414,8 @@ prm_contcov <- function(
       ci_high = ci$high,
       ci_method = ci_method
     )
+    if (keep_draws) row$draws <- ci$draws
+    row
   })
   as_prm_cov_tbl(out)
 }
@@ -1415,6 +1431,7 @@ prm_catcov <- function(
     ci_method = c("simulation", "delta"),
     level = 0.95,
     nsim = 1000,
+    keep_draws = FALSE,
     quiet
 ) {
   if (!check_xpdb_x(xpdb, .warn = TRUE))
@@ -1455,9 +1472,11 @@ prm_catcov <- function(
         lv <- obs_levels[i]
         point_effect <- fun(lv, ref, theta_val)
         ci <- cov_effect_ci(fun=fun, cov=lv, ref=ref, theta=theta_val, se=theta_se,
-                             ci_method=ci_method, level=level, nsim=nsim)
-        tibble::tibble(level = obs_chr[i], value = obs_chr[i],
+                             ci_method=ci_method, level=level, nsim=nsim, keep_draws=keep_draws)
+        row <- tibble::tibble(level = obs_chr[i], value = obs_chr[i],
                        effect = as.numeric(point_effect), ci_low = ci$low, ci_high = ci$high)
+        if (keep_draws) row$draws <- ci$draws
+        row
       })
     } else { # catshift
       nonref_chr <- setdiff(obs_chr, ref_chr)
@@ -1468,14 +1487,18 @@ prm_catcov <- function(
       rows <- purrr::map_dfr(seq_along(obs_levels), function(i) {
         lv <- obs_levels[i]
         if (identical(obs_chr[i], ref_chr)) {
-          return(tibble::tibble(level = obs_chr[i], value = obs_chr[i], effect = 1, ci_low = 1, ci_high = 1))
+          row <- tibble::tibble(level = obs_chr[i], value = obs_chr[i], effect = 1, ci_low = 1, ci_high = 1)
+          if (keep_draws) row$draws <- list(rep(1, nsim)) # no uncertainty at the reference level, by construction
+          return(row)
         }
         j <- match(obs_chr[i], nonref_chr)
         shift_fun <- function(cov, r, theta) 1 + theta[1]
         ci <- cov_effect_ci(fun=shift_fun, cov=lv, ref=ref, theta=theta_val[j], se=theta_se[j],
-                             ci_method=ci_method, level=level, nsim=nsim)
-        tibble::tibble(level = obs_chr[i], value = obs_chr[i],
+                             ci_method=ci_method, level=level, nsim=nsim, keep_draws=keep_draws)
+        row <- tibble::tibble(level = obs_chr[i], value = obs_chr[i],
                        effect = 1 + theta_val[j], ci_low = ci$low, ci_high = ci$high)
+        if (keep_draws) row$draws <- ci$draws
+        row
       })
     }
 
@@ -1500,6 +1523,7 @@ prm_cov <- function(
     probs = c(0.05, 0.95),
     level = 0.95,
     nsim = 1000,
+    keep_draws = FALSE,
     quiet
 ) {
   if (!check_xpdb_x(xpdb, .warn = TRUE))
@@ -1509,9 +1533,9 @@ prm_cov <- function(
 
   as_prm_cov_tbl(dplyr::bind_rows(
     prm_contcov(xpdb, ..., .problem=.problem, .subprob=.subprob, .method=.method,
-                ci_method=ci_method, probs=probs, level=level, nsim=nsim, quiet=quiet),
+                ci_method=ci_method, probs=probs, level=level, nsim=nsim, keep_draws=keep_draws, quiet=quiet),
     prm_catcov(xpdb, ..., .problem=.problem, .subprob=.subprob, .method=.method,
-               ci_method=ci_method, level=level, nsim=nsim, quiet=quiet)
+               ci_method=ci_method, level=level, nsim=nsim, keep_draws=keep_draws, quiet=quiet)
   ))
 }
 

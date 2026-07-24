@@ -16,6 +16,7 @@ prm_contcov(
   probs = c(0.05, 0.95),
   level = 0.95,
   nsim = 1000,
+  keep_draws = FALSE,
   quiet
 )
 
@@ -28,6 +29,7 @@ prm_catcov(
   ci_method = c("simulation", "delta"),
   level = 0.95,
   nsim = 1000,
+  keep_draws = FALSE,
   quiet
 )
 
@@ -41,6 +43,7 @@ prm_cov(
   probs = c(0.05, 0.95),
   level = 0.95,
   nsim = 1000,
+  keep_draws = FALSE,
   quiet
 )
 }
@@ -78,11 +81,17 @@ covariate's observed data used as the "low"/"high" evaluation points.}
 \item{nsim}{<\code{numeric}> Number of simulation draws, when
 \code{ci_method = "simulation"}.}
 
+\item{keep_draws}{<\code{logical}> If \code{TRUE} (requires
+\code{ci_method = "simulation"}), attach a \code{draws} list-column: the raw
+\code{nsim} simulated effect-ratio draws behind each row's CI. Mainly
+intended for a forest-plot violin/density layer; most users won't need
+this.}
+
 \item{quiet}{Silence extra output.}
 }
 \value{
-A \code{prm_cov_tbl} tibble (a plain tibble, classed for a future
-print method) with one row per (parameter, covariate, evaluation point):
+A \code{prm_cov_tbl} tibble with one row per (parameter, covariate,
+evaluation point):
 \code{param}, \code{covariate}, \code{covtype}, \code{level} (\code{"low"}/\code{"ref"}/\code{"high"} for
 continuous, the raw category value for categorical), \code{value} (the
 covariate value/level backing that row), \code{effect}, \code{ci_low}, \code{ci_high},

@@ -613,3 +613,32 @@ test_that("prm_cov_tbl has a custom print method", {
   expect_s3_class(empty_out, "prm_cov_tbl")
   expect_no_message(print(empty_out))
 })
+
+test_that("keep_draws exposes raw simulation draws", {
+  x <- xpdb_x %>%
+    add_cov_association(
+      TVCL ~ power(CLCR, THETA7, ref = 64),
+      TVCL ~ catshift(SEX, THETA4, ref = 1)
+    )
+
+  out <- x %>% prm_cov(keep_draws = TRUE, nsim = 500)
+  expect_true("draws" %in% names(out))
+  expect_true(all(lengths(out$draws) == 500))
+
+  # No uncertainty at the reference level/value, by construction
+  expect_true(all(out$draws[[which(out$level == "ref")]] == 1))
+  expect_true(all(out$draws[[which(out$level == "1")]] == 1))
+
+  # Non-reference draws are centered near the point estimate
+  other <- out$draws[[which(out$level == "2")]]
+  expect_equal(mean(other), out$effect[out$level == "2"], tolerance = 0.05)
+
+  # keep_draws requires simulation
+  expect_error(
+    x %>% prm_cov(ci_method = "delta", keep_draws = TRUE),
+    "requires.*simulation"
+  )
+
+  # Default (keep_draws = FALSE) has no draws column
+  expect_false("draws" %in% names(x %>% prm_cov()))
+})
