@@ -602,3 +602,14 @@ test_that("hockey and additive builtins compute distinct/expected effects", {
   expect_equal(out2$effect[out2$level == "low"], (theta7+qs[1])/(theta7+64), tolerance = 1e-6)
   expect_equal(out2$effect[out2$level == "high"], (theta7+qs[2])/(theta7+64), tolerance = 1e-6)
 })
+
+test_that("prm_cov_tbl has a custom print method", {
+  x <- xpdb_x %>% add_cov_association(TVCL ~ power(CLCR, THETA7, ref = 64))
+  out <- x %>% prm_cov()
+  expect_s3_class(out, "prm_cov_tbl")
+  expect_message(print(out), "ratio to the parameter")
+
+  empty_out <- xpdb_x %>% prm_cov()
+  expect_s3_class(empty_out, "prm_cov_tbl")
+  expect_no_message(print(empty_out))
+})

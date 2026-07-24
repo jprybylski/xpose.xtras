@@ -1530,6 +1530,18 @@ as_prm_cov_tbl <- function(tbl) {
   structure(tbl, class = c("prm_cov_tbl", class(tbl)))
 }
 
+#' @method print prm_cov_tbl
+#' @export
+print.prm_cov_tbl <- function(x, ...) {
+  NextMethod()
+  if (nrow(x)>0) {
+    cli::cli_inform(cli::col_grey(paste(
+      "# `effect` is a ratio to the parameter's typical value (1 at the reference covariate value/level);",
+      "CI via {.strong {paste(unique(x$ci_method), collapse = ', ')}}."
+    )))
+  }
+}
+
 
 # Transform parameter values
 #' Transform parameter values in place
