@@ -30,7 +30,9 @@ focus_qapply(xpdb_s, fn, ..., .mods = everything())
 \item{.mods}{<\code{tidyselect}> Model names in set to quick-apply a function. See Details.}
 }
 \value{
-An \code{xpose_set} object with the focused xpdb object(s)
+An \code{xpose_set} object with the focused xpdb object(s) transformed in place, or,
+for functions that do not return an \code{xpose_data}/\code{xp_xtras} object, the output of \code{fn}
+(or a named list of outputs, if multiple elements are focused)
 }
 \description{
 For piping, set is passed, but with S3 method transformations are applied to the focused \code{xpdb} object.
@@ -45,6 +47,17 @@ of the set so should only be used in the case where a quick application
 suffices. Otherwise, focusing with a sequence of \code{focus_function} calls
 (or a monolithic single \code{focus_function} call with a custom function)
 should be preferred.
+
+\code{focus_function()}/\code{focus_qapply()} support two kinds of \code{fn}:
+\itemize{
+\item \emph{Transform} functions, which take an \code{xpose_data}/\code{xp_xtras} object and return one
+(e.g. \code{\link{set_var_types_x}}). These are applied to each focused element in place, and
+the (still-focused) \code{xpose_set} is returned so calls can keep being piped.
+\item \emph{Output-generating} functions, which take an \code{xpose_data}/\code{xp_xtras} object but return
+something else (e.g. a plot or table). These are applied to each focused element, and
+the raw output is returned instead of an \code{xpose_set}: a single value if only one element
+is focused, or a named list (by label) of outputs if several are focused.
+}
 }
 \examples{
 
@@ -74,5 +87,16 @@ pheno_set \%>\%
   select(run6) \%>\%
   {.[[1]]$xpdb} \%>\%
   list_vars()
+
+# Output-generating function applied to a single focused element:
+# returns the plot itself, not an xpose_set
+pheno_set \%>\%
+  focus_xpdb(run6) \%>\%
+  focus_function(xpose::dv_vs_ipred)
+
+# ... or with several elements focused, a named list of plots
+pheno_set \%>\%
+  focus_xpdb(run6, run7) \%>\%
+  focus_function(xpose::dv_vs_ipred)
 
 }
