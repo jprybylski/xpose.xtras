@@ -30,6 +30,17 @@ test_that("model averaging xpdb (modavg_xpdb) works", {
     modavg_xpdb(pheno_set, run5:run8, quiet = TRUE, avg_cols = DV, auto_backfill = FALSE),
     "Indiv.*OFV.*required.*Set.*auto_backfill"
   )
+  expect_error(
+    pheno_set %>%
+      modavg_xpdb(auto_backfill = TRUE, quiet=TRUE),
+    "Columns to average are required.*avg_cols"
+  )
+  expect_error(
+    pheno_set %>%
+      modavg_xpdb(avg_cols = DV, auto_backfill = TRUE, quiet=TRUE,
+                  weight_basis = "res", res_col = c("RES","WRES")),
+    "Only one residual column.*weighting basis"
+  )
 
   # Test setup for calculations and algorithm
   set.seed(100) # this works for most cases, except really small denominators,

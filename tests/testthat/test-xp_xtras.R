@@ -485,6 +485,70 @@ test_that("iofv can be backfilled", {
 
 })
 
+test_that("check_xpdb_x detects missing probs/pars top-level components", {
+  no_probs <- xpdb_x
+  no_probs$data$index <- purrr::map(no_probs$data$index, ~ dplyr::select(.x, -probs))
+  expect_false(check_xpdb_x(no_probs, .warn = FALSE))
+
+  no_pars <- xpdb_x
+  no_pars$pars <- NULL
+  expect_false(check_xpdb_x(no_pars, .warn = FALSE))
+
+  no_covs <- xpdb_x
+  no_covs$covs <- NULL
+  expect_false(check_xpdb_x(no_covs, .warn = FALSE))
+})
+
+test_that("print.xp_xtras shows nlmixr2-specific fit line", {
+  skip_if_not_installed("rxode2")
+  skip_if(utils::packageVersion("rxode2") < "5.0",
+          "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
+
+  nlmixr2_x <- as_xp_xtras(get_xpdb_nlmixr2_old())
+  expect_equal(xpose::software(nlmixr2_x), "nlmixr2")
+  expect_message(
+    print(nlmixr2_x),
+    "fit: attached as \\(this\\)\\$fit"
+  )
+})
+
+test_that("set_var_types.default routes cross-compatible xp_xtras objects to the xp_xtras method", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  secret_xp_xtra <- as_xpdb_x(xpdb_ex_pk)
+  class(secret_xp_xtra) <- class(xpdb_ex_pk)
+  expect_false(is_xp_xtras(secret_xp_xtra))
+
+  expect_identical(
+    set_var_types(secret_xp_xtra),
+    set_var_types.xp_xtras(secret_xp_xtra)
+  )
+})
+
+test_that("list_vars.default routes cross-compatible xp_xtras objects to the xp_xtras method", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  secret_xp_xtra <- as_xpdb_x(xpdb_ex_pk)
+  class(secret_xp_xtra) <- class(xpdb_ex_pk)
+  expect_false(is_xp_xtras(secret_xp_xtra))
+
+  expect_message(
+    list_vars(secret_xp_xtra),
+    "MED1"
+  )
+})
+
+test_that("list_vars.xp_xtras spins for interactive sessions", {
+  testthat::local_mocked_bindings(
+    is_interactive = function(...) TRUE,
+    .package = "rlang"
+  )
+  expect_message(
+    list_vars(xpdb_x),
+    "MED1"
+  )
+})
+
 test_that("as_xpdb_x applies session-wide default gg_theme/xp_theme options", {
   data("xpdb_ex_pk", package = "xpose", envir = environment())
 

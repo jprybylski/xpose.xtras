@@ -21,6 +21,28 @@ test_that("get_* functions work", {
 
 })
 
+test_that("get_prop handles multi-row properties", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  # multiple rows but all problem==0/subprob==0 (eg a duplicated run-level
+  # property) skips the .problem/.subprob filter and returns every value
+  xpdb_dup <- xpdb_ex_pk
+  descr_row <- xpdb_dup$summary[xpdb_dup$summary$label == "descr", ][1, ]
+  descr_row$value <- "second description"
+  xpdb_dup$summary <- dplyr::bind_rows(xpdb_dup$summary, descr_row)
+  expect_equal(
+    get_prop(xpdb_dup, "descr"),
+    c("NONMEM PK example for xpose", "second description")
+  )
+
+  # multi-row property, filtered to a .problem with no matching rows errors
+  # informatively
+  expect_error(
+    get_prop(xpdb_ex_pk, "label", .problem = 99),
+    "No summary item matching"
+  )
+})
+
 test_that("set_* functions works", {
 
   data("xpdb_ex_pk", package = "xpose", envir = environment())

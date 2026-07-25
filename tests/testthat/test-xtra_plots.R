@@ -62,6 +62,35 @@ test_that("xpose_plot(s) can be grabbed", {
     "Use built-in xpose pagination"
   )
 
+  # list-of-plots recurses over each element
+  grabbed_list <- suppressMessages(grab_xpose_plot(list(test_plot, test_plot)))
+  expect_type(grabbed_list, "list")
+  expect_length(grabbed_list, 2)
+  expect_equal(grabbed_list[[1]]$labels$title, grabbed_title)
+  expect_equal(grabbed_list[[2]]$labels$title, grabbed_title)
+
+})
+
+test_that("apply_lul_wide auto-detects columns when `cols` is not supplied", {
+  # apply_lul_wide() is designed around one-row-per-subject wide covariate
+  # tables (see covariates.R callers); build a small one from xpdb_x so the
+  # `cols = NULL` auto-detection path (mirroring the underlying xpdb's data
+  # column names) has consistent types to pivot.
+  xpdb_small <- xpdb_x
+  full_data <- xpose::get_data(xpdb_x, .problem = 1, quiet = TRUE)
+  baseline <- full_data %>%
+    dplyr::group_by(ID) %>%
+    dplyr::slice(1) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(ID, SEX, MED1, MED2, DOSE, WT, AGE, CLCR)
+  idx <- which(xpdb_small$data$problem == 1)
+  xpdb_small$data$data[[idx]] <- baseline
+
+  lvl_cols <- c("ID", "SEX", "MED1", "MED2")
+  fn_auto <- apply_lul_wide(xpdb_small, .problem = 1, lvl_cols = lvl_cols)
+  fn_explicit <- apply_lul_wide(xpdb_small, cols = names(baseline), .problem = 1, lvl_cols = lvl_cols)
+
+  expect_identical(fn_auto(baseline), fn_explicit(baseline))
 })
 
 test_that("GGally wrapper works", {

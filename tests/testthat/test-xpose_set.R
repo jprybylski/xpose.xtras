@@ -68,6 +68,32 @@ test_that("xpose_set() assembly works", {
 
 })
 
+test_that("xpose_set() repairs duplicate names from spliced dots (rlang/issue#1740 workaround)", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  xpdb_ex_pk2 <- xpdb_ex_pk
+
+  # Simulate the upstream rlang bug where the initial dots_list() homonyms
+  # check doesn't catch duplicate names coming from a spliced (!!!) list --
+  # the first call to rlang::dots_list() silently keeps the duplicates, and
+  # xpose_set()'s own dedup/re-trigger logic (lines ~71-77) is what actually
+  # raises the error.
+  orig_dots_list <- rlang::dots_list
+  call_count <- 0
+  testthat::local_mocked_bindings(
+    dots_list = function(..., .named = TRUE, .homonyms = "error") {
+      call_count <<- call_count + 1
+      if (call_count == 1) {
+        orig_dots_list(..., .named = .named, .homonyms = "keep")
+      } else {
+        orig_dots_list(..., .named = .named, .homonyms = .homonyms)
+      }
+    },
+    .package = "rlang"
+  )
+  dup_list <- list(a = xpdb_ex_pk, a = xpdb_ex_pk2)
+  expect_error(xpose_set(!!!dup_list), "unique names")
+})
+
 
 test_that("xpose_set() relationships works", {
   data("xpdb_ex_pk", package = "xpose", envir = environment())
@@ -243,6 +269,17 @@ test_that("parameters can be exposed", {
   )
 })
 
+test_that("expose_param() spins for interactive sessions", {
+  testthat::local_mocked_bindings(
+    is_interactive = function(...) TRUE,
+    .package = "rlang"
+  )
+  expect_identical(
+    expose_param(pheno_set, the1),
+    expose_param(pheno_set, "the1")
+  )
+})
+
 
 test_that("methods work", {
   # c() tested in xpose_set generating functions
@@ -260,6 +297,15 @@ test_that("methods work", {
   expect_message(print(xpdb_set[[1]]))
   expect_message(print(exp_set[[1]]), regexp = "(ofv|runtime)")
   suppressMessages(expect_no_message(print(xpdb_set[[1]]), message = "(ofv|runtime)"))
+
+  # print.xpose_set spins for interactive sessions, including the truncation
+  # footer branch when both the model list and focused list are truncated
+  testthat::local_mocked_bindings(
+    is_interactive = function(...) TRUE,
+    .package = "rlang"
+  )
+  expect_message(print(xpdb_set))
+  expect_message(print(focus_xpdb(big_set, everything())), regexp = "truncated")
 
 
   expect_identical(xpdb_set, xpdb_set[])
@@ -349,6 +395,18 @@ test_that("methods work", {
     names(xpdb_set)
   )
 
+})
+
+test_that("print.xpose_set_item() falls back to capture.output() for non-xp_xtras xpdb elements", {
+  plain_item <- xpdb_set[[1]]
+  expect_true(is_xp_xtras(plain_item$xpdb))
+  class(plain_item$xpdb) <- setdiff(class(plain_item$xpdb), "xp_xtras")
+  expect_false(is_xp_xtras(plain_item$xpdb))
+
+  expect_message(
+    print(plain_item),
+    "overview"
+  )
 })
 
 test_that("focusing works", {

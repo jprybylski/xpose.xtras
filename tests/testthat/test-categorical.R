@@ -513,3 +513,42 @@ test_that("catdv can be plotted longitudinally by occasion (catdv_vs_occ)", {
   expect_true("COHORT" %in% names(facet_plot$data))
   expect_equal(nrow(facet_plot$data) %% 2, 0)
 })
+
+test_that("quiet defaults from xpdb options when omitted (catdv plots)", {
+  m3_test_dummy <- pkpd_m3 %>%
+    set_var_types(.problem=1, catdv=BLQ, dvprobs=LIKE) %>%
+    set_dv_probs(.problem=1, 1~LIKE)
+
+  expect_no_error(m3_test_dummy %>% catdv_vs_dvprobs())
+  expect_no_error(m3_test_dummy %>% catdv_vs_ipred(bins = 5))
+
+  vismo_occ <- vismo_pomod %>%
+    set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\d+$")) %>%
+    set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23) %>%
+    xpose::mutate(OCC = ceiling((TIME+1)/24), .problem=1) %>%
+    set_var_types(.problem=1, occ=OCC) %>%
+    set_var_levels(.problem=1, OCC = lvl_inord(paste0("Day", 1:12)))
+  expect_no_error(vismo_occ %>% catdv_vs_occ())
+})
+
+test_that("check_probs requires a list of formulas", {
+  expect_error(
+    check_probs(list(1, 2), get_index(pkpd_m3), "BLQ"),
+    "List of formulas required"
+  )
+})
+
+test_that("list_dv_probs validates its xpdb and .problem inputs", {
+  suppressMessages(expect_error(
+    list_dv_probs(xpose::xpdb_ex_pk, .dv_var = MED1),
+    "xp_xtras.*required"
+  ))
+
+  xpx_w_types <- pkpd_m3 %>%
+    set_var_types(.problem=1, catdv=BLQ, dvprobs=LIKE) %>%
+    set_dv_probs(.problem=1, 1~LIKE)
+  expect_error(
+    list_dv_probs(xpx_w_types, .problem = 99, .dv_var = BLQ),
+    "99.*not valid"
+  )
+})

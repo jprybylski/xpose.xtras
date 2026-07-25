@@ -105,6 +105,21 @@ test_that("multiplication works", {
 
 })
 
+test_that("xset_waterfall() errors when fetch_data() returns no data", {
+  # In practice nind_filter()'s own "filters out all data" abort() fires
+  # before this defensive NULL/0-row check downstream is ever reached, so
+  # xpose::fetch_data() is mocked directly to exercise it.
+  two_mod_set <- xpose_set(pheno_base,pheno_final)
+  testthat::local_mocked_bindings(
+    fetch_data = function(...) NULL,
+    .package = "xpose"
+  )
+  expect_error(
+    xset_waterfall(two_mod_set, .cols = ETA1, quiet = TRUE),
+    "No data available for plotting"
+  )
+})
+
 test_that("waterfall_helper is helpful", {
   col_env <- new.env()
   two_mod_set <- xpose_set(pheno_base,pheno_final)

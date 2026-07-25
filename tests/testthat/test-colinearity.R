@@ -203,6 +203,22 @@ test_that("cormat errors informatively when the covariance step is missing", {
   )
 })
 
+test_that("get_cov_matrix and cormat default quiet from xpdb options when omitted", {
+  expect_no_error(get_cov_matrix(xpdb_x))
+  expect_no_error(cormat(xpdb_x))
+})
+
+test_that("cormat requires at least two estimated parameters", {
+  xpdb_1prm <- xpdb_x
+  cor_idx <- which(xpdb_1prm$files$extension == "cor")
+  xpdb_1prm$files$data[[cor_idx]] <- xpdb_1prm$files$data[[cor_idx]][1, c("NAME", "THETA1")]
+
+  expect_error(
+    cormat(xpdb_1prm, quiet = TRUE),
+    "At least two estimated parameters"
+  )
+})
+
 test_that("cormat works for nlmixr2 models", {
   skip_if_not_installed("rxode2")
   skip_if(
