@@ -256,3 +256,21 @@ test_that("model averaging xpdb (modavg_xpdb) works", {
     )
   }
 })
+
+test_that("modavg_xpdb() summarizes the run property for large sets", {
+  # pheno_set has 14 models; > 5 should be summarized rather than fully listed
+  big_avg <- pheno_set %>%
+    modavg_xpdb(avg_cols = DV, auto_backfill = TRUE, quiet = TRUE)
+  expect_match(
+    get_prop(big_avg, "run"),
+    "^14 models \\(run3, run4, run5, \\.\\.\\.\\)$"
+  )
+
+  # 5 or fewer models keeps the full, unsummarized run list
+  small_avg <- pheno_set %>%
+    modavg_xpdb(run3, run4, run5, avg_cols = DV, auto_backfill = TRUE, quiet = TRUE)
+  expect_identical(
+    get_prop(small_avg, "run"),
+    "run3, run4 and run5"
+  )
+})

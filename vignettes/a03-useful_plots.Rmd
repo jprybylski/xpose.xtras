@@ -36,7 +36,7 @@ pheno_set %>%
   ipred_vs_idv_modavg(auto_backfill = TRUE, quiet=TRUE)
 ```
 
-The default title, subtitle and caption for these experimental figures are rough, especially for large sets. Changes for better appearance should be expected in the future.
+The default title, subtitle and caption for these experimental figures describe the averaging itself (the models being combined, and the algorithm/weighting used) rather than reusing labels from a single underlying model, which would be misleading in an averaged context. For sets with more than a handful of models, the model list is summarized rather than spelled out in full to keep the title readable.
 
 While a simple demonstration is not presented here, most plots can also be model-averaged using the generic `plotfun_modavg()` function.
 

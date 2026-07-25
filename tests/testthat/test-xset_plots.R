@@ -344,6 +344,52 @@ test_that("model averaged plots are consistent with manually-implemented", {
   }
 })
 
+test_that("plotfun_modavg() default subtitle/caption describe the averaging instead of a single model", {
+  # defaults (no explicit subtitle/caption/title) reflect algorithm/weight settings,
+  # not the misleading single-model @ofv/@epsshk/@dir tags `.fun`'s own defaults use
+  p <- plotfun_modavg(
+    pheno_set, run3, run4, run5, quiet = TRUE, auto_backfill = TRUE,
+    .fun = xpose::ipred_vs_idv,
+    algorithm = "maa", weight_type = "individual", weight_basis = "ofv"
+  )
+  expect_identical(p$labels$subtitle, "Model averaging (ofv-weighted, individual)")
+  expect_identical(p$labels$caption, "Averaged: @run")
+
+  p_msa <- plotfun_modavg(
+    pheno_set, run3, run4, run5, quiet = TRUE, auto_backfill = TRUE,
+    .fun = xpose::ipred_vs_idv,
+    algorithm = "msa", weight_type = "population", weight_basis = "aic"
+  )
+  expect_identical(p_msa$labels$subtitle, "Model selection (aic-weighted, population)")
+
+  # explicit subtitle/caption/title (matched to `.fun`'s formals) are left untouched
+  p_custom <- plotfun_modavg(
+    pheno_set, run3, run4, run5, quiet = TRUE, auto_backfill = TRUE,
+    .fun = xpose::ipred_vs_idv,
+    title = "custom title", subtitle = "custom sub", caption = "custom cap"
+  )
+  expect_identical(p_custom$labels$title, "custom title")
+  expect_identical(p_custom$labels$subtitle, "custom sub")
+  expect_identical(p_custom$labels$caption, "custom cap")
+
+  # invalid algorithm/weight_type/weight_basis are rejected up front
+  expect_error(
+    plotfun_modavg(pheno_set, run3, run4, run5, quiet = TRUE, auto_backfill = TRUE,
+                   .fun = xpose::ipred_vs_idv, algorithm = "bogus"),
+    "algorithm.*must be one of"
+  )
+  expect_error(
+    plotfun_modavg(pheno_set, run3, run4, run5, quiet = TRUE, auto_backfill = TRUE,
+                   .fun = xpose::ipred_vs_idv, weight_type = "bogus"),
+    "weight_type.*must be one of"
+  )
+  expect_error(
+    plotfun_modavg(pheno_set, run3, run4, run5, quiet = TRUE, auto_backfill = TRUE,
+                   .fun = xpose::ipred_vs_idv, weight_basis = "bogus"),
+    "weight_basis.*must be one of"
+  )
+})
+
 test_that("pred comparison plots work", {
   expect_no_error(
     xpose_set(pheno_base,pheno_final) %>%

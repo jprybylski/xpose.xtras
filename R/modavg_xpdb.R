@@ -105,6 +105,19 @@ modavg_xpdb <- function(
       rlang::abort(auto_backfill_suggestion, parent = s)
     }
   )
+  # franken_prop() (called within franken_xpdb()) collapses every
+  # underlying run name into the "run" property (@run in title/subtitle/
+  # caption templates), which is unreadable once more than a handful of
+  # models are averaged together. Summarize it instead of listing every run.
+  if (length(xpdb_l) > 5) {
+    run_names <- purrr::map_chr(xpdb_l, get_prop, "run")
+    xpdb_f <- xpdb_f %>%
+      set_prop(run = sprintf(
+        "%d models (%s, ...)",
+        length(run_names),
+        paste(utils::head(run_names, 3), collapse = ", ")
+      ))
+  }
   # To make working with new columns easier
   ofv_cols <- purrr::map_chr(
     xpdb_l,

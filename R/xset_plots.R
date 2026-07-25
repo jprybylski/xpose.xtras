@@ -773,6 +773,9 @@ plotfun_modavg <- function(
     quiet) {
   if (!is.function(.fun))
     cli::cli_abort("`.fun` must be a function, not a {.emphasis {class(.fun)[1]}}")
+  algorithm    <- rlang::arg_match(algorithm, values = c("maa", "msa"))
+  weight_type  <- rlang::arg_match(weight_type, values = c("population", "individual"))
+  weight_basis <- rlang::arg_match(weight_basis, values = c("ofv", "aic", "res"))
   # Prevent potentially common partial_match confusion
   if ("xpdb" %in% rlang::call_args_names(rlang::frame_call())) {
     if (xpose::is.xpdb(xpdb_s))
@@ -807,6 +810,17 @@ plotfun_modavg <- function(
     "Model averaged",
     formals(.fun)$title
   )
+  # `.fun`'s own subtitle/caption defaults (eg "Ofv: @ofv") are pulled from
+  # a single underlying model (see franken_xpdb()), which is misleading once
+  # presented as if describing the averaged result. Replace them with a
+  # description of the averaging itself instead.
+  if (!"subtitle" %in% names(.funargs)) .funargs$subtitle <- sprintf(
+    "%s (%s-weighted, %s)",
+    switch(algorithm, maa = "Model averaging", msa = "Model selection"),
+    weight_basis,
+    weight_type
+  )
+  if (!"caption" %in% names(.funargs)) .funargs$caption <- "Averaged: @run"
   approach_that_works <- function(...) {
     .fun(
       maXPDB,
