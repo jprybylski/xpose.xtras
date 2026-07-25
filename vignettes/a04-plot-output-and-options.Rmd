@@ -30,6 +30,7 @@ A model diagnostic is rarely just a diagnostic once it leaves an R session. It b
 - `apply_default_labs()` / `set_default_labs()` fill in (or overwrite) plot titles, subtitles, captions and tags.
 - `add_watermark()` / `set_default_watermark()` stamp a plot with draft/preliminary/confidential-style text.
 - `ggsave_xp()` saves a plot, applying the above first, with a swappable save backend.
+- `plot.xpose_data()` / `set_default_plots()` generate a whole batch of diagnostic plots from one `xpdb` in a single call.
 
 All three read from the same kind of layered defaults, resolved in the same order every time: a session-wide R option, then a per-model (`xpdb`) default, then whatever is passed directly to the function call. `set_xtras_options()` and `get_xtras_option()` round this out by giving the whole `xpose.xtras.*` option family one place to be set and inspected.
 
@@ -119,6 +120,58 @@ options(xpose.xtras.default_watermark = list(label = "CONFIDENTIAL", colour = "f
 p %>%
   add_watermark()
 options(xpose.xtras.default_watermark = NULL)
+```
+
+## Generating a batch of plots with `plot()`
+
+Building a standard set of diagnostics for a model usually means calling several plotting functions one after another, then doing it all again for the next model. `plot.xpose_data()` (an S3 method for the base `plot()` generic) runs a whole list of plot-generating calls in one go and returns them as a flat, named list.
+
+Called with no `plots` argument, it runs this package's built-in default battery: `dv_vs_ipred`, `dv_vs_pred`, `res_vs_idv`, `res_vs_pred`, `eta_distrib`, `eta_grid`, `eta_vs_cov_grid`, and `ind_plots_sample`.
+
+```{r plot_default}
+default_plots <- plot(xpdb_x, quiet = TRUE)
+names(default_plots)
+default_plots$dv_vs_ipred
+```
+
+A custom `plots` list can mix bare functions and one-sided formulas in the `~ fn(.x)` idiom used elsewhere in this package (see `focus_function()`). The formula form lets extra arguments be baked straight into the call, which is also how the same underlying plot function can appear more than once with different options:
+
+```{r plot_custom}
+custom_plots <- plot(
+  xpdb_x,
+  plots = list(
+    xpose::dv_vs_ipred,
+    ~ xpose::res_vs_idv(.x, res = "CWRES"),
+    ~ xpose::res_vs_idv(.x, res = "IWRES")
+  ),
+  quiet = TRUE
+)
+names(custom_plots)
+```
+
+If a single entry itself returns a list of plots, that list is flattened into the overall output rather than kept nested, so the result is always a flat list regardless of what any one entry produces.
+
+A failing plot, by default, aborts the whole call immediately (showing the original error as its cause) without returning anything -- useful when a batch of plots feeds directly into a report and a silent gap would be worse than stopping early. Passing `force = TRUE` instead turns a failure into a warning and skips just that entry, so the rest of `plots` still gets a chance to run:
+
+```{r plot_force}
+flaky_plots <- plot(
+  xpdb_x,
+  plots = list(
+    xpose::dv_vs_ipred,
+    ~ stop("simulated failure"),
+    xpose::eta_distrib
+  ),
+  force = TRUE,
+  quiet = FALSE
+)
+names(flaky_plots)
+```
+
+Like `default_labs`/`default_watermark`, a project-wide `plots` spec can be set once via the `xpose.xtras.default_plots` session option (see `set_xtras_options()`), or attached to a specific `xpdb` with `set_default_plots()`, which takes precedence over the option. Unlike those two, though, this default is resolved as a whole rather than merged entry by entry -- a plot spec's entries aren't addressable by a stable key, since the same function can legitimately appear more than once:
+
+```{r plot_default_plots}
+xpdb_custom <- set_default_plots(xpdb_x, list(~ xpose::dv_vs_ipred(.x), ~ xpose::eta_distrib(.x)))
+names(plot(xpdb_custom, quiet = TRUE))
 ```
 
 ## Saving with `ggsave_xp()`
