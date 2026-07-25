@@ -153,6 +153,30 @@ test_that("xplot_boxplot", {
   )
 
 
+  # test legacy ggplot2 (<= 3.5.2) outlier-shape branch. Current ggplot2
+  # itself no longer accepts `outlier.shape` on GeomBoxplot (it now derives
+  # visibility from `outliers`), so this only exercises xplot_boxplot's own
+  # branch selection logic, not the resulting layer's outlier rendering.
+  testthat::local_mocked_bindings(
+    packageVersion = function(pkg) {
+      if (identical(pkg, "ggplot2")) package_version("3.5.0") else utils::packageVersion(pkg)
+    },
+    .package = "utils"
+  )
+  expect_no_error(
+    old_bo <- xplot_boxplot(xpdb_x, aes(MED1,ETA1), type = "bo", quiet = TRUE)
+  )
+  expect_no_error(
+    old_b <- xplot_boxplot(xpdb_x, aes(MED1,ETA1), type = "b", quiet = TRUE)
+  )
+  expect_setequal(geoms_lists(old_bo), "GeomBoxplot")
+  expect_setequal(geoms_lists(old_b), "GeomBoxplot")
+  # "j" (jitter) present alongside "o" (outliers) should also route through
+  # the same legacy branch without error (outliers suppressed since jittered)
+  expect_no_error(
+    xplot_boxplot(xpdb_x, aes(MED1,ETA1), type = "boj", quiet = TRUE)
+  )
+
   #### vdiffr tests to skip on CRAN
   skip_on_cran()
   skip_on_covr()

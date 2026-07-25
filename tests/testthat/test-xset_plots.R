@@ -362,6 +362,16 @@ test_that("pred comparison plots work", {
       pred_vs_pred(run6,run8,quiet=TRUE)
   )
 
+  # missing `quiet` arg falls back to mod1$xpdb$options$quiet
+  expect_no_error(
+    xpose_set(pheno_base,pheno_final) %>%
+      ipred_vs_ipred()
+  )
+  expect_no_error(
+    xpose_set(pheno_base,pheno_final) %>%
+      pred_vs_pred()
+  )
+
   example_xpdbs <- list(a=pheno_base,b=pheno_final)
   test_iplot <- xpose_set(!!!example_xpdbs) %>%
     ipred_vs_ipred(quiet=TRUE)
@@ -463,5 +473,41 @@ test_that("iofv trends can be shown in a boxplot", {
   expect_no_error(
     pheno_set %>%
       iofv_vs_mod(run5:run8, auto_backfill = TRUE, quiet=TRUE)
+  )
+
+  # Duplicate axis.text values across models trigger the uniquification warning
+  expect_message(
+    pheno_set %>%
+      iofv_vs_mod(run3, run6, axis.text = "dup", auto_backfill = TRUE, quiet=TRUE),
+    "Duplicate values"
+  )
+
+  # orientation = "y" swaps the x/y aesthetic mapping branch
+  expect_no_error(
+    pheno_set %>%
+      iofv_vs_mod(run3, run6, orientation = "y", auto_backfill = TRUE, quiet=TRUE)
+  )
+
+  # n_set_dots() errors when a formula-selected model isn't in the set
+  expect_error(
+    pheno_set %>%
+      iofv_vs_mod(fakename~run3, auto_backfill = TRUE, quiet=TRUE),
+    "Selected models not in set.*fakename"
+  )
+})
+
+test_that("iofv_vs_mod() adds an nlmixr2-specific hint when duplicate axis.text values include an nlmixr2 model", {
+  skip_if_not_installed("rxode2")
+  skip_if(utils::packageVersion("rxode2") < "5.0",
+          "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
+  skip_if_not_installed("nlmixr2est")
+
+  xn <- cached_nlmixr_example("xpdb_nlmixr2")
+  two_set <- xpose_set(a = xn, b = xn)
+
+  expect_message(
+    two_set %>%
+      iofv_vs_mod(axis.text = "dup", auto_backfill = TRUE, quiet = TRUE),
+    "nlmixr2.*axis.text"
   )
 })

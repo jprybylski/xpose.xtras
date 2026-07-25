@@ -48,6 +48,46 @@ test_that("xplot_forest draws the expected geoms per type", {
   )
 })
 
+test_that("xplot_forest defaults/theming branches are covered", {
+  test_df <- tibble::tibble(
+    y = factor(c("a", "b", "c"), levels = c("a", "b", "c")),
+    x = c(0.9, 1.0, 1.2),
+    xmin = c(0.8, 0.95, 1.1),
+    xmax = c(1.0, 1.05, 1.3)
+  )
+  opt <- xpose::data_opt(post_processing = function(d) test_df)
+  vars <- ggplot2::aes(x = x, y = y, xmin = xmin, xmax = xmax)
+
+  # missing `quiet` falls back to xpdb$options$quiet (not quiet -> message)
+  expect_message(
+    xplot_forest(xpdb_x, mapping = vars, opt = opt),
+    "Using data from"
+  )
+
+  # missing `opt` falls back to xpose::data_opt() (default data source)
+  expect_no_error(
+    xplot_forest(xpdb_x, mapping = ggplot2::aes(x = MED1, y = ETA1, xmin = ETA1, xmax = ETA1), quiet = TRUE)
+  )
+
+  # xp_theme override is applied
+  def_plot <- xplot_forest(xpdb_x, mapping = vars, opt = opt, quiet = TRUE)
+  themed_plot <- xplot_forest(xpdb_x, mapping = vars, opt = opt, quiet = TRUE,
+                              xp_theme = xpose::theme_xp_xpose4())
+  expect_failure(expect_identical(def_plot, themed_plot))
+
+  # non-xp_xtras input still works
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  expect_no_error(
+    xplot_forest(xpdb_ex_pk, mapping = vars, opt = opt, quiet = TRUE)
+  )
+
+  # explicit gg_theme override is applied (rather than the xpdb's default)
+  gg_themed_plot <- xplot_forest(xpdb_x, mapping = vars, opt = opt, quiet = TRUE,
+                                 gg_theme = xpose::theme_bw2())
+  expect_equal(gg_themed_plot$theme$panel.border, xpose::theme_bw2()$panel.border)
+  expect_failure(expect_equal(def_plot$theme$panel.border, xpose::theme_bw2()$panel.border))
+})
+
 test_that("xplot_forest errors on empty data", {
   empty_opt <- xpose::data_opt(post_processing = function(d) d[0, ])
   expect_error(

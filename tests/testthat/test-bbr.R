@@ -9,6 +9,16 @@ test_that("xp_from_bbr converts a finished bbr model to an xp_xtras object", {
   expect_identical(get_prop(xpdb, "descr"), "Phenobarbital SAEM model")
 })
 
+test_that("xp_from_bbr applies bbr description when the model has no parsed description", {
+  skip_if_not_installed("bbr")
+
+  mod <- make_bbr_fixture(id = "19", description = "Another test model")
+  xpdb <- suppressWarnings(xp_from_bbr(mod))
+
+  expect_true(test_xpdb(xpdb, "summary"))
+  expect_identical(get_prop(xpdb, "descr"), "Another test model")
+})
+
 test_that("xp_from_bbr respects .use_bbr_descr = FALSE", {
   skip_if_not_installed("bbr")
 

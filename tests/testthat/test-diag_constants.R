@@ -119,6 +119,71 @@ test_that('diagnose_constants checks unit consistency', {
   ))
 })
 
+test_that('diagnose_constants reports a percentage when multiple parameter sets are checked', {
+  # All existing flip_flop/neg_microvol tests above use single-row data
+  # frames, so the "nrows > 1" (multi-subject) branches of emit_check()
+  # were never exercised
+  df_multi_bad <- data.frame(KA = c(1, 0.1), ALPHA = c(0.5, 1))
+  suppressMessages(expect_message(
+    diagnose_constants(
+      df = df_multi_bad,
+      fo_rates = 'ALPHA',
+      checks = list(flip_flop = TRUE, neg_microvol = FALSE, units_match = FALSE)
+    ),
+    'Some parameter sets are suggestive of flip-flop \\(50\\.0%\\)'
+  ))
+
+  df_multi_good <- data.frame(KA = c(1, 2), ALPHA = c(0.5, 0.1))
+  suppressMessages(expect_message(
+    diagnose_constants(
+      df = df_multi_good,
+      fo_rates = 'ALPHA',
+      checks = list(flip_flop = TRUE, neg_microvol = FALSE, units_match = FALSE)
+    ),
+    'No parameter sets are suggestive of flip-flop'
+  ))
+
+  df_multi_micro <- data.frame(KA = 1, KEL = c(-0.2, 0.3), V = 5)
+  suppressMessages(expect_message(
+    diagnose_constants(
+      df = df_multi_micro,
+      fo_abs = 'KA',
+      micro_pattern = '^K',
+      vol_pattern = '^V$',
+      checks = list(flip_flop = FALSE, neg_microvol = TRUE, units_match = FALSE)
+    ),
+    'Some parameter sets have negative microconstants or volumes \\(50\\.0%\\)'
+  ))
+})
+
+test_that('diagnose_constants checks unit consistency for microconstants/volumes too', {
+  # Requires neg_microvol AND units_match both TRUE simultaneously; existing
+  # unit-consistency tests only ever exercised the flip_flop branch of the
+  # units_match check
+  df <- data.frame(KA = 1, ALPHA = 2, KEL = 0.2, V = 5)
+  matching_units <- list(KA = '1/hr', ALPHA = '1/hr', KEL = '1/hr', V = 'L')
+  suppressMessages(expect_message(
+    diagnose_constants(
+      df = df,
+      checks = list(flip_flop = FALSE, neg_microvol = TRUE, units_match = TRUE),
+      df_units = matching_units
+    ),
+    'All relevant units seem to match'
+  ))
+
+  # Two microconstant columns (K12, KEL) with inconsistent units
+  df2 <- data.frame(KA = 1, ALPHA = 2, K12 = 0.1, KEL = 0.2, V = 5)
+  mismatched_units <- list(KA = '1/hr', ALPHA = '1/hr', K12 = '1/hr', KEL = '1/min', V = 'L')
+  suppressMessages(expect_message(
+    diagnose_constants(
+      df = df2,
+      checks = list(flip_flop = FALSE, neg_microvol = TRUE, units_match = TRUE),
+      df_units = mismatched_units
+    ),
+    "Units don't match for microconstants/volumes"
+  ))
+})
+
 test_that('derive_prm requires rxode2', {
   skip_if(requireNamespace('rxode2', quietly = TRUE) &&
     'rxDerived' %in% getNamespaceExports('rxode2'))
@@ -128,6 +193,16 @@ test_that('derive_prm requires rxode2', {
 test_that('backfill_derived requires rxode2', {
   skip_if(requireNamespace('rxode2', quietly = TRUE) &&
     'rxDerived' %in% getNamespaceExports('rxode2'))
+  expect_error(backfill_derived(xpdb = 1), 'Need `rxode2`')
+})
+
+test_that('derive_prm/backfill_derived require rxode2, regardless of local install (#mocked)', {
+  # The two tests above are skipped whenever rxode2 (with rxDerived) happens
+  # to be installed, which leaves this validation branch uncovered on most
+  # dev machines/CI runners; mock `rlang::is_installed()` so the check is
+  # exercised unconditionally, without needing to actually uninstall rxode2
+  testthat::local_mocked_bindings(is_installed = function(...) FALSE, .package = "rlang")
+  expect_error(derive_prm(xpdb = 1), 'Need `rxode2`')
   expect_error(backfill_derived(xpdb = 1), 'Need `rxode2`')
 })
 

@@ -66,3 +66,80 @@ test_that("confmatr_by_threshold handles multiple thresholds and options", {
   res_cols <- confmatr_by_threshold(test_vec, true_vec, threshold = 0.5, pos_val = 1, cols = c(threshold, TPR, FPR))
   expect_equal(names(res_cols), c("threshold", "TPR", "FPR")) # only selected columns returned
 })
+
+test_that("roc_plot warns on multiple catdv columns and defaults quiet from xpdb options", {
+  xpdb_bal <- xpdb_x %>%
+    mutate(
+      # Balanced 0/1 BLQ (avoids the separate "sens/spec not calculable" warning)
+      BLQ = 1*(seq_len(length(DV))%%2 == 0),
+      LIKE = runif(length(DV))
+    ) %>%
+    set_var_types(catdv = BLQ, dvprobs = LIKE) %>%
+    set_dv_probs(1, 1 ~ LIKE, .dv_var = BLQ) %>%
+    set_var_levels(1, BLQ = lvl_bin())
+
+  expect_warning(
+    xpdb_bal %>%
+      set_var_types(catdv = DOSE, quiet = TRUE) %>%
+      roc_plot(cutpoint = 1, quiet = TRUE),
+    "Only one.*cat.*DV.*used.*BLQ"
+  )
+
+  # quiet omitted -> falls back to xpdb$options$quiet
+  expect_no_error(
+    roc_plot(xpdb_bal, cutpoint = 1, type = "c", guide = FALSE)
+  )
+})
+
+test_that("ind_roc warns on multiple catdv columns and defaults quiet from xpdb options", {
+  xpdb_bal <- xpdb_x %>%
+    mutate(
+      BLQ = 1*(seq_len(length(DV))%%2 == 0),
+      LIKE = runif(length(DV))
+    ) %>%
+    set_var_types(catdv = BLQ, dvprobs = LIKE) %>%
+    set_dv_probs(1, 1 ~ LIKE, .dv_var = BLQ) %>%
+    set_var_levels(1, BLQ = lvl_bin())
+
+  expect_warning(
+    xpdb_bal %>%
+      set_var_types(catdv = DOSE, quiet = TRUE) %>%
+      ind_roc(type = "c", quiet = TRUE),
+    "Only one.*cat.*DV.*used.*BLQ"
+  )
+
+  # quiet omitted -> falls back to xpdb$options$quiet
+  expect_no_error(
+    ind_roc(xpdb_bal, type = "c")
+  )
+})
+
+test_that("roc_by_mod defaults quiet from the first model and de-duplicates axis labels", {
+  base <- xpdb_x %>%
+    mutate(
+      BLQ = 1*(seq_len(length(DV))%%2 == 0),
+      LIKE = runif(length(DV))
+    ) %>%
+    set_var_types(catdv = BLQ, dvprobs = LIKE) %>%
+    set_dv_probs(1, 1 ~ LIKE, .dv_var = BLQ) %>%
+    set_var_levels(1, BLQ = lvl_bin())
+
+  # quiet omitted -> falls back to the first model's own quiet option
+  m3_set <- xpose_set(
+    run1 = set_prop(base, run = "run1"),
+    run2 = set_prop(base, run = "run2")
+  )
+  expect_no_error(roc_by_mod(m3_set, type = "c"))
+
+  # Same default axis.text ("@run") for both models triggers de-duplication;
+  # flagging one model as nlmixr2-sourced additionally surfaces the
+  # "@file may be better" hint
+  dup2 <- base
+  dup2$summary$value[dup2$summary$label == "software"] <- "nlmixr2"
+  dup_set <- xpose_set(run1 = base, run2 = dup2)
+
+  expect_message(
+    roc_by_mod(dup_set, type = "c", quiet = TRUE),
+    "Duplicate values"
+  )
+})

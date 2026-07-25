@@ -222,11 +222,11 @@ xplot_pairs <- function(
       }
       cor_txt
     }
-    xp_rho <- GGally::wrap("statistic", text_fn = rho_fun, title = catcont_opts$title, sep = ":\n")
+    xp_aov <- GGally::wrap("statistic", text_fn = rho_fun, title = catcont_opts$title, sep = ":\n")
   }
 
-  if (catcat_opts$use_rho && exists("xp_rho")) {
-    catcat_upper <- xp_rho
+  if (catcat_opts$use_rho) {
+    catcat_upper <- xp_aov
   } else {
     catcat_upper <- wrap_xp_ggally("count", xp_theme = xpdb$xp_theme)
   }
@@ -245,7 +245,7 @@ xplot_pairs <- function(
         continuous = wrapped_scatter, combo = wrapped_box, discrete = wrap_xp_ggally("facetbar", xp_theme = xpdb$xp_theme), na =
           "na"
       ),
-      upper = list(continuous = xp_cor, combo = xp_rho, discrete = catcat_upper, na = "na"),
+      upper = list(continuous = xp_cor, combo = xp_aov, discrete = catcat_upper, na = "na"),
       progress = progress,
       labeller = use_labeller,
       switch = switch

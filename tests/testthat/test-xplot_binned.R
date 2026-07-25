@@ -44,3 +44,32 @@ test_that("xplot_binned is a generic connected-series trend plot template", {
   facet_plot <- xplot_binned(xpdb_x, base_mapping, group = "SEX", facets = "SEX", quiet = TRUE)
   expect_false(is.null(facet_plot$facet))
 })
+
+test_that("xplot_binned defaults/theming branches are covered", {
+  base_mapping <- aes(x = .data[["MED1"]], y = .data[["ETA1"]])
+
+  # missing `quiet` falls back to xpdb$options$quiet (and, being not quiet,
+  # emits xpose's usual "Using data from" message)
+  expect_message(
+    xplot_binned(xpdb_x, base_mapping, group = "SEX"),
+    "Using data from"
+  )
+
+  # non-xp_xtras input still works, getting a themed xp_xtra_theme() applied
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+  expect_no_error(
+    xplot_binned(xpdb_ex_pk, base_mapping, group = "SEX", quiet = TRUE)
+  )
+
+  # xp_theme override is applied
+  def_plot <- xplot_binned(xpdb_x, base_mapping, group = "SEX", quiet = TRUE)
+  themed_plot <- xplot_binned(xpdb_x, base_mapping, group = "SEX", quiet = TRUE,
+                              xp_theme = xpose::theme_xp_xpose4())
+  expect_failure(expect_identical(def_plot, themed_plot))
+
+  # explicit gg_theme override is applied (rather than the xpdb's default)
+  gg_themed_plot <- xplot_binned(xpdb_x, base_mapping, group = "SEX", quiet = TRUE,
+                                 gg_theme = xpose::theme_bw2())
+  expect_equal(gg_themed_plot$theme$panel.border, xpose::theme_bw2()$panel.border)
+  expect_failure(expect_equal(def_plot$theme$panel.border, xpose::theme_bw2()$panel.border))
+})
