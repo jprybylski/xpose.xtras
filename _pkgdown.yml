@@ -55,6 +55,7 @@ reference:
       - starts_with("plotfun_")
       - starts_with("shark_")
       - ind_roc
+      - ind_plots_sample
       - xset_waterfall
       - cormat
       - xp_xtra_theme
