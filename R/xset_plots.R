@@ -1110,9 +1110,23 @@ franken_xpdb <-  function(
     new_xpdb <- new_xpdb %>%
       xpose::mutate(!!!new_data_list, .problem = prob, .source = "data")
   }
-  new_xpdb %>%
+  new_xpdb <- new_xpdb %>%
     prop_transforms(xpdb_list,problem) %>%
     as_xp_xtras()
+  # Mark this object as a combination of multiple models (a "franken" xpdb),
+  # so functions where that isn't calculable (eg, logLik()) can refuse cleanly.
+  attr(new_xpdb, "xt_franken_n") <- length(xpdb_list)
+  new_xpdb
+}
+
+#' Is this a model-averaged/combined ("franken") `xpose_data` object?
+#'
+#' @param xpdb <`xpose_data`> or <`xp_xtras`> object
+#'
+#' @return <`logical`>
+#' @keywords internal
+is_franken_xpdb <- function(xpdb) {
+  !is.null(attr(xpdb, "xt_franken_n"))
 }
 
 #' Combine a property from all components of a `franken_xpdb`
