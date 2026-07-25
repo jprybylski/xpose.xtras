@@ -56,6 +56,13 @@ arguments (any of \code{label}/\code{colour}/\code{alpha}/\code{size}/\code{angl
 source -- xpdb-level defaults (see \code{\link[=set_default_watermark]{set_default_watermark()}}) and
 arguments passed directly to \code{add_watermark()} both take precedence
 over this option.}
+\item{\code{default_plots}}{A list of plot specs (see \link[=plot.xpose_data]{plot.xpose_data()})
+used whenever \code{plots} isn't supplied directly to
+\link[=plot.xpose_data]{plot.xpose_data()}. Unlike \code{default_labs}/
+\code{default_watermark}, this is resolved as a whole (not merged key by
+key) -- xpdb-level defaults (see \code{\link[=set_default_plots]{set_default_plots()}}) take
+precedence over this option, and a \code{plots} argument passed directly
+takes precedence over both.}
 \item{\code{save_dir}, \code{save_width}, \code{save_height}}{Defaults for the
 \code{path}/\code{width}/\code{height} arguments of \code{\link[=ggsave_xp]{ggsave_xp()}}, used whenever
 those arguments aren't supplied explicitly.}

@@ -64,13 +64,15 @@ reference:
       - wrap_xp_ggally
 
   - title: "Plot output & session options"
-    desc: "Default labels, watermarks, saving, and the xpose.xtras.* option family."
+    desc: "Default labels, watermarks, saving, batch plotting, and the xpose.xtras.* option family."
     contents:
       - apply_default_labs
       - set_default_labs
       - add_watermark
       - set_default_watermark
       - ggsave_xp
+      - plot.xpose_data
+      - set_default_plots
       - set_xtras_options
       - get_xtras_option
 

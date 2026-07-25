@@ -21,6 +21,7 @@ xtras_option_registry <- c(
   auto_apply        = "whether print.xpose_plot()/ggsave_xp() auto-apply default_labs/default_watermark",
   default_labs      = "default title/subtitle/caption/tag templates for apply_default_labs()",
   default_watermark = "default add_watermark() arguments",
+  default_plots     = "default plot spec used by plot.xpose_data() when `plots` isn't supplied",
   save_dir          = "default `path` for ggsave_xp()",
   save_width        = "default `width` for ggsave_xp()",
   save_height       = "default `height` for ggsave_xp()",
@@ -29,7 +30,7 @@ xtras_option_registry <- c(
   xp_theme          = "default xpose xp_theme applied by as_xpdb_x()"
 )
 
-xtras_two_tier_options <- c("default_labs", "default_watermark")
+xtras_two_tier_options <- c("default_labs", "default_watermark", "default_plots")
 
 # Shared by print.xpose_plot() (R/fixes.R) and ggsave_xp() (R/xtra_labs.R).
 #
@@ -103,6 +104,13 @@ auto_apply_defaults <- function(plot, xpdb = NULL) {
 #'   source -- xpdb-level defaults (see [set_default_watermark()]) and
 #'   arguments passed directly to `add_watermark()` both take precedence
 #'   over this option.}
+#'   \item{`default_plots`}{A list of plot specs (see [plot.xpose_data()][plot.xpose_data])
+#'   used whenever `plots` isn't supplied directly to
+#'   [plot.xpose_data()][plot.xpose_data]. Unlike `default_labs`/
+#'   `default_watermark`, this is resolved as a whole (not merged key by
+#'   key) -- xpdb-level defaults (see [set_default_plots()]) take
+#'   precedence over this option, and a `plots` argument passed directly
+#'   takes precedence over both.}
 #'   \item{`save_dir`, `save_width`, `save_height`}{Defaults for the
 #'   `path`/`width`/`height` arguments of [ggsave_xp()], used whenever
 #'   those arguments aren't supplied explicitly.}
