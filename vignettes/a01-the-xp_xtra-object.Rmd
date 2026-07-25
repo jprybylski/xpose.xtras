@@ -157,3 +157,46 @@ pheno_final %>% desc_from_comments() %>% get_prop("descr")
 ```
 
 It can be helpful to add information to the model data that is available elsewhere in the `xpose_data` object, such as individual objective functions. Currently, those can be added using `backfill_iofv()`, which is most often used in the context of `xpose_set` objects. Theoretically more backfill functions can be made available.
+
+### Process presets
+
+Converting a plain `xpose_data` object into a well-annotated `xp_xtras` one is often the same handful of steps repeated for every model in a project -- convert, drop unused `ETA`s, assign labels/levels, and so on. A process preset bundles that pipeline up under a name, so it can be replayed with `process_preset()` instead of retyped.
+
+A preset is either a one-sided formula (using `.x` for the incoming `xpdb`, as in a `purrr`-style lambda) or a plain function.
+
+```{r process_preset}
+add_process_preset(
+  ~ .x %>% as_xpdb_x() %>% set_var_types(na = any_of(c("SEX", "MED1", "MED2")), .problem = 1),
+  name = "drop_covariates"
+)
+print_process_preset()
+
+# before: SEX/MED1/MED2 are categorical covariates
+list_vars(xpdb_ex_pk, .problem = 1)
+
+# after: they've been reassigned to "na" (not attributed) by the preset
+xpdb_ex_pk %>%
+  process_preset("drop_covariates") %>%
+  list_vars(.problem = 1)
+```
+
+`amend_process_preset()` replaces an existing preset's definition in place (handy for iterating on one without losing its name), and `remove_process_preset()` deletes it.
+
+```{r process_preset_amend}
+amend_process_preset(
+  "drop_covariates",
+  ~ .x %>% as_xpdb_x() %>% set_var_types(na = any_of(c("SEX", "MED1")), .problem = 1)
+)
+remove_process_preset("drop_covariates")
+```
+
+By default, presets only last for the current session. Passing `persist = TRUE` (to `add_process_preset()`/`amend_process_preset()`/`remove_process_preset()`, or via a direct call to `persist_process_presets()`) additionally writes the current set of presets out to a `.Rprofile`, so they're recreated automatically in future sessions. Per CRAN policy, a package must never write to files outside a temp directory without the user's explicit, interactive consent -- so persisting always requires an actual interactive session (it's a no-op under `R CMD check`, `testthat`, or a vignette build like this one) and always asks for confirmation before writing, unless `ask = FALSE` is passed by the already-interactive caller. The target defaults to a **project**-scoped `.Rprofile` (in the current working directory, affecting only R sessions started there); `profile = "user"` targets the user-level profile instead.
+
+```{r process_preset_persist, eval = FALSE}
+# only meaningful in an actual interactive session
+add_process_preset(
+  ~ .x %>% as_xpdb_x() %>% set_var_types(na = any_of(paste0("ETA", 5:9))),
+  name = "drop_higher_etas",
+  persist = TRUE
+)
+```
