@@ -160,5 +160,8 @@ utils::globalVariables(c(
   "eta.ktr", "eta.emax", "eta.ec50", "eta.kout", "eta.e0",
   "depot", "cent", "center", "gut", "effect",
   "LLOQ", "CENS",
-  "PAR1", "PAR2"
+  "PAR1", "PAR2",
+  # covariate association / forest plot (xtra_pars.R, covariates.R)
+  "covariate", "covtype", "is_ref", "ci_low", "ci_high",
+  "level", "row_label", "draws"
 ))
