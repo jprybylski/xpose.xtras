@@ -2,6 +2,8 @@
 
 ## xpose.xtras 0.2.0
 
+CRAN release: 2026-07-26
+
 ### New features
 
 - [`xp_from_bbr()`](https://jprybylski.github.io/xpose.xtras/reference/xp_from_bbr.md)
