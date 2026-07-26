@@ -1,0 +1,215 @@
+---
+title: "Parameter Associations: Omega CVs and Covariate Effects"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align = 'center'
+)
+```
+
+```{r setup, message=FALSE, warning=FALSE}
+library(dplyr)
+library(xpose)
+library(xpose.xtras)
+```
+
+## Why declare anything at all?
+
+A fitted NONMEM (or `nlmixr2`) model doesn't carry an explicit record of *why* a `THETA` is where it is. `xpose` can read the numbers back out, but it has no way to know that `OMEGA(3,3)` is log-normal on `CL`, or that `THETA(7)` is an allometric exponent on `CLCR`, rather than something else entirely. Most of the time that doesn't matter -- `get_prm()` already assumes log-normal, which covers the common case -- but the moment a model deviates from that (a logit-transformed variability term, a Box-Cox covariate effect, a piecewise "hockey-stick" model), `xpose` has nothing to fall back on.
+
+`xpose.xtras` gives you a way to say the quiet part out loud, once, and have it flow through into reporting:
+
+- [`add_prm_association()`] links a structural parameter to the **omega** driving its between-subject variability, so [`get_prm()`] can report a meaningful CV% even when the relationship isn't plain log-normal.
+- [`add_cov_association()`] links a structural parameter to a **covariate**, so [`prm_cov()`]/[`cov_forest()`] can report and plot the covariate's effect as a ratio to the parameter's typical value.
+
+The two are deliberately parallel: the same formula-based declaration style (`LHS ~ fun(...)`), the same two-stage validate-then-store behavior, and the same "redeclare to replace" semantics. This article covers both, plus [`mutate_prm()`], the escape hatch for when a parameter isn't on the scale either mechanism assumes.
+
+## Omega associations and CV%
+
+By default, [`get_prm()`] treats every diagonal omega as log-normal and reports CV% accordingly:
+
+```{r prm_default}
+pheno_base %>%
+  get_prm(quiet = TRUE) %>%
+  select(type, name, label, value, cv)
+```
+
+`IIVCL` and `IIVV` get a `cv` column; the off-diagonal and fixed-effect rows don't (CV% is only defined for a diagonal random effect acting on a specific structural parameter). This is already the CV% you'd get by hand from a log-normal assumption -- `add_prm_association()` becomes useful the moment that assumption is wrong for a given parameter.
+
+Say `V` was actually fit as logit-normal instead (purely for illustration -- it wasn't, in this model). Declaring that changes only the `cv` column; nothing else about the fit or the table shape changes:
+
+```{r prm_logit}
+pheno_base %>%
+  add_prm_association(V ~ logit(IIVV)) %>%
+  get_prm(quiet = TRUE) %>%
+  select(type, name, label, value, cv)
+```
+
+Built-in distributions cover the common cases: `log` (the default, made explicit), `logexp` (`log(1+X)`), `logit`, `arcsin`, and `nmboxcox` (Box-Cox, needs a `lambda`):
+
+```{r prm_boxcox}
+pheno_base %>%
+  add_prm_association(V ~ nmboxcox(IIVV, lambda = 0.5)) %>%
+  get_prm(quiet = TRUE) %>%
+  select(name, label, value, cv)
+```
+
+For anything else, `custom()` takes a `qdist`/`pdist` pair (the transform and its inverse):
+
+```{r prm_custom}
+pheno_base %>%
+  add_prm_association(V ~ custom(IIVV, qdist = function(x) log(0.001 + x), pdist = function(x) exp(x) - 0.001)) %>%
+  get_prm(quiet = TRUE) %>%
+  select(name, label, value, cv)
+```
+
+Redeclaring an association for the same parameter replaces it; `drop_prm_association()` removes it entirely (falling back to the log-normal default):
+
+```{r prm_drop}
+pheno_base %>%
+  add_prm_association(V ~ logit(IIVV)) %>%
+  drop_prm_association(V) %>%
+  get_prm(quiet = TRUE) %>%
+  select(name, label, value, cv)
+```
+
+**One important caveat**: the CV% calculation assumes the *fixed-effect* value is on its natural, untransformed scale. If `V` were actually fitted on the logit scale itself (not just related to a logit-normal omega), the reported `value` would need converting back first -- see [Rescaling with `mutate_prm()`] below.
+
+## Covariate associations and forest plots
+
+The same idea, for covariates instead of omegas. `xpdb_x` already has a real covariate effect in it -- `THETA7`, labeled "CRCL on CL":
+
+```{r cov_prm}
+xpdb_x %>%
+  get_prm(.problem = 1, quiet = TRUE) %>%
+  select(type, name, label, value, se)
+```
+
+`add_cov_association()` describes how a covariate affects a structural parameter, as a ratio to that parameter's typical value (always `1` at a declared reference value/level):
+
+```{r cov_add}
+xpdb_x %>%
+  add_cov_association(TVCL ~ linear(CLCR, THETA7, ref = 64)) %>%
+  prm_cov()
+```
+
+`ref` is **always required, explicitly** -- there's no way to infer it safely, since NONMEM control streams often normalize a covariate against a hardcoded constant that isn't visible from the `xpdb` alone.
+
+### Built-in forms
+
+Six built-ins cover the usual covariate models, all constructed so the effect ratio is exactly `1` at `ref` regardless of the theta value:
+
+```{r cov_builtins}
+# power (allometric): (COV/ref)^theta
+xpdb_x %>% add_cov_association(TVCL ~ power(CLCR, THETA7, ref = 64)) %>% prm_contcov()
+
+# exponential: exp(theta*(COV-ref))
+xpdb_x %>% add_cov_association(TVCL ~ exponential(CLCR, THETA7, ref = 64)) %>% prm_contcov()
+
+# additive: (theta+COV)/(theta+ref) -- an uncommon but simple par = theta + cov model
+xpdb_x %>% add_cov_association(TVCL ~ additive(CLCR, THETA7, ref = 64)) %>% prm_contcov()
+
+# hockey-stick (PsN-style): different slope above/below ref (which doubles as the
+# breakpoint by default; see `brk=` to separate them)
+xpdb_x %>% add_cov_association(TVCL ~ hockey(CLCR, THETA7, THETA4, ref = 64)) %>% prm_contcov()
+
+# catshift: one theta per non-reference categorical level
+xpdb_x %>% add_cov_association(TVCL ~ catshift(SEX, THETA4, ref = 1)) %>% prm_catcov()
+```
+
+Note how differently `power` and `linear` read the *same* `THETA7`: a power exponent of `0.007` barely moves the ratio across any realistic `CLCR` range, while the same number as a linear slope gives a substantial swing. **Picking the right built-in for how the covariate actually enters the model matters** -- the computation can't tell the two apart for you, and a mismatched builtin produces a numerically valid but silently wrong ratio. When none of the built-ins fit, `custom()` takes a `fun(cov, ref, theta)`, validated at declaration time to confirm `fun(ref, ref, theta) == 1` for a few probe thetas:
+
+```{r cov_custom}
+xpdb_x %>%
+  add_cov_association(
+    TVCL ~ custom(CLCR, THETA7, ref = 64, fun = function(cov, ref, theta) (cov / ref)^theta)
+  ) %>%
+  prm_contcov()
+```
+
+`drop_cov_association()` removes a declared (parameter, covariate) pair, the same way `drop_prm_association()` works for omegas:
+
+```{r cov_drop}
+xpdb_x %>%
+  add_cov_association(TVCL ~ linear(CLCR, THETA7, ref = 64)) %>%
+  drop_cov_association(TVCL ~ CLCR) %>%
+  prm_cov()
+```
+
+### `prm_cov()` output
+
+`prm_contcov()`/`prm_catcov()`/`prm_cov()` all return the same shape: one row per (parameter, covariate, evaluation point), with `effect`/`ci_low`/`ci_high` as ratios to the typical value, and an `is_ref` flag for the (uninformative, always-`1`) reference row:
+
+```{r cov_table}
+xpdb_x %>%
+  add_cov_association(
+    TVCL ~ linear(CLCR, THETA7, ref = 64),
+    TVCL ~ catshift(SEX, THETA4, ref = 1)
+  ) %>%
+  prm_cov()
+```
+
+Continuous covariates are evaluated at the 5th/95th percentile of the observed data (`probs=`) plus the reference; categorical covariates at every observed level. The confidence interval comes from `ci_method`: `"simulation"` (default) draws from `N(theta_hat, se)` and propagates through the (possibly nonlinear) effect function; `"delta"` is a cheaper first-order analytic approximation.
+
+### Plotting: `cov_forest()`
+
+```{r cov_forest_basic, fig.width=7, fig.height=4}
+xpdb_x %>%
+  add_cov_association(
+    TVCL ~ linear(CLCR, THETA7, ref = 64),
+    TVCL ~ catshift(SEX, THETA4, ref = 1)
+  ) %>%
+  cov_forest()
+```
+
+The default view includes a reference line at `1`, a shaded "no relevant effect" band (`region=`, default `c(0.8, 1.25)`, a common bioequivalence-style convention -- override or drop it with `type=`), and one row per evaluation point. `show_ref = FALSE` drops the uninformative reference rows; `TVCL ~ CLCR` (or any `param ~ covariate` formula) restricts which declared associations get plotted:
+
+```{r cov_forest_options, fig.width=7, fig.height=3.5}
+xpdb_x %>%
+  add_cov_association(
+    TVCL ~ linear(CLCR, THETA7, ref = 64),
+    TVCL ~ catshift(SEX, THETA4, ref = 1)
+  ) %>%
+  cov_forest(TVCL ~ CLCR, show_ref = FALSE, region = c(0.7, 1.43))
+```
+
+Including `"v"` in `type` adds a violin layer showing the actual simulation draws behind each interval (requires `ci_method = "simulation"`, the default):
+
+```{r cov_forest_violin, fig.width=7, fig.height=4}
+xpdb_x %>%
+  add_cov_association(
+    TVCL ~ linear(CLCR, THETA7, ref = 64),
+    TVCL ~ catshift(SEX, THETA4, ref = 1)
+  ) %>%
+  cov_forest(type = "pilrv")
+```
+
+`cov_forest()` is the covariate-specific wrapper around a generic, forest-plot-agnostic renderer, [`xplot_forest()`] -- the same split as `eta_vs_catcov()`/`xplot_boxplot()` elsewhere in the package. Reaching for `xplot_forest()` directly is only useful when plotting something *other* than a `prm_cov()` table.
+
+## Rescaling with `mutate_prm()`
+
+Both association mechanisms assume a specific scale: `add_prm_association()` assumes the fixed-effect value is untransformed (natural units, not logit/log/whatever); `add_cov_association()` assumes the chosen builtin's formula matches the model code, including how the LHS parameter itself was parameterized -- though notably, the covariate computation *never touches the LHS's own fitted value*, only the covariate-effect theta, so it's automatically agnostic to whether the LHS was log- or identity-parameterized.
+
+When a parameter genuinely needs converting first, [`mutate_prm()`] does that in place, updating both the value and (via simulation) its standard error:
+
+```{r mutate_prm}
+# Say THETA12 in vismo_pomod was fitted on the logit scale, and needs to be
+# expressed on the natural (0-1) scale before an association is declared
+vismo_pomod %>%
+  mutate_prm(THETA12 ~ plogis) %>%
+  get_prm(quiet = TRUE) %>%
+  filter(name == "THETA12") %>%
+  select(name, label, value, se)
+```
+
+This is the same recommendation [`add_prm_association()`]'s own documentation already carries for the logit/Box-Cox omega case -- reach for `mutate_prm()` first, then declare the association on the now-natural-scale value.
+
+## Session info
+<details>
+```{r sessioninfo}
+sessionInfo()
+```
+</details>

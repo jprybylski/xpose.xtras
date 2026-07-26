@@ -36,7 +36,7 @@ pheno_set %>%
   ipred_vs_idv_modavg(auto_backfill = TRUE, quiet=TRUE)
 ```
 
-The default title, subtitle and caption for these experimental figures are rough, especially for large sets. Changes for better appearance should be expected in the future.
+The default title, subtitle and caption for these experimental figures describe the averaging itself (the models being combined, and the algorithm/weighting used) rather than reusing labels from a single underlying model, which would be misleading in an averaged context. For sets with more than a handful of models, the model list is summarized rather than spelled out in full to keep the title readable.
 
 While a simple demonstration is not presented here, most plots can also be model-averaged using the generic `plotfun_modavg()` function.
 
@@ -93,6 +93,33 @@ described_pkpd_m3 %>%
   roc_plot(quiet=TRUE, group="ID", type="pt")
 ```
 The warning regarding sensitivities and specificities not being calculable is trivial, and refers to study participant data in which there is not a mix of BLQ (in the M3 examples) values; they are either all "true" positives or all "true" negatives.
+
+A binned calibration plot is also available, grouping the predicted probability into bins and comparing the mean predicted probability in each bin against the observed proportion meeting the cutpoint condition, with a unity guide line for reference.
+
+```{r catdv_ipred, fig.width=unit(7,"in"), fig.height=unit(5,"in")}
+described_pkpd_m3 %>%
+  catdv_vs_ipred(bins = 5, quiet=TRUE)
+```
+
+When the data include a natural occasion or visit column, `catdv_vs_occ()` plots observed and predicted probability against that occasion instead of a continuous predictor, which is useful for spotting trends over time (e.g., adherence effects) that a simple scatter would obscure.
+
+```{r catdv_occ, fig.width=unit(7,"in"), fig.height=unit(5,"in")}
+vismo_occ <- vismo_xpdb %>%
+  xpose::mutate(OCC = ceiling((TIME + 1) / 24), .problem = 1) %>%
+  set_var_types(.problem = 1, occ = OCC) %>%
+  set_var_levels(.problem = 1, OCC = lvl_inord(paste("Day", 1:12)))
+vismo_occ %>%
+  catdv_vs_occ(quiet=TRUE)
+```
+
+## Parameter uncertainty
+
+Beyond covariate and parameter associations, it can be useful to visualize the full correlation (or covariance) matrix from the covariance step, both for NONMEM and `nlmixr2` models, in order to spot potentially problematic colinearity between parameters.
+
+```{r cormat, fig.width=unit(6,"in"), fig.height=unit(5,"in")}
+xpdb_x %>%
+  cormat(quiet=TRUE)
+```
 
 ## Waterfall and objective function trends
 

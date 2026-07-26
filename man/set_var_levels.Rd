@@ -9,6 +9,7 @@ set_var_levels(
   .problem = NULL,
   ...,
   .missing = "Other",
+  .ordered = character(),
   .handle_missing = c("quiet", "warn", "error")
 )
 }
@@ -21,6 +22,12 @@ set_var_levels(
 
 \item{.missing}{<\code{character}> Value to use for missing levels}
 
+\item{.ordered}{<\code{character}> Names of columns whose levels should be
+treated as an ordered factor (see \code{\link[base:factor]{base::factor}}), even when supplied
+as a plain formula list rather than via \code{\link[=lvl_inord]{lvl_inord()}}. Columns leveled
+with \code{\link[=lvl_inord]{lvl_inord()}} are already ordered by default and do not need to
+be listed here.}
+
 \item{.handle_missing}{<\code{character}> How to handle missing levels: "quiet", "warn", or "error"}
 }
 \value{
@@ -29,7 +36,7 @@ set_var_levels(
 \description{
 For variable types such as \code{catcov}, it can be convenient to define
 levels. This function provides a straightforward means to do so,
-consistent with \code{tidy} functions like <\code{\link[dplyr:case-and-replace-when]{case_when}}>.
+consistent with \code{tidy} functions like <\code{\link[dplyr:case_when]{case_when}}>.
 
 Several convenience functions are provided for common levels in <\code{\link[=as_leveler]{levelers}}>.
 }

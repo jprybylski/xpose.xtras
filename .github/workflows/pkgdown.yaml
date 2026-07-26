@@ -32,6 +32,16 @@ jobs:
         with:
           use-public-rspm: true
 
+      - name: Add Additional_repositories from DESCRIPTION (off-CRAN Suggests, e.g. bbr via MPN)
+        run: |
+          raw <- read.dcf("DESCRIPTION", fields = "Additional_repositories")[1, 1]
+          if (!is.na(raw) && nzchar(raw)) {
+            repos <- trimws(strsplit(raw, ",")[[1]])
+            cat(sprintf("options(repos = c(getOption('repos'), %s))\n", deparse(repos)),
+                file = path.expand("~/.Rprofile"), append = TRUE)
+          }
+        shell: Rscript {0}
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::pkgdown, local::.

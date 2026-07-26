@@ -32,5 +32,5 @@ grouped table where operations are performed "by group". \code{ungroup()} remove
 \code{summarize()} reduces multiple values down to a single value.
 
 \strong{Note:} this function uses \code{xpose.xtras::edit_xpose_data}, but is otherwise
-the same as <\code{\link[xpose:reexports]{xpose::group_by}}>.
+the same as <\code{\link[xpose:group_by]{xpose::group_by}}>.
 }

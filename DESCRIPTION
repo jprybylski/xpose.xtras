@@ -1,6 +1,6 @@
 Package: xpose.xtras
 Title: Extra Functionality for the 'xpose' Package
-Version: 0.1.4
+Version: 0.2.0
 Authors@R: 
     person("John", "Prybylski", , "jprybylski@gmail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-5802-0539"))
@@ -13,7 +13,6 @@ Description: Adding some at-present missing functionality, or functions
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Imports: 
     checkmate,
     cli,
@@ -24,6 +23,8 @@ Imports:
     GGally,
     ggplot2 (>= 3.4.2),
     glue,
+    grDevices,
+    grid,
     lifecycle,
     magrittr,
     pmxcv,
@@ -38,13 +39,15 @@ Imports:
     utils,
     vctrs,
     xpose
-Suggests: 
+Suggests:
+    bbr,
+    callr,
     DiagrammeR,
-    grDevices,
     knitr,
     nlmixr2,
     nlmixr2data,
     nlmixr2est,
+    pkgload,
     rmarkdown,
     rxode2,
     spelling,
@@ -59,3 +62,5 @@ VignetteBuilder: knitr
 URL: https://jprybylski.github.io/xpose.xtras/, https://github.com/jprybylski/xpose.xtras
 Language: en-US
 Config/Needs/website: rmarkdown
+Config/roxygen2/version: 8.0.0
+Additional_repositories: https://mpn.metworx.com/snapshots/stable/2026-06-25

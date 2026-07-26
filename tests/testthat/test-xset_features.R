@@ -165,6 +165,28 @@ test_that("parentage operator works", {
 })
 
 
+test_that("xset_lineage() spins for interactive sessions (with and without dots)", {
+  testthat::local_mocked_bindings(
+    is_interactive = function(...) TRUE,
+    .package = "xpose.xtras"
+  )
+
+  # No dots, no base model set -- exercises the default single-lineage path
+  expect_identical(
+    xset_lineage(xpdb_set),
+    xset_lineage(xpdb_set)
+  )
+
+  # Dots with multiple labels -- exercises the purrr::map() spinner branch
+  multi <- xset_lineage(xpdb_set, fix1, mod2)
+  expect_type(multi, "list")
+  expect_named(multi, c("fix1", "mod2"))
+
+  # Single label in dots -- returns the unwrapped result
+  single <- xset_lineage(xpdb_set, fix1)
+  expect_type(single, "character")
+})
+
 # spinner test (this doesn't really work)
 cli::test_that_cli("test ellipsis", {
   skip_on_cran() # because of dirty dots in output

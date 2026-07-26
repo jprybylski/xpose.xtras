@@ -169,6 +169,14 @@ test_that("levels can be set for categories", {
   expect_equal(attr(lvl_sex(), "start"), 1)
   expect_setequal(lvl_inord(letters), letters)
 
+  # lvl_inord() is ordered by default; lvl_bin()/lvl_sex() are not
+  expect_true(attr(lvl_inord(letters), "ordered"))
+  expect_false(attr(lvl_inord(letters, .ordered = FALSE), "ordered"))
+  expect_false(attr(lvl_bin(), "ordered"))
+  expect_false(attr(lvl_sex(), "ordered"))
+  expect_false(attr(as_leveler(c("n","y")), "ordered"))
+  expect_true(attr(as_leveler(c("n","y"), .ordered = TRUE), "ordered"))
+
   # Check set_var_levels
   expect_error(set_var_levels(xpdb_x, .problem = 3), "3 not valid")
   expect_error(set_var_levels(xpdb_x, .handle_missing = "not an option abc"), "not an option abc")
@@ -227,6 +235,26 @@ test_that("levels can be set for categories", {
     0
   )
 
+  # val2lvl() defaults to an unordered factor when no ordered attribute
+  # is present (back-compat: existing levels tibbles predate this feature)
+  sex_lvls <- get_index(test_leveled,1) %>% filter(col=="SEX") %>% pull(levels) %>% .[[1]]
+  expect_false(is.ordered(val2lvl(c(1,2,1), sex_lvls)))
+
+  # lvl_inord() levels come out as an ordered factor
+  test_ordered <- set_var_levels(xpdb_x, MED1 = lvl_inord(c("No","Yes"), .start_index = 0))
+  med1_lvls <- get_index(test_ordered,1) %>% filter(col=="MED1") %>% pull(levels) %>% .[[1]]
+  expect_true(is.ordered(val2lvl(c(0,1,0), med1_lvls)))
+
+  # .ordered forces ordering even for a plain formula list
+  test_forced <- set_var_levels(xpdb_x, SEX = c(1~"Male", 2~"Female"), .ordered = "SEX")
+  sex_forced_lvls <- get_index(test_forced,1) %>% filter(col=="SEX") %>% pull(levels) %>% .[[1]]
+  expect_true(is.ordered(val2lvl(c(1,2,1), sex_forced_lvls)))
+
+  # .ordered can only reference columns actually being leveled
+  expect_error(
+    set_var_levels(xpdb_x, SEX = c(1~"Male", 2~"Female"), .ordered = "MED1"),
+    "not being leveled"
+  )
 
 })
 
@@ -455,4 +483,96 @@ test_that("iofv can be backfilled", {
   )
 
 
+})
+
+test_that("check_xpdb_x detects missing probs/pars top-level components", {
+  no_probs <- xpdb_x
+  no_probs$data$index <- purrr::map(no_probs$data$index, ~ dplyr::select(.x, -probs))
+  expect_false(check_xpdb_x(no_probs, .warn = FALSE))
+
+  no_pars <- xpdb_x
+  no_pars$pars <- NULL
+  expect_false(check_xpdb_x(no_pars, .warn = FALSE))
+
+  no_covs <- xpdb_x
+  no_covs$covs <- NULL
+  expect_false(check_xpdb_x(no_covs, .warn = FALSE))
+})
+
+test_that("print.xp_xtras shows nlmixr2-specific fit line", {
+  skip_if_not_installed("rxode2")
+  skip_if(utils::packageVersion("rxode2") < "5.0",
+          "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
+
+  nlmixr2_x <- as_xp_xtras(get_xpdb_nlmixr2_old())
+  expect_equal(xpose::software(nlmixr2_x), "nlmixr2")
+  expect_message(
+    print(nlmixr2_x),
+    "fit: attached as \\(this\\)\\$fit"
+  )
+})
+
+test_that("set_var_types.default routes cross-compatible xp_xtras objects to the xp_xtras method", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  secret_xp_xtra <- as_xpdb_x(xpdb_ex_pk)
+  class(secret_xp_xtra) <- class(xpdb_ex_pk)
+  expect_false(is_xp_xtras(secret_xp_xtra))
+
+  expect_identical(
+    set_var_types(secret_xp_xtra),
+    set_var_types.xp_xtras(secret_xp_xtra)
+  )
+})
+
+test_that("list_vars.default routes cross-compatible xp_xtras objects to the xp_xtras method", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  secret_xp_xtra <- as_xpdb_x(xpdb_ex_pk)
+  class(secret_xp_xtra) <- class(xpdb_ex_pk)
+  expect_false(is_xp_xtras(secret_xp_xtra))
+
+  expect_message(
+    list_vars(secret_xp_xtra),
+    "MED1"
+  )
+})
+
+test_that("list_vars.xp_xtras spins for interactive sessions", {
+  testthat::local_mocked_bindings(
+    is_interactive = function(...) TRUE,
+    .package = "rlang"
+  )
+  expect_message(
+    list_vars(xpdb_x),
+    "MED1"
+  )
+})
+
+test_that("as_xpdb_x applies session-wide default gg_theme/xp_theme options", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  old_opts <- options(xpose.xtras.gg_theme = NULL, xpose.xtras.xp_theme = NULL)
+  on.exit(options(old_opts), add = TRUE)
+
+  # no options set: unaffected
+  baseline <- as_xpdb_x(xpdb_ex_pk)
+
+  options(xpose.xtras.gg_theme = ggplot2::theme_bw)
+  x_gg <- as_xpdb_x(xpdb_ex_pk)
+  expect_false(identical(x_gg$gg_theme, baseline$gg_theme))
+  expect_true(check_xpdb_x(x_gg, .warn = FALSE))
+  options(xpose.xtras.gg_theme = NULL)
+
+  options(xpose.xtras.xp_theme = list(point_color = "red"))
+  x_xp <- as_xpdb_x(xpdb_ex_pk)
+  expect_identical(x_xp$xp_theme$point_color, "red")
+  expect_true(check_xpdb_x(x_xp, .warn = FALSE))
+  options(xpose.xtras.xp_theme = NULL)
+
+  # already-converted xp_xtras objects are untouched by the option
+  options(xpose.xtras.xp_theme = list(point_color = "blue"))
+  x_already <- as_xpdb_x(baseline)
+  expect_identical(x_already$xp_theme$point_color, baseline$xp_theme$point_color)
+  options(xpose.xtras.xp_theme = NULL)
 })

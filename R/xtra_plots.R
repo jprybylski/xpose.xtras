@@ -121,6 +121,26 @@ xp_xtra_theme <- function(base_on = NULL) {
     label_fontface = base_on$text_fontface,
     label_lineheight = base_on$text_lineheight,
     label_size = base_on$text_size,
+    heatmapfill_low = "steelblue",
+    heatmapfill_mid = "white",
+    heatmapfill_high = "firebrick",
+    heatmap_color = "white",
+    heatmap_linewidth = base_on$histogram_linewidth,
+    heatmaptxt_alpha = base_on$text_alpha,
+    heatmaptxt_angle = base_on$text_angle,
+    heatmaptxt_color = base_on$text_color,
+    heatmaptxt_family = base_on$text_family,
+    heatmaptxt_fontface = base_on$text_fontface,
+    heatmaptxt_lineheight = base_on$text_lineheight,
+    heatmaptxt_size = base_on$text_size,
+    heatmaptxt_hjust = base_on$text_hjust,
+    heatmaptxt_vjust = base_on$text_vjust,
+    linerange_color = base_on$line_color,
+    linerange_linewidth = base_on$line_linewidth,
+    linerange_linetype = base_on$line_linetype,
+    linerange_alpha = base_on$line_alpha,
+    rect_fill = "grey60",
+    rect_alpha = 0.25,
   )
 
   # bug fix
@@ -354,4 +374,170 @@ wrap_xp_ggally <- function(fn, xp_theme, ...) {
 
     do.call(ggally_fun, arg[!names(arg) %in% names(true_mapping)])
   }
+}
+
+#####
+# Individual plots
+#####
+
+#' Allocate a stratified sample size across strata
+#'
+#' @description
+#' Proportionally allocates `n` draws across strata of the given `sizes`,
+#' using the largest-remainder method so the allocation always sums to `n`
+#' (capped at `sum(sizes)`). Internal helper for [`ind_plots_sample()`].
+#'
+#' @param sizes <`integer`> Number of units available in each stratum
+#' @param n <`integer`> Total number of units to allocate
+#'
+#' @return An `integer` vector, same length as `sizes`, each entry no
+#' greater than the corresponding entry of `sizes`, summing to
+#' `min(n, sum(sizes))`.
+#' @noRd
+stratified_alloc <- function(sizes, n) {
+  total <- sum(sizes)
+  n <- min(n, total)
+  raw <- sizes / total * n
+  alloc <- floor(raw)
+  capacity <- sizes - alloc
+  remainder <- n - sum(alloc)
+  frac <- raw - alloc
+
+  # Largest fractional remainder first, but a non-empty stratum that
+  # rounded down to zero jumps the queue - otherwise a small stratum could
+  # be entirely excluded from the sample while capacity to include it exists.
+  unrepresented <- alloc == 0 & sizes > 0
+  ord <- order(-(unrepresented + frac), -capacity)
+  i <- 1L
+  while (remainder > 0) {
+    idx <- ord[(i - 1L) %% length(ord) + 1L]
+    if (capacity[idx] > 0) {
+      alloc[idx] <- alloc[idx] + 1L
+      capacity[idx] <- capacity[idx] - 1L
+      remainder <- remainder - 1L
+    }
+    i <- i + 1L
+  }
+  as.integer(alloc)
+}
+
+#' Individual plots for a (stratified) sample of individuals
+#'
+#' @description
+#' A wrapper around [`ind_plots`][xpose::ind_plots] that first draws a
+#' sample of `n` individuals (9 by default, enough to fill a 3x3 page)
+#' rather than plotting every individual in the dataset. If `stratify` is
+#' provided, the sample is drawn proportionally from each level (or
+#' combination of levels) of the `tidyselect`-ed column(s), so the sample
+#' remains as representative as the data and `n` allow.
+#'
+#' @details
+#' When `stratify` is used, the stratifying column(s) are appended to the
+#' facet formula (in addition to the id column that [`ind_plots`][xpose::ind_plots]
+#' already facets by), so that the stratum each sampled individual belongs
+#' to is visible in the plot.
+#'
+#' Stratified sample sizes are allocated proportionally to stratum size
+#' using the largest-remainder method, so the total sampled always equals
+#' `min(n, sum(individuals available across all strata))`.
+#'
+#' @param xpdb <`xp_xtras`> or <`xpose_data`> object
+#' @param n <`integer`> Number of individuals to sample. Defaults to 9. If
+#' fewer individuals than `n` are available, all of them are used.
+#' @param stratify <`tidyselect`> Optional column(s), other than the id
+#' column, to stratify the sample by.
+#' @param seed <`integer`> Optional seed, set (and restored on exit) for
+#' reproducible sampling.
+#' @param facets As in [`ind_plots`][xpose::ind_plots]. Defaults to the id
+#' column (and `stratify` column(s), if given) added to
+#' `xpdb$xp_theme$facets`.
+#' @param .problem <`numeric`> Problem number to use.
+#' @param quiet <`logical`> Silence extra output.
+#' @param ... Passed on to [`ind_plots`][xpose::ind_plots]
+#'
+#' @return The desired plot
+#' @export
+#'
+#' @seealso [ind_roc()]
+#'
+#' @examples
+#' xpdb_x %>% ind_plots_sample(n = 6)
+#' xpdb_x %>% ind_plots_sample(n = 6, stratify = SEX)
+ind_plots_sample <- function(xpdb,
+                              n = 9,
+                              stratify = NULL,
+                              seed = NULL,
+                              facets,
+                              .problem,
+                              quiet,
+                              ...) {
+  # Check input
+  xpose::check_xpdb(xpdb, check = "data")
+  if (missing(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+  xpa("count", n, positive = TRUE)
+
+  id_col <- xp_var(xpdb, .problem, type = "id")$col[1]
+  data <- xpose::get_data(xpdb, .problem = .problem, quiet = quiet)
+
+  strat_quo <- rlang::enquo(stratify)
+  if (rlang::quo_is_null(strat_quo)) {
+    strat_cols <- character(0)
+  } else {
+    strat_cols <- dplyr::select(data, {{ stratify }}) %>% names() %>% unique()
+    strat_cols <- setdiff(strat_cols, id_col)
+    if (length(strat_cols) == 0) {
+      cli::cli_abort("`stratify` did not resolve to any columns other than the id column ({id_col}).")
+    }
+  }
+
+  # One row per individual (using their first record for strata membership)
+  id_tbl <- data %>%
+    dplyr::group_by(dplyr::across(dplyr::all_of(id_col))) %>%
+    dplyr::slice(1) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(dplyr::all_of(c(id_col, strat_cols)))
+
+  if (!is.null(seed)) {
+    if (!exists(".Random.seed", envir = .GlobalEnv)) {
+      on.exit(rm(".Random.seed", envir = .GlobalEnv), add = TRUE)
+    } else {
+      old_seed <- .GlobalEnv$.Random.seed
+      on.exit(assign(".Random.seed", old_seed, envir = .GlobalEnv), add = TRUE)
+    }
+    set.seed(seed)
+  }
+
+  if (n >= nrow(id_tbl)) {
+    sampled_ids <- as.character(id_tbl[[id_col]])
+  } else if (length(strat_cols) == 0) {
+    sampled_ids <- id_tbl %>%
+      dplyr::slice_sample(n = n) %>%
+      dplyr::pull(dplyr::all_of(id_col)) %>%
+      as.character()
+  } else {
+    strata <- id_tbl %>% dplyr::count(dplyr::across(dplyr::all_of(strat_cols)), name = "n_avail")
+    alloc <- stratified_alloc(strata$n_avail, n)
+    sampled_ids <- purrr::map(seq_len(nrow(strata)), function(i) {
+      if (alloc[i] == 0) return(character(0))
+      grp <- dplyr::inner_join(id_tbl, strata[i, strat_cols, drop = FALSE], by = strat_cols)
+      grp %>%
+        dplyr::slice_sample(n = alloc[i]) %>%
+        dplyr::pull(dplyr::all_of(id_col)) %>%
+        as.character()
+    }) %>%
+      unlist(use.names = FALSE)
+  }
+
+  xpdb <- dplyr::filter(xpdb, !!rlang::sym(id_col) %in% !!sampled_ids, .problem = .problem)
+
+  if (missing(facets)) {
+    facets <- xpose::add_facet_var(facets = xpdb$xp_theme$facets, variable = id_col)
+    for (strat_col in strat_cols) {
+      facets <- xpose::add_facet_var(facets = facets, variable = strat_col)
+    }
+  }
+
+  xpose::ind_plots(xpdb, facets = facets, .problem = .problem, quiet = quiet, ...)
 }

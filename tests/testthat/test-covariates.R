@@ -256,53 +256,53 @@ test_that("errors and special plot circumstances are correctly caught", {
 test_that("no cov and no eta cases", {
 
   ## Any issues with no or few covariates?
-  xpdb_x_nocov <- xpdb_x |>
+  xpdb_x_nocov <- xpdb_x %>%
     set_var_types(1, na = all_of(c(
       xp_var(xpdb_x, 1, type = "contcov")$col,
       xp_var(xpdb_x, 1, type = "catcov")$col
     )))
   expect_error(
-    xpdb_x_nocov |>
+    xpdb_x_nocov %>%
       eta_vs_cov_grid(),
     "No contcov or catcov"
   )
   expect_error(
-    xpdb_x_nocov |>
-      set_var_types(catcov=SEX) |>
+    xpdb_x_nocov %>%
+      set_var_types(catcov=SEX) %>%
       eta_vs_cov_grid(covtypes ="cont"),
     "No contcov col"
   )
   expect_error(
-    xpdb_x_nocov |>
-      set_var_types(contcov=AGE) |>
+    xpdb_x_nocov %>%
+      set_var_types(contcov=AGE) %>%
       eta_vs_cov_grid(covtypes ="cat"),
     "No catcov col"
   )
   suppressMessages(expect_no_error(
-    xpdb_x_nocov |>
-      set_var_types(catcov=SEX) |>
+    xpdb_x_nocov %>%
+      set_var_types(catcov=SEX) %>%
       eta_vs_cov_grid(covtypes = "cat")
   ))
   suppressMessages(expect_no_error(
-    xpdb_x_nocov |>
-      set_var_types(catcov=SEX) |>
+    xpdb_x_nocov %>%
+      set_var_types(catcov=SEX) %>%
       eta_vs_cov_grid()
   ))
   suppressMessages(expect_no_error(
     xpdb_x_nocov %>%
-      set_var_types(contcov=AGE) |>
+      set_var_types(contcov=AGE) %>%
       eta_vs_cov_grid(covtypes = "cont")
   ))
   suppressMessages(expect_no_error(
     xpdb_x_nocov %>%
-      set_var_types(contcov=AGE) |>
+      set_var_types(contcov=AGE) %>%
       eta_vs_cov_grid()
   ))
 
 
 
   ## Any issues with no or few etas?
-  xpdb_x_noeta <- xpdb_x |>
+  xpdb_x_noeta <- xpdb_x %>%
     set_var_types(1, na = all_of(c(
       xp_var(xpdb_x, 1, type = "eta")$col
     )))
@@ -310,5 +310,183 @@ test_that("no cov and no eta cases", {
     xpdb_x_noeta %>%
       eta_vs_cov_grid(),
     "No eta col"
+  )
+})
+
+test_that("pairs_opts named entries are forwarded to xplot_pairs (grid plots)", {
+  xpdb_x <- set_option(xpdb_x, quiet = TRUE)
+
+  # Un-skipped (unlike the vdiffr comparisons above) exercise of the
+  # pairs_opts_ purrr::map() branch that actually forwards a user-supplied
+  # `_opts` entry, for each of the three grid plot wrappers
+  expect_no_error(
+    eta_grid(xpdb_x, etavar = c(ETA1, ETA2),
+             pairs_opts = list(contcont_opts = list(stars = TRUE)), quiet = TRUE)
+  )
+  expect_no_error(
+    cov_grid(xpdb_x, covtypes = "cont",
+             pairs_opts = list(contcont_opts = list(stars = TRUE)), quiet = TRUE)
+  )
+  expect_no_error(
+    eta_vs_cov_grid(xpdb_x, covtypes = "cont",
+                     pairs_opts = list(catcont_opts = list()), quiet = TRUE)
+  )
+})
+
+test_that("eta_vs_contcov linsm=TRUE uses an lm smooth method", {
+  xpdb_x <- set_option(xpdb_x, quiet = TRUE)
+
+  p_lm <- eta_vs_contcov(xpdb_x, etavar = ETA1, linsm = TRUE, quiet = TRUE)
+  smooth_layer <- p_lm$layers[[which(purrr::map_chr(p_lm$layers, ~class(.x$geom)[1]) == "GeomSmooth")]]
+  expect_equal(smooth_layer$stat_params$method, "lm")
+
+  p_theme <- eta_vs_contcov(xpdb_x, etavar = ETA1, linsm = FALSE, quiet = TRUE)
+  smooth_layer_theme <- p_theme$layers[[which(purrr::map_chr(p_theme$layers, ~class(.x$geom)[1]) == "GeomSmooth")]]
+  expect_false(identical(smooth_layer_theme$stat_params$method, "lm"))
+})
+
+test_that("eta_vs_catcov informs when show_n is requested on a non-xp_xtras object", {
+  # Gathering the unlabeled eta column together with the labeled/leveled
+  # catcov column (tidyr::gather() inside xpose::fetch_data()) cannot
+  # reconcile their differing attributes, so it drops them and warns; this
+  # is expected upstream xpose behavior for this deliberately-degraded
+  # (non-xp_xtras + show_n) code path, not a regression, so we assert it
+  # explicitly here rather than letting it pass through unchecked.
+  expect_warning(
+    expect_message(
+      eta_vs_catcov(xpose::xpdb_ex_pk, etavar = ETA1, show_n = TRUE, quiet = FALSE),
+      "Cannot show N"
+    ),
+    "attributes are not identical"
+  )
+})
+
+test_that("cov_forest", {
+  x <- xpdb_x %>%
+    add_cov_association(
+      TVCL ~ power(CLCR, THETA7, ref = 64),
+      TVCL ~ catshift(SEX, THETA4, ref = 1)
+    )
+
+  p <- cov_forest(x, quiet = TRUE)
+  expect_s3_class(p, "xpose_plot")
+  expect_equal(nrow(p$data), 5)
+  expect_true(all(c("effect", "ci_low", "ci_high", "row_label", "param") %in% names(p$data)))
+
+  # Faceted by param
+  expect_s3_class(p$facet, "FacetWrap")
+  expect_true("param" %in% names(p$facet$params$facets))
+
+  # No associations declared -> informative error, not a downstream crash
+  expect_error(
+    xpdb_x %>% cov_forest(quiet = TRUE),
+    "add_cov_association"
+  )
+
+  # Dots are forwarded to prm_cov() for selector filtering
+  p_filtered <- cov_forest(x, TVCL ~ CLCR, quiet = TRUE)
+  expect_equal(nrow(p_filtered$data), 3)
+  expect_true(all(p_filtered$data$covariate == "CLCR"))
+
+  # forest_opts flows through to xplot_forest()
+  p_point_only <- cov_forest(x, forest_opts = list(type = "p"), quiet = TRUE)
+  expect_setequal(
+    purrr::map_chr(p_point_only$layers, ~class(.x$geom)[1]),
+    "GeomPoint"
+  )
+})
+
+test_that("cov_forest violin layer (type includes 'v')", {
+  x <- xpdb_x %>%
+    add_cov_association(
+      TVCL ~ power(CLCR, THETA7, ref = 64),
+      TVCL ~ catshift(SEX, THETA4, ref = 1)
+    )
+
+  p <- cov_forest(x, type = "pilv", nsim = 200, quiet = TRUE)
+  geoms <- purrr::map_chr(p$layers, ~class(.x$geom)[1])
+  expect_setequal(geoms, c("GeomVline", "GeomLinerange", "GeomPoint", "GeomViolin"))
+
+  violin_layer <- p$layers[[which(geoms == "GeomViolin")]]
+  expect_false(violin_layer$inherit.aes)
+  # one row per draw per category (5 categories x 200 draws)
+  expect_equal(nrow(violin_layer$data), 5 * 200)
+  # reference-level rows are degenerate (all draws == 1), by construction
+  expect_true(all(violin_layer$data$draws[violin_layer$data$row_label == "SEX: 1"] == 1))
+
+  # violin requires simulation draws; delta + "v" errors clearly
+  expect_error(
+    cov_forest(x, type = "pilv", ci_method = "delta", quiet = TRUE),
+    "simulation"
+  )
+})
+
+test_that("cov_forest show_ref, region, and log", {
+  x <- xpdb_x %>%
+    add_cov_association(
+      TVCL ~ power(CLCR, THETA7, ref = 64),
+      TVCL ~ catshift(SEX, THETA4, ref = 1)
+    )
+
+  # default includes the shaded reference region (type='pilr')
+  p <- cov_forest(x, quiet = TRUE)
+  geoms <- purrr::map_chr(p$layers, ~class(.x$geom)[1])
+  expect_true("GeomRect" %in% geoms)
+  rect_layer <- p$layers[[which(geoms == "GeomRect")]]
+  expect_equal(rect_layer$data$xmin, 0.8)
+  expect_equal(rect_layer$data$xmax, 1.25)
+
+  # custom region flows through
+  p_region <- cov_forest(x, region = c(0.7, 1.43), quiet = TRUE)
+  rect_layer2 <- p_region$layers[[which(purrr::map_chr(p_region$layers, ~class(.x$geom)[1]) == "GeomRect")]]
+  expect_equal(rect_layer2$data$xmin, 0.7)
+  expect_equal(rect_layer2$data$xmax, 1.43)
+
+  # show_ref = FALSE drops reference rows
+  expect_equal(nrow(p$data), 5)
+  p_noref <- cov_forest(x, show_ref = FALSE, quiet = TRUE)
+  expect_equal(nrow(p_noref$data), 3)
+  expect_false(any(p_noref$data$is_ref))
+
+  # log is a plain boolean now (not the "x"/NULL axis-selector convention);
+  # verify via the built panel range, since a narrow x range makes log vs
+  # linear labels look identical (both round to the same displayed values)
+  p_log <- cov_forest(x, log = TRUE, quiet = TRUE)
+  p_linear <- cov_forest(x, log = FALSE, quiet = TRUE)
+  b_log <- ggplot2::ggplot_build(p_log)
+  b_linear <- ggplot2::ggplot_build(p_linear)
+  expect_false(isTRUE(all.equal(
+    b_log$layout$panel_scales_x[[1]]$range$range,
+    b_linear$layout$panel_scales_x[[1]]$range$range
+  )))
+})
+
+test_that("cov_forest defaults quiet from xpdb options when omitted", {
+  x <- xpdb_x %>%
+    set_option(quiet = TRUE) %>%
+    add_cov_association(
+      TVCL ~ power(CLCR, THETA7, ref = 64),
+      TVCL ~ catshift(SEX, THETA4, ref = 1)
+    )
+  expect_no_error(cov_forest(x))
+})
+
+test_that("cov_forest errors informatively when show_ref = FALSE removes every row", {
+  # A categorical covariate whose only observed level is the reference
+  # level: every prm_cov() row is a reference row, so show_ref = FALSE
+  # leaves nothing to plot
+  x <- xpdb_x %>%
+    xpose::mutate(FLAG = 1, .problem = 1) %>%
+    set_var_types(.problem = 1, catcov = FLAG) %>%
+    add_cov_association(
+      TVCL ~ custom(FLAG, THETA4, ref = 1, fun = function(cov, ref, theta) 1)
+    )
+
+  expect_equal(nrow(prm_cov(x, quiet = TRUE)), 1)
+  expect_true(prm_cov(x, quiet = TRUE)$is_ref)
+
+  expect_error(
+    cov_forest(x, show_ref = FALSE, quiet = TRUE),
+    "No rows left to plot after.*show_ref = FALSE"
   )
 })

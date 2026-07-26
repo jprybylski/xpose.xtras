@@ -28,14 +28,18 @@ as_xpdb_x <- function(x) {
     # If it doesn't, fill info with empty versions of true
 
     # Space for levels and probs in index
-    new_x$data <- new_x$data %>%
-      # add nested levels to index
-      dplyr::mutate(
-        index = purrr::map(index, ~{
-          dplyr::mutate(.x, levels = list(tibble::tibble())) %>%
-            dplyr::mutate(probs = list(tibble::tibble()))
-        })
-      )
+    # (skipped when there is no table data, e.g. a NONMEM run with no
+    # $TABLE output)
+    if (!is.null(new_x$data)) {
+      new_x$data <- new_x$data %>%
+        # add nested levels to index
+        dplyr::mutate(
+          index = purrr::map(index, ~{
+            dplyr::mutate(.x, levels = list(tibble::tibble())) %>%
+              dplyr::mutate(probs = list(tibble::tibble()))
+          })
+        )
+    }
 
     # Update xp_theme with xp_xtras theme
     new_x <- xpose::update_themes(xpdb = xpose::as.xpdb(new_x), xp_theme = xp_xtra_theme(new_x$xp_theme))
@@ -45,11 +49,22 @@ as_xpdb_x <- function(x) {
     if (xpose::software(new_x)=="nlmixr2")
       new_x <- xpose::update_themes(xpdb = xpose::as.xpdb(new_x), gg_theme = xpose::theme_readable)
 
+    # Apply session-wide default theme, if set (see set_xtras_options()) --
+    # takes precedence over the defaults above, so a project can pin a
+    # look once per session instead of calling update_themes() on every xpdb
+    opt_gg_theme <- getOption("xpose.xtras.gg_theme")
+    opt_xp_theme <- getOption("xpose.xtras.xp_theme")
+    if (!is.null(opt_gg_theme) || !is.null(opt_xp_theme)) {
+      new_x <- xpose::update_themes(xpdb = new_x, gg_theme = opt_gg_theme, xp_theme = opt_xp_theme)
+    }
 
     # Space for pars (empty dummy)
     new_x$pars <- proc_assc(list(a~fun(b,h=1)),1,1,"") %>% dplyr::slice(0)
     # Corresponding option
     new_x$options$cvtype <- "exact"
+
+    # Space for covariate associations (empty dummy; see add_cov_association())
+    new_x$covs <- empty_covs_tbl()
   }
 
 
@@ -59,6 +74,10 @@ as_xpdb_x <- function(x) {
     new_x,
     class = c("xp_xtras", "xpose_data", "uneval")
   )
+
+  # xpose.xtras :: Correct xpose:::sum_condn()'s handling of multi-method runs (issue #60)
+  new_x <- patch_condn(new_x)
+
   new_x
 }
 
@@ -97,14 +116,16 @@ check_xpdb_x <- function(x, .warn=TRUE) {
   if (!inherits(x, "xp_xtras")) return(FALSE)
 
   # Check for xp_xtras list elements in an xpose_data object
+  # (skipped entirely when there is no table data to index, e.g. a
+  # NONMEM run with no $TABLE output)
   ### check for "levels" in index
-  if ("data" %in% names(x) &&
+  if ("data" %in% names(x) && !is.null(x$data) &&
       !"levels" %in% names(x$data$index[[1]])
   ) {
     return(FALSE)
   }
   ### check for "probs" in index
-  if ("data" %in% names(x) &&
+  if ("data" %in% names(x) && !is.null(x$data) &&
       !"probs" %in% names(x$data$index[[1]])
   ) {
     return(FALSE)
@@ -117,6 +138,11 @@ check_xpdb_x <- function(x, .warn=TRUE) {
   }
   ### check for "pars" in top level
   if (!"pars" %in% names(x)
+  ) {
+    return(FALSE)
+  }
+  ### check for "covs" in top level (see add_cov_association())
+  if (!"covs" %in% names(x)
   ) {
     return(FALSE)
   }
@@ -147,7 +173,7 @@ print.xp_xtras <- function(x, ...) {
     )
   }
   cli::cli({
-    cli::cli_h3("{package_flex} object")
+    cli::cli_h3("{package_flex()} object")
     cli::cli_text("{cli::style_bold('Model description')}: {get_prop(x, 'descr', .problem=0, .subprob=0)}")
     cli::cli_verbatim(default_out)
   })
@@ -156,7 +182,7 @@ print.xp_xtras <- function(x, ...) {
 #' Allow assignment without conversion to class uneval
 #'
 #' @description
-#' Based on a PR from Bill Denney to `xpose` ([see here][https://github.com/UUPharmacometrics/xpose/pull/153]).
+#' Based on a PR from Bill Denney to `xpose` ([see here](https://github.com/UUPharmacometrics/xpose/pull/153)).
 #'
 #' @param x object from which to extract element(s) or in which to replace element(s).
 #' @param i index specifying element to replace.
@@ -235,6 +261,11 @@ set_var_types.xp_xtras <- function (xpdb, .problem = NULL, ..., auto_factor = TR
 #' @param .problem <`numeric`> Problem number to use. Uses the all problems if `NULL`
 #' @param ... <`list`> of formulas or leveler functions, where the relevant variable is provided as the argument,
 #' @param .missing <`character`> Value to use for missing levels
+#' @param .ordered <`character`> Names of columns whose levels should be
+#' treated as an ordered factor (see [`base::factor`]), even when supplied
+#' as a plain formula list rather than via [`lvl_inord()`]. Columns leveled
+#' with [`lvl_inord()`] are already ordered by default and do not need to
+#' be listed here.
 #' @param .handle_missing <`character`> How to handle missing levels: "quiet", "warn", or "error"
 #'
 #' @return <`xp_xtras`> object with updated levels
@@ -251,7 +282,7 @@ set_var_types.xp_xtras <- function (xpdb, .problem = NULL, ..., auto_factor = TR
 #'   )
 #' )
 #'
-set_var_levels <- function(xpdb, .problem = NULL, ..., .missing = "Other", .handle_missing = c("quiet","warn","error")) {
+set_var_levels <- function(xpdb, .problem = NULL, ..., .missing = "Other", .ordered = character(), .handle_missing = c("quiet","warn","error")) {
 
   # Basic check
   if (!check_xpdb_x(xpdb)) rlang::abort("xp_xtras object required.")
@@ -269,7 +300,7 @@ set_var_levels <- function(xpdb, .problem = NULL, ..., .missing = "Other", .hand
 
   # Consume dots
   lvl_list <- rlang::dots_list(..., .ignore_empty = "all", .homonyms = "keep")
-  check_levels(lvl_list, full_index)
+  check_levels(lvl_list, full_index, .ordered = .ordered)
 
   # Add all levels
   new_x <- xpdb
@@ -277,6 +308,8 @@ set_var_levels <- function(xpdb, .problem = NULL, ..., .missing = "Other", .hand
   lvl_names <- unique(names(lvl_list))
   for (lvn in lvl_names) {
     lv_sub <- lvl_list[names(lvl_list) == lvn]
+
+    is_ordered <- isTRUE(attr(lv_sub[[1]], "ordered")) || lvn %in% .ordered
 
     if (is_leveler(lv_sub[[1]])) {
       levs <- lv_sub[[1]] # Should only be one, but do this to unlist
@@ -329,6 +362,8 @@ set_var_levels <- function(xpdb, .problem = NULL, ..., .missing = "Other", .hand
       })
     }
 
+    if (is_ordered) attr(plvls, "ordered") <- TRUE
+
     # put processed levels in the index tibble
     new_index <- new_index %>%
       dplyr::rowwise() %>%
@@ -352,15 +387,21 @@ level_types <- c("catcov", "dvid", "occ", "catdv")# catdv is an xp_xtras type
 #'
 #' @param lvl_list <`list`> of formulas or leveler functions
 #' @param index Index of `xp_xtras` object
+#' @param .ordered <`character`> Names of columns to be forced to an
+#' ordered factor, as passed to [`set_var_levels()`]
 #'
 #' @return Nothing, warning or error
-check_levels <- function(lvl_list, index) {
+check_levels <- function(lvl_list, index, .ordered = character()) {
   # Basic check
   #if (!is_formula_list(lvl_list)) rlang::abort("List of formulas required.")
 
   # Make sure all names in lvl_list are in index
   if (!all(names(lvl_list) %in% index$col))
       cli::cli_abort("Levels provided for elements not in data: {setdiff(names(lvl_list), index$col)}")
+
+  # Make sure .ordered only references columns actually being leveled
+  if (!all(.ordered %in% names(lvl_list)))
+    cli::cli_abort(".ordered provided for elements not being leveled: {setdiff(.ordered, names(lvl_list))}")
 
   # Make sure each element of lvl_list is either formula list or levels function
   for (li_ind in seq_along(lvl_list)) {
@@ -421,14 +462,17 @@ proc_levels <-  function(lvl_list) {
 #' @param vals vector of values associated with levels in `lvl_tbl`
 #' @param lvl_tbl tibble of levels
 #'
-#' @returns A vector of levels corresponding to the input vector.
+#' @returns A vector of levels corresponding to the input vector. If
+#' `lvl_tbl` carries an `ordered` attribute set to `TRUE` (see
+#' [`set_var_levels()`]'s `.ordered` argument and [`lvl_inord()`]), the
+#' result is an ordered factor.
 #'
 #' @export
 val2lvl <- function(vals, lvl_tbl = NULL) {
   if (is.null(lvl_tbl)) return(forcats::as_factor(vals))
 
   lvl_v <- lvl_tbl$level[match(vals,lvl_tbl$value)] %>%
-    factor(levels = unique(lvl_tbl$level))
+    factor(levels = unique(lvl_tbl$level), ordered = isTRUE(attr(lvl_tbl, "ordered")))
   lvl_v
 }
 
@@ -438,6 +482,9 @@ val2lvl <- function(vals, lvl_tbl = NULL) {
 #'
 #' @param x <`character`> vector of levels
 #' @param .start_index <`numeric`> starting index for levels
+#' @param .ordered <`logical`> should these levels be treated as an
+#' ordered factor (see [`base::factor`]) wherever they're consumed (eg
+#' [`val2lvl()`])?
 #'
 #' @return Special character vector suitable to be used as leveler
 #' @export
@@ -450,11 +497,12 @@ val2lvl <- function(vals, lvl_tbl = NULL) {
 #'   MED2 = lvl_inord(c("n","y"), .start_index = 0)
 #'   )
 #'
-as_leveler <- function(x, .start_index = 1) {
+as_leveler <- function(x, .start_index = 1, .ordered = FALSE) {
   structure(
     x,
     class = c("xp_levels", class(x)),
-    start = .start_index[1]
+    start = .start_index[1],
+    ordered = isTRUE(.ordered)
   )
 }
 #' @rdname levelers
@@ -477,8 +525,8 @@ lvl_sex <- function() {
 #' @rdname levelers
 #' @order 5
 #' @export
-lvl_inord <- function(x, .start_index = 1) {
-  as_leveler(x, .start_index=.start_index)
+lvl_inord <- function(x, .start_index = 1, .ordered = TRUE) {
+  as_leveler(x, .start_index=.start_index, .ordered=.ordered)
 }
 
 

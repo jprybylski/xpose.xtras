@@ -152,6 +152,100 @@ irep <- function(x, quiet = FALSE) {
 
 
 
+#' Patch condition number extraction
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
+#' Bugfix for \code{xpose:::sum_condn}, the internal function `xpose` uses to
+#' populate the `'condn'` (condition number) entry of \code{xpdb$summary}.
+#'
+#' For NONMEM runs with more than one estimation method (e.g. `SAEM` followed
+#' by importance sampling), the `.lst` file contains more than one
+#' `EIGENVALUES OF COR MATRIX OF ESTIMATE` block. `xpose` always uses the
+#' *first* block found, which is not necessarily from the final estimation
+#' method, so the reported condition number can be wrong. This patch instead
+#' uses the *last* block, matching the value reported by NONMEM-adjacent
+#' tools such as PsN's `sumo`.
+#'
+#' @param xpdb An \code{xpose_data} or \code{xp_xtras} object.
+#'
+#' @return The \code{xpdb} object, with a corrected `'condn'` entry in
+#' \code{xpdb$summary} (unchanged if \code{xpdb} is not from `nonmem`, or if
+#' no eigenvalues could be found).
+#' @export
+#'
+#' @examples
+#' xpdb_ex_pk <- patch_condn(xpose::xpdb_ex_pk)
+#'
+patch_condn <- function(xpdb) {
+  xpose::check_xpdb(xpdb, check = 'summary')
+
+  if (xpose::software(xpdb) != 'nonmem') return(xpdb)
+
+  xpose::check_xpdb(xpdb, check = 'code')
+  rounding <- xpdb$xp_theme$rounding
+
+  # xpose.xtras :: Duplicated from xpose:::sum_condn(), with a fix for
+  # multi-estimation-method runs: use the last (rather than the first)
+  # 'EIGENVALUES OF COR MATRIX OF ESTIMATE' block found in the .lst file.
+  new_condn <- xpdb$code %>%
+    dplyr::group_by_at(.vars = 'problem') %>%
+    tidyr::nest() %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(value = purrr::map_chr(
+      .x = .$data,
+      .f = ~{
+        ## Find the eigenvalues header(s)
+        eigen_header <- stringr::str_which(.x$code, stringr::fixed('EIGENVALUES OF COR'))
+
+        if (length(eigen_header) == 0) return(NA_character_)
+        # xpose.xtras :: patch for issue #60 -- use the last estimation
+        # method's eigenvalues, not the first
+        if (length(eigen_header) > 1) eigen_header <- max(eigen_header)
+
+        # Find numeric values in the format of eigen values
+        eigen_rows <- eigen_header - 1 + stringr::str_which(.x$code[eigen_header:length(.x$code)], pattern = "\\d\\.\\d{2}E[+-]?\\d+(?=\\s|$)")
+
+        ## Make sure rows are consecutive to prevent possible false positive match
+        diff_rows <- c(1, diff(eigen_rows))
+        if (any(diff_rows != 1)) {
+          eigen_rows <- eigen_rows[1:(which(diff_rows != 1) - 1)]
+        }
+
+        ## Parse the eigen values
+        eigen_values <- .x[eigen_rows, ] %>%
+          dplyr::pull("code") %>%
+          stringr::str_trim(side = 'both') %>%
+          paste(collapse = " ") %>%
+          stringr::str_split(pattern = '\\s+') %>%
+          purrr::flatten_chr() %>%
+          as.numeric()
+
+        ## Compute the condition number
+        eigen_values %>%
+          {max(.)/min(.)} %>%
+          round(digits = rounding) %>%
+          as.character()
+      }
+    )) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(subprob = 0, label = 'condn', descr = 'Condition number') %>%
+    dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'descr', 'value')) %>%
+    dplyr::filter(!is.na(.$value))
+
+  if (nrow(new_condn) == 0) return(xpdb)
+
+  xpdb$summary <- xpdb$summary %>%
+    dplyr::filter(!(.$label == 'condn' & .$problem %in% new_condn$problem)) %>%
+    dplyr::bind_rows(new_condn) %>%
+    dplyr::arrange_at(.vars = c('problem', 'label', 'subprob'))
+
+  xpdb
+}
+
+
+
 ### More direct edit_xpose_data
 ### The current implementation does a bit too many
 ### checks that disrupt expected behavior of imported
@@ -208,7 +302,7 @@ edit_xpose_data <- function(.fun, .fname, .data, ..., .problem, .source, .where,
     xpdb[['data']] <- xpdb[['data']] %>%
       dplyr::mutate(modified = dplyr::if_else(.$problem %in% .problem, TRUE, .$modified))
 
-    if (.fname %in% c('mutate', 'select', 'rename')) {
+    if (.fname %in% c('mutate', 'select', 'rename', 'left_join')) {
       xpdb[['data']] <- xpose::xpdb_index_update(xpdb = xpdb, .problem = .problem) # Update index
     }
   } else if (.source == 'special') {
@@ -337,6 +431,108 @@ ungroup_x <- function(.data, ..., .problem, .source, .where) {
 }
 
 
+#' Backfill missing variables via a left join
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
+#' <[`dplyr::left_join`]> wrapper for `xpose_data` (and, by inheritance,
+#' `xp_xtras`) objects. Unlike a plain `left_join()`, a column present in
+#' both `x` and `y` (other than the join keys) is not duplicated with
+#' `.x`/`.y` suffixes: missing (`NA`) values already in `x` are backfilled
+#' from the matching value in `y`, while non-missing values already in `x`
+#' are left untouched. This makes it straightforward to backfill a variable
+#' (or set of variables) that is only partially recorded, from a second data
+#' source keyed on the same join variable(s) (e.g. `ID`).
+#'
+#' `left_join_x()` accepts `xpose_data`/`xp_xtras` objects directly, with an
+#' additional `.problem` argument restricting which problem(s) the join is
+#' applied to.
+#'
+#' `left_join()` without `_x` is defined as an S3 method on `xpose_data`, so
+#' that the usual <[`dplyr::left_join`]> generic dispatches here
+#' automatically (`xp_xtras` objects are handled the same way, via class
+#' inheritance).
+#'
+#' @param x An `xpose_data` or `xp_xtras` object.
+#' @param y A data frame (or another object coercible to one) to join in.
+#' @param by Join specification, as in <[`dplyr::left_join`]>. If `NULL`, a natural join is performed using variables common to `x` and `y`.
+#' @param copy If `x` and `y` are not from the same source and `copy = TRUE`, `y` is copied to bring it into the same source as `x`. See <[`dplyr::left_join`]>.
+#' @param suffix Suffixes used internally to disambiguate a column shared by `x` and `y` before it is backfilled into a single column; not visible in the result.
+#' @param ... Other parameters passed onto <[`dplyr::left_join`]>.
+#' @param keep Passed to <[`dplyr::left_join`]>. Note that duplicate join key columns (`keep = TRUE`) are backfilled together like any other shared column, rather than kept separate.
+#' @param .problem The problem number(s) to which the join will be applied. Uses all problems if `NULL`.
+#'
+#' @return An updated `xpose_data`/`xp_xtras` object.
+#' @export
+#'
+#' @examples
+#' # Some subjects are missing an APGR score in the base dataset
+#' xpdb_missing <- pheno_base %>%
+#'   mutate_x(APGR = dplyr::if_else(ID %in% c("1", "2"), NA, APGR))
+#'
+#' # A separate table with the (complete) values, keyed on ID
+#' apgr_lookup <- xpose::get_data(pheno_base, quiet = TRUE) %>%
+#'   dplyr::distinct(ID, APGR)
+#'
+#' # Existing APGR values are kept; only the missing ones are filled in
+#' left_join_x(xpdb_missing, apgr_lookup, by = "ID")
+#'
+#' @name left_join_x
+left_join_x <- function(x, y, by = NULL, copy = FALSE, suffix = c(".x", ".y"), ..., keep = NULL, .problem = NULL) {
+  if (is.null(.problem)) {
+    edit_xpose_data(
+      .fun = join_backfill, .fname = "left_join", .data = x, .source = "data",
+      y = y, by = by, copy = copy, suffix = suffix, keep = keep, ...
+    )
+  } else {
+    edit_xpose_data(
+      .fun = join_backfill, .fname = "left_join", .data = x, .problem = .problem, .source = "data",
+      y = y, by = by, copy = copy, suffix = suffix, keep = keep, ...
+    )
+  }
+}
+
+#' @rdname left_join_x
+#' @importFrom dplyr left_join
+#' @export
+left_join.xpose_data <- function(x, y, by = NULL, copy = FALSE, suffix = c(".x", ".y"), ..., keep = NULL, .problem = NULL) {
+  left_join_x(x = x, y = y, by = by, copy = copy, suffix = suffix, ..., keep = keep, .problem = .problem)
+}
+
+#' Left join, backfilling shared columns instead of duplicating them
+#'
+#' @description
+#' As <[`dplyr::left_join`]>, but any column present in both `x` and `y`
+#' (besides the join keys) is coalesced instead of suffixed: values already
+#' present in `x` are kept, and only missing (`NA`) values are filled in from
+#' `y`.
+#'
+#' @inheritParams left_join_x
+#'
+#' @return A data frame
+#' @keywords internal
+join_backfill <- function(x, y, by = NULL, copy = FALSE, suffix = c(".x", ".y"), ..., keep = NULL) {
+  joined <- dplyr::left_join(x, y, by = by, copy = copy, suffix = suffix, ..., keep = keep)
+
+  suffix_x <- suffix[[1]]
+  suffix_y <- suffix[[2]]
+  if (!nzchar(suffix_x) || !nzchar(suffix_y)) return(joined)
+
+  x_names <- names(joined)[endsWith(names(joined), suffix_x)]
+  shared <- substr(x_names, 1, nchar(x_names) - nchar(suffix_x))
+  shared <- shared[paste0(shared, suffix_y) %in% names(joined)]
+
+  for (col in shared) {
+    col_x <- paste0(col, suffix_x)
+    col_y <- paste0(col, suffix_y)
+    joined[[col]] <- dplyr::coalesce(joined[[col_x]], joined[[col_y]])
+    joined[[col_x]] <- NULL
+    joined[[col_y]] <- NULL
+  }
+
+  joined
+}
 
 
 ##### Fix for ggplot2 from xpose@cc0e4b2
@@ -360,10 +556,18 @@ ungroup_x <- function(.data, ..., .problem, .source, .where) {
 #' # Or simply by writing the plot object name
 #' my_plot
 #'
+#' @exportS3Method print xpose_plot
 print.xpose_plot <- function(x, page, ...) {
 
   # Parse template titles
   if (xpose::is.xpose.plot(x)) {
+    # xpose.xtras :: auto-apply configured default labels/watermark (see
+    # ?set_xtras_options's `auto_apply` entry). Option-level tier only --
+    # print() has no way to receive the plot's source xpdb, so xpdb-level
+    # defaults still require calling apply_default_labs()/add_watermark()
+    # explicitly with `xpdb=`.
+    x <- auto_apply_defaults(x)
+
     if (utils::packageVersion("ggplot2") > "3.5.2") {
       x_labs <- suppressMessages(ggplot2::get_labs(plot = x))
 

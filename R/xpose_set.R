@@ -741,7 +741,18 @@ NULL
 #' (or a monolithic single `focus_function` call with a custom function)
 #' should be preferred.
 #'
-#' @return An `xpose_set` object with the focused xpdb object(s)
+#' `focus_function()`/`focus_qapply()` support two kinds of `fn`:
+#' - *Transform* functions, which take an `xpose_data`/`xp_xtras` object and return one
+#'   (e.g. [`set_var_types_x`]). These are applied to each focused element in place, and
+#'   the (still-focused) `xpose_set` is returned so calls can keep being piped.
+#' - *Output-generating* functions, which take an `xpose_data`/`xp_xtras` object but return
+#'   something else (e.g. a plot or table). These are applied to each focused element, and
+#'   the raw output is returned instead of an `xpose_set`: a single value if only one element
+#'   is focused, or a named list (by label) of outputs if several are focused.
+#'
+#' @return An `xpose_set` object with the focused xpdb object(s) transformed in place, or,
+#' for functions that do not return an `xpose_data`/`xp_xtras` object, the output of `fn`
+#' (or a named list of outputs, if multiple elements are focused)
 #' @export
 #'
 #' @examples
@@ -772,6 +783,17 @@ NULL
 #'   select(run6) %>%
 #'   {.[[1]]$xpdb} %>%
 #'   list_vars()
+#'
+#' # Output-generating function applied to a single focused element:
+#' # returns the plot itself, not an xpose_set
+#' pheno_set %>%
+#'   focus_xpdb(run6) %>%
+#'   focus_function(xpose::dv_vs_ipred)
+#'
+#' # ... or with several elements focused, a named list of plots
+#' pheno_set %>%
+#'   focus_xpdb(run6, run7) %>%
+#'   focus_function(xpose::dv_vs_ipred)
 #'
 focus_xpdb <- function(xpdb_s, ..., .add = FALSE) {
   # Focus on an xpdb object in an xpose_set
@@ -819,16 +841,33 @@ focus_function <- function(xpdb_s, fn, ...) {
   if (length(focused)==0) rlang::abort("No xpdb objects are focused.")
   fn <- purrr::as_mapper(fn)
 
-  out <- reshape_set(xpdb_s) %>%
+  reshaped <- reshape_set(xpdb_s) %>%
     dplyr::rowwise() %>%
-    dplyr::mutate(xpdb = `if`(
+    dplyr::mutate(.result = `if`(
       label %in% focused,
       fn(xpdb, ...),
-      xpdb
+      NA
     ) %>% list()) %>%
-    dplyr::ungroup() %>%
-    unreshape_set()
-  return(out)
+    dplyr::ungroup()
+
+  focused_rows <- reshaped %>% dplyr::filter(label %in% focused)
+  focused_results <- focused_rows$.result %>% rlang::set_names(focused_rows$label)
+
+  # Transform functions (returning an xpose_data/xp_xtras object) are applied in place,
+  # keeping the xpose_set intact. Output-generating functions (anything else) instead
+  # return their output directly -- see #5.
+  if (purrr::every(focused_results, ~inherits(.x, "xpose_data"))) {
+    out <- reshaped %>%
+      dplyr::rowwise() %>%
+      dplyr::mutate(xpdb = `if`(label %in% focused, .result, xpdb) %>% list()) %>%
+      dplyr::ungroup() %>%
+      dplyr::select(-.result) %>%
+      unreshape_set()
+    return(out)
+  }
+
+  if (length(focused_results) == 1) return(focused_results[[1]])
+  focused_results
 }
 
 #' @rdname focus_xpdb
@@ -838,10 +877,14 @@ focus_qapply <- function(xpdb_s,
                          fn,
                          ...,
                          .mods = everything()) {
-  xpdb_s %>%
+  out <- xpdb_s %>%
     focus_xpdb({{.mods}}) %>%
-    focus_function(fn = fn, ...) %>%
-    unfocus_xpdb()
+    focus_function(fn = fn, ...)
+
+  # Output-generating fn: nothing to unfocus, just return the output (see focus_function()).
+  if (!inherits(out, "xpose_set")) return(out)
+
+  unfocus_xpdb(out)
 }
 
 ##### Methods

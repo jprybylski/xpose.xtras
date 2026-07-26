@@ -8,7 +8,7 @@
 \alias{lvl_inord}
 \title{Level-defining helper functions}
 \usage{
-as_leveler(x, .start_index = 1)
+as_leveler(x, .start_index = 1, .ordered = FALSE)
 
 is_leveler(x)
 
@@ -16,12 +16,16 @@ lvl_bin(x = c("No", "Yes"), .start_index = 0)
 
 lvl_sex()
 
-lvl_inord(x, .start_index = 1)
+lvl_inord(x, .start_index = 1, .ordered = TRUE)
 }
 \arguments{
 \item{x}{<\code{character}> vector of levels}
 
 \item{.start_index}{<\code{numeric}> starting index for levels}
+
+\item{.ordered}{<\code{logical}> should these levels be treated as an
+ordered factor (see \code{\link[base:factor]{base::factor}}) wherever they're consumed (eg
+\code{\link[=val2lvl]{val2lvl()}})?}
 }
 \value{
 Special character vector suitable to be used as leveler

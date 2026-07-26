@@ -113,6 +113,13 @@ diff(pheno_set, run10,run9)
 xset_lineage(pheno_set, run10,run9)
 ```
 
+`logLik()`, `AIC()` and `BIC()` methods are also available for a single `xpdb` (deriving log-likelihood from the objective function value), and extend across an `xpose_set`'s lineage the same way `diff()` does, but without differencing, so models can be compared directly rather than relative to a base model.
+
+```{r fitstats}
+AIC(pheno_set)
+BIC(pheno_set, run10, run9)
+```
+
 Models can also be compared through various plots. Many that use individual objective function values (iOFVs) require these values to be in the `xpdb` data. If these are missing and the `xpose_data` object is generated based on a NONMEM run, these can be added with the `backfill_iofv()` function. We discuss focusing in another section, but it is useful here,
 
 Two models can be compared one way using an updated version of a `xpose4` function; this is referred to in some places as a "shark plot", and it is called `xpose4::dOFV.vs.id()` in `xpose4`. As such, it is called `shark_plot()` or `dofv_vs_id()` in `xpose.xtras`.

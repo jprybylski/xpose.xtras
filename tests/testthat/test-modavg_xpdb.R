@@ -30,6 +30,17 @@ test_that("model averaging xpdb (modavg_xpdb) works", {
     modavg_xpdb(pheno_set, run5:run8, quiet = TRUE, avg_cols = DV, auto_backfill = FALSE),
     "Indiv.*OFV.*required.*Set.*auto_backfill"
   )
+  expect_error(
+    pheno_set %>%
+      modavg_xpdb(auto_backfill = TRUE, quiet=TRUE),
+    "Columns to average are required.*avg_cols"
+  )
+  expect_error(
+    pheno_set %>%
+      modavg_xpdb(avg_cols = DV, auto_backfill = TRUE, quiet=TRUE,
+                  weight_basis = "res", res_col = c("RES","WRES")),
+    "Only one residual column.*weighting basis"
+  )
 
   # Test setup for calculations and algorithm
   set.seed(100) # this works for most cases, except really small denominators,
@@ -244,4 +255,22 @@ test_that("model averaging xpdb (modavg_xpdb) works", {
       tolerance = 0.001
     )
   }
+})
+
+test_that("modavg_xpdb() summarizes the run property for large sets", {
+  # pheno_set has 14 models; > 5 should be summarized rather than fully listed
+  big_avg <- pheno_set %>%
+    modavg_xpdb(avg_cols = DV, auto_backfill = TRUE, quiet = TRUE)
+  expect_match(
+    get_prop(big_avg, "run"),
+    "^14 models \\(run3, run4, run5, \\.\\.\\.\\)$"
+  )
+
+  # 5 or fewer models keeps the full, unsummarized run list
+  small_avg <- pheno_set %>%
+    modavg_xpdb(run3, run4, run5, avg_cols = DV, auto_backfill = TRUE, quiet = TRUE)
+  expect_identical(
+    get_prop(small_avg, "run"),
+    "run3, run4 and run5"
+  )
 })

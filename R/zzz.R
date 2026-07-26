@@ -4,11 +4,23 @@
     cli::cli_inform(c("i"="{.strong {cli::col_blue('xpose')}} is not currently attached."), class = "packageStartupMessage")
   }
 
-  if (!is_loading_for_tests()) {
+  ## Register our preferred side of any conflicted::conflict_scout() conflicts.
+  ## conflicted only resolves conflicts among *currently attached* packages, and
+  ## (re-)attaching conflicted itself resets what it has learned so far. Since
+  ## xpose, conflicted and xpose.xtras can be attached in any order, a single
+  ## one-shot call here is not enough (see #39) -- redo it whenever xpose or
+  ## conflicted (re)attach/(re)load, in addition to doing it now.
+  set_conflict_prefs <- function(...) {
+    if (is_loading_for_tests()) return(invisible())
     conflicted::conflict_prefer_all("xpose.xtras", c("xpose","stats"), quiet=TRUE)
     if (utils::packageVersion("xpose") >= "0.5.0")
       conflicted::conflict_prefer("irep", "xpose", "xpose.xtras", quiet=TRUE)
   }
+  set_conflict_prefs()
+  setHook(packageEvent("xpose", "onLoad"),      function(...) set_conflict_prefs())
+  setHook(packageEvent("xpose", "attach"),      function(...) set_conflict_prefs())
+  setHook(packageEvent("conflicted", "onLoad"), function(...) set_conflict_prefs())
+  setHook(packageEvent("conflicted", "attach"), function(...) set_conflict_prefs())
 
   ## Make sure print.xpose_plot is not overwritten by xpose
   reg <- function(...) {
@@ -38,6 +50,7 @@ is_loading_for_tests <- function() {
 # Remove CRAN note on no visible binding for global variable
 utils::globalVariables(c(
   '.',
+  ".result",
   "problem",
   "subprob",
   "method",
@@ -146,5 +159,9 @@ utils::globalVariables(c(
   "ini", "eta.ka", "eta.cl", "eta.v",
   "eta.ktr", "eta.emax", "eta.ec50", "eta.kout", "eta.e0",
   "depot", "cent", "center", "gut", "effect",
-  "LLOQ", "CENS"
+  "LLOQ", "CENS",
+  "PAR1", "PAR2",
+  # covariate association / forest plot (xtra_pars.R, covariates.R)
+  "covariate", "covtype", "is_ref", "ci_low", "ci_high",
+  "level", "row_label", "draws"
 ))

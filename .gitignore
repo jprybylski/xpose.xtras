@@ -13,3 +13,8 @@ docs
 .Renviron
 builds
 Rplots.pdf
+renv
+.Rprofile
+CLAUDE.md
+.claude
+dev-notes

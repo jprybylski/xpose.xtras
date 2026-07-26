@@ -15,7 +15,9 @@ set_dv_probs(
 \arguments{
 \item{xpdb}{<\code{xp_xtras}> object}
 
-\item{.problem}{<\code{numeric}> Problem number to use. Uses the all problems if \code{NULL}}
+\item{.problem}{<\code{numeric}> Problem number to use. Uses all problems if \code{NULL}
+(the default). May be omitted entirely and left to default, even when
+formulas are supplied positionally in \code{...}.}
 
 \item{...}{Formulas where LHS are levels or pseudo-functions (see Details), and RHS
 are columns with probabilities of those levels.}
@@ -69,6 +71,12 @@ vismo_pomod  \%>\%
  set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\\\d+$")) \%>\%
  # Default is to not bother users with a warning
  set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)\%>\%
+ list_vars()
+
+# .problem can be omitted for single-problem models
+pkpd_m3 \%>\%
+ set_var_types(catdv=BLQ, dvprobs=LIKE) \%>\%
+ set_dv_probs(1~LIKE, .dv_var = BLQ) \%>\%
  list_vars()
 
 }

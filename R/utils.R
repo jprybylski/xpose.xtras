@@ -301,6 +301,16 @@ reportable_digits <- function(xpdb, .default = 3, .problem, .subprob, .method) {
 
 #' Set an `xpose` option
 #'
+#' @description
+#' Sets one or more entries in `xpdb$options`, merged in via
+#' [utils::modifyList()] -- which recurses into list-valued options, so
+#' setting a single key of an existing named-list option (e.g. one label
+#' of `default_labs`, see [set_default_labs()]) leaves its other keys
+#' untouched rather than replacing the whole list. This is what
+#' [set_default_labs()] and [set_default_watermark()] are built on, and
+#' calling `set_option()` directly with `default_labs`/`default_watermark`
+#' behaves the same way.
+#'
 #' @param xpdb <`xpose_data`[xpose::xpose_data]> object
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Arguments in
 #' the form of `option = value`
@@ -462,7 +472,7 @@ fill_prob_subprob_method <- function(xpdb, .problem, .subprob, .method, envir=pa
       dplyr::filter(label=="method")
 
     if (nrow(summ)==0) {
-      cli::cli_warn("Model from {.strong {xpose::software(xpdb)}} may not be compatible with {package_flex}.")
+      cli::cli_warn("Model from {.strong {xpose::software(xpdb)}} may not be compatible with {package_flex()}.")
       assign(".problem", 0, envir = envir)
       assign(".subprob", 0, envir = envir)
       assign(".method", "", envir = envir)

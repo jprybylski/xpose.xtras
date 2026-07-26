@@ -21,6 +21,26 @@ test_that("shark_plot works as expected", {
 
   two_mod_set <- xpose_set(naive=pheno_set[[1]]$xpdb, pheno_base) %>% focus_qapply(backfill_iofv)
 
+  # Explicit `opt` argument skips the internal def_opt fallback
+  expect_no_error(
+    shark_plot(two_mod_set, quiet = TRUE, opt = xpose::data_opt())
+  )
+
+  # No data available for plotting (mocked, since nind_filter()'s own
+  # "filters out all data" abort() would otherwise fire first for any
+  # legitimately empty dataset -- see xset_waterfall's analogous test).
+  # Scoped in local() so the mock doesn't leak into the rest of this test.
+  local({
+    testthat::local_mocked_bindings(
+      fetch_data = function(...) NULL,
+      .package = "xpose"
+    )
+    expect_error(
+      shark_plot(two_mod_set, quiet = TRUE),
+      "No data available for plotting"
+    )
+  })
+
   # df checks
   expect_warning(
     shark_plot(two_mod_set,quiet = TRUE,df="no numeric"),

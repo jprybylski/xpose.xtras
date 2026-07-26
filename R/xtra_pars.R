@@ -334,6 +334,25 @@ check_associations <- function(
   return()
 }
 
+# Empty `xpdb$covs` tibble, defining the storage schema for parameter/covariate
+# associations (see add_cov_association()). Used in as_xpdb_x(), so changes to
+# the schema should be made with caution -- anything reading xpdb$covs should
+# tolerate these columns/types.
+empty_covs_tbl <- function() {
+  tibble::tibble(
+    param = character(),     # LHS selector, as typed (e.g. "the1")
+    covariate = character(), # RHS covariate column selector (e.g. "WT")
+    covtype = character(),   # "cont" or "cat"
+    assoc = character(),     # one of builtin_cov_asscs or "custom"
+    thetas = list(),         # list<character>: 1+ theta selectors (one per non-ref level for multi-level catshift)
+    ref = list(),            # required reference covariate value/level (no implicit default)
+    argus = list(),          # extra named args (e.g. custom()'s `fun`)
+    problem = numeric(),
+    subprob = numeric(),
+    method = character()
+  )
+}
+
 # Process associations list
 # This is used in as_xp_xtras, so changes to behavior should be made with caution
 proc_assc <- function(assc_list,.problem,.subprob,.method) {
@@ -408,6 +427,492 @@ param_selector <- function(
   if (length(ret_val)>1)
     cli::cli_abort("Selector {.strong {sel}} does not unambiguously match any one row (matches {length(ret_val)}).")
   as.integer(ret_val)
+}
+
+########################
+# Covariate associations
+########################
+
+#' Describe parameter/covariate associations
+#'
+#' @description
+#' The relationship between a structural parameter and a covariate can be
+#' described, so that the covariate's effect on that parameter -- and the
+#' uncertainty of that effect -- can later be visualized with
+#' [`xplot_forest()`] (via [`prm_cov()`]/[`prm_contcov()`]/[`prm_catcov()`]).
+#'
+#' This is deliberately parallel to [`add_prm_association()`]: the same
+#' formula-based declaration style, the same two-stage
+#' check-then-process validation, and the same "redeclare to replace"
+#' upsert behavior. It is a separate mechanism (own storage, own getters)
+#' because a covariate association needs more shape than an omega
+#' association -- a covariate column, a *required* reference value, and
+#' (for categorical covariates or `custom()`) more than one theta -- and
+#' it produces a *range* of effect sizes rather than a single scalar CV.
+#'
+#' @rdname add_cov_association
+#'
+#' @param xpdb <`xp_xtras`> object
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> One or more formulas that
+#' define associations between a parameter and a covariate. One list of
+#' formulas can also be used, but a warning is generated.
+#'
+#' For `drop_cov_association`, these should be formulas of the form
+#' `param ~ covariate` (both bare, unquoted selectors; `covariate` must be
+#' the literal covariate column name as declared).
+#' @param .problem <`numeric`> Problem number to apply this relationship.
+#' @param .subprob <`numeric`> Subprob number to apply this relationship.
+#' @param .method <`numeric`> Method to apply this relationship.
+#' @param quiet Silence extra output.
+#'
+#' @details
+#' Format for associations is:
+#'
+#' `LHS ~ fun(COVARIATE, THETA..., ref = ..., ...)`
+#'
+#' \itemize{
+#'   \item LHS: Selector for a fixed-effect (theta) parameter, exactly as
+#'   in [`add_prm_association()`] (`the{m}`, `{name}` or `{label}`, unquoted).
+#'   Multiple parameters can share one association with `+` (eg, a
+#'   covariate that affects both `CL` and `Q` through the same theta).
+#'   \item RHS `COVARIATE`: The first (positional) argument. The bare,
+#'   unquoted name of a `contcov`/`catcov` column (see [`xpose::xp_var()`]) --
+#'   *not* a fixed-effect or omega selector.
+#'   \item RHS `THETA...`: One or more further positional arguments,
+#'   selecting the fixed-effect parameter(s) that carry the covariate
+#'   effect magnitude (same selector rules as LHS -- `the{m}`/`{name}`/
+#'   `{label}`, unquoted). How many are expected depends on `fun`; see the
+#'   built-in list below.
+#'   \item RHS `ref`: **Required, named, no default**, for every
+#'   association regardless of `fun`. This is the covariate value (for
+#'   continuous covariates) or raw level (for categorical covariates)
+#'   that the effect is normalized against -- the point at which the
+#'   reported effect ratio is exactly `1`. There is no way to safely infer
+#'   this from the `xpdb` alone (NONMEM control streams commonly
+#'   normalize a covariate against a hardcoded constant baked into the
+#'   code, which is invisible to `xpose`), so it must always be stated
+#'   explicitly, the same way [`add_prm_association()`]'s `nmboxcox`
+#'   requires an explicit `lambda`.
+#' }
+#'
+#' All built-ins express the covariate's effect as a multiplicative
+#' `effect_ratio` on the parameter's typical value, and are constructed so
+#' that `effect_ratio == 1` whenever the covariate equals `ref`,
+#' *regardless of the theta value*. Available built-ins:
+#'
+#' \itemize{
+#'   \item `linear(COV, THETA, ref=)`: \eqn{1 + \theta (COV - ref)}
+#'   \item `power(COV, THETA, ref=)`: \eqn{(COV / ref)^\theta} (allometric)
+#'   \item `exponential(COV, THETA, ref=)`: \eqn{e^{\theta (COV - ref)}}
+#'   \item `additive(COV, THETA, ref=)`: \eqn{(\theta + COV) / (\theta + ref)}.
+#'   An uncommon but simple form where the covariate is added directly (with
+#'   an implicit coefficient of `1`, unlike `linear`'s explicit slope) to an
+#'   intercept-like `THETA`, eg `CL = THETA(n) + WT` in the underlying model.
+#'   \item `hockey(COV, THETA_LO, THETA_HI, ref=, brk=ref)`: PsN's
+#'   "hockey-stick" two-slope piecewise-linear model --
+#'   \eqn{1 + \theta_{lo} (COV - ref)} when `COV <= brk`,
+#'   \eqn{1 + \theta_{hi} (COV - ref)} when `COV > brk`. `brk` (the
+#'   breakpoint) defaults to `ref` (PsN's usual default: breakpoint =
+#'   normalization reference), but can be given separately, eg for a
+#'   covariate normalized to its observed median while the clinically
+#'   meaningful cutpoint is a round number (`ref = 90, brk = 60` for an
+#'   eGFR-like covariate).
+#'   \item `catshift(COV, THETA..., ref=)`: One theta per non-reference
+#'   raw level of a categorical covariate, `effect_ratio = 1 + THETA_i`
+#'   for level `i` (`1` at `ref`). Assumes the typical NONMEM pattern of
+#'   one theta per non-reference category (eg
+#'   `IF (RACE.EQ.2) CLCOV = THETA(9)`). Thetas are matched to
+#'   non-reference levels in ascending raw-value order -- if that order
+#'   is ambiguous or wrong for a given model, use `custom()` instead.
+#' }
+#'
+#' For anything else, `custom(COV, THETA..., ref=, fun=)` is the escape
+#' hatch: `fun` is a function of `(cov, ref, theta)` (`theta` is always a
+#' numeric vector, even when only one `THETA` selector is given) returning
+#' the effect ratio. Because `custom()` can't be verified by
+#' construction the way the built-ins can, `add_cov_association()`
+#' validates it at declaration time by evaluating `fun(ref, ref, theta)`
+#' for a few probe values of `theta` (not the currently-fitted value,
+#' which could coincidentally pass while `fun` is still wrong for other
+#' theta values) and requires each to equal `1`; if it doesn't, the error
+#' states the required invariant and shows what `fun` actually returned,
+#' rather than failing silently or only much later during plotting.
+#'
+#' ### A note on parameter/theta scale
+#'
+#' The computed effect ratio never touches the LHS parameter's own fitted
+#' value -- only the covariate-effect theta(s), the covariate value, and
+#' `ref` -- so it does not matter whether the LHS was itself parameterized
+#' on a log, logit, or identity scale in the control stream ([`get_prm()`]'s
+#' `transform` argument only affects diagonal OMEGA/SIGMA reporting
+#' (variance -> SD, covariance -> correlation); THETA values are always
+#' the raw fitted estimate regardless of `transform`, so there is nothing
+#' to reconcile there either).
+#'
+#' What *is* assumed is that the chosen association -- a builtin or
+#' `custom()` -- is an exact match for the functional form actually used
+#' in the model code, including any scale factor baked into that code
+#' (eg a covariate effect entered as `THETA(n)*(COV-ref)/100`). There is
+#' no way to verify this from the `xpdb` alone; if a builtin's literal
+#' formula (see above) doesn't match the real model, the result will be
+#' a numerically valid but silently wrong effect ratio, not an error --
+#' the same caveat [`add_prm_association()`] already carries for CV%
+#' calculation.
+#'
+#' If the covariate-effect theta itself is not already on the scale a
+#' builtin expects (eg it was fitted on a logit or other transformed
+#' scale, or needs some other rescaling to match one of the literal
+#' formulas above), transform it back with [`mutate_prm()`] *before*
+#' declaring the association -- the same recommended workflow as
+#' [`add_prm_association()`]'s own untransformed-theta requirement.
+#'
+#' @seealso [`add_prm_association()`], [`prm_cov()`], [`mutate_prm()`]
+#'
+#' @export
+#'
+#' @returns An updated `xp_xtras` object
+#'
+#' @examples
+#'
+#' # xpdb_x's THETA7 ("CRCL on CL") is a genuine covariate effect already
+#' # in the model, so this is a faithful (if allometric-flavored, for
+#' # illustration) description of it:
+#' xpdb_x %>%
+#'   add_cov_association(TVCL ~ power(CLCR, THETA7, ref = 64)) %>%
+#'   prm_cov()
+#'
+#' # hockey-stick (PsN-style): different slope above/below the reference
+#' xpdb_x %>%
+#'   add_cov_association(TVCL ~ hockey(CLCR, THETA7, THETA4, ref = 64)) %>%
+#'   prm_cov()
+#'
+#' # Categorical: one theta per non-reference level. SEX has 2 levels
+#' # (1, 2), so catshift needs exactly one theta for the non-reference
+#' # level; THETA4 is reused here purely for illustration.
+#' xpdb_x %>%
+#'   add_cov_association(TVCL ~ catshift(SEX, THETA4, ref = 1)) %>%
+#'   prm_cov()
+#'
+#' # custom(): fun(cov, ref, theta) must equal 1 when cov == ref
+#' xpdb_x %>%
+#'   add_cov_association(
+#'     TVCL ~ custom(CLCR, THETA7, ref = 64,
+#'                 fun = function(cov, ref, theta) (cov/ref)^theta)
+#'   ) %>%
+#'   prm_cov()
+#'
+#' # Dropping an association is easy
+#' bad_assoc <- xpdb_x %>%
+#'   add_cov_association(TVCL ~ power(CLCR, THETA7, ref = 64))
+#' bad_assoc %>%
+#'   drop_cov_association(TVCL ~ CLCR) %>%
+#'   prm_cov()
+#'
+add_cov_association <- function(
+  xpdb,
+  ...,
+  .problem,
+  .subprob,
+  .method,
+  quiet
+) {
+  if (!check_xpdb_x(xpdb, .warn = TRUE))
+    cli::cli_abort("{cli::col_blue('xp_xtras')} object required.")
+
+  fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
+
+  assc_list <- rlang::list2(...) # List of formulas (hopefully)
+  # Allow a list to be passed to ... given add_relationship behavior
+  if (length(assc_list)>=1 && is.list(assc_list[[1]])) {
+    rlang::warn("List should not be used in dots, but is allowed; instead pass as arguments or pass list with !!!list.")
+    assc_list <- assc_list[[1]]
+  }
+
+  # Validate input
+  ## Return base object if no associations are provided
+  if (rlang::dots_n(...)==0) return(xpdb)
+  ## Check that formulas are valid
+  check_cov_associations(assc_list=assc_list, xpdb=xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
+
+  # Process
+  cov_proc <- proc_cov_assc(assc_list, .problem=.problem, .subprob=.subprob,.method=.method)
+  cov_proc$covtype <- cov_covtype(cov_proc$covariate, xpdb=xpdb, .problem=.problem)
+
+  rlang::try_fetch(
+    got_prm <- hot_swap_base_get_prm(xpdb=xpdb, .problem=.problem, .subprob=.subprob,.method=.method, quiet=TRUE),
+    error = function(s)
+      rlang::abort(
+        paste0("Error getting current available parameters. If using SAEM or Monte Carlo methods, ",
+        "this is a known issue in the base `xpose` package."),
+        parent = s
+      )
+  )
+  ## Make sure any existing (param, covariate) associations that would be
+  ## overwritten are overwritten regardless of which valid selector form
+  ## was used to name the parameter (mirrors add_prm_association's logic)
+  if (nrow(xpdb$covs)>0) {
+    subcovs <- xpdb$covs %>% dplyr::filter(problem==.problem,subprob==.subprob,method==.method)
+    existing_sels <- param_selector(subcovs$param, got_prm)
+    new_sels <- param_selector(cov_proc$param, got_prm)
+    existing_key <- paste(existing_sels, subcovs$covariate)
+    new_key <- paste(new_sels, cov_proc$covariate)
+    if (any(new_key %in% existing_key)) {
+      match_i <- match(new_key[new_key %in% existing_key], existing_key)
+      cov_proc$param[new_key %in% existing_key] <- subcovs$param[match_i]
+    }
+  }
+
+  ### Set covs
+  xpdb$covs <- xpdb$covs %>%
+    dplyr::rows_upsert(
+      cov_proc,
+      by = c("param","covariate","problem","subprob","method")
+    )
+  as_xpdb_x(xpdb)
+}
+
+
+#' @rdname add_cov_association
+#'
+#' @export
+drop_cov_association <- function(
+  xpdb,
+  ...,
+  .problem,
+  .subprob,
+  .method,
+  quiet
+) {
+  if (!check_xpdb_x(xpdb, .warn = TRUE))
+    cli::cli_abort("{cli::col_blue('xp_xtras')} object required.")
+
+  fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
+
+  rlang::check_dots_unnamed()
+
+  if (rlang::dots_n(...)==0) return(xpdb)
+
+  drop_list <- rlang::list2(...)
+  for (fmla in drop_list) {
+    if (!rlang::is_bare_formula(fmla) || !rlang::is_formula(fmla, lhs=TRUE))
+      cli::cli_abort("`drop_cov_association` selectors must be formulas of the form `param ~ covariate`, not `{deparse(fmla)}`")
+    if (!inherits(fmla[[3]], "name"))
+      cli::cli_abort("RHS of `drop_cov_association` selector must be a bare covariate column name, not `{deparse(fmla[[3]])}`")
+  }
+
+  current <- xpdb$covs %>%
+    dplyr::filter(problem==.problem, subprob==.subprob, method==.method)
+  if (nrow(current)==0) return(xpdb)
+
+  par_tbl <- hot_swap_base_get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, transform = FALSE, quiet = TRUE)
+
+  current_idx <- param_selector(current$param, par_tbl)
+  rlang::try_fetch({
+    drop_tbl <- purrr::map_dfr(drop_list, ~ tibble::tibble(
+      par_i = param_selector(deparse(.x[[2]]), par_tbl),
+      covariate = deparse(.x[[3]])
+    ))
+  },
+  error = function(s)
+    rlang::abort("Non-valid selectors in association.", parent=s)
+  )
+
+  current_key <- paste(current_idx, current$covariate)
+  drop_key <- paste(drop_tbl$par_i, drop_tbl$covariate)
+  keep <- !current_key %in% drop_key
+  if (all(keep)) return(xpdb)
+
+  new_xpdb <- xpdb
+  new_xpdb$covs <- dplyr::bind_rows(
+    xpdb$covs %>% dplyr::filter(!(problem==.problem & subprob==.subprob & method==.method)),
+    current[keep, ]
+  )
+  as_xpdb_x(new_xpdb)
+}
+
+builtin_cov_asscs <- c("linear","power","exponential","hockey","additive","catshift")
+
+# Resolve each covariate selector to "cont"/"cat"/NA (NA meaning it does
+# not match any declared contcov/catcov column for this problem)
+cov_covtype <- function(covariate, xpdb, .problem) {
+  valid_cont <- xpose::xp_var(xpdb, .problem, type = "contcov", silent = TRUE)$col
+  valid_cat  <- xpose::xp_var(xpdb, .problem, type = "catcov", silent = TRUE)$col
+  dplyr::case_when(
+    covariate %in% valid_cont ~ "cont",
+    covariate %in% valid_cat  ~ "cat",
+    TRUE ~ NA_character_
+  )
+}
+
+check_cov_associations <- function(
+    assc_list,
+    xpdb,
+    ...,
+    .problem,
+    .subprob,
+    .method
+) {
+  # Confirm list of formulas
+  if (
+    length(assc_list)==0 ||
+    !is_formula_list(assc_list)
+  ) {
+    rlang::abort("Associations must be a list of formulas.")
+  }
+
+  valid_funs <- c(builtin_cov_asscs, "custom")
+
+  # Basic per-formula shape checks that don't need xpdb state
+  for (fmla in assc_list) {
+
+    if (!rlang::is_formula(fmla, lhs=TRUE))
+      cli::cli_abort("LHS of formula cannot be empty in `{cli::code_highlight(deparse(fmla))}`")
+
+    if (!inherits(fmla[[3]],"call"))
+      cli::cli_abort("RHS of formula must be a function call, not a {.strong {class(fmla[[3]])}}")
+
+    fun_name <- deparse(fmla[[3]][[1]])
+    if (!fun_name %in% valid_funs)
+      cli::cli_abort("RHS of formula must be a call to one of {valid_funs}, not `{fun_name}`")
+
+    call_args <- rlang::call_args(fmla[[3]])
+    arg_names <- rlang::names2(call_args)
+    positional <- call_args[arg_names==""]
+
+    if (length(positional)<1)
+      cli::cli_abort("RHS of `{fun_name}` must have a covariate as its first (positional) argument in `{deparse(fmla[[3]])}`")
+
+    if (!"ref" %in% arg_names)
+      cli::cli_abort("`ref` is a required named argument for every covariate association (no implicit default) in `{deparse(fmla[[3]])}`")
+
+    n_thetas <- length(positional) - 1L # first positional is the covariate
+    if (fun_name %in% c("linear","power","exponential","additive") && n_thetas != 1)
+      cli::cli_abort("`{fun_name}` requires exactly one theta selector, found {n_thetas} in `{deparse(fmla[[3]])}`")
+    if (fun_name == "hockey" && n_thetas != 2)
+      cli::cli_abort("`hockey` requires exactly two theta selectors (low-side, high-side, in that order), found {n_thetas} in `{deparse(fmla[[3]])}`")
+    if (fun_name == "catshift" && n_thetas < 1)
+      cli::cli_abort("`catshift` requires at least one theta selector (one per non-reference level), found {n_thetas} in `{deparse(fmla[[3]])}`")
+    if (fun_name == "custom") {
+      if (n_thetas < 1)
+        cli::cli_abort("`custom` requires at least one theta selector in `{deparse(fmla[[3]])}`")
+      if (!"fun" %in% arg_names)
+        cli::cli_abort("`custom` requires a named `fun` argument (a function of `(cov, ref, theta)`) in `{deparse(fmla[[3]])}`")
+    }
+  }
+
+  # All symbols
+  cov_tab <- proc_cov_assc(assc_list, .problem=.problem, .subprob=.subprob,.method=.method)
+
+  rlang::try_fetch(
+    par_tbl <- hot_swap_base_get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, transform = FALSE, quiet = TRUE),
+    error = function(s)
+      rlang::abort(
+        paste0("Error getting current available parameters. If using SAEM or Monte Carlo methods, ",
+               "this is a known issue in the base `xpose` package."),
+        parent = s
+      )
+  )
+
+  rlang::try_fetch({
+    fepars <- param_selector(cov_tab$param, prm_tbl = par_tbl)
+  },
+  error = function(s)
+    rlang::abort("Non-valid parameter (LHS) selector(s) in association.", parent=s)
+  )
+  if (any(par_tbl$type[fepars]!="the"))
+    cli::cli_abort("LHS of a covariate association must select a fixed-effect (theta) parameter.")
+
+  all_thetas <- unlist(cov_tab$thetas)
+  rlang::try_fetch({
+    theta_idx <- param_selector(all_thetas, prm_tbl = par_tbl)
+  },
+  error = function(s)
+    rlang::abort("Non-valid theta selector(s) in association.", parent=s)
+  )
+  if (length(theta_idx)>0 && any(par_tbl$type[theta_idx] != "the"))
+    cli::cli_abort("Covariate-effect selectors must be fixed-effect (theta) parameters, not omega/sigma.")
+
+  # Duplicate (parameter, covariate) pairs within this call
+  fe_cov_pairs <- paste(fepars, cov_tab$covariate)
+  if (any(duplicated(fe_cov_pairs)))
+    cli::cli_abort("Cannot have multiple associations for the same (parameter, covariate) pair in a single call. ({cov_tab$covariate[duplicated(fe_cov_pairs)]})")
+
+  # Covariate columns must be declared contcov/catcov columns
+  cov_tab$covtype <- cov_covtype(cov_tab$covariate, xpdb=xpdb, .problem=.problem)
+  if (any(is.na(cov_tab$covtype)))
+    cli::cli_abort("Covariate selector(s) not found among declared `contcov`/`catcov` columns: {unique(cov_tab$covariate[is.na(cov_tab$covtype)])}")
+
+  # Covtype/assoc compatibility + covtype-specific checks
+  purrr::pwalk(cov_tab, function(param, covariate, covtype, assoc, thetas, ref, argus, ...) {
+    if (covtype=="cat" && !assoc %in% c("catshift","custom"))
+      cli::cli_abort("Covariate {.strong {covariate}} is categorical; only `catshift`/`custom` associations are valid for it, not `{assoc}`.")
+    if (covtype=="cont" && assoc == "catshift")
+      cli::cli_abort("Covariate {.strong {covariate}} is continuous; `catshift` is only valid for categorical covariates.")
+
+    if (assoc=="catshift") {
+      obs_levels <- xpose::get_data(xpdb, .problem=.problem, quiet=TRUE) %>%
+        dplyr::pull(covariate) %>% unique() %>% sort()
+      nonref_levels <- setdiff(obs_levels, ref)
+      if (length(thetas) != length(nonref_levels))
+        cli::cli_abort("`catshift` for {.strong {covariate}} needs one theta per non-reference level ({length(nonref_levels)} found: {nonref_levels}), but {length(thetas)} given.")
+    }
+
+    if (assoc=="custom") {
+      fun <- argus$fun
+      if (!is.function(fun))
+        cli::cli_abort("`custom`'s `fun` argument must be a function.")
+      probe_ok <- purrr::map_lgl(c(0,1,-1), function(tp) {
+        theta_probe <- rep(tp, length(thetas))
+        val <- tryCatch(fun(ref, ref, theta_probe), error = function(e) NA_real_)
+        isTRUE(all.equal(val, 1))
+      })
+      if (!all(probe_ok))
+        cli::cli_abort(c(
+          "`custom` association for {.strong {covariate}} must satisfy `fun(ref, ref, theta) == 1` for any `theta` (this is what makes the effect ratio equal 1 at the reference covariate value).",
+          "x" = "It did not for at least one probe theta value; double check the formula used in `fun`."
+        ))
+    }
+  })
+
+  return()
+}
+
+# Process covariate associations list into xpdb$covs-shaped rows (minus
+# covtype, which needs xpdb access to resolve -- see cov_covtype()).
+# Kept xpdb-free, mirroring proc_assc()'s design.
+proc_cov_assc <- function(assc_list,.problem,.subprob,.method) {
+  purrr::map_dfr(
+    assc_list,
+    ~ {
+      lhs <- all.vars(.x[[2]])
+      rhs_call <- .x[[3]]
+      fun_name <- deparse(rhs_call[[1]])
+      call_args <- rlang::call_args(rhs_call)
+      arg_names <- rlang::names2(call_args)
+
+      positional <- call_args[arg_names==""]
+      named <- call_args[arg_names!=""]
+
+      covariate <- deparse(positional[[1]])
+      thetas <- purrr::map_chr(tail(positional, -1), deparse)
+
+      ref <- eval(named[["ref"]])
+      argus <- purrr::map(named[setdiff(names(named), "ref")], eval)
+
+      tibble::tibble(
+        param = lhs,
+        covariate = covariate,
+        covtype = NA_character_,
+        assoc = fun_name,
+        thetas = list(thetas),
+        ref = list(ref),
+        argus = list(argus),
+        problem = .problem,
+        subprob = .subprob,
+        method = .method
+      )
+    }
+  )
 }
 
 
@@ -509,7 +1014,7 @@ get_prm.default <- function(
 
   implemented_prm_software <- c("nlmixr2")
   if (xpose::software(xpdb) %in% implemented_prm_software) {
-    cli::cli_abort("For {.strong {xpose::software(xpdb)}} models, convert to {package_flex} object before doing this action.")
+    cli::cli_abort("For {.strong {xpose::software(xpdb)}} models, convert to {package_flex()} object before doing this action.")
   } else if (xpose::software(xpdb) != "nonmem") {
     cli::cli_abort("For {.strong {xpose::software(xpdb)}} models, {.emph extra} parameter functionality is not implemented.")
   }
@@ -690,6 +1195,404 @@ print.prm_tbl <- function(x, ...) {
   if (length(attr(x, "associations"))>0) {
     cli::cli_inform(cli::col_grey("# Parameter table includes the following associations:
                     {.strong {attr(x, 'associations')}}"))
+  }
+}
+
+################################
+# Covariate-effect computation
+################################
+
+# Return `label` where non-empty/non-NA, else fall back to `name`
+# (nlmixr2 fits often have no label; NONMEM ones usually do)
+label_or_name <- function(par_tbl, idx) {
+  lbl <- par_tbl$label[idx]
+  nm <- par_tbl$name[idx]
+  ifelse(!is.na(lbl) & lbl!="", lbl, nm)
+}
+
+# Builtin effect_ratio functions as function(cov, ref, theta), theta always
+# a numeric vector. `catshift` is intentionally excluded -- its per-level,
+# index-based evaluation is handled directly in prm_catcov() rather than as
+# a continuous function of `cov`.
+cov_effect_fun <- function(assoc, argus) {
+  switch(
+    assoc,
+    linear = function(cov, ref, theta) 1 + theta[1]*(cov-ref),
+    power = function(cov, ref, theta) (cov/ref)^theta[1],
+    exponential = function(cov, ref, theta) exp(theta[1]*(cov-ref)),
+    additive = function(cov, ref, theta) (theta[1]+cov)/(theta[1]+ref),
+    hockey = function(cov, ref, theta) {
+      brk <- if (!is.null(argus$brk)) argus$brk else ref
+      ifelse(cov <= brk, 1 + theta[1]*(cov-ref), 1 + theta[2]*(cov-ref))
+    },
+    custom = argus$fun,
+    cli::cli_abort("Unsupported association type for continuous covariate computation: {.strong {assoc}}")
+  )
+}
+
+# Propagate theta uncertainty (SE) through `fun` at fixed evaluation point(s)
+# `cov` (may be a vector), treating each theta independently (no cross-theta
+# covariance -- see dev-notes for why). Returns list(low=, high=), same
+# length as `cov`. If `keep_draws=TRUE` (only valid with `ci_method =
+# "simulation"`), also returns `draws`: a list, same length as `cov`, each
+# element the `nsim` raw simulated effect-ratio draws for that evaluation
+# point -- for eg a forest plot violin layer (see xplot_forest()).
+cov_effect_ci <- function(fun, cov, ref, theta, se, ci_method, level, nsim, keep_draws = FALSE) {
+  names(cov) <- NULL # keep results unnamed regardless of a named `cov` (eg low/ref/high)
+  alpha <- 1 - level
+  n_theta <- length(theta)
+
+  if (keep_draws && ci_method != "simulation")
+    cli::cli_abort("`keep_draws` requires `ci_method = \"simulation\"` (no draws exist for the delta method).")
+
+  if (any(is.na(se))) {
+    if (ci_method=="delta") {
+      return(list(low = rep(NA_real_, length(cov)), high = rep(NA_real_, length(cov))))
+    }
+  }
+
+  if (ci_method == "simulation") {
+    set.seed(2323) # reproducible, mirrors mutate_prm()'s `.autose` simulation
+    theta_draws <- matrix(
+      stats::rnorm(nsim*n_theta, mean = rep(theta, each = nsim), sd = rep(se, each = nsim)),
+      nrow = nsim, ncol = n_theta
+    )
+    sim_effects <- apply(theta_draws, 1, function(th) fun(cov, ref, th))
+    if (is.null(dim(sim_effects))) sim_effects <- matrix(sim_effects, nrow = 1)
+    ci <- apply(sim_effects, 1, stats::quantile, probs = c(alpha/2, 1-alpha/2), na.rm = TRUE)
+    out <- list(low = unname(ci[1, ]), high = unname(ci[2, ]))
+    if (keep_draws) out$draws <- lapply(seq_len(nrow(sim_effects)), function(i) unname(sim_effects[i, ]))
+    return(out)
+  }
+
+  # Delta method: numerical gradient of log(effect) w.r.t. each theta,
+  # first-order log-scale SE, independent thetas (variances add).
+  h <- 1e-4 * pmax(abs(theta), 1)
+  base_val <- fun(cov, ref, theta)
+  log_var <- 0
+  for (i in seq_len(n_theta)) {
+    theta_up <- theta
+    theta_up[i] <- theta[i] + h[i]
+    grad_i <- (fun(cov, ref, theta_up) - base_val) / h[i]
+    dlog_i <- grad_i / base_val
+    log_var <- log_var + (dlog_i * se[i])^2
+  }
+  z <- stats::qnorm(1 - alpha/2)
+  log_se <- sqrt(log_var)
+  list(low = unname(base_val * exp(-z*log_se)), high = unname(base_val * exp(z*log_se)))
+}
+
+# Shared selector filtering for prm_contcov()/prm_catcov()/prm_cov(): dots
+# are `param ~ covariate` formulas (bare selectors), same style as
+# drop_cov_association(). Empty dots means "all declared associations".
+filter_cov_selectors <- function(covs, dots, par_tbl) {
+  if (length(dots)==0 || nrow(covs)==0) return(covs)
+  covs_idx <- param_selector(covs$param, par_tbl)
+  rlang::try_fetch({
+    sel_tbl <- purrr::map_dfr(dots, function(f) {
+      if (!rlang::is_formula(f, lhs=TRUE) || !inherits(f[[3]], "name"))
+        cli::cli_abort("Selectors must be formulas of the form `param ~ covariate` (bare, unquoted).")
+      tibble::tibble(par_i = param_selector(deparse(f[[2]]), par_tbl), covariate = deparse(f[[3]]))
+    })
+  },
+  error = function(s) rlang::abort("Non-valid selector(s).", parent = s)
+  )
+  keep <- paste(covs_idx, covs$covariate) %in% paste(sel_tbl$par_i, sel_tbl$covariate)
+  covs[keep, ]
+}
+
+#' Continuous/categorical covariate effect tables
+#'
+#' @description
+#' Computes, for each covariate association declared with
+#' [`add_cov_association()`], the covariate's effect on the associated
+#' parameter (as a ratio to the parameter's typical value, `1` at the
+#' reference covariate value/level) at a handful of representative
+#' evaluation points, with an uncertainty interval propagated from the
+#' effect-size theta's standard error. This is what [`xplot_forest()`]
+#' plots; calling these directly is mostly useful for inspecting the
+#' numbers before/without plotting.
+#'
+#' `prm_contcov()` handles continuous covariates (`linear`, `power`,
+#' `exponential`, `hockey`, or `custom` associations), evaluated at the
+#' low/reference/high points. `prm_catcov()` handles categorical
+#' covariates (`catshift` or `custom` associations), evaluated at every
+#' observed level. `prm_cov()` combines both.
+#'
+#' @rdname prm_cov
+#'
+#' @param xpdb <`xp_xtras`> object with associations declared via
+#' [`add_cov_association()`]
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Optional `param ~ covariate`
+#' selectors (bare, unquoted, same style as [`drop_cov_association()`]) to
+#' restrict which declared associations are computed. Defaults to all of
+#' them.
+#' @param .problem <`numeric`> Problem number.
+#' @param .subprob <`numeric`> Subprob number.
+#' @param .method <`numeric`> Method.
+#' @param ci_method <`character`> `"simulation"` (default) draws `nsim`
+#' samples of each theta from `N(theta_hat, se)` (mirrors
+#' [`mutate_prm()`]'s `.autose` approach) and propagates them through the
+#' (possibly nonlinear) effect_ratio function, taking the resulting sample
+#' quantiles as the interval; most accurate for strongly nonlinear forms
+#' (`power`, `exponential`, `hockey`). `"delta"` is a first-order analytic
+#' (numerical-gradient) log-scale approximation -- cheap and
+#' deterministic, but less accurate the more nonlinear the association is.
+#' Both treat multiple thetas (eg `hockey`, multi-level `catshift`) as
+#' independent, ignoring any covariance between them.
+#' @param probs <`numeric(2)`> For `prm_contcov()`: quantiles of the
+#' covariate's observed data used as the "low"/"high" evaluation points.
+#' @param level <`numeric`> Confidence level for the effect interval.
+#' @param nsim <`numeric`> Number of simulation draws, when
+#' `ci_method = "simulation"`.
+#' @param keep_draws <`logical`> If `TRUE` (requires
+#' `ci_method = "simulation"`), attach a `draws` list-column: the raw
+#' `nsim` simulated effect-ratio draws behind each row's CI. Mainly
+#' intended for a forest-plot violin/density layer; most users won't need
+#' this.
+#' @param quiet Silence extra output.
+#'
+#' @returns A `prm_cov_tbl` tibble with one row per (parameter, covariate,
+#' evaluation point):
+#' `param`, `covariate`, `covtype`, `level` (`"low"`/`"ref"`/`"high"` for
+#' continuous, the raw category value for categorical), `value` (the
+#' covariate value/level backing that row), `is_ref` (`TRUE` for the
+#' reference row/level -- always `effect`/`ci_low`/`ci_high` `== 1`, by
+#' construction), `effect`, `ci_low`, `ci_high`, `ci_method`.
+#'
+#' @seealso [`add_cov_association()`], [`xplot_forest()`]
+#'
+#' @export
+#'
+#' @examples
+#'
+#' xpdb_x %>%
+#'   add_cov_association(TVCL ~ power(CLCR, THETA7, ref = 64)) %>%
+#'   prm_contcov()
+#'
+#' xpdb_x %>%
+#'   add_cov_association(TVCL ~ catshift(SEX, THETA4, ref = 1)) %>%
+#'   prm_catcov()
+#'
+#' xpdb_x %>%
+#'   add_cov_association(
+#'     TVCL ~ power(CLCR, THETA7, ref = 64),
+#'     TVCL ~ catshift(SEX, THETA4, ref = 1)
+#'   ) %>%
+#'   prm_cov()
+#'
+#' # Restrict to one association, and use the analytic delta-method CI
+#' xpdb_x %>%
+#'   add_cov_association(
+#'     TVCL ~ power(CLCR, THETA7, ref = 64),
+#'     TVCL ~ catshift(SEX, THETA4, ref = 1)
+#'   ) %>%
+#'   prm_cov(TVCL ~ CLCR, ci_method = "delta")
+#'
+prm_contcov <- function(
+    xpdb,
+    ...,
+    .problem = NULL,
+    .subprob = NULL,
+    .method = NULL,
+    ci_method = c("simulation", "delta"),
+    probs = c(0.05, 0.95),
+    level = 0.95,
+    nsim = 1000,
+    keep_draws = FALSE,
+    quiet
+) {
+  if (!check_xpdb_x(xpdb, .warn = TRUE))
+    cli::cli_abort("{cli::col_blue('xp_xtras')} object required.")
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+  fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
+  ci_method <- rlang::arg_match(ci_method)
+
+  covs <- xpdb$covs %>%
+    dplyr::filter(problem==.problem, subprob==.subprob, method==.method, covtype=="cont")
+  if (nrow(covs)==0) return(as_prm_cov_tbl(empty_prm_cov_tbl()))
+
+  par_tbl <- hot_swap_base_get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, transform = FALSE, quiet = TRUE)
+  covs <- filter_cov_selectors(covs, rlang::list2(...), par_tbl)
+  if (nrow(covs)==0) return(as_prm_cov_tbl(empty_prm_cov_tbl()))
+
+  data <- xpose::get_data(xpdb, .problem=.problem, quiet=TRUE)
+
+  out <- purrr::pmap_dfr(covs, function(param, covariate, covtype, assoc, thetas, ref, argus, ...) {
+    par_idx <- param_selector(param, par_tbl)
+    theta_idx <- param_selector(thetas, par_tbl)
+    theta_val <- par_tbl$value[theta_idx]
+    theta_se <- par_tbl$se[theta_idx]
+
+    lohi <- stats::quantile(data[[covariate]], probs = probs, na.rm = TRUE, names = FALSE)
+    eval_pts <- c(low = lohi[1], ref = ref, high = lohi[2])
+
+    fun <- cov_effect_fun(assoc, argus)
+    point_effect <- fun(eval_pts, ref, theta_val)
+    ci <- cov_effect_ci(fun=fun, cov=eval_pts, ref=ref, theta=theta_val, se=theta_se,
+                         ci_method=ci_method, level=level, nsim=nsim, keep_draws=keep_draws)
+
+    row <- tibble::tibble(
+      param = label_or_name(par_tbl, par_idx),
+      covariate = covariate,
+      covtype = "cont",
+      level = names(eval_pts),
+      value = as.character(signif(eval_pts, 4)),
+      is_ref = names(eval_pts)=="ref",
+      effect = as.numeric(point_effect),
+      ci_low = ci$low,
+      ci_high = ci$high,
+      ci_method = ci_method
+    )
+    if (keep_draws) row$draws <- ci$draws
+    row
+  })
+  as_prm_cov_tbl(out)
+}
+
+#' @rdname prm_cov
+#' @export
+prm_catcov <- function(
+    xpdb,
+    ...,
+    .problem = NULL,
+    .subprob = NULL,
+    .method = NULL,
+    ci_method = c("simulation", "delta"),
+    level = 0.95,
+    nsim = 1000,
+    keep_draws = FALSE,
+    quiet
+) {
+  if (!check_xpdb_x(xpdb, .warn = TRUE))
+    cli::cli_abort("{cli::col_blue('xp_xtras')} object required.")
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+  fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob,.method=.method)
+  ci_method <- rlang::arg_match(ci_method)
+
+  covs <- xpdb$covs %>%
+    dplyr::filter(problem==.problem, subprob==.subprob, method==.method, covtype=="cat")
+  if (nrow(covs)==0) return(as_prm_cov_tbl(empty_prm_cov_tbl()))
+
+  par_tbl <- hot_swap_base_get_prm(xpdb, .problem=.problem, .subprob=.subprob,.method=.method, transform = FALSE, quiet = TRUE)
+  covs <- filter_cov_selectors(covs, rlang::list2(...), par_tbl)
+  if (nrow(covs)==0) return(as_prm_cov_tbl(empty_prm_cov_tbl()))
+
+  data <- xpose::get_data(xpdb, .problem=.problem, quiet=TRUE)
+
+  out <- purrr::pmap_dfr(covs, function(param, covariate, covtype, assoc, thetas, ref, argus, ...) {
+    par_idx <- param_selector(param, par_tbl)
+    label <- label_or_name(par_tbl, par_idx)
+    # Compare/match on character throughout: `data[[covariate]]` may already
+    # be a factor (xpose auto-factors catcov columns), while `ref` as typed
+    # in the association formula is whatever raw type the user wrote (eg
+    # numeric `1`); factor-vs-numeric equality is not reliable, but the
+    # factor's levels and `as.character(ref)` are directly comparable.
+    obs_levels <- sort(unique(stats::na.omit(data[[covariate]])))
+    obs_chr <- as.character(obs_levels)
+    ref_chr <- as.character(ref)
+
+    if (assoc == "custom") {
+      theta_idx <- param_selector(thetas, par_tbl)
+      theta_val <- par_tbl$value[theta_idx]
+      theta_se <- par_tbl$se[theta_idx]
+      fun <- argus$fun
+
+      rows <- purrr::map_dfr(seq_along(obs_levels), function(i) {
+        lv <- obs_levels[i]
+        point_effect <- fun(lv, ref, theta_val)
+        ci <- cov_effect_ci(fun=fun, cov=lv, ref=ref, theta=theta_val, se=theta_se,
+                             ci_method=ci_method, level=level, nsim=nsim, keep_draws=keep_draws)
+        row <- tibble::tibble(level = obs_chr[i], value = obs_chr[i], is_ref = identical(obs_chr[i], ref_chr),
+                       effect = as.numeric(point_effect), ci_low = ci$low, ci_high = ci$high)
+        if (keep_draws) row$draws <- ci$draws
+        row
+      })
+    } else { # catshift
+      nonref_chr <- setdiff(obs_chr, ref_chr)
+      theta_idx <- param_selector(thetas, par_tbl)
+      theta_val <- par_tbl$value[theta_idx]
+      theta_se <- par_tbl$se[theta_idx]
+
+      rows <- purrr::map_dfr(seq_along(obs_levels), function(i) {
+        lv <- obs_levels[i]
+        if (identical(obs_chr[i], ref_chr)) {
+          row <- tibble::tibble(level = obs_chr[i], value = obs_chr[i], is_ref = TRUE, effect = 1, ci_low = 1, ci_high = 1)
+          if (keep_draws) row$draws <- list(rep(1, nsim)) # no uncertainty at the reference level, by construction
+          return(row)
+        }
+        j <- match(obs_chr[i], nonref_chr)
+        shift_fun <- function(cov, r, theta) 1 + theta[1]
+        ci <- cov_effect_ci(fun=shift_fun, cov=lv, ref=ref, theta=theta_val[j], se=theta_se[j],
+                             ci_method=ci_method, level=level, nsim=nsim, keep_draws=keep_draws)
+        row <- tibble::tibble(level = obs_chr[i], value = obs_chr[i], is_ref = FALSE,
+                       effect = 1 + theta_val[j], ci_low = ci$low, ci_high = ci$high)
+        if (keep_draws) row$draws <- ci$draws
+        row
+      })
+    }
+
+    rows$param <- label
+    rows$covariate <- covariate
+    rows$covtype <- "cat"
+    rows$ci_method <- ci_method
+    dplyr::relocate(rows, param, covariate, covtype, level, value, is_ref, effect, ci_low, ci_high, ci_method)
+  })
+  as_prm_cov_tbl(out)
+}
+
+#' @rdname prm_cov
+#' @export
+prm_cov <- function(
+    xpdb,
+    ...,
+    .problem = NULL,
+    .subprob = NULL,
+    .method = NULL,
+    ci_method = c("simulation", "delta"),
+    probs = c(0.05, 0.95),
+    level = 0.95,
+    nsim = 1000,
+    keep_draws = FALSE,
+    quiet
+) {
+  if (!check_xpdb_x(xpdb, .warn = TRUE))
+    cli::cli_abort("{cli::col_blue('xp_xtras')} object required.")
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+  ci_method <- rlang::arg_match(ci_method)
+
+  as_prm_cov_tbl(dplyr::bind_rows(
+    prm_contcov(xpdb, ..., .problem=.problem, .subprob=.subprob, .method=.method,
+                ci_method=ci_method, probs=probs, level=level, nsim=nsim, keep_draws=keep_draws, quiet=quiet),
+    prm_catcov(xpdb, ..., .problem=.problem, .subprob=.subprob, .method=.method,
+               ci_method=ci_method, level=level, nsim=nsim, keep_draws=keep_draws, quiet=quiet)
+  ))
+}
+
+#' @noRd
+empty_prm_cov_tbl <- function() {
+  tibble::tibble(
+    param = character(), covariate = character(), covtype = character(),
+    level = character(), value = character(), is_ref = logical(), effect = double(),
+    ci_low = double(), ci_high = double(), ci_method = character()
+  )
+}
+
+#' @noRd
+as_prm_cov_tbl <- function(tbl) {
+  if (inherits(tbl, "prm_cov_tbl")) return(tbl)
+  structure(tbl, class = c("prm_cov_tbl", class(tbl)))
+}
+
+#' @method print prm_cov_tbl
+#' @export
+print.prm_cov_tbl <- function(x, ...) {
+  NextMethod()
+  if (nrow(x)>0) {
+    cli::cli_inform(cli::col_grey(paste(
+      "# `effect` is a ratio to the parameter's typical value (1 at the reference covariate value/level);",
+      "CI via {.strong {paste(unique(x$ci_method), collapse = ', ')}}."
+    )))
   }
 }
 

@@ -15,7 +15,6 @@ reference:
       - as_leveler
       - is_leveler
       - backfill_iofv
-      - matches("nlmixr2")
       - xp_var
       - check_levels
 
@@ -33,10 +32,13 @@ reference:
       - diagram_lineage
       - add_prm_association
       - drop_prm_association
+      - add_cov_association
+      - drop_cov_association
       - mutate_prm
       - add_relationship
       - remove_relationship
       - "%p%"
+      - logLik.xpose_set
 
   - title: "Plotting helpers"
     desc: "Additional plotting functions and themes extending xpose."
@@ -54,11 +56,26 @@ reference:
       - starts_with("plotfun_")
       - starts_with("shark_")
       - ind_roc
+      - ind_plots_sample
       - xset_waterfall
+      - cormat
       - xp_xtra_theme
       - xp4_xtra_theme
       - grab_xpose_plot
       - wrap_xp_ggally
+
+  - title: "Plot output & session options"
+    desc: "Default labels, watermarks, saving, batch plotting, and the xpose.xtras.* option family."
+    contents:
+      - apply_default_labs
+      - set_default_labs
+      - add_watermark
+      - set_default_watermark
+      - ggsave_xp
+      - plot.xpose_data
+      - set_default_plots
+      - set_xtras_options
+      - get_xtras_option
 
   - title: "Utilities"
     desc: "Miscellaneous helpers and integrations."
@@ -66,7 +83,7 @@ reference:
       - modavg_xpdb
       - starts_with("cov")
       - starts_with("conf")
-      - starts_with("nlmixr2")
+      - matches("nlmixr2")
       - desc_from_comments
       - edit_xpose_data
       - expose_param
@@ -84,17 +101,24 @@ reference:
       - ungroup_x
       - mutate_x
       - rename_x
+      - left_join_x
       - select_subset
       - set_option
       - reportable_digits
       - test_xpdb
       - starts_with("franken_")
       - irep
+      - patch_condn
       - derive_prm
       - diagnose_constants
       - get_prm
       - get_shk
+      - get_cov_matrix
       - list_vars
+      - xp_from_bbr
+      - logLik.xpose_data
+      - add_process_preset
+      - persist_process_presets
 
   - title: "Data"
     desc: "Example objects for documentation."
