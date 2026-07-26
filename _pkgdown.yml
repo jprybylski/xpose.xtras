@@ -38,6 +38,7 @@ reference:
       - add_relationship
       - remove_relationship
       - "%p%"
+      - logLik.xpose_set
 
   - title: "Plotting helpers"
     desc: "Additional plotting functions and themes extending xpose."
@@ -114,6 +115,10 @@ reference:
       - get_shk
       - get_cov_matrix
       - list_vars
+      - xp_from_bbr
+      - logLik.xpose_data
+      - add_process_preset
+      - persist_process_presets
 
   - title: "Data"
     desc: "Example objects for documentation."
