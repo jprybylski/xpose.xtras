@@ -132,19 +132,15 @@ defined for a diagonal random effect acting on a specific structural
 parameter). This is already the CV% you’d get by hand from a log-normal
 assumption – <code><a href="../reference/add_prm_association.html">add_prm_association()</a></code> becomes useful the
 moment that assumption is wrong for a given parameter.</p>
-<p>Say <code>V</code> was actually fit as logit-normal instead (purely
+<p>Say <code>CL</code> was actually fit as logit-normal instead (purely
 for illustration – it wasn’t, in this model). Declaring that changes
 only the <code>cv</code> column; nothing else about the fit or the table
 shape changes:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pheno_base</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_prm_association.html">add_prm_association</a></span><span class="op">(</span><span class="va">V</span> <span class="op">~</span> <span class="fu">logit</span><span class="op">(</span><span class="va">IIVV</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_prm_association.html">add_prm_association</a></span><span class="op">(</span><span class="va">CL</span> <span class="op">~</span> <span class="fu">logit</span><span class="op">(</span><span class="va">IIVCL</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/get_prm.html">get_prm</a></span><span class="op">(</span>quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">type</span>, <span class="va">name</span>, <span class="va">label</span>, <span class="va">value</span>, <span class="va">cv</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in qdist(u): NaNs produced</span></span>
-<span><span class="co">#&gt; Warning in qdist(u): NaNs produced</span></span>
-<span><span class="co">#&gt; Warning in qdist(u): NaNs produced</span></span>
-<span><span class="co">#&gt; Warning in qdist(u): NaNs produced</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8 × 5</span></span></span>
 <span><span class="co">#&gt;   type  name       label      value      cv</span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span></span></span>
@@ -152,12 +148,12 @@ shape changes:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> the   THETA2     <span style="color: #949494;">"</span>V<span style="color: #949494;">"</span>       1.4       <span style="color: #BB0000;">NA</span>  </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> the   THETA3     <span style="color: #949494;">"</span>RUVADD<span style="color: #949494;">"</span>  2.86      <span style="color: #BB0000;">NA</span>  </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> the   THETA4     <span style="color: #949494;">"</span>RUVPRO<span style="color: #949494;">"</span>  0         <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> ome   OMEGA(1,1) <span style="color: #949494;">"</span>IIVCL<span style="color: #949494;">"</span>   0.489     52.0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> ome   OMEGA(1,1) <span style="color: #949494;">"</span>IIVCL<span style="color: #949494;">"</span>   0.489     51.3</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> ome   OMEGA(2,1) <span style="color: #949494;">""</span>        0.998     <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> ome   OMEGA(2,2) <span style="color: #949494;">"</span>IIVV<span style="color: #949494;">"</span>    0.393     <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> ome   OMEGA(2,2) <span style="color: #949494;">"</span>IIVV<span style="color: #949494;">"</span>    0.393     40.9</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> sig   SIGMA(1,1) <span style="color: #949494;">""</span>        1         <span style="color: #BB0000;">NA</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555;"># Parameter table includes the following associations:</span></span></span>
-<span><span class="co"><span style="color: #555555;">#&gt; </span><span style="color: #555555; font-weight: bold;">V~logit(IIVV)</span></span></span></code></pre></div>
+<span><span class="co"><span style="color: #555555;">#&gt; </span><span style="color: #555555; font-weight: bold;">CL~logit(IIVCL)</span></span></span></code></pre></div>
 <p>Built-in distributions cover the common cases: <code>log</code> (the
 default, made explicit), <code>logexp</code> (<code>log(1+X)</code>),
 <code>logit</code>, <code>arcsin</code>, and <code>nmboxcox</code>
@@ -206,8 +202,8 @@ inverse):</p>
 the log-normal default):</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pheno_base</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_prm_association.html">add_prm_association</a></span><span class="op">(</span><span class="va">V</span> <span class="op">~</span> <span class="fu">logit</span><span class="op">(</span><span class="va">IIVV</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_prm_association.html">drop_prm_association</a></span><span class="op">(</span><span class="va">V</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_prm_association.html">add_prm_association</a></span><span class="op">(</span><span class="va">CL</span> <span class="op">~</span> <span class="fu">logit</span><span class="op">(</span><span class="va">IIVCL</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_prm_association.html">drop_prm_association</a></span><span class="op">(</span><span class="va">CL</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/get_prm.html">get_prm</a></span><span class="op">(</span>quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">name</span>, <span class="va">label</span>, <span class="va">value</span>, <span class="va">cv</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8 × 4</span></span></span>
@@ -223,7 +219,7 @@ the log-normal default):</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> SIGMA(1,1) <span style="color: #949494;">""</span>        1         <span style="color: #BB0000;">NA</span></span></span></code></pre></div>
 <p><strong>One important caveat</strong>: the CV% calculation assumes
 the <em>fixed-effect</em> value is on its natural, untransformed scale.
-If <code>V</code> were actually fitted on the logit scale itself (not
+If <code>CL</code> were actually fitted on the logit scale itself (not
 just related to a logit-normal omega), the reported <code>value</code>
 would need converting back first – see <a href="#rescaling-with-mutate_prm">Rescaling with
 <code>mutate_prm()</code></a> below.</p>

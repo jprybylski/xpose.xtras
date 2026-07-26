@@ -75,20 +75,16 @@ hand from a log-normal assumption –
 becomes useful the moment that assumption is wrong for a given
 parameter.
 
-Say `V` was actually fit as logit-normal instead (purely for
+Say `CL` was actually fit as logit-normal instead (purely for
 illustration – it wasn’t, in this model). Declaring that changes only
 the `cv` column; nothing else about the fit or the table shape changes:
 
 ``` r
 
 pheno_base %>%
-  add_prm_association(V ~ logit(IIVV)) %>%
+  add_prm_association(CL ~ logit(IIVCL)) %>%
   get_prm(quiet = TRUE) %>%
   select(type, name, label, value, cv)
-#> Warning in qdist(u): NaNs produced
-#> Warning in qdist(u): NaNs produced
-#> Warning in qdist(u): NaNs produced
-#> Warning in qdist(u): NaNs produced
 #> # A tibble: 8 × 5
 #>   type  name       label      value      cv
 #>   <chr> <chr>      <chr>    <num:3> <num:3>
@@ -96,12 +92,12 @@ pheno_base %>%
 #> 2 the   THETA2     "V"       1.4       NA  
 #> 3 the   THETA3     "RUVADD"  2.86      NA  
 #> 4 the   THETA4     "RUVPRO"  0         NA  
-#> 5 ome   OMEGA(1,1) "IIVCL"   0.489     52.0
+#> 5 ome   OMEGA(1,1) "IIVCL"   0.489     51.3
 #> 6 ome   OMEGA(2,1) ""        0.998     NA  
-#> 7 ome   OMEGA(2,2) "IIVV"    0.393     NA  
+#> 7 ome   OMEGA(2,2) "IIVV"    0.393     40.9
 #> 8 sig   SIGMA(1,1) ""        1         NA
 #> # Parameter table includes the following associations:
-#> V~logit(IIVV)
+#> CL~logit(IIVCL)
 ```
 
 Built-in distributions cover the common cases: `log` (the default, made
@@ -160,8 +156,8 @@ removes it entirely (falling back to the log-normal default):
 ``` r
 
 pheno_base %>%
-  add_prm_association(V ~ logit(IIVV)) %>%
-  drop_prm_association(V) %>%
+  add_prm_association(CL ~ logit(IIVCL)) %>%
+  drop_prm_association(CL) %>%
   get_prm(quiet = TRUE) %>%
   select(name, label, value, cv)
 #> # A tibble: 8 × 4
@@ -178,7 +174,7 @@ pheno_base %>%
 ```
 
 **One important caveat**: the CV% calculation assumes the *fixed-effect*
-value is on its natural, untransformed scale. If `V` were actually
+value is on its natural, untransformed scale. If `CL` were actually
 fitted on the logit scale itself (not just related to a logit-normal
 omega), the reported `value` would need converting back first – see
 [Rescaling with `mutate_prm()`](#rescaling-with-mutate_prm) below.

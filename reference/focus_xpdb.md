@@ -113,6 +113,7 @@ xpdb_set %>% focus_xpdb(mod2,fix1) %>% focus_xpdb()
 #> • Exposed properties: none
 #> • Base model: none
 
+if (FALSE) { # \dontrun{
 # Focus function and tidyselect
 pheno_set %>%
   focus_xpdb(everything()) %>%
@@ -123,21 +124,6 @@ pheno_set %>%
   select(run6) %>%
   {.[[1]]$xpdb} %>%
   list_vars()
-#> List of available variables for problem no. 1
-#>  - Subject identifier (id)               : ID
-#>  - Dependent variable (dv)               : DV
-#>  - Independent variable (idv)            : TIME
-#>  - Dose amount (amt)                     : AMT
-#>  - Event identifier (evid)               : EVID
-#>  - Missing dependent variable (mdv)      : MDV
-#>  - Model typical predictions (pred)      : PRED
-#>  - Model individual predictions (ipred)  : IPRED
-#>  - Eta (eta)                             : ETA1, ETA2
-#>  - Individual OFV (iofv)                 : iOFV
-#>  - Residuals (res)                       : IWRES, CWRES, NPDE, RES, WRES
-#>  - Categorical covariates (catcov)       : APGR ('Apgar score') [10]
-#>  - Continuous covariates (contcov)       : WT ('Weight', kg)
-#>  - Not attributed (na)                   : IRES, CL, V, CRES
 
 # Quick-apply version of previous example
 pheno_set %>%
@@ -145,21 +131,7 @@ pheno_set %>%
   select(run6) %>%
   {.[[1]]$xpdb} %>%
   list_vars()
-#> List of available variables for problem no. 1
-#>  - Subject identifier (id)               : ID
-#>  - Dependent variable (dv)               : DV
-#>  - Independent variable (idv)            : TIME
-#>  - Dose amount (amt)                     : AMT
-#>  - Event identifier (evid)               : EVID
-#>  - Missing dependent variable (mdv)      : MDV
-#>  - Model typical predictions (pred)      : PRED
-#>  - Model individual predictions (ipred)  : IPRED
-#>  - Eta (eta)                             : ETA1, ETA2
-#>  - Individual OFV (iofv)                 : iOFV
-#>  - Residuals (res)                       : IWRES, CWRES, NPDE, RES, WRES
-#>  - Categorical covariates (catcov)       : APGR ('Apgar score') [10]
-#>  - Continuous covariates (contcov)       : WT ('Weight', kg)
-#>  - Not attributed (na)                   : IRES, CL, V, CRES
+} # }
 
 # Output-generating function applied to a single focused element:
 # returns the plot itself, not an xpose_set

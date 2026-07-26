@@ -143,6 +143,7 @@ is focused, or a named list (by label) of outputs if several are focused.</p></l
 <span class="r-msg co"><span class="r-pr">#&gt;</span> • Exposed properties: none</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> • Base model: none</span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Focus function and tidyselect</span></span></span>
 <span class="r-in"><span><span class="va">pheno_set</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu">focus_xpdb</span><span class="op">(</span><span class="fu">everything</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
@@ -153,21 +154,6 @@ is focused, or a named list (by label) of outputs if several are focused.</p></l
 <span class="r-in"><span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">run6</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="op">{</span><span class="va">.</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">xpdb</span><span class="op">}</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="list_vars.html">list_vars</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> List of available variables for problem no. <span style="color: #BB00BB;">1</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Subject identifier (id)               : ID</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Dependent variable (dv)               : DV</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Independent variable (idv)            : TIME</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Dose amount (amt)                     : AMT</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Event identifier (evid)               : EVID</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Missing dependent variable (mdv)      : MDV</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Model typical predictions (pred)      : PRED</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Model individual predictions (ipred)  : IPRED</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Eta (eta)                             : ETA1, ETA2</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Individual OFV (iofv)                 : iOFV</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Residuals (res)                       : IWRES, CWRES, NPDE, RES, WRES</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Categorical covariates (catcov)       : APGR<span style="font-weight: bold;"> ('Apgar score')</span> [<span style="color: #BBBB00;">10</span>]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Continuous covariates (contcov)       : WT<span style="font-weight: bold;"> ('Weight', kg)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Not attributed (na)                   : IRES, CL, V, CRES</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Quick-apply version of previous example</span></span></span>
 <span class="r-in"><span><span class="va">pheno_set</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
@@ -175,21 +161,7 @@ is focused, or a named list (by label) of outputs if several are focused.</p></l
 <span class="r-in"><span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">run6</span><span class="op">)</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="op">{</span><span class="va">.</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">xpdb</span><span class="op">}</span> <span class="op"><a href="pipe.html">%&gt;%</a></span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="list_vars.html">list_vars</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> List of available variables for problem no. <span style="color: #BB00BB;">1</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Subject identifier (id)               : ID</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Dependent variable (dv)               : DV</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Independent variable (idv)            : TIME</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Dose amount (amt)                     : AMT</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Event identifier (evid)               : EVID</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Missing dependent variable (mdv)      : MDV</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Model typical predictions (pred)      : PRED</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Model individual predictions (ipred)  : IPRED</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Eta (eta)                             : ETA1, ETA2</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Individual OFV (iofv)                 : iOFV</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Residuals (res)                       : IWRES, CWRES, NPDE, RES, WRES</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Categorical covariates (catcov)       : APGR<span style="font-weight: bold;"> ('Apgar score')</span> [<span style="color: #BBBB00;">10</span>]</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Continuous covariates (contcov)       : WT<span style="font-weight: bold;"> ('Weight', kg)</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  - Not attributed (na)                   : IRES, CL, V, CRES</span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Output-generating function applied to a single focused element:</span></span></span>
 <span class="r-in"><span><span class="co"># returns the plot itself, not an xpose_set</span></span></span>
