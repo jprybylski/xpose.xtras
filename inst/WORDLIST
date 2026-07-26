@@ -74,6 +74,7 @@ bugfixes
 builtin's
 callables
 catcov
+cli
 colinearity
 colour
 coloured
@@ -88,6 +89,7 @@ dichotomizing
 dplyr
 eGFR
 eg
+erroring
 et
 facto
 fallbacks

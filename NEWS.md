@@ -1,5 +1,54 @@
 # xpose.xtras
 
+# xpose.xtras 0.2.0
+
+## New features
+
+* `xp_from_bbr()` converts a 'bbr' model directly into an `xp_xtras` object.
+* New parameter/covariate association system (`add_cov_association()`,
+  `prm_cov()` family) with `xplot_forest()` / `cov_forest()` visualization;
+  see the new parameter-associations vignette.
+* `cormat()` visualizes the parameter correlation/covariance matrix, for
+  both NONMEM and nlmixr2 models.
+* `catdv_vs_occ()` and `catdv_vs_ipred()` add categorical DV diagnostic
+  plots (observed-vs-predicted trend across occasions, and binned
+  calibration).
+* `left_join_x()` backfills missing variables into an xpdb via a
+  coalescing left join.
+* Default label overrides, plot watermarking, and a flexible save wrapper
+  (`set_default_labs()`, `add_watermark()`, `ggsave_xp()`), configurable via
+  `set_xtras_options()` and auto-applied on print/save. See the new
+  plot-output vignette.
+* `patch_condn()` corrects 'xpose'`s condition number calculation for
+  multi-method NONMEM runs, applied automatically by `as_xpdb_x()`.
+* `focus_function()` / `focus_qapply()` now support output-generating
+  functions (plots, tables), not just xpdb-transforming ones.
+* New `logLik()`, `AIC()`, and `BIC()` methods for `xpose_data` and
+  `xpose_set` objects.
+* `ind_plots_sample()` plots a representative (optionally stratified)
+  sample of individuals instead of the whole dataset.
+* `plot.xpose_data()` runs a configurable batch of diagnostic plots in one
+  call.
+* `process_preset()` family saves and replays a reusable xpdb processing
+  pipeline by name, optionally persisted across sessions.
+
+## Bug fixes
+
+* `set_dv_probs()` no longer crashes when `.problem` is omitted.
+* `conflicted` preferences are now re-applied regardless of package attach
+  order, fixing spurious "found in 2 packages" errors.
+* Fixed inconsistent 'cli' message coloring caused by a color-formatting
+  helper being evaluated at install time instead of call time.
+* Fixed a title/description typo in `%p%`.
+* Fixed misleading default subtitle/caption labels on model-averaged
+  plots, which previously reported statistics from just one of the
+  averaged models.
+* Fixed `as_xpdb_x()` / `check_xpdb_x()` erroring on `xpose_data` objects
+  with no table data.
+* Fixed `xplot_pairs()` silently ignoring a custom
+  `catcont_opts$other_fun`, and removed an unreachable leftover
+  duplicate-axis-label block in `roc_by_mod()`.
+
 # xpose.xtras 0.1.4
 * nlmixr2 example datasets replaced with on-demand `nlmixr_example()` /
   `nlmixr2_example()` to avoid loading nlmixr2est when not installed.

@@ -44,7 +44,7 @@
 #' get_cov_matrix(xpdb_x)
 #' get_cov_matrix(xpdb_x, type = "covariance")
 #'
-#' \donttest{
+#' \dontrun{
 #' xpdb_nlmixr2 <- nlmixr_example("xpdb_nlmixr2")
 #' get_cov_matrix(xpdb_nlmixr2)
 #' }

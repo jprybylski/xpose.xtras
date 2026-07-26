@@ -32,7 +32,7 @@ A model diagnostic is rarely just a diagnostic once it leaves an R session. It b
 - `ggsave_xp()` saves a plot, applying the above first, with a swappable save backend.
 - `plot.xpose_data()` / `set_default_plots()` generate a whole batch of diagnostic plots from one `xpdb` in a single call.
 
-All three read from the same kind of layered defaults, resolved in the same order every time: a session-wide R option, then a per-model (`xpdb`) default, then whatever is passed directly to the function call. `set_xtras_options()` and `get_xtras_option()` round this out by giving the whole `xpose.xtras.*` option family one place to be set and inspected.
+All four read from the same kind of layered defaults, resolved in the same order every time: a session-wide R option, then a per-model (`xpdb`) default, then whatever is passed directly to the function call. `set_xtras_options()` and `get_xtras_option()` round this out by giving the whole `xpose.xtras.*` option family one place to be set and inspected.
 
 Once a default is actually configured, it applies itself. `print.xpose_plot()` and `ggsave_xp()` both pick up a configured `default_labs`/`default_watermark` automatically, with nothing else to call. That behavior is controlled by the `xpose.xtras.auto_apply` option, `TRUE` unless changed; it's a no-op until something is configured, so nothing changes for existing code until a default is actually set. The functions below are still the way to configure those defaults in the first place, apply them explicitly on demand, or reach an `xpdb`-level default (which, unlike the option, `print()` has no way to pick up on its own; see the note under `apply_default_labs()`). The last section, [Automatic application], covers the auto-apply behavior itself.
 

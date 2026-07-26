@@ -103,3 +103,9 @@ nlmixr2_m3 %>%
   set_var_levels(1, CENS = lvl_bin()) %>%
   roc_plot(quiet = TRUE)
 ```
+
+### Parameter correlation matrix
+
+```{r cormat, fig.width=unit(6,"in"), fig.height=unit(5,"in"), fig.align='center'}
+cormat(xpdb_x, quiet = TRUE)
+```

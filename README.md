@@ -117,3 +117,11 @@ nlmixr2_m3 %>%
 ```
 
 <img src="man/figures/README-m3_roc-1.png" alt="" width="100%" style="display: block; margin: auto;" />
+
+### Parameter correlation matrix
+
+``` r
+cormat(xpdb_x, quiet = TRUE)
+```
+
+<img src="man/figures/README-cormat-1.png" alt="" width="100%" style="display: block; margin: auto;" />
