@@ -39,11 +39,11 @@ pheno_base %>%
 
 `IIVCL` and `IIVV` get a `cv` column; the off-diagonal and fixed-effect rows don't (CV% is only defined for a diagonal random effect acting on a specific structural parameter). This is already the CV% you'd get by hand from a log-normal assumption -- `add_prm_association()` becomes useful the moment that assumption is wrong for a given parameter.
 
-Say `V` was actually fit as logit-normal instead (purely for illustration -- it wasn't, in this model). Declaring that changes only the `cv` column; nothing else about the fit or the table shape changes:
+Say `CL` was actually fit as logit-normal instead (purely for illustration -- it wasn't, in this model). Declaring that changes only the `cv` column; nothing else about the fit or the table shape changes:
 
 ```{r prm_logit}
 pheno_base %>%
-  add_prm_association(V ~ logit(IIVV)) %>%
+  add_prm_association(CL ~ logit(IIVCL)) %>%
   get_prm(quiet = TRUE) %>%
   select(type, name, label, value, cv)
 ```
@@ -70,13 +70,13 @@ Redeclaring an association for the same parameter replaces it; `drop_prm_associa
 
 ```{r prm_drop}
 pheno_base %>%
-  add_prm_association(V ~ logit(IIVV)) %>%
-  drop_prm_association(V) %>%
+  add_prm_association(CL ~ logit(IIVCL)) %>%
+  drop_prm_association(CL) %>%
   get_prm(quiet = TRUE) %>%
   select(name, label, value, cv)
 ```
 
-**One important caveat**: the CV% calculation assumes the *fixed-effect* value is on its natural, untransformed scale. If `V` were actually fitted on the logit scale itself (not just related to a logit-normal omega), the reported `value` would need converting back first -- see [Rescaling with `mutate_prm()`] below.
+**One important caveat**: the CV% calculation assumes the *fixed-effect* value is on its natural, untransformed scale. If `CL` were actually fitted on the logit scale itself (not just related to a logit-normal omega), the reported `value` would need converting back first -- see [Rescaling with `mutate_prm()`] below.
 
 ## Covariate associations and forest plots
 
