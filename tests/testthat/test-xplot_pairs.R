@@ -162,6 +162,7 @@ test_that("xplot_pairs falls back to xpose::data_opt() when opt is missing", {
 })
 
 test_that("xplot_pairs accepts gg_theme and xp_theme overrides and renders", {
+  skip_on_cran() # slow: renders a full pairs plot matrix
   opt_xtra <- xpose::data_opt(
     .problem = 1,
     filter = xpose::only_distinct(xpdb_x, 1, NULL, TRUE),
@@ -316,6 +317,7 @@ test_that("print.xp_xtra_plot delegates to NextMethod() for non-ggmatrix objects
 })
 
 test_that("print.xp_xtra_plot exercises the legacy ggplot2 (<= 3.5.2) label branch", {
+  skip_on_cran() # slow: renders a full pairs plot matrix
   # Mirrors the packageVersion() mocking approach used in
   # test-xplot_boxplot.R to reach the pre-3.5.2 ggplot2 code path, which is
   # otherwise unreachable with the ggplot2 version installed in this

@@ -1,4 +1,5 @@
 test_that("multiplication works", {
+  skip_on_cran() # slow: renders several waterfall plot variants
   two_mod_set <- xpose_set(pheno_base,pheno_final)
   expect_error(
     xset_waterfall(two_mod_set),
