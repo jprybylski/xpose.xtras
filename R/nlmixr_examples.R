@@ -79,6 +79,13 @@ nlmixr_example <- function(name) {
     reason = "to generate nlmixr2 examples"
   )
   name <- rlang::arg_match(name, .nlmixr_example_names())
+  # These examples are small demo/reference fits, not performance-critical,
+  # and nlmixr2est/rxode2's multi-threaded FOCEI path has known thread-safety
+  # issues on constrained hardware (eg, upstream's own "Windows heap-corruption
+  # segfault at more than one core" fix); force single-threaded to sidestep it.
+  old_threads <- rxode2::getRxThreads()
+  rxode2::setRxThreads(1)
+  on.exit(rxode2::setRxThreads(old_threads), add = TRUE)
   switch(
     name,
     xpdb_nlmixr2       = .nlmixr_example_xpdb_nlmixr2(),
