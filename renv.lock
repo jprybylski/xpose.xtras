@@ -313,8 +313,7 @@
       "URL": "https://www.rforge.net/base64enc",
       "BugReports": "https://github.com/s-u/base64enc/issues",
       "NeedsCompilation": "yes",
-      "Repository": "CRAN",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "bit": {
       "Package": "bit",
@@ -855,8 +854,7 @@
       "NeedsCompilation": "yes",
       "Author": "David Meyer [aut, cre] (ORCID: <https://orcid.org/0000-0002-5196-3048>), Evgenia Dimitriadou [aut, cph], Kurt Hornik [aut] (ORCID: <https://orcid.org/0000-0003-4198-9911>), Andreas Weingessel [aut], Friedrich Leisch [aut], Chih-Chung Chang [ctb, cph] (libsvm C++-code), Chih-Chen Lin [ctb, cph] (libsvm C++-code)",
       "Maintainer": "David Meyer <David.Meyer@R-project.org>",
-      "Repository": "CRAN",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "farver": {
       "Package": "farver",
@@ -1669,8 +1667,7 @@
       "Note": "built from Clipper C++ version 6.4.0",
       "NeedsCompilation": "yes",
       "Author": "Angus Johnson [aut] (C++ original, http://www.angusj.com/delphi/clipper.php), Adrian Baddeley [aut, trl, cre], Kurt Hornik [ctb], Brian D. Ripley [ctb], Elliott Sales de Andrade [ctb], Paul Murrell [ctb], Ege Rubak [ctb], Mark Padgham [ctb]",
-      "Repository": "CRAN",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "prettyunits": {
       "Package": "prettyunits",
@@ -1753,8 +1750,7 @@
       "NeedsCompilation": "yes",
       "Author": "David Meyer [aut, cre] (ORCID: <https://orcid.org/0000-0002-5196-3048>), Christian Buchta [aut]",
       "Maintainer": "David Meyer <David.Meyer@R-project.org>",
-      "Repository": "CRAN",
-      "Encoding": "UTF-8"
+      "Repository": "CRAN"
     },
     "purrr": {
       "Package": "purrr",
