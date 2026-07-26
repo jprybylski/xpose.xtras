@@ -150,29 +150,21 @@ The desired plot
 
 pheno_set %>%
   dv_vs_ipred_modavg(run8,run9,run10, auto_backfill = TRUE)
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using formula = 'y ~ x'
 
 
 pheno_set %>%
   dv_vs_pred_modavg(run8,run9,run10, auto_backfill = TRUE)
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using formula = 'y ~ x'
 
 
 pheno_set %>%
   ipred_vs_idv_modavg(run8,run9,run10, auto_backfill = TRUE)
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using formula = 'y ~ x'
 
 
 pheno_set %>%
   pred_vs_idv_modavg(run8,run9,run10, auto_backfill = TRUE)
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using formula = 'y ~ x'
 
 
@@ -182,9 +174,6 @@ pheno_set %>%
      avg_by_type = "eta",.fun = eta_vs_catcov,
      # Note quoting
      .funargs = list(etavar=quote(ETA1)))
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Tidying data by ID, TIME, AMT, WT, MDV ... and 31 more variables
 
 
 # }

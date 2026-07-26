@@ -92,6 +92,7 @@ Vancomycin as a Case Study. Clin. Pharmacol. Ther., 109: 175-183.
 ## Examples
 
 ``` r
+
 pheno_set %>%
   modavg_xpdb(
     avg_cols = IPRED,
@@ -104,12 +105,12 @@ pheno_set %>%
 #> Model description: na
 #> run3.lst overview: 
 #>  - Software: nonmem 7.5.0 
-#>  - Attached files (memory usage 844.1 Kb): 
+#>  - Attached files (memory usage 849.9 Kb): 
 #>    + obs tabs: $prob no.1 (modified): na, run3tab 
 #>    + sim tabs: <none> 
 #>    + output files: run3.cor, run3.cov, run3.ext, run3.grd, run3.phi, run3.shk 
 #>    + special: <none> 
 #>  - gg_theme: theme_readable 
 #>  - xp_theme: xp_xtra_theme new_x$xp_theme 
-#>  - Options: dir = ~/Step 3, quiet = FALSE, manual_import = NULL, cvtype = exact
+#>  - Options: dir = ~/Step 3, quiet = TRUE, manual_import = NULL, cvtype = exact
 ```

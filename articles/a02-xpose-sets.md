@@ -19,6 +19,7 @@ example below, three example models fitting the same dataset are made
 into a set, and alternative labels are used for one version of the set.
 
 ``` r
+
 xpose_set(pheno_base, pheno_final, pheno_saem)
 #> 
 #> ── xpose_set object ────────────────────────────────────────────────────────────
@@ -46,6 +47,7 @@ explores typical model-building steps for the common phenobarbital in
 neonates dataset, called `pheno_set`, diagrammed below.
 
 ``` r
+
 diagram_lineage(pheno_set) %>%
   DiagrammeR::render_graph(layout="tree")
 ```
@@ -58,6 +60,7 @@ parents (`child1+... ~ parent1+...`). To demonstrate, parts of
 `pheno_set` can be reproduced.
 
 ``` r
+
 phrun3 <- pheno_set$run3$xpdb
 phrun5 <- pheno_set$run5$xpdb
 phrun6 <- pheno_set$run6$xpdb
@@ -79,6 +82,7 @@ if (requireNamespace("DiagrammeR", quietly=TRUE))
 ```
 
 ``` r
+
 pheno_branch <- xpose_set(phrun6,phrun7,phrun8,phrun9, .relationships = c(phrun7+phrun8+phrun9~phrun6))
 pheno_branch
 #> 
@@ -96,6 +100,7 @@ if (requireNamespace("DiagrammeR", quietly=TRUE))
 Trees can also be concatenated, using typical R/tidyverse syntax.
 
 ``` r
+
 pheno_tree <- pheno_stem %>%
   # drop phrun6 from stem
   select(-phrun6) %>%
@@ -134,6 +139,7 @@ functions for comparison include a
 [`diff()`](https://rdrr.io/r/base/diff.html) method.
 
 ``` r
+
 diff(pheno_set)
 #> [1] -148.723  -37.080  -60.163  -43.281   35.133
 ```
@@ -145,6 +151,7 @@ included can be examined by probing with the
 function.
 
 ``` r
+
 tbl_diff <- function(set) tibble(
   models = xset_lineage(set),
   diff = c(0,diff(set))
@@ -199,6 +206,7 @@ if multiple models are passed to `...`, which treats those as base
 models.
 
 ``` r
+
 diff(pheno_set, run10,run9)
 #> $run10
 #> [1] -0.181
@@ -211,6 +219,27 @@ xset_lineage(pheno_set, run10,run9)
 #> 
 #> $run9
 #> [1] "run9"  "run14" "run15"
+```
+
+[`logLik()`](https://rdrr.io/r/stats/logLik.html),
+[`AIC()`](https://rdrr.io/r/stats/AIC.html) and
+[`BIC()`](https://rdrr.io/r/stats/AIC.html) methods are also available
+for a single `xpdb` (deriving log-likelihood from the objective function
+value), and extend across an `xpose_set`’s lineage the same way
+[`diff()`](https://rdrr.io/r/base/diff.html) does, but without
+differencing, so models can be compared directly rather than relative to
+a base model.
+
+``` r
+
+AIC(pheno_set)
+#> [1] 882.325 735.602 700.522 642.359 601.078 638.211
+BIC(pheno_set, run10, run9)
+#> $run10
+#> [1] 723.803 723.622
+#> 
+#> $run9
+#> [1] 663.6630 625.4254 665.6018
 ```
 
 Models can also be compared through various plots. Many that use
@@ -230,6 +259,7 @@ or
 in `xpose.xtras`.
 
 ``` r
+
 pheno_set %>%
   focus_qapply(backfill_iofv) %>%
   shark_plot(run6, run9, quiet = TRUE)
@@ -257,6 +287,7 @@ can be used. Note the exposed data are denoted by the prefix `..` (two
 dots) in their column names.
 
 ``` r
+
 pheno_set %>%
   expose_property(ofv) %>%
   expose_param(ome1) %>%
@@ -278,6 +309,7 @@ the expected results despite the underlying structure of an `xpose_set`
 not being tabular.
 
 ``` r
+
 pheno_set %>%
   select(run3,run15) %>%
   names()
@@ -311,6 +343,7 @@ forward functions to the `xpose_data` objects in the element, and do
 nothing to unfocused elements.
 
 ``` r
+
 focus_test <- pheno_set %>%
   focus_xpdb(run3,run15) %>%
   mutate(test_col = 1) %>%

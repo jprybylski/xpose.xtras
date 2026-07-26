@@ -1,6 +1,6 @@
-# Binary check if LHS is parent of LHS
+# Binary check if LHS is parent of RHS
 
-Binary check if LHS is parent of LHS
+Binary check if LHS is parent of RHS
 
 ## Usage
 
@@ -25,6 +25,7 @@ possible_parent %p% possible_child
 ## Examples
 
 ``` r
+
 # Detect direct parent
 pheno_set$run6 %p% pheno_set$run7
 #> [1] TRUE

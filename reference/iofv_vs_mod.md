@@ -106,25 +106,16 @@ The desired plot
 pheno_set %>%
   focus_qapply(backfill_iofv) %>%
   iofv_vs_mod()
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Tidying data by ID, TIME, AMT, WT, APGR ... and 17 more variables
 
 
 pheno_set %>%
   focus_qapply(backfill_iofv) %>%
   iofv_vs_mod(run3,run11,run14,run15)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Tidying data by ID, TIME, AMT, WT, APGR ... and 17 more variables
 
 
 pheno_set %>%
   focus_qapply(backfill_iofv) %>%
   iofv_vs_mod(.lineage = TRUE)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Tidying data by ID, TIME, AMT, WT, APGR ... and 17 more variables
 
 
 # }

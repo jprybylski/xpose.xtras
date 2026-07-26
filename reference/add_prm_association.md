@@ -152,10 +152,10 @@ and Other Non-log-normal Parameters. Clin Pharmacokinet 63, 133-135
 ## Examples
 
 ``` r
+
 pheno_base %>%
    add_prm_association(the1~log(IIVCL),V~log(IIVV)) %>%
    get_prm() # get_prm is the only way to see the effect of associations
-#> Returning parameter estimates from $prob no.1, subprob no.1, method foce
 #> # A tibble: 8 × 12
 #>   type  name      label  value       se     rse fixed diagonal     m     n    cv
 #> * <chr> <chr>     <chr> <num:>  <num:3> <num:3> <lgl> <lgl>    <int> <int> <num>
@@ -176,7 +176,6 @@ pheno_base %>%
 pheno_final %>%
    add_prm_association(the1~logit(IIVCL),Vpkg~logit(IIVV)) %>%
    get_prm()
-#> Returning parameter estimates from $prob no.1, subprob no.1, method foce
 #> # A tibble: 7 × 12
 #>   type  name       label     value        se      rse fixed diagonal     m     n
 #> * <chr> <chr>      <chr>   <num:4>   <num:4>  <num:4> <lgl> <lgl>    <int> <int>
@@ -197,7 +196,6 @@ pheno_base %>%
    # Naming the argument is optional
    add_prm_association(CL~nmboxcox(IIVCL, -0.1)) %>%
    get_prm()
-#> Returning parameter estimates from $prob no.1, subprob no.1, method foce
 #> # A tibble: 8 × 12
 #>   type  name      label  value       se     rse fixed diagonal     m     n    cv
 #> * <chr> <chr>     <chr> <num:>  <num:3> <num:3> <lgl> <lgl>    <int> <int> <num>
@@ -220,7 +218,6 @@ pheno_base %>%
   add_prm_association(V~custom(IIVV, qdist=function(x) log(0.001+x),
         pdist=function(x) exp(x)-0.001)) %>%
    get_prm()
-#> Returning parameter estimates from $prob no.1, subprob no.1, method foce
 #> # A tibble: 8 × 12
 #>   type  name      label  value       se     rse fixed diagonal     m     n    cv
 #> * <chr> <chr>     <chr> <num:>  <num:3> <num:3> <lgl> <lgl>    <int> <int> <num>
@@ -239,7 +236,6 @@ pheno_base %>%
 bad_assoc <- pheno_final %>%
    add_prm_association(the1~logit(IIVCL),Vpkg~logit(IIVV))
 bad_assoc %>% get_prm()
-#> Returning parameter estimates from $prob no.1, subprob no.1, method foce
 #> # A tibble: 7 × 12
 #>   type  name       label     value        se      rse fixed diagonal     m     n
 #> * <chr> <chr>      <chr>   <num:4>   <num:4>  <num:4> <lgl> <lgl>    <int> <int>
@@ -256,7 +252,6 @@ bad_assoc %>% get_prm()
 bad_assoc %>%
   drop_prm_association(the1) %>%
   get_prm()
-#> Returning parameter estimates from $prob no.1, subprob no.1, method foce
 #> # A tibble: 7 × 12
 #>   type  name       label     value        se      rse fixed diagonal     m     n
 #> * <chr> <chr>      <chr>   <num:4>   <num:4>  <num:4> <lgl> <lgl>    <int> <int>

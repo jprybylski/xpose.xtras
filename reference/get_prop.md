@@ -52,6 +52,7 @@ Exact value for the property
 ## Examples
 
 ``` r
+
 data("xpdb_ex_pk", package = "xpose")
 
 get_prop(xpdb_ex_pk, "descr")

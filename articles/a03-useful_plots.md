@@ -30,6 +30,7 @@ an argument to automatically apply
 [`backfill_iofv()`](https://jprybylski.github.io/xpose.xtras/reference/backfill_iofv.md).
 
 ``` r
+
 pheno_set %>%
   ipred_vs_idv_modavg(auto_backfill = TRUE, quiet=TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
@@ -38,8 +39,11 @@ pheno_set %>%
 ![](a03-useful_plots_files/figure-html/modavg-1.png)
 
 The default title, subtitle and caption for these experimental figures
-are rough, especially for large sets. Changes for better appearance
-should be expected in the future.
+describe the averaging itself (the models being combined, and the
+algorithm/weighting used) rather than reusing labels from a single
+underlying model, which would be misleading in an averaged context. For
+sets with more than a handful of models, the model list is summarized
+rather than spelled out in full to keep the title readable.
 
 While a simple demonstration is not presented here, most plots can also
 be model-averaged using the generic
@@ -61,6 +65,7 @@ likelihood or probability of that DV having a certain value. An example
 using an M3 model is below and in the documentation.
 
 ``` r
+
 described_pkpd_m3 <- pkpd_m3 %>%
   # Need to ensure var types are set
   set_var_types(catdv=BLQ,dvprobs=LIKE) %>%
@@ -90,6 +95,7 @@ dichotomizing the probability of one observation compared to the
 probability of not that observation,
 
 ``` r
+
 vismo_xpdb <- vismo_pomod  %>%
   set_var_types(.problem=1, catdv=DV, dvprobs=matches("^P\\d+$")) %>%
   set_dv_probs(.problem=1, 0~P0,1~P1,ge(2)~P23)
@@ -101,6 +107,7 @@ vismo_xpdb %>%
 ![](a03-useful_plots_files/figure-html/vismo-1.png)
 
 ``` r
+
 vismo_xpdb %>%
   catdv_vs_dvprobs(cutpoint = 2, quiet=TRUE)
 #> `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
@@ -109,6 +116,7 @@ vismo_xpdb %>%
 ![](a03-useful_plots_files/figure-html/vismo-2.png)
 
 ``` r
+
 vismo_xpdb %>%
   catdv_vs_dvprobs(cutpoint = 3, quiet=TRUE)
 #> `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
@@ -127,6 +135,7 @@ Most applications of
 can be easily repurposed:
 
 ``` r
+
 described_pkpd_m3 %>%
   roc_plot(quiet=TRUE)
 #> Warning: Some sensitivies and specificities not calculable due to 0s.
@@ -135,6 +144,7 @@ described_pkpd_m3 %>%
 ![](a03-useful_plots_files/figure-html/roc_ex1-1.png)
 
 ``` r
+
 vismo_xpdb %>%
   # Epsilon shrinkage is still included in default subtitle for M3-like use cases
   roc_plot(cutpoint = 2, quiet=TRUE, subtitle = "Ofv: @ofv") 
@@ -148,6 +158,7 @@ accurately predicted), the fewer points with lower accuracy (ID 86, for
 example) are readily identified as potential outliers.
 
 ``` r
+
 described_pkpd_m3 %>%
   roc_plot(quiet=TRUE, group="ID", type="pt")
 #> Warning: Some sensitivies and specificities not calculable due to 0s.
@@ -161,6 +172,60 @@ trivial, and refers to study participant data in which there is not a
 mix of BLQ (in the M3 examples) values; they are either all “true”
 positives or all “true” negatives.
 
+A binned calibration plot is also available, grouping the predicted
+probability into bins and comparing the mean predicted probability in
+each bin against the observed proportion meeting the cutpoint condition,
+with a unity guide line for reference.
+
+``` r
+
+described_pkpd_m3 %>%
+  catdv_vs_ipred(bins = 5, quiet=TRUE)
+#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+#> ℹ Please use `linewidth` instead.
+#> ℹ The deprecated feature was likely used in the xpose package.
+#>   Please report the issue at
+#>   <https://github.com/UUPharmacometrics/xpose/issues/>.
+#> This warning is displayed once per session.
+#> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+#> generated.
+```
+
+![](a03-useful_plots_files/figure-html/catdv_ipred-1.png)
+
+When the data include a natural occasion or visit column,
+[`catdv_vs_occ()`](https://jprybylski.github.io/xpose.xtras/reference/catdv_vs_occ.md)
+plots observed and predicted probability against that occasion instead
+of a continuous predictor, which is useful for spotting trends over time
+(e.g., adherence effects) that a simple scatter would obscure.
+
+``` r
+
+vismo_occ <- vismo_xpdb %>%
+  xpose::mutate(OCC = ceiling((TIME + 1) / 24), .problem = 1) %>%
+  set_var_types(.problem = 1, occ = OCC) %>%
+  set_var_levels(.problem = 1, OCC = lvl_inord(paste("Day", 1:12)))
+vismo_occ %>%
+  catdv_vs_occ(quiet=TRUE)
+```
+
+![](a03-useful_plots_files/figure-html/catdv_occ-1.png)
+
+## Parameter uncertainty
+
+Beyond covariate and parameter associations, it can be useful to
+visualize the full correlation (or covariance) matrix from the
+covariance step, both for NONMEM and `nlmixr2` models, in order to spot
+potentially problematic colinearity between parameters.
+
+``` r
+
+xpdb_x %>%
+  cormat(quiet=TRUE)
+```
+
+![](a03-useful_plots_files/figure-html/cormat-1.png)
+
 ## Waterfall and objective function trends
 
 The more common needs for an `xpose_set` include model-building tables,
@@ -173,6 +238,7 @@ is especially beneficial in comparing changes in empirical Bayes
 estimates (EBEs).
 
 ``` r
+
 pheno_set %>%
   eta_waterfall(run3,run6, quiet=TRUE)
 ```
@@ -183,6 +249,7 @@ Waterfalls can also be used as an alternative to shark plots. Scaling in
 that case is off by default.
 
 ``` r
+
 pheno_set %>%
   focus_qapply(backfill_iofv) %>%
   iofv_waterfall(run3,run6, quiet=TRUE)
@@ -193,6 +260,7 @@ pheno_set %>%
 To track iOFV changes over multiple models, another plot can be used.
 
 ``` r
+
 iofv_vs_mod(pheno_set, auto_backfill = TRUE, quiet=TRUE)
 ```
 

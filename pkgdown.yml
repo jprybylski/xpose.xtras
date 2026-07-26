@@ -1,12 +1,14 @@
-pandoc: 3.1.11
-pkgdown: 2.2.0
+pandoc: 3.8.3
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   a01-the-xp_xtra-object: a01-the-xp_xtra-object.html
   a02-xpose-sets: a02-xpose-sets.html
   a03-useful_plots: a03-useful_plots.html
+  a04-plot-output-and-options: a04-plot-output-and-options.html
   articles/nlmixr2: nlmixr2.html
-last_built: 2026-04-21T00:25Z
+  articles/parameter-associations: parameter-associations.html
+last_built: 2026-07-26T14:42Z
 urls:
   reference: https://jprybylski.github.io/xpose.xtras/reference
   article: https://jprybylski.github.io/xpose.xtras/articles

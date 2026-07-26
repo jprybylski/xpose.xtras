@@ -51,29 +51,6 @@ Functions for creating, checking and manipulating `xp_xtras` objects.
 - [`backfill_iofv()`](https://jprybylski.github.io/xpose.xtras/reference/backfill_iofv.md)
   : Add individual objective function to data
 
-- [`attach_nlmixr2()`](https://jprybylski.github.io/xpose.xtras/reference/attach_nlmixr2.md)
-  : Attach nlmixr2 fit object to xpose data object
-
-- [`backfill_nlmixr2_props()`](https://jprybylski.github.io/xpose.xtras/reference/backfill_nlmixr2_props.md)
-  : Populate some properties from nlmixr2 fit
-
-- [`get_prm_nlmixr2()`](https://jprybylski.github.io/xpose.xtras/reference/get_prm_nlmixr2.md)
-  : get_prm equivalent for nlmixr2 fits
-
-- [`nlmixr2_as_xtra()`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr2_as_xtra.md)
-  : Convenience function for ingesting an nlmixr2 model to xpose and
-  xpose.xtras
-
-- [`nlmixr2_prm_associations()`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr2_prm_associations.md)
-  : Based on associations baked into nlmixr2, automatically add to xpose
-  data
-
-- [`nlmixr_example()`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr_example.md)
-  [`nlmixr2_example()`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr_example.md)
-  :
-
-  Generate example `xp_xtras` objects from nlmixr2 fits
-
 - [`xp_var()`](https://jprybylski.github.io/xpose.xtras/reference/xp_var.md)
   :
 
@@ -122,6 +99,10 @@ Work with collections of models using `xpose_set`.
   [`drop_prm_association()`](https://jprybylski.github.io/xpose.xtras/reference/add_prm_association.md)
   : Describe parameter associations
 
+- [`add_cov_association()`](https://jprybylski.github.io/xpose.xtras/reference/add_cov_association.md)
+  [`drop_cov_association()`](https://jprybylski.github.io/xpose.xtras/reference/add_cov_association.md)
+  : Describe parameter/covariate associations
+
 - [`mutate_prm()`](https://jprybylski.github.io/xpose.xtras/reference/mutate_prm.md)
   : Transform parameter values in place
 
@@ -130,14 +111,30 @@ Work with collections of models using `xpose_set`.
   : Add relationship(s) to an xpose_set
 
 - [`` `%p%` ``](https://jprybylski.github.io/xpose.xtras/reference/grapes-p-grapes.md)
-  : Binary check if LHS is parent of LHS
+  : Binary check if LHS is parent of RHS
+
+- [`logLik(`*`<xpose_set>`*`)`](https://jprybylski.github.io/xpose.xtras/reference/xset_fitstats.md)
+  [`AIC(`*`<xpose_set>`*`)`](https://jprybylski.github.io/xpose.xtras/reference/xset_fitstats.md)
+  [`BIC(`*`<xpose_set>`*`)`](https://jprybylski.github.io/xpose.xtras/reference/xset_fitstats.md)
+  **\[experimental\]** :
+
+  Log-likelihood, AIC and BIC across an `xpose_set`
 
 ## Plotting helpers
 
 Additional plotting functions and themes extending xpose.
 
+- [`xplot_binned()`](https://jprybylski.github.io/xpose.xtras/reference/xplot_binned.md)
+  : Generic binned trend plotting function
+
 - [`xplot_boxplot()`](https://jprybylski.github.io/xpose.xtras/reference/xplot_boxplot.md)
   : Default xpose boxplot function
+
+- [`xplot_forest()`](https://jprybylski.github.io/xpose.xtras/reference/xplot_forest.md)
+  : Default xpose forest plot function
+
+- [`xplot_heatmap()`](https://jprybylski.github.io/xpose.xtras/reference/xplot_heatmap.md)
+  : Generic heatmap plotting function
 
 - [`xplot_pairs()`](https://jprybylski.github.io/xpose.xtras/reference/xplot_pairs.md)
   : Wrapper around ggpairs
@@ -156,6 +153,11 @@ Additional plotting functions and themes extending xpose.
 - [`shark_plot()`](https://jprybylski.github.io/xpose.xtras/reference/shark_plot.md)
   [`dofv_vs_id()`](https://jprybylski.github.io/xpose.xtras/reference/shark_plot.md)
   : Individual contributions to dOFV
+
+- [`prm_contcov()`](https://jprybylski.github.io/xpose.xtras/reference/prm_cov.md)
+  [`prm_catcov()`](https://jprybylski.github.io/xpose.xtras/reference/prm_cov.md)
+  [`prm_cov()`](https://jprybylski.github.io/xpose.xtras/reference/prm_cov.md)
+  : Continuous/categorical covariate effect tables
 
 - [`eta_vs_catcov()`](https://jprybylski.github.io/xpose.xtras/reference/eta_vs_catcov.md)
   : Eta categorical covariate plots (typical)
@@ -182,6 +184,12 @@ Additional plotting functions and themes extending xpose.
 - [`catdv_vs_dvprobs()`](https://jprybylski.github.io/xpose.xtras/reference/catdv_vs_dvprobs.md)
   : Non-simulation based likelihood model diagnostic
 
+- [`catdv_vs_ipred()`](https://jprybylski.github.io/xpose.xtras/reference/catdv_vs_ipred.md)
+  : Binned calibration plot for categorical DVs
+
+- [`catdv_vs_occ()`](https://jprybylski.github.io/xpose.xtras/reference/catdv_vs_occ.md)
+  : Longitudinal binned observed vs. predicted plot for categorical DVs
+
 - [`roc_by_mod()`](https://jprybylski.github.io/xpose.xtras/reference/roc_by_mod.md)
   : ROC curve across models
 
@@ -194,8 +202,14 @@ Additional plotting functions and themes extending xpose.
 - [`ind_roc()`](https://jprybylski.github.io/xpose.xtras/reference/ind_roc.md)
   : Individual ROC plots
 
+- [`ind_plots_sample()`](https://jprybylski.github.io/xpose.xtras/reference/ind_plots_sample.md)
+  : Individual plots for a (stratified) sample of individuals
+
 - [`xset_waterfall()`](https://jprybylski.github.io/xpose.xtras/reference/xset_waterfall.md)
   : Waterfall plot
+
+- [`cormat()`](https://jprybylski.github.io/xpose.xtras/reference/cormat.md)
+  : Parameter correlation/covariance matrix heatmap
 
 - [`xp_xtra_theme()`](https://jprybylski.github.io/xpose.xtras/reference/xp_xtra_theme.md)
   : Extra theme defaults
@@ -213,6 +227,52 @@ Additional plotting functions and themes extending xpose.
 
   Ensure consistent style with `GGally` functions
 
+## Plot output & session options
+
+Default labels, watermarks, saving, batch plotting, and the
+xpose.xtras.\* option family.
+
+- [`apply_default_labs()`](https://jprybylski.github.io/xpose.xtras/reference/apply_default_labs.md)
+  : Apply default label overrides to a plot
+
+- [`set_default_labs()`](https://jprybylski.github.io/xpose.xtras/reference/set_default_labs.md)
+  :
+
+  Set default plot label overrides on an `xp_xtras` object
+
+- [`add_watermark()`](https://jprybylski.github.io/xpose.xtras/reference/add_watermark.md)
+  : Add a watermark to a plot
+
+- [`set_default_watermark()`](https://jprybylski.github.io/xpose.xtras/reference/set_default_watermark.md)
+  :
+
+  Set default watermark options on an `xp_xtras` object
+
+- [`ggsave_xp()`](https://jprybylski.github.io/xpose.xtras/reference/ggsave_xp.md)
+  :
+
+  Save a plot with `xpose.xtras` default output resolution
+
+- [`plot(`*`<xpose_data>`*`)`](https://jprybylski.github.io/xpose.xtras/reference/plot.xpose_data.md)
+  :
+
+  Generate a batch of diagnostic plots from an `xpdb`
+
+- [`set_default_plots()`](https://jprybylski.github.io/xpose.xtras/reference/set_default_plots.md)
+  :
+
+  Set a default plot spec on an `xp_xtras` object
+
+- [`set_xtras_options()`](https://jprybylski.github.io/xpose.xtras/reference/set_xtras_options.md)
+  :
+
+  Set `xpose.xtras` session options
+
+- [`get_xtras_option()`](https://jprybylski.github.io/xpose.xtras/reference/get_xtras_option.md)
+  :
+
+  Inspect which `xpose.xtras` option value is dominant
+
 ## Utilities
 
 Miscellaneous helpers and integrations.
@@ -220,10 +280,22 @@ Miscellaneous helpers and integrations.
 - [`modavg_xpdb()`](https://jprybylski.github.io/xpose.xtras/reference/modavg_xpdb.md)
   **\[experimental\]** : Create a model-averaged xpose data object
 
+- [`cov_forest()`](https://jprybylski.github.io/xpose.xtras/reference/cov_forest.md)
+  : Covariate effect forest plot
+
 - [`eta_grid()`](https://jprybylski.github.io/xpose.xtras/reference/grid_plots.md)
   [`cov_grid()`](https://jprybylski.github.io/xpose.xtras/reference/grid_plots.md)
   [`eta_vs_cov_grid()`](https://jprybylski.github.io/xpose.xtras/reference/grid_plots.md)
   : Grid plots
+
+- [`attach_nlmixr2()`](https://jprybylski.github.io/xpose.xtras/reference/attach_nlmixr2.md)
+  : Attach nlmixr2 fit object to xpose data object
+
+- [`backfill_nlmixr2_props()`](https://jprybylski.github.io/xpose.xtras/reference/backfill_nlmixr2_props.md)
+  : Populate some properties from nlmixr2 fit
+
+- [`get_prm_nlmixr2()`](https://jprybylski.github.io/xpose.xtras/reference/get_prm_nlmixr2.md)
+  : get_prm equivalent for nlmixr2 fits
 
 - [`nlmixr2_as_xtra()`](https://jprybylski.github.io/xpose.xtras/reference/nlmixr2_as_xtra.md)
   : Convenience function for ingesting an nlmixr2 model to xpose and
@@ -282,6 +354,10 @@ Miscellaneous helpers and integrations.
   [`rename_x()`](https://jprybylski.github.io/xpose.xtras/reference/modify_xpdb.md)
   : Add, remove or rename variables in an xpdb
 
+- [`left_join_x()`](https://jprybylski.github.io/xpose.xtras/reference/left_join_x.md)
+  [`left_join(`*`<xpose_data>`*`)`](https://jprybylski.github.io/xpose.xtras/reference/left_join_x.md)
+  **\[experimental\]** : Backfill missing variables via a left join
+
 - [`select_subset()`](https://jprybylski.github.io/xpose.xtras/reference/select_subset.md)
   : Convenience wrapper for tidyselect
 
@@ -299,6 +375,9 @@ Miscellaneous helpers and integrations.
 - [`irep()`](https://jprybylski.github.io/xpose.xtras/reference/irep.md)
   **\[deprecated\]** : Add simulation counter
 
+- [`patch_condn()`](https://jprybylski.github.io/xpose.xtras/reference/patch_condn.md)
+  **\[experimental\]** : Patch condition number extraction
+
 - [`derive_prm()`](https://jprybylski.github.io/xpose.xtras/reference/derive_prm.md)
   [`backfill_derived()`](https://jprybylski.github.io/xpose.xtras/reference/derive_prm.md)
   : Derive full parameter set for mammillary PK model
@@ -312,10 +391,36 @@ Miscellaneous helpers and integrations.
 - [`get_shk()`](https://jprybylski.github.io/xpose.xtras/reference/get_shk.md)
   : Get shrinkage estimates from model summary
 
+- [`get_cov_matrix()`](https://jprybylski.github.io/xpose.xtras/reference/get_cov_matrix.md)
+  : Extract a parameter covariance or correlation matrix
+
 - [`list_vars()`](https://jprybylski.github.io/xpose.xtras/reference/list_vars.md)
   :
 
   Updates to `list_vars`
+
+- [`xp_from_bbr()`](https://jprybylski.github.io/xpose.xtras/reference/xp_from_bbr.md)
+  : Convenience function for ingesting a bbr model into xpose and
+  xpose.xtras
+
+- [`logLik(`*`<xpose_data>`*`)`](https://jprybylski.github.io/xpose.xtras/reference/logLik.xpose_data.md)
+  **\[experimental\]** :
+
+  Log-likelihood, AIC and BIC for `xpose_data` objects
+
+- [`add_process_preset()`](https://jprybylski.github.io/xpose.xtras/reference/add_process_preset.md)
+  [`process_preset()`](https://jprybylski.github.io/xpose.xtras/reference/add_process_preset.md)
+  [`print_process_preset()`](https://jprybylski.github.io/xpose.xtras/reference/add_process_preset.md)
+  [`remove_process_preset()`](https://jprybylski.github.io/xpose.xtras/reference/add_process_preset.md)
+  [`amend_process_preset()`](https://jprybylski.github.io/xpose.xtras/reference/add_process_preset.md)
+  **\[experimental\]** :
+
+  Add, apply, list, amend or remove `xpdb` processing presets
+
+- [`persist_process_presets()`](https://jprybylski.github.io/xpose.xtras/reference/persist_process_presets.md)
+  :
+
+  Write current process presets out to a `.Rprofile`
 
 ## Data
 

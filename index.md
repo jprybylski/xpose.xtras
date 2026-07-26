@@ -26,12 +26,14 @@ packages in any order.
 The package can be installed from CRAN:
 
 ``` r
+
 install.packages("xpose.xtras")
 ```
 
 The typical github installation will also work.
 
 ``` r
+
 pak::pak("jprybylski/xpose.xtras")
 ```
 
@@ -39,6 +41,7 @@ The main github branch is reserved for CRAN release-ready versions. The
 dev branch is usually ahead if there is active development.
 
 ``` r
+
 pak::pkg_install("jprybylski/xpose.xtras@dev")
 ```
 
@@ -55,6 +58,7 @@ available by this package.
 ### EBEs versus covariates
 
 ``` r
+
 described <- xpdb_x %>%
   set_var_labels(AGE="Age", MED1 = "Digoxin", .problem = 1) %>%
   set_var_units(AGE="yrs")  %>%
@@ -66,6 +70,7 @@ eta_vs_contcov(described,etavar=ETA1, quiet=TRUE)
 ![](reference/figures/README-eta_vs-1.png)
 
 ``` r
+
 eta_vs_catcov(described,etavar=ETA1, quiet=TRUE)
 ```
 
@@ -74,6 +79,7 @@ eta_vs_catcov(described,etavar=ETA1, quiet=TRUE)
 ### Shark plots
 
 ``` r
+
 pheno_set %>%
   focus_qapply(backfill_iofv) %>%
   dofv_vs_id(run6, run9, quiet = TRUE)
@@ -84,6 +90,7 @@ pheno_set %>%
 ### Categorical DVs
 
 ``` r
+
 pkpd_m3 %>%
   set_var_types(catdv=BLQ,dvprobs=LIKE) %>%
   set_dv_probs(1, 1~LIKE, .dv_var = BLQ) %>%
@@ -95,6 +102,7 @@ pkpd_m3 %>%
 ![](reference/figures/README-m3-1.png)
 
 ``` r
+
 nlmixr2_m3 %>%
   set_var_types(catdv=CENS,dvprobs=BLQLIKE) %>%
   set_dv_probs(1, 1~BLQLIKE, .dv_var = CENS) %>%
@@ -103,3 +111,12 @@ nlmixr2_m3 %>%
 ```
 
 ![](reference/figures/README-m3_roc-1.png)
+
+### Parameter correlation matrix
+
+``` r
+
+cormat(xpdb_x, quiet = TRUE)
+```
+
+![](reference/figures/README-cormat-1.png)

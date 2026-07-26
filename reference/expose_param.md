@@ -59,6 +59,7 @@ call uses `transform=FALSE`.
 ## Examples
 
 ``` r
+
 pheno_set %>%
   expose_param(the1) %>%
   reshape_set()

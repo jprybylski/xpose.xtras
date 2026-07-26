@@ -28,7 +28,7 @@ nlmixr2_example(name)
 
   \<`character`\> Name of the example to generate. One of
   `"xpdb_nlmixr2"`, `"xpdb_nlmixr2_saem"`, `"nlmixr2_warfarin"`,
-  `"nlmixr2_m3"`.
+  `"nlmixr2_m3"`, `"xpdb_nlmixr2_nocov"`.
 
 ## Value
 
@@ -61,6 +61,14 @@ Available examples:
   M3 likelihood handling. Includes a `BLQLIKE` output variable for use
   as a categorical DV example with
   [`catdv_vs_dvprobs()`](https://jprybylski.github.io/xpose.xtras/reference/catdv_vs_dvprobs.md).
+
+- `"xpdb_nlmixr2_nocov"`:
+
+  The same one-compartment theophylline FOCEI fit as `"xpdb_nlmixr2"`,
+  but with the covariance step skipped (`covMethod = ""`). Useful for
+  exercising code paths that depend on parameter uncertainty, such as
+  [`get_cov_matrix()`](https://jprybylski.github.io/xpose.xtras/reference/get_cov_matrix.md),
+  when it is not available.
 
 ## References
 

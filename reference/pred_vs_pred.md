@@ -108,17 +108,14 @@ The desired plot
 ## Examples
 
 ``` r
+
 pheno_set %>%
   ipred_vs_ipred(run5,run15)
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using formula = 'y ~ x'
 
 
 pheno_set %>%
   pred_vs_pred(run5,run15)
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using formula = 'y ~ x'
 
 ```

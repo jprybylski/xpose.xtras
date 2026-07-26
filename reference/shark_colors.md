@@ -55,8 +55,6 @@ xpose_set(pheno_base, pheno_final) %>%
     )) %>%
   # See new plot
   shark_plot()
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 #> Warning: Guessing df uses the difference in unfixed parameters. For these models, that
 #> is 0. Using a value of 1. Adjust `df` and `alpha` to change singificant level.
 

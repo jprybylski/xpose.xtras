@@ -2,6 +2,7 @@
 
 A wrapper that executes the pipeline:
 
+
     obj |>
      xpose.nlmixr2::xpose_data_nlmixr2() |>
      attach_nlmixr2() |>

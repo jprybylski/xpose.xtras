@@ -33,6 +33,7 @@ for selected xpdb objects
 
 ``` r
 
+
 select_subset(mod2, xpdb_s=xpdb_set)
 #> mod2 
 #>    2 

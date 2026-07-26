@@ -179,8 +179,6 @@ pheno_set %>%
   focus_function(backfill_iofv) %>%
   # Pick two models or consistent with two_set_dots()
   shark_plot(run6,run11)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
 
 
 pheno_set %>%
@@ -191,8 +189,6 @@ pheno_set %>%
   mutate(APGRtest = as.numeric(as.character(APGR))<5) %>%
   # Pick two models or consistent with two_set_dots()
   shark_plot(run6,run11, facets = "APGRtest")
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID, APGRtest
 
 
 # }

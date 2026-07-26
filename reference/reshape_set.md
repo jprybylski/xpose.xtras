@@ -31,6 +31,7 @@ Nested list, or
 ## Examples
 
 ``` r
+
 rset <- reshape_set(xpdb_set)
 # Properties (exposed and top-level) can be seen. xpdb objects are nested in the xpdb column.
 rset %>% dplyr::select(-xpdb) %>% dplyr::glimpse()

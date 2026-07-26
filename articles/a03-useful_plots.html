@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Useful uncommon plots • xpose.xtras</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Useful uncommon plots">
 </head>
@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xpose.xtras</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,7 +36,9 @@
 <li><a class="dropdown-item" href="../articles/a01-the-xp_xtra-object.html">The extended xpose data object</a></li>
     <li><a class="dropdown-item" href="../articles/a02-xpose-sets.html">Using xpose sets</a></li>
     <li><a class="dropdown-item" href="../articles/a03-useful_plots.html">Useful uncommon plots</a></li>
+    <li><a class="dropdown-item" href="../articles/a04-plot-output-and-options.html">Polishing plot output: labels, watermarks, and session options</a></li>
     <li><a class="dropdown-item" href="../articles/nlmixr2.html">nlmixr2 Support</a></li>
+    <li><a class="dropdown-item" href="../articles/parameter-associations.html">Parameter Associations: Omega CVs and Covariate Effects</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -103,8 +105,11 @@ argument to automatically apply <code><a href="../reference/backfill_iofv.html">
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
 <p><img src="a03-useful_plots_files/figure-html/modavg-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
 <p>The default title, subtitle and caption for these experimental
-figures are rough, especially for large sets. Changes for better
-appearance should be expected in the future.</p>
+figures describe the averaging itself (the models being combined, and
+the algorithm/weighting used) rather than reusing labels from a single
+underlying model, which would be misleading in an averaged context. For
+sets with more than a handful of models, the model list is summarized
+rather than spelled out in full to keep the title readable.</p>
 <p>While a simple demonstration is not presented here, most plots can
 also be model-averaged using the generic <code><a href="../reference/modavg_plots.html">plotfun_modavg()</a></code>
 function.</p>
@@ -199,6 +204,48 @@ The warning regarding sensitivities and specificities not being
 calculable is trivial, and refers to study participant data in which
 there is not a mix of BLQ (in the M3 examples) values; they are either
 all “true” positives or all “true” negatives.</p>
+<p>A binned calibration plot is also available, grouping the predicted
+probability into bins and comparing the mean predicted probability in
+each bin against the observed proportion meeting the cutpoint condition,
+with a unity guide line for reference.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">described_pkpd_m3</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/catdv_vs_ipred.html">catdv_vs_ipred</a></span><span class="op">(</span>bins <span class="op">=</span> <span class="fl">5</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use `linewidth` instead.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">xpose</span> package.</span></span>
+<span><span class="co">#&gt;   Please report the issue at</span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB; font-style: italic;">&lt;https://github.com/UUPharmacometrics/xpose/issues/&gt;</span>.</span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once per session.</span></span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
+<span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span></code></pre></div>
+<p><img src="a03-useful_plots_files/figure-html/catdv_ipred-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
+<p>When the data include a natural occasion or visit column,
+<code><a href="../reference/catdv_vs_occ.html">catdv_vs_occ()</a></code> plots observed and predicted probability
+against that occasion instead of a continuous predictor, which is useful
+for spotting trends over time (e.g., adherence effects) that a simple
+scatter would obscure.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">vismo_occ</span> <span class="op">&lt;-</span> <span class="va">vismo_xpdb</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu">xpose</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>OCC <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">ceiling</a></span><span class="op">(</span><span class="op">(</span><span class="va">TIME</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span> <span class="fl">24</span><span class="op">)</span>, .problem <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_var_types.html">set_var_types</a></span><span class="op">(</span>.problem <span class="op">=</span> <span class="fl">1</span>, occ <span class="op">=</span> <span class="va">OCC</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_var_levels.html">set_var_levels</a></span><span class="op">(</span>.problem <span class="op">=</span> <span class="fl">1</span>, OCC <span class="op">=</span> <span class="fu"><a href="../reference/levelers.html">lvl_inord</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Day"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">vismo_occ</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/catdv_vs_occ.html">catdv_vs_occ</a></span><span class="op">(</span>quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a03-useful_plots_files/figure-html/catdv_occ-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
+</div>
+<div class="section level2">
+<h2 id="parameter-uncertainty">Parameter uncertainty<a class="anchor" aria-label="anchor" href="#parameter-uncertainty"></a>
+</h2>
+<p>Beyond covariate and parameter associations, it can be useful to
+visualize the full correlation (or covariance) matrix from the
+covariance step, both for NONMEM and <code>nlmixr2</code> models, in
+order to spot potentially problematic colinearity between
+parameters.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">xpdb_x</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/cormat.html">cormat</a></span><span class="op">(</span>quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a03-useful_plots_files/figure-html/cormat-1.png" class="r-plt" alt="" width="576inches" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="waterfall-and-objective-function-trends">Waterfall and objective function trends<a class="anchor" aria-label="anchor" href="#waterfall-and-objective-function-trends"></a>
@@ -211,20 +258,20 @@ these tables can be useful.</p>
 values, which is intended to make relative comparisons the focus. This
 is especially beneficial in comparing changes in empirical Bayes
 estimates (EBEs).</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pheno_set</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/waterfalls.html">eta_waterfall</a></span><span class="op">(</span><span class="va">run3</span>,<span class="va">run6</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a03-useful_plots_files/figure-html/waterfall-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
 <p>Waterfalls can also be used as an alternative to shark plots. Scaling
 in that case is off by default.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pheno_set</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/focus_xpdb.html">focus_qapply</a></span><span class="op">(</span><span class="va">backfill_iofv</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/waterfalls.html">iofv_waterfall</a></span><span class="op">(</span><span class="va">run3</span>,<span class="va">run6</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a03-useful_plots_files/figure-html/waterfall2-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
 <p>To track iOFV changes over multiple models, another plot can be
 used.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/iofv_vs_mod.html">iofv_vs_mod</a></span><span class="op">(</span><span class="va">pheno_set</span>, auto_backfill <span class="op">=</span> <span class="cn">TRUE</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a03-useful_plots_files/figure-html/ofv_change-1.png" class="r-plt" alt="" width="672inches" style="display: block; margin: auto;"></p>
 </div>
@@ -239,7 +286,7 @@ used.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

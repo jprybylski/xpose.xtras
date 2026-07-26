@@ -30,6 +30,7 @@ unset_base_model(xpdb_s)
 ## Examples
 
 ``` r
+
 w_base <- xpdb_set %>%
   set_base_model(mod2)
 w_base # base model listed in output

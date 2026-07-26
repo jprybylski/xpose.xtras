@@ -103,6 +103,7 @@ and Other Non-log-normal Parameters. Clin Pharmacokinet 63, 133-135
 ## Examples
 
 ``` r
+
 # xpose parameter table
 get_prm(xpose::xpdb_ex_pk, .problem = 1)
 #> Returning parameter estimates from $prob no.1, subprob no.1, method foce
@@ -123,7 +124,6 @@ get_prm(xpose::xpdb_ex_pk, .problem = 1)
 
 # xpose.xtra parameter table (basically the same)
 get_prm(pheno_final, .problem = 1)
-#> Returning parameter estimates from $prob no.1, subprob no.1, method foce
 #> # A tibble: 7 × 12
 #>   type  name  label    value        se      rse fixed diagonal     m     n    cv
 #> * <chr> <chr> <chr>  <num:4>   <num:4>  <num:4> <lgl> <lgl>    <int> <int> <num>
@@ -141,7 +141,6 @@ pheno_final %>%
   add_prm_association(CLpkg~logit(IIVCL)) %>%
   add_prm_association(Vpkg~nmboxcox(IIVV, lambda = 0.01)) %>%
   get_prm(.problem = 1)
-#> Returning parameter estimates from $prob no.1, subprob no.1, method foce
 #> # A tibble: 7 × 12
 #>   type  name  label    value        se      rse fixed diagonal     m     n    cv
 #> * <chr> <chr> <chr>  <num:4>   <num:4>  <num:4> <lgl> <lgl>    <int> <int> <num>

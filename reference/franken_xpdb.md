@@ -52,10 +52,10 @@ The first `xpose_data` object with new data columns
 
 ``` r
 
+
 franken_xpdb(pheno_base, pheno_final, .types="catcov") %>%
   xpose::get_data() %>%
   select(starts_with("APGR"))
-#> Returning data from $prob no.1
 #> # A tibble: 744 × 3
 #>    APGR  APGR_1 APGR_2
 #>    <fct> <fct>  <fct> 

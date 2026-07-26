@@ -21,4 +21,9 @@ val2lvl(vals, lvl_tbl = NULL)
 
 ## Value
 
-A vector of levels corresponding to the input vector.
+A vector of levels corresponding to the input vector. If `lvl_tbl`
+carries an `ordered` attribute set to `TRUE` (see
+[`set_var_levels()`](https://jprybylski.github.io/xpose.xtras/reference/set_var_levels.md)'s
+`.ordered` argument and
+[`lvl_inord()`](https://jprybylski.github.io/xpose.xtras/reference/levelers.md)),
+the result is an ordered factor.

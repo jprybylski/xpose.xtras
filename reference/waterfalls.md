@@ -161,23 +161,18 @@ For type-based customization of plots:
 ## Examples
 
 ``` r
+
 # Parameter value changes
 pheno_set %>%
   # Ensure param is set
   focus_qapply(set_var_types, param=c(CL,V)) %>%
   prm_waterfall(run5,run6)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Tidying data by ID, TIME, AMT, WT, APGR ... and 16 more variables
 
 
 
 # EBE value changes
 pheno_set %>%
   eta_waterfall(run5,run6)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Tidying data by ID, TIME, AMT, WT, APGR ... and 16 more variables
 
 
 # iOFV changes
@@ -185,9 +180,6 @@ pheno_set %>%
   focus_qapply(backfill_iofv) %>%
   # Note the default scaling is flipped here
   iofv_waterfall(run5,run6)
-#> Using data from $prob no.1
-#> Removing duplicated rows based on: ID
-#> Tidying data by ID, TIME, AMT, WT, APGR ... and 17 more variables
 
 
 ```

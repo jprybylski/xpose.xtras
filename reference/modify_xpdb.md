@@ -9,7 +9,7 @@ all variables.
 **Note:** this function uses
 [`xpose.xtras::edit_xpose_data`](https://jprybylski.github.io/xpose.xtras/reference/edit_xpose_data.md),
 but is otherwise the same as
-\<[`xpose::mutate`](https://uupharmacometrics.github.io/xpose/reference/reexports.html)\>.
+\<[`xpose::mutate`](https://dplyr.tidyverse.org/reference/mutate.html)\>.
 
 ## Usage
 

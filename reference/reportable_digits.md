@@ -41,6 +41,7 @@ Number of reportable digits
 ## Examples
 
 ``` r
+
 reportable_digits(xpdb_x)
 #> [1] 3
 ```

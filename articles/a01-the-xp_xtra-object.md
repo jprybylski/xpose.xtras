@@ -11,6 +11,7 @@ the class `xp_xtra`, and is also referred to as `xpdb_x`.
 Conversion of an `xpose_data` object is simple.
 
 ``` r
+
 xpdb_converted <- xpdb_ex_pk %>%
   as_xpdb_x()
 
@@ -70,6 +71,7 @@ be used to an advantage. A minimal example can be seen below, but of
 course there are more complex situations where this is convenient.
 
 ``` r
+
 # Unset all example covariates
 xpdb_ex_covs <- xp_var(xpdb_ex_pk, type = c("catcov","contcov"), .problem=1) %>% 
   pull(col)
@@ -111,6 +113,7 @@ functions. However, unlike in `xpose`, these can be confirmed using
 in `xpose.xtras`.
 
 ``` r
+
 w_unit_labs <- xpdb_x %>%
   set_var_labels(AGE="Age", MED1 = "Digoxin", .problem = 1) %>%
   set_var_units(AGE="yrs")
@@ -140,6 +143,7 @@ can be referenced for more information about this, but the example below
 shows how this feature can be used and checked.
 
 ``` r
+
 w_levels <- w_unit_labs  %>%
   set_var_levels(SEX=lvl_sex(), MED1 = lvl_bin())
 list_vars(w_levels, .problem = 1)
@@ -165,6 +169,7 @@ are some more complex functions where this renaming has not been
 implemented, but the plan is to have it be universal eventually.
 
 ``` r
+
 eta_vs_contcov(w_unit_labs,etavar=ETA1, quiet=TRUE)
 #> `geom_smooth()` using formula = 'y ~ x'
 ```
@@ -172,6 +177,7 @@ eta_vs_contcov(w_unit_labs,etavar=ETA1, quiet=TRUE)
 ![](a01-the-xp_xtra-object_files/figure-html/plot_cont-1.png)
 
 ``` r
+
 eta_vs_catcov(w_levels,etavar=ETA1, quiet=TRUE)
 ```
 
@@ -189,12 +195,12 @@ the existing `xpose` framework. This option requires the use of an
 The
 [`get_prm()`](https://jprybylski.github.io/xpose.xtras/reference/get_prm.md)
 function in `xpose` has been extended to output coefficient of variation
-percent (CV%) for $\omega^{2}$ parameters and shrinkages where relevant.
+percent (CV%) for $`\omega^2`$ parameters and shrinkages where relevant.
 
 ``` r
+
 get_prm(pheno_final) %>%
   select(-c(fixed,m,n))
-#> Returning parameter estimates from $prob no.1, subprob no.1, method foce
 #> # A tibble: 7 × 9
 #>   type  name       label       value         se      rse diagonal      cv    shk
 #>   <chr> <chr>      <chr>     <num:4>    <num:4>  <num:4> <lgl>    <num:4> <num:>
@@ -216,11 +222,11 @@ of the example models was logit-normally distributed, it could be
 described as follows.
 
 ``` r
+
 pheno_final %>%
    add_prm_association(CLpkg~logit(IIVCL),Vpkg~logit(IIVV)) %>%
    get_prm() %>%
   select(-c(fixed,m,n))
-#> Returning parameter estimates from $prob no.1, subprob no.1, method foce
 #> # A tibble: 7 × 9
 #>   type  name       label       value         se      rse diagonal       cv   shk
 #>   <chr> <chr>      <chr>     <num:4>    <num:4>  <num:4> <lgl>     <num:4> <num>
@@ -261,6 +267,7 @@ similar new elements, meaning there is less (if any) updates needed to
 use a custom theme beyond using something like the following.
 
 ``` r
+
 favorite_theme <- xpose::theme_xp_xpose4() # stand-in for "custom" theme
 
 eta_vs_catcov(w_levels,etavar=ETA1, quiet=TRUE)
@@ -269,6 +276,7 @@ eta_vs_catcov(w_levels,etavar=ETA1, quiet=TRUE)
 ![](a01-the-xp_xtra-object_files/figure-html/xp_themes-1.png)
 
 ``` r
+
 eta_vs_catcov(w_levels,etavar=ETA1, quiet=TRUE, xp_theme = favorite_theme)
 ```
 
@@ -291,6 +299,7 @@ Properties from a model summary can now be pulled without using
 [`xpose::get_summary()`](https://uupharmacometrics.github.io/xpose/reference/get_summary.html).
 
 ``` r
+
 pheno_final %>% get_shk()
 #> [1] 20.1 11.6
 pheno_final %>% get_shk("eps")
@@ -311,6 +320,7 @@ the model code comments using
 [`desc_from_comments()`](https://jprybylski.github.io/xpose.xtras/reference/desc_from_comments.md).
 
 ``` r
+
 pheno_final %>% desc_from_comments() %>% get_prop("descr")
 #> [1] "Reparameterized final model"
 ```
@@ -321,3 +331,110 @@ functions. Currently, those can be added using
 [`backfill_iofv()`](https://jprybylski.github.io/xpose.xtras/reference/backfill_iofv.md),
 which is most often used in the context of `xpose_set` objects.
 Theoretically more backfill functions can be made available.
+
+### Process presets
+
+Converting a plain `xpose_data` object into a well-annotated `xp_xtras`
+one is often the same handful of steps repeated for every model in a
+project – convert, drop unused `ETA`s, assign labels/levels, and so on.
+A process preset bundles that pipeline up under a name, so it can be
+replayed with
+[`process_preset()`](https://jprybylski.github.io/xpose.xtras/reference/add_process_preset.md)
+instead of retyped.
+
+A preset is either a one-sided formula (using `.x` for the incoming
+`xpdb`, as in a `purrr`-style lambda) or a plain function.
+
+``` r
+
+add_process_preset(
+  ~ .x %>% as_xpdb_x() %>% set_var_types(na = any_of(c("SEX", "MED1", "MED2")), .problem = 1),
+  name = "drop_covariates"
+)
+#> Added `process_preset()`("drop_covariates")
+print_process_preset()
+#> • "drop_covariates": `~.x %>% as_xpdb_x() %>% set_var_types(na =
+#>   any_of(c("SEX", "MED1", "MED2")), .problem = 1)`
+
+# before: SEX/MED1/MED2 are categorical covariates
+list_vars(xpdb_ex_pk, .problem = 1)
+#> 
+#> List of available variables for problem no. 1 
+#>  - Subject identifier (id)               : ID
+#>  - Dependent variable (dv)               : DV
+#>  - Independent variable (idv)            : TIME
+#>  - Dose amount (amt)                     : AMT
+#>  - Event identifier (evid)               : EVID
+#>  - Model typical predictions (pred)      : PRED
+#>  - Model individual predictions (ipred)  : IPRED
+#>  - Model parameter (param)               : KA, CL, V, ALAG1
+#>  - Eta (eta)                             : ETA1, ETA2, ETA3
+#>  - Residuals (res)                       : CWRES, IWRES, RES, WRES
+#>  - Categorical covariates (catcov)       : SEX, MED1, MED2
+#>  - Continuous covariates (contcov)       : CLCR, AGE, WT
+#>  - Compartment amounts (a)               : A1, A2
+#>  - Not attributed (na)                   : DOSE, SS, II, TAD, CPRED
+
+# after: they've been reassigned to "na" (not attributed) by the preset
+xpdb_ex_pk %>%
+  process_preset("drop_covariates") %>%
+  list_vars(.problem = 1)
+#> List of available variables for problem no. 1
+#>  - Subject identifier (id)               : ID
+#>  - Dependent variable (dv)               : DV
+#>  - Independent variable (idv)            : TIME
+#>  - Dose amount (amt)                     : AMT
+#>  - Event identifier (evid)               : EVID
+#>  - Model typical predictions (pred)      : PRED
+#>  - Model individual predictions (ipred)  : IPRED
+#>  - Model parameter (param)               : KA, CL, V, ALAG1
+#>  - Eta (eta)                             : ETA1, ETA2, ETA3
+#>  - Residuals (res)                       : CWRES, IWRES, RES, WRES
+#>  - Continuous covariates (contcov)       : CLCR, AGE, WT
+#>  - Compartment amounts (a)               : A1, A2
+#>  - Not attributed (na)                   : SEX, MED1, MED2, DOSE, SS, II, TAD, CPRED
+```
+
+[`amend_process_preset()`](https://jprybylski.github.io/xpose.xtras/reference/add_process_preset.md)
+replaces an existing preset’s definition in place (handy for iterating
+on one without losing its name), and
+[`remove_process_preset()`](https://jprybylski.github.io/xpose.xtras/reference/add_process_preset.md)
+deletes it.
+
+``` r
+
+amend_process_preset(
+  "drop_covariates",
+  ~ .x %>% as_xpdb_x() %>% set_var_types(na = any_of(c("SEX", "MED1")), .problem = 1)
+)
+#> Added `process_preset()`("drop_covariates")
+remove_process_preset("drop_covariates")
+#> Removed `process_preset()`("drop_covariates")
+```
+
+By default, presets only last for the current session. Passing
+`persist = TRUE` (to
+[`add_process_preset()`](https://jprybylski.github.io/xpose.xtras/reference/add_process_preset.md)/[`amend_process_preset()`](https://jprybylski.github.io/xpose.xtras/reference/add_process_preset.md)/[`remove_process_preset()`](https://jprybylski.github.io/xpose.xtras/reference/add_process_preset.md),
+or via a direct call to
+[`persist_process_presets()`](https://jprybylski.github.io/xpose.xtras/reference/persist_process_presets.md))
+additionally writes the current set of presets out to a `.Rprofile`, so
+they’re recreated automatically in future sessions. Per CRAN policy, a
+package must never write to files outside a temp directory without the
+user’s explicit, interactive consent – so persisting always requires an
+actual interactive session (it’s a no-op under `R CMD check`,
+`testthat`, or a vignette build like this one) and always asks for
+confirmation before writing, unless `ask = FALSE` is passed by the
+already-interactive caller. The target defaults to a **project**-scoped
+`.Rprofile` (in the current working directory, affecting only R sessions
+started there); `profile = "user"` targets the user-level profile
+instead.
+
+``` r
+
+# only meaningful in an actual interactive session
+add_process_preset(
+  ~ .x %>% as_xpdb_x() %>% set_var_types(na = any_of(paste0("ETA", 5:9))),
+  name = "drop_higher_etas",
+  persist = TRUE
+)
+```

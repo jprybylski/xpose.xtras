@@ -5,7 +5,7 @@ Level-defining helper functions
 ## Usage
 
 ``` r
-as_leveler(x, .start_index = 1)
+as_leveler(x, .start_index = 1, .ordered = FALSE)
 
 is_leveler(x)
 
@@ -13,7 +13,7 @@ lvl_bin(x = c("No", "Yes"), .start_index = 0)
 
 lvl_sex()
 
-lvl_inord(x, .start_index = 1)
+lvl_inord(x, .start_index = 1, .ordered = TRUE)
 ```
 
 ## Arguments
@@ -26,6 +26,13 @@ lvl_inord(x, .start_index = 1)
 
   \<`numeric`\> starting index for levels
 
+- .ordered:
+
+  \<`logical`\> should these levels be treated as an ordered factor (see
+  [`base::factor`](https://rdrr.io/r/base/factor.html)) wherever they're
+  consumed (eg
+  [`val2lvl()`](https://jprybylski.github.io/xpose.xtras/reference/val2lvl.md))?
+
 ## Value
 
 Special character vector suitable to be used as leveler
@@ -33,6 +40,7 @@ Special character vector suitable to be used as leveler
 ## Examples
 
 ``` r
+
 set_var_levels(xpdb_x,
   SEX = lvl_sex(),
   MED1 = lvl_bin(),

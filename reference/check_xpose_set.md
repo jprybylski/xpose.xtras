@@ -37,6 +37,7 @@ TRUE or error thrown
 ## Examples
 
 ``` r
+
 check_xpose_set(xpdb_set)
 #> [1] TRUE
 

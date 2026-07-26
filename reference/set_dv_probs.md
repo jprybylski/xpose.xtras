@@ -24,7 +24,9 @@ set_dv_probs(
 
 - .problem:
 
-  \<`numeric`\> Problem number to use. Uses the all problems if `NULL`
+  \<`numeric`\> Problem number to use. Uses all problems if `NULL` (the
+  default). May be omitted entirely and left to default, even when
+  formulas are supplied positionally in `...`.
 
 - ...:
 
@@ -143,4 +145,23 @@ vismo_pomod  %>%
 #>  - Eta (eta)                             : ETA1
 #>  - Residuals (res)                       : RES, WRES
 #>  - Not attributed (na)                   : STUDY, COHORT, PTNM, FRMU, BAAG, AGE, BWT, PTS, B1, B2, Y, U449E, CE
+
+# .problem can be omitted for single-problem models
+pkpd_m3 %>%
+ set_var_types(catdv=BLQ, dvprobs=LIKE) %>%
+ set_dv_probs(1~LIKE, .dv_var = BLQ) %>%
+ list_vars()
+#> List of available variables for problem no. 1
+#>  - Subject identifier (id)               : ID
+#>  - Dependent variable (dv)               : DV
+#>  - Categorical endpoint (catdv)          : BLQ [0]
+#>  - DV Probabilities (dvprobs)            : LIKE [P(*.eq.1)]
+#>  - Independent variable (idv)            : TIME
+#>  - Dose amount (amt)                     : AMT
+#>  - Event identifier (evid)               : EVID
+#>  - Missing dependent variable (mdv)      : MDV
+#>  - Model typical predictions (pred)      : PRED
+#>  - Eta (eta)                             : ETA1, ETA2
+#>  - Residuals (res)                       : NPDE, IWRES, CWRES, RES, WRES
+#>  - Not attributed (na)                   : DOSE, LLOQ, IPRE, IRES, BASE, KDEG, IMAX, IC50, CL, VC, Q, VP, KA
 ```

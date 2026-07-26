@@ -123,8 +123,6 @@ pkpd_m3 %>%
   set_var_levels(1, BLQ = lvl_bin()) %>%
   # Plot with basic xlab makes no assumptions
   catdv_vs_dvprobs(xlab = "basic")
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
 
 
@@ -136,28 +134,20 @@ vismo_xpdb <- vismo_pomod  %>%
 # Various cutpoints (note axes labels and texts)
 vismo_xpdb %>%
   catdv_vs_dvprobs(xlab = "basic")
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
 
 vismo_xpdb %>%
   catdv_vs_dvprobs(cutpoint = 2, xlab = "basic")
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
 
 vismo_xpdb %>%
   catdv_vs_dvprobs(cutpoint = 3, xlab = "basic")
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
 
 
 # Latter is arguably clearer with default xlab
 vismo_xpdb %>%
   catdv_vs_dvprobs(cutpoint = 3)
-#> Using data from $prob no.1
-#> Filtering data by EVID == 0
 #> `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
 
 ```

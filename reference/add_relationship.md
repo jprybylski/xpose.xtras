@@ -40,6 +40,7 @@ An `xpose_set` object with relationships added
 ## Examples
 
 ``` r
+
 xpdb_set %>%
   add_relationship(mod1~fix2) # ouroboros
 #> 

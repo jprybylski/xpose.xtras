@@ -57,6 +57,7 @@ them more useful. This includes:
 ## Examples
 
 ``` r
+
 xpdb_set <- expose_property(xpdb_set, descr)
 xpdb_set$mod1$..descr
 #> [1] "NONMEM PK example for xpose"

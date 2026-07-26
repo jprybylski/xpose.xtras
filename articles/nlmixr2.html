@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>nlmixr2 Support • xpose.xtras</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="nlmixr2 Support">
 </head>
@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">xpose.xtras</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,7 +36,9 @@
 <li><a class="dropdown-item" href="../articles/a01-the-xp_xtra-object.html">The extended xpose data object</a></li>
     <li><a class="dropdown-item" href="../articles/a02-xpose-sets.html">Using xpose sets</a></li>
     <li><a class="dropdown-item" href="../articles/a03-useful_plots.html">Useful uncommon plots</a></li>
+    <li><a class="dropdown-item" href="../articles/a04-plot-output-and-options.html">Polishing plot output: labels, watermarks, and session options</a></li>
     <li><a class="dropdown-item" href="../articles/nlmixr2.html">nlmixr2 Support</a></li>
+    <li><a class="dropdown-item" href="../articles/parameter-associations.html">Parameter Associations: Omega CVs and Covariate Effects</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -145,18 +147,32 @@ model below is from <a href="https://nlmixr2.org/articles/multiple-endpoints.htm
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; calculating covariance matrix</span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:01:21 </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:01:00 </span></span>
 <span><span class="co">#&gt; done</span></span></code></pre></div>
 <p>Now that we have a fit, we have a few options to consume the results
 into <code>xpose</code>. We could use
@@ -166,14 +182,14 @@ into <code>xpose</code>. We could use
 <code class="sourceCode R"><span><span class="fu">xpose.nlmixr2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/xpose.nlmixr2/man/xpose_data_nlmixr2.html" class="external-link">xpose_data_nlmixr2</a></span><span class="op">(</span><span class="va">fit.TOS</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/xp_xtras.html">as_xp_xtras</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── ~ xp_xtras object </span></span>
+<span><span class="co">#&gt; ── <span style="color: #BB00BB; font-weight: bold;">~</span><span style="color: #BB00BB;"> xp_xtras</span> object </span></span>
 <span><span class="co">#&gt; <span style="font-weight: bold;">Model description</span>: not implemented</span></span>
 <span><span class="co">#&gt; fit.TOS overview: </span></span>
-<span><span class="co">#&gt;  - Software: nlmixr2 5.0.2 </span></span>
-<span><span class="co">#&gt;  - Attached files (memory usage 553.8 Kb): </span></span>
+<span><span class="co">#&gt;  - Software: nlmixr2 6.0.1 </span></span>
+<span><span class="co">#&gt;  - Attached files (memory usage 591.5 Kb): </span></span>
 <span><span class="co">#&gt;    + obs tabs: $prob no.1: nlmixr2 </span></span>
 <span><span class="co">#&gt;    + sim tabs: &lt;none&gt; </span></span>
-<span><span class="co">#&gt;    + output files: &lt;none&gt; </span></span>
+<span><span class="co">#&gt;    + output files: obj </span></span>
 <span><span class="co">#&gt;    + special: &lt;none&gt; </span></span>
 <span><span class="co">#&gt;    + fit: &lt;none&gt;</span></span>
 <span><span class="co">#&gt;  - gg_theme: :: xpose theme_readable </span></span>
@@ -187,14 +203,14 @@ functions for the fit object to be attached to the
 <span>  <span class="fu"><a href="../reference/xp_xtras.html">as_xp_xtras</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/attach_nlmixr2.html">attach_nlmixr2</a></span><span class="op">(</span><span class="va">fit.TOS</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── ~ xp_xtras object </span></span>
+<span><span class="co">#&gt; ── <span style="color: #BB00BB; font-weight: bold;">~</span><span style="color: #BB00BB;"> xp_xtras</span> object </span></span>
 <span><span class="co">#&gt; <span style="font-weight: bold;">Model description</span>: not implemented</span></span>
 <span><span class="co">#&gt; fit.TOS overview: </span></span>
-<span><span class="co">#&gt;  - Software: nlmixr2 5.0.2 </span></span>
-<span><span class="co">#&gt;  - Attached files (memory usage 725.7 Kb): </span></span>
+<span><span class="co">#&gt;  - Software: nlmixr2 6.0.1 </span></span>
+<span><span class="co">#&gt;  - Attached files (memory usage 763.5 Kb): </span></span>
 <span><span class="co">#&gt;    + obs tabs: $prob no.1: nlmixr2 </span></span>
 <span><span class="co">#&gt;    + sim tabs: &lt;none&gt; </span></span>
-<span><span class="co">#&gt;    + output files: &lt;none&gt; </span></span>
+<span><span class="co">#&gt;    + output files: obj </span></span>
 <span><span class="co">#&gt;    + special: &lt;none&gt; </span></span>
 <span><span class="co">#&gt;    + fit: attached as (this)$fit</span></span>
 <span><span class="co">#&gt;  - gg_theme: :: xpose theme_readable </span></span>
@@ -212,7 +228,7 @@ optional.</p>
 <span>  <span class="fu"><a href="../reference/backfill_nlmixr2_props.html">backfill_nlmixr2_props</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="../reference/get_prop.html">get_prop</a></span><span class="op">(</span><span class="va">.</span>, <span class="st">"condn"</span><span class="op">)</span><span class="op">)</span>; <span class="va">.</span><span class="op">}</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/get_prop.html">get_prop</a></span><span class="op">(</span><span class="st">"nsig"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "32318.0467755017"</span></span>
+<span><span class="co">#&gt; [1] "100298.230953542"</span></span>
 <span><span class="co">#&gt; [1] "3"</span></span></code></pre></div>
 <p>A more useful application of the attached fit result is a method to
 make <code><a href="../reference/get_prm.html">get_prm()</a></code> work. Note, <code><a href="https://uupharmacometrics.github.io/xpose/reference/prm_table.html" class="external-link">xpose::prm_table()</a></code>
@@ -226,7 +242,12 @@ to get working.</p>
 <span><span class="fu">xpose.nlmixr2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/xpose.nlmixr2/man/xpose_data_nlmixr2.html" class="external-link">xpose_data_nlmixr2</a></span><span class="op">(</span><span class="va">fit.TOS</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="../reference/xp_xtras.html">as_xp_xtras</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu">xpose</span><span class="fu">::</span><span class="fu"><a href="https://uupharmacometrics.github.io/xpose/reference/get_prm.html" class="external-link">get_prm</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Error : No `files` slot could be found in this xpdb.</span></span>
+<span><span class="co">#&gt; Error in dplyr::mutate(., prm_names = purrr::map(.x = as.list(.$problem),  : </span></span>
+<span><span class="co">#&gt;   <span style="color: #00BBBB;">ℹ</span> In argument: `prm_names = purrr::map(...)`.</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">Caused by error in `purrr::map()`:</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> In index: 1.</span></span>
+<span><span class="co">#&gt; <span style="font-weight: bold;">Caused by error in `UseMethod()`:</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> no applicable method for 'filter' applied to an object of class "NULL"</span></span>
 <span><span class="fu">xpose.nlmixr2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/xpose.nlmixr2/man/xpose_data_nlmixr2.html" class="external-link">xpose_data_nlmixr2</a></span><span class="op">(</span><span class="va">fit.TOS</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/xp_xtras.html">as_xp_xtras</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/attach_nlmixr2.html">attach_nlmixr2</a></span><span class="op">(</span><span class="va">fit.TOS</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -236,26 +257,26 @@ to get working.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 20 × 9</span></span></span>
 <span><span class="co">#&gt;    type  name         value      se      rse     m     n      cv     shk</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> the   tktr         0.104  2.20   21.1         1    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> the   tka          0.302  2.18    7.23        2    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> the   tcl         -<span style="color: #BB0000;">2.04</span>   0.109   0.053<span style="text-decoration: underline;">6</span>      3    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> the   tv           2.06   0.091<span style="text-decoration: underline;">6</span>  0.044<span style="text-decoration: underline;">4</span>      4    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> the   prop.err     0.148 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           5    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> the   pkadd.err    0.172 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           6    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> the   temax        4.75   6.20    1.30        7    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> the   tec50        0.157  0.229   1.46        8    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> the   tkout       -<span style="color: #BB0000;">2.93</span>   0.128   0.043<span style="text-decoration: underline;">6</span>      9    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> the   te0          4.57   0.039<span style="text-decoration: underline;">9</span>  0.008<span style="text-decoration: underline;">74</span>    10    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> the   pdadd.err    3.76  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>          11    <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> ome   eta.ktr      0.840 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           1     1   101.     62.3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> ome   eta.ka       0.944 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           2     2   120.     60.6</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> ome   eta.cl       0.268 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           3     3    27.3    -<span style="color: #BB0000;">0.1</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> ome   eta.v        0.221 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           4     4    22.4    10.3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">16</span> ome   eta.emax     0.590 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           5     5    64.5    95.1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">17</span> ome   eta.ec50     0.453 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           6     6    47.7     5.2</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> ome   eta.kout     0.153 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           7     7    15.4    32.3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">19</span> ome   eta.e0       0.103 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           8     8    10.3    39.6</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">20</span> sig   sigma(1,1)   1     <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           1     1    <span style="color: #BB0000;">NA</span>      10.7</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> the   tktr        0.168   0.136   0.809       1    <span style="color: #BB0000;">NA</span>   <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> the   tka        -<span style="color: #BB0000;">0.071</span><span style="color: #BB0000; text-decoration: underline;">3</span>  0.149   2.09        2    <span style="color: #BB0000;">NA</span>   <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> the   tcl        -<span style="color: #BB0000;">2.01</span>    0.032<span style="text-decoration: underline;">8</span>  0.016<span style="text-decoration: underline;">3</span>      3    <span style="color: #BB0000;">NA</span>   <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> the   tv          2.07    0.023<span style="text-decoration: underline;">4</span>  0.011<span style="text-decoration: underline;">3</span>      4    <span style="color: #BB0000;">NA</span>   <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> the   prop.err    0.135  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           5    <span style="color: #BB0000;">NA</span>   <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> the   pkadd.err   0.220  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           6    <span style="color: #BB0000;">NA</span>   <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> the   temax       5.42    0.587   0.108       7    <span style="color: #BB0000;">NA</span>   <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> the   tec50       0.144   0.054<span style="text-decoration: underline;">1</span>  0.375       8    <span style="color: #BB0000;">NA</span>   <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> the   tkout      -<span style="color: #BB0000;">2.94</span>    0.028<span style="text-decoration: underline;">5</span>  0.009<span style="text-decoration: underline;">70</span>     9    <span style="color: #BB0000;">NA</span>   <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> the   te0         4.57    0.016<span style="text-decoration: underline;">6</span>  0.003<span style="text-decoration: underline;">63</span>    10    <span style="color: #BB0000;">NA</span>   <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> the   pdadd.err   3.78   <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>          11    <span style="color: #BB0000;">NA</span>   <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> ome   eta.ktr     0.873  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           1     1  107.      60.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> ome   eta.ka      0.780  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           2     2   91.5     61.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> ome   eta.cl      0.264  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           3     3   26.9     -<span style="color: #BB0000;">2.8</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> ome   eta.v       0.219  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           4     4   22.2      6.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">16</span> ome   eta.emax    0.644  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           5     5   71.7     96.9</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">17</span> ome   eta.ec50    0.434  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           6     6   45.5      3.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> ome   eta.kout    0.106  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           7     7   10.6     28.8</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">19</span> ome   eta.e0      0.070<span style="text-decoration: underline;">7</span> <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           8     8    7.08    25.5</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">20</span> sig   sigma(1,1)  1      <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           1     1   <span style="color: #BB0000;">NA</span>        9.6</span></span></code></pre></div>
 <p>To build on this, because <code>nlmixr2</code> coerces users to use
 mu-referencing and captures parameter associations automatically,
 another useful backfill includes mapping these parameter associations
@@ -274,28 +295,28 @@ the CV% calculation it needs to be back-transformed (as indicated in a
 <span>  <span class="co"># Remove some columns for readability</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">fixed</span>,<span class="va">diagonal</span>,<span class="va">label</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 20 × 9</span></span></span>
-<span><span class="co">#&gt;    type  name         value      se      rse     m     n      cv     shk</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> the   tktr         0.104  2.20   21.1         1    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> the   tka          0.302  2.18    7.23        2    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> the   tcl         -<span style="color: #BB0000;">2.04</span>   0.109   0.053<span style="text-decoration: underline;">6</span>      3    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> the   tv           2.06   0.091<span style="text-decoration: underline;">6</span>  0.044<span style="text-decoration: underline;">4</span>      4    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> the   prop.err     0.148 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           5    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> the   pkadd.err    0.172 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           6    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> the   temax        0.991  0.362   0.365       7    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> the   tec50        0.157  0.229   1.46        8    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> the   tkout       -<span style="color: #BB0000;">2.93</span>   0.128   0.043<span style="text-decoration: underline;">6</span>      9    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> the   te0          4.57   0.039<span style="text-decoration: underline;">9</span>  0.008<span style="text-decoration: underline;">74</span>    10    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> the   pdadd.err    3.76  <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>          11    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> ome   eta.ktr      0.840 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           1     1 101.       62.3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> ome   eta.ka       0.944 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           2     2 120.       60.6</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> ome   eta.cl       0.268 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           3     3  27.3      -<span style="color: #BB0000;">0.1</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> ome   eta.v        0.221 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           4     4  22.4      10.3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">16</span> ome   eta.emax     0.590 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           5     5   0.647    95.1</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">17</span> ome   eta.ec50     0.453 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           6     6  47.7       5.2</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> ome   eta.kout     0.153 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           7     7  15.4      32.3</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">19</span> ome   eta.e0       0.103 <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           8     8  10.3      39.6</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">20</span> sig   sigma(1,1)   1     <span style="color: #BB0000;">NA</span>      <span style="color: #BB0000;">NA</span>           1     1  <span style="color: #BB0000;">NA</span>        10.7</span></span>
+<span><span class="co">#&gt;    type  name         value       se      rse     m     n      cv     shk</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span> <span style="color: #949494; font-style: italic;">&lt;num:3&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> the   tktr        0.168   0.136    0.809       1    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> the   tka        -<span style="color: #BB0000;">0.071</span><span style="color: #BB0000; text-decoration: underline;">3</span>  0.149    2.09        2    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> the   tcl        -<span style="color: #BB0000;">2.01</span>    0.032<span style="text-decoration: underline;">8</span>   0.016<span style="text-decoration: underline;">3</span>      3    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> the   tv          2.07    0.023<span style="text-decoration: underline;">4</span>   0.011<span style="text-decoration: underline;">3</span>      4    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> the   prop.err    0.135  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>           5    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> the   pkadd.err   0.220  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>           6    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> the   temax       0.996   0.003<span style="text-decoration: underline;">32</span>  0.003<span style="text-decoration: underline;">34</span>     7    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> the   tec50       0.144   0.054<span style="text-decoration: underline;">1</span>   0.375       8    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> the   tkout      -<span style="color: #BB0000;">2.94</span>    0.028<span style="text-decoration: underline;">5</span>   0.009<span style="text-decoration: underline;">70</span>     9    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> the   te0         4.57    0.016<span style="text-decoration: underline;">6</span>   0.003<span style="text-decoration: underline;">63</span>    10    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> the   pdadd.err   3.78   <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>          11    <span style="color: #BB0000;">NA</span>  <span style="color: #BB0000;">NA</span>        <span style="color: #BB0000;">NA</span>  </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> ome   eta.ktr     0.873  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>           1     1 107.       60.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> ome   eta.ka      0.780  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>           2     2  91.5      61.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> ome   eta.cl      0.264  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>           3     3  26.9      -<span style="color: #BB0000;">2.8</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> ome   eta.v       0.219  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>           4     4  22.2       6.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">16</span> ome   eta.emax    0.644  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>           5     5   0.385    96.9</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">17</span> ome   eta.ec50    0.434  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>           6     6  45.5       3.3</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> ome   eta.kout    0.106  <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>           7     7  10.6      28.8</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">19</span> ome   eta.e0      0.070<span style="text-decoration: underline;">7</span> <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>           8     8   7.08     25.5</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">20</span> sig   sigma(1,1)  1      <span style="color: #BB0000;">NA</span>       <span style="color: #BB0000;">NA</span>           1     1  <span style="color: #BB0000;">NA</span>         9.6</span></span>
 <span><span class="co">#&gt; <span style="color: #555555;"># Parameter table includes the following associations: </span><span style="color: #555555; font-weight: bold;">tktr~log(eta.ktr)</span><span style="color: #555555;">,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555; font-weight: bold;">tka~log(eta.ka)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">tcl~log(eta.cl)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">tv~log(eta.v)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">temax~logit(eta.emax)</span><span style="color: #555555;">,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #555555; font-weight: bold;">tec50~log(eta.ec50)</span><span style="color: #555555;">, </span><span style="color: #555555; font-weight: bold;">tkout~log(eta.kout)</span><span style="color: #555555;">, and </span><span style="color: #555555; font-weight: bold;">te0~log(eta.e0)</span></span></span></code></pre></div>
@@ -345,27 +366,19 @@ don’t exist in the summary element, violating how
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-8-2.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="../reference/eta_vs_catcov.html">eta_vs_catcov</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, etavar <span class="op">=</span> <span class="va">eta.cl</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: nind is not part of the available keywords. Check ?template_titles for</span></span>
-<span><span class="co">#&gt; a full list.</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/eta_vs_catcov.html">eta_vs_catcov</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, etavar <span class="op">=</span> <span class="va">eta.cl</span><span class="op">)</span></span></code></pre></div>
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-8-3.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/eta_vs_contcov.html">eta_vs_contcov</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, etavar <span class="op">=</span> <span class="va">eta.cl</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: nind is not part of the available keywords. Check ?template_titles for</span></span>
-<span><span class="co">#&gt; a full list.</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-8-4.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="../reference/grid_plots.html">eta_vs_cov_grid</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, etavar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">eta.cl</span>,<span class="va">eta.v</span>,<span class="va">eta.ka</span><span class="op">)</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: nind is not part of the available keywords. Check ?template_titles for</span></span>
-<span><span class="co">#&gt; a full list.</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/grid_plots.html">eta_vs_cov_grid</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, etavar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">eta.cl</span>,<span class="va">eta.v</span>,<span class="va">eta.ka</span><span class="op">)</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-8-5.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="../reference/grid_plots.html">eta_vs_cov_grid</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, etavar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">eta.kout</span>,<span class="va">eta.e0</span>,<span class="va">eta.emax</span><span class="op">)</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: nind is not part of the available keywords. Check ?template_titles for</span></span>
-<span><span class="co">#&gt; a full list.</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/grid_plots.html">eta_vs_cov_grid</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, etavar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">eta.kout</span>,<span class="va">eta.e0</span>,<span class="va">eta.emax</span><span class="op">)</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-8-6.png" class="r-plt" alt="" width="700"></p>
 </div>
 <div class="section level2">
@@ -389,18 +402,32 @@ and then maybe combine them, as we have done below.</p>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; calculating covariance matrix</span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:49 </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:38 </span></span>
 <span><span class="co">#&gt; done</span></span>
 <span></span>
 <span><span class="va">fit.TOS.emax1</span> <span class="op">&lt;-</span> <span class="va">fit.TOS</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -415,18 +442,32 @@ and then maybe combine them, as we have done below.</p>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; calculating covariance matrix</span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:52 </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:40 </span></span>
 <span><span class="co">#&gt; done</span></span>
 <span></span>
 <span><span class="va">fit.TOS.simple</span> <span class="op">&lt;-</span> <span class="va">fit.TOS</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -442,7 +483,16 @@ and then maybe combine them, as we have done below.</p>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00 </span></span>
@@ -453,7 +503,7 @@ and then maybe combine them, as we have done below.</p>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; calculating covariance matrix</span></span>
-<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:32 </span></span>
+<span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:25 </span></span>
 <span><span class="co">#&gt; done</span></span></code></pre></div>
 <p>These explorations make up a set which can be examined with an
 <code>xpose_set</code>:</p>
@@ -515,14 +565,14 @@ and then maybe combine them, as we have done below.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── xpdb object (accessible with <span style="color: #0000BB;">{xpose_set}$warf_simple$xpdb</span>): </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── ~ xp_xtras object </span></span>
+<span><span class="co">#&gt; ── <span style="color: #BB00BB; font-weight: bold;">~</span><span style="color: #BB00BB;"> xp_xtras</span> object </span></span>
 <span><span class="co">#&gt; <span style="font-weight: bold;">Model description</span>: not implemented</span></span>
 <span><span class="co">#&gt; fit.TOS.simple overview: </span></span>
-<span><span class="co">#&gt;  - Software: nlmixr2 5.0.2 </span></span>
-<span><span class="co">#&gt;  - Attached files (memory usage 693.4 Kb): </span></span>
+<span><span class="co">#&gt;  - Software: nlmixr2 6.0.1 </span></span>
+<span><span class="co">#&gt;  - Attached files (memory usage 709.2 Kb): </span></span>
 <span><span class="co">#&gt;    + obs tabs: $prob no.1 (modified): na, nlmixr2 </span></span>
 <span><span class="co">#&gt;    + sim tabs: &lt;none&gt; </span></span>
-<span><span class="co">#&gt;    + output files: &lt;none&gt; </span></span>
+<span><span class="co">#&gt;    + output files: fit.TOS.simple </span></span>
 <span><span class="co">#&gt;    + special: &lt;none&gt; </span></span>
 <span><span class="co">#&gt;    + fit: attached as (this)$fit</span></span>
 <span><span class="co">#&gt;  - gg_theme: :: xpose theme_readable </span></span>
@@ -536,26 +586,22 @@ and then maybe combine them, as we have done below.</p>
 <span>  <span class="co"># Remove some columns for readability</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">parent</span>,<span class="va">base</span>,<span class="va">focus</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 4</span></span></span>
-<span><span class="co">#&gt;   xpdb         label            ..ofv ..condn</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;named list&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   nlmixr2_warfarin <span style="text-decoration: underline;">1</span>409.  <span style="text-decoration: underline;">32</span>318.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_ka          <span style="text-decoration: underline;">1</span>338.  <span style="text-decoration: underline;">21</span>266.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_emax        <span style="text-decoration: underline;">1</span>351.    464.</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_simple      <span style="text-decoration: underline;">1</span>338.    269.</span></span>
+<span><span class="co">#&gt;   xpdb         label            ..ofv    ..condn</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;named list&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   nlmixr2_warfarin <span style="text-decoration: underline;">1</span>375.   <span style="text-decoration: underline;">100</span>298. </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_ka          <span style="text-decoration: underline;">1</span>362. 11<span style="text-decoration: underline;">367</span>228. </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_emax        <span style="text-decoration: underline;">1</span>339.    <span style="text-decoration: underline;">14</span>743. </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> <span style="color: #949494;">&lt;xp_xtras&gt;</span>   warf_simple      <span style="text-decoration: underline;">1</span>370.       44.3</span></span>
 <span></span>
 <span><span class="va">warfarin_set</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/shark_plot.html">dofv_vs_id</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, <span class="va">warf_simple</span>, .inorder <span class="op">=</span> <span class="cn">TRUE</span>, df<span class="op">=</span><span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: nind is not part of the available keywords. Check ?template_titles for</span></span>
-<span><span class="co">#&gt; a full list.</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/shark_plot.html">dofv_vs_id</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, <span class="va">warf_simple</span>, .inorder <span class="op">=</span> <span class="cn">TRUE</span>, df<span class="op">=</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">warfarin_set</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="co"># This comparison should be more interesting</span></span>
 <span>  <span class="fu"><a href="../reference/focus_xpdb.html">focus_qapply</a></span><span class="op">(</span><span class="va">set_var_types</span>, param<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">KA</span>,<span class="va">EC50</span><span class="op">)</span>, na<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">CL</span>, <span class="va">V</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/waterfalls.html">prm_waterfall</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, <span class="va">warf_simple</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: nind is not part of the available keywords. Check ?template_titles for</span></span>
-<span><span class="co">#&gt; a full list.</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/waterfalls.html">prm_waterfall</a></span><span class="op">(</span><span class="va">nlmixr2_warfarin</span>, <span class="va">warf_simple</span><span class="op">)</span></span></code></pre></div>
 <p><img src="nlmixr2_files/figure-html/unnamed-chunk-10-2.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -584,7 +630,6 @@ parameters as <code>param</code> type variables.</p>
 <span><span class="co">#&gt; → loading into <span style="color: #0000BB;">symengine</span> environment...</span></span>
 <span><span class="co">#&gt; → pruning branches (`if`/`else`) of full model...</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> done</span></span>
-<span><span class="co">#&gt; → calculate jacobian</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
 <span><span class="co">#&gt; → calculate sensitivities</span></span>
 <span><span class="co">#&gt; [====|====|====|====|====|====|====|====|====|====] 0:00:00</span></span>
@@ -641,12 +686,12 @@ parameters as <code>param</code> type variables.</p>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">ID</span>,<span class="va">KA</span>,<span class="va">CL</span>,<span class="va">VSS</span><span class="op">:</span><span class="op">(</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">last_col</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   ID        KA       CL      VSS  T12ALPHA      ALPHA          A FRACA</span></span>
-<span><span class="co">#&gt; 1  1 1.7317372 1.719910 29.03783 11.702646 0.05922995 0.03443783     1</span></span>
-<span><span class="co">#&gt; 2 10 0.7810446 1.867733 27.09401 10.055041 0.06893529 0.03690853     1</span></span>
-<span><span class="co">#&gt; 3 11 3.1687492 3.823335 35.40173  6.418116 0.10799854 0.02824720     1</span></span>
-<span><span class="co">#&gt; 4 12 0.9672936 2.411002 26.36037  7.578434 0.09146311 0.03793573     1</span></span>
-<span><span class="co">#&gt; 5  2 1.8848654 3.274157 31.44125  6.656189 0.10413573 0.03180535     1</span></span>
-<span><span class="co">#&gt; 6  3 2.2003680 2.946867 32.79773  7.714518 0.08984971 0.03048991     1</span></span>
+<span><span class="co">#&gt; 1  1 1.7357963 1.713825 29.08518 11.763344 0.05892433 0.03438177     1</span></span>
+<span><span class="co">#&gt; 2 10 0.7841778 1.861035 27.16646 10.118217 0.06850487 0.03681009     1</span></span>
+<span><span class="co">#&gt; 3 11 3.1728009 3.820764 35.43818  6.429049 0.10781489 0.02821815     1</span></span>
+<span><span class="co">#&gt; 4 12 0.9705162 2.405169 26.42568  7.615633 0.09101636 0.03784198     1</span></span>
+<span><span class="co">#&gt; 5  2 1.8888972 3.269408 31.49220  6.676661 0.10381644 0.03175390     1</span></span>
+<span><span class="co">#&gt; 6  3 2.2054009 2.941569 32.84580  7.739737 0.08955694 0.03044529     1</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># If param has no vars, .prm should be set</span></span>
@@ -655,8 +700,6 @@ parameters as <code>param</code> type variables.</p>
 <span>    .prm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">CL</span>,<span class="va">V</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/list_vars.html">list_vars</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Using data from $prob no.1</span></span>
-<span><span class="co">#&gt; Removing duplicated rows based on: ID</span></span>
 <span><span class="co">#&gt; List of available variables for problem no. <span style="color: #BB00BB;">1</span></span></span>
 <span><span class="co">#&gt;  - Subject identifier (id)               : ID</span></span>
 <span><span class="co">#&gt;  - Dependent variable (dv)               : DV</span></span>
@@ -712,7 +755,7 @@ only be one volume) the <code>vol_pattern</code> has been updated.</p>
 </h2>
 <details><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; R version 4.5.3 (2026-03-11)</span></span>
+<span><span class="co">#&gt; R version 4.6.1 (2026-06-24)</span></span>
 <span><span class="co">#&gt; Platform: x86_64-pc-linux-gnu</span></span>
 <span><span class="co">#&gt; Running under: Ubuntu 24.04.4 LTS</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -733,41 +776,34 @@ only be one volume) the <code>vol_pattern</code> has been updated.</p>
 <span><span class="co">#&gt; [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; other attached packages:</span></span>
-<span><span class="co">#&gt;  [1] xpose.xtras_0.1.4   xpose.nlmixr2_0.4.1 xpose_0.4.23       </span></span>
-<span><span class="co">#&gt;  [4] ggplot2_4.0.2       rxode2_5.0.2        nlmixr2plot_5.0.1  </span></span>
-<span><span class="co">#&gt;  [7] nlmixr2extra_5.0.0  nlmixr2est_5.0.2    nlmixr2data_2.0.9  </span></span>
-<span><span class="co">#&gt; [10] lotri_1.0.3         nlmixr2_5.0.0      </span></span>
+<span><span class="co">#&gt;  [1] xpose.xtras_0.2.0   xpose.nlmixr2_0.4.2 xpose_0.4.23       </span></span>
+<span><span class="co">#&gt;  [4] ggplot2_4.0.3       rxode2_5.1.4        nlmixr2plot_5.0.2  </span></span>
+<span><span class="co">#&gt;  [7] nlmixr2extra_5.1.0  nlmixr2est_6.0.1    nlmixr2data_2.0.10 </span></span>
+<span><span class="co">#&gt; [10] lotri_1.0.4         nlmixr2_5.0.0      </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; loaded via a namespace (and not attached):</span></span>
-<span><span class="co">#&gt;  [1] gtable_0.3.6          n1qn1_6.0.1-14        xfun_0.57            </span></span>
-<span><span class="co">#&gt;  [4] bslib_0.10.0          htmlwidgets_1.6.4     GGally_2.4.0         </span></span>
-<span><span class="co">#&gt;  [7] lattice_0.22-9        tzdb_0.5.0            vctrs_0.7.3          </span></span>
-<span><span class="co">#&gt; [10] tools_4.5.3           generics_0.1.4        tibble_3.3.1         </span></span>
-<span><span class="co">#&gt; [13] symengine_0.2.11      pkgconfig_2.0.3       Matrix_1.7-4         </span></span>
-<span><span class="co">#&gt; [16] data.table_1.18.2.1   checkmate_2.3.4       RColorBrewer_1.1-3   </span></span>
-<span><span class="co">#&gt; [19] S7_0.2.1-1            desc_1.4.3            RcppParallel_5.1.11-2</span></span>
-<span><span class="co">#&gt; [22] lifecycle_1.0.5       compiler_4.5.3        farver_2.1.2         </span></span>
-<span><span class="co">#&gt; [25] stringr_1.6.0         textshaping_1.0.5     ggforce_0.5.0        </span></span>
-<span><span class="co">#&gt; [28] codetools_0.2-20      htmltools_0.5.9       sys_3.4.3            </span></span>
-<span><span class="co">#&gt; [31] vpc_1.2.4             sass_0.4.10           yaml_2.3.12          </span></span>
-<span><span class="co">#&gt; [34] pillar_1.11.1         pkgdown_2.2.0         crayon_1.5.3         </span></span>
-<span><span class="co">#&gt; [37] jquerylib_0.1.4       tidyr_1.3.2           MASS_7.3-65          </span></span>
-<span><span class="co">#&gt; [40] cachem_1.1.0          nlme_3.1-168          pmxcv_0.0.2          </span></span>
-<span><span class="co">#&gt; [43] qs2_0.1.7             ggstats_0.13.0        conflicted_1.2.0     </span></span>
-<span><span class="co">#&gt; [46] tidyselect_1.2.1      digest_0.6.39         stringi_1.8.7        </span></span>
-<span><span class="co">#&gt; [49] dplyr_1.2.1           purrr_1.2.2           forcats_1.0.1        </span></span>
-<span><span class="co">#&gt; [52] labeling_0.4.3        splines_4.5.3         rxode2ll_2.0.14      </span></span>
-<span><span class="co">#&gt; [55] polyclip_1.10-7       fastmap_1.2.0         grid_4.5.3           </span></span>
-<span><span class="co">#&gt; [58] cli_3.6.6             dparser_1.3.1-13      magrittr_2.0.5       </span></span>
-<span><span class="co">#&gt; [61] utf8_1.2.6            readr_2.2.0           withr_3.0.2          </span></span>
-<span><span class="co">#&gt; [64] scales_1.4.0          backports_1.5.1       rmarkdown_2.31       </span></span>
-<span><span class="co">#&gt; [67] hms_1.1.4             ragg_1.5.2            stringfish_0.18.0    </span></span>
-<span><span class="co">#&gt; [70] memoise_2.0.1         evaluate_1.0.5        knitr_1.51           </span></span>
-<span><span class="co">#&gt; [73] rex_1.2.2             mgcv_1.9-4            PreciseSums_0.7      </span></span>
-<span><span class="co">#&gt; [76] rlang_1.2.0           Rcpp_1.1.1-1          glue_1.8.1           </span></span>
-<span><span class="co">#&gt; [79] tweenr_2.0.3          lbfgsb3c_2024-3.5     rstudioapi_0.18.0    </span></span>
-<span><span class="co">#&gt; [82] jsonlite_2.0.0        R6_2.6.1              systemfonts_1.3.2    </span></span>
-<span><span class="co">#&gt; [85] fs_2.1.0</span></span></code></pre></div>
+<span><span class="co">#&gt;  [1] tidyselect_1.2.1   dplyr_1.2.1        farver_2.1.2       S7_0.2.2          </span></span>
+<span><span class="co">#&gt;  [5] fastmap_1.2.0      GGally_2.4.0       tweenr_2.0.3       rex_1.2.2         </span></span>
+<span><span class="co">#&gt;  [9] stringfish_0.19.0  digest_0.6.39      lifecycle_1.0.5    magrittr_2.0.5    </span></span>
+<span><span class="co">#&gt; [13] dparser_1.3.1-13   compiler_4.6.1     rlang_1.3.0        sass_0.4.10       </span></span>
+<span><span class="co">#&gt; [17] tools_4.6.1        utf8_1.2.6         yaml_2.3.12        data.table_1.18.4 </span></span>
+<span><span class="co">#&gt; [21] symengine_0.2.13   knitr_1.51         lbfgsb3c_2024-3.5  labeling_0.4.3    </span></span>
+<span><span class="co">#&gt; [25] htmlwidgets_1.6.4  pmxcv_0.0.2        RColorBrewer_1.1-3 withr_3.0.3       </span></span>
+<span><span class="co">#&gt; [29] purrr_1.2.2        sys_3.4.3          desc_1.4.3         grid_4.6.1        </span></span>
+<span><span class="co">#&gt; [33] polyclip_1.10-7    scales_1.4.0       MASS_7.3-65        cli_3.6.6         </span></span>
+<span><span class="co">#&gt; [37] rmarkdown_2.31     crayon_1.5.3       ragg_1.5.2         generics_0.1.4    </span></span>
+<span><span class="co">#&gt; [41] otel_0.2.0         RcppParallel_6.0.0 rstudioapi_0.19.0  tzdb_0.5.0        </span></span>
+<span><span class="co">#&gt; [45] cachem_1.1.0       ggforce_0.5.0      stringr_1.6.0      splines_4.6.1     </span></span>
+<span><span class="co">#&gt; [49] vctrs_0.7.3        Matrix_1.7-5       jsonlite_2.0.0     PreciseSums_0.7   </span></span>
+<span><span class="co">#&gt; [53] hms_1.1.4          systemfonts_1.3.2  tidyr_1.3.2        jquerylib_0.1.4   </span></span>
+<span><span class="co">#&gt; [57] rxode2ll_2.0.16    glue_1.8.1         pkgdown_2.2.1      ggstats_0.13.0    </span></span>
+<span><span class="co">#&gt; [61] codetools_0.2-20   stringi_1.8.7      gtable_0.3.6       tibble_3.3.1      </span></span>
+<span><span class="co">#&gt; [65] pillar_1.11.1      htmltools_0.5.9    R6_2.6.1           textshaping_1.0.5 </span></span>
+<span><span class="co">#&gt; [69] conflicted_1.2.0   evaluate_1.0.5     lattice_0.22-9     readr_2.2.0       </span></span>
+<span><span class="co">#&gt; [73] backports_1.5.1    vpc_1.2.4          nanonext_1.10.1    memoise_2.0.1     </span></span>
+<span><span class="co">#&gt; [77] mirai_2.7.2        n1qn1_6.0.1-14     bslib_0.11.0       Rcpp_1.1.2        </span></span>
+<span><span class="co">#&gt; [81] nlme_3.1-169       checkmate_2.3.4    mgcv_1.9-4         qs2_0.2.2         </span></span>
+<span><span class="co">#&gt; [85] xfun_0.60          forcats_1.0.1      fs_2.1.0           pkgconfig_2.0.3</span></span></code></pre></div>
 </details>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -781,7 +817,7 @@ only be one volume) the <code>vol_pattern</code> has been updated.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

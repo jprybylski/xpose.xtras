@@ -5,7 +5,7 @@ Verify validity of level list
 ## Usage
 
 ``` r
-check_levels(lvl_list, index)
+check_levels(lvl_list, index, .ordered = character())
 ```
 
 ## Arguments
@@ -17,6 +17,12 @@ check_levels(lvl_list, index)
 - index:
 
   Index of `xp_xtras` object
+
+- .ordered:
+
+  \<`character`\> Names of columns to be forced to an ordered factor, as
+  passed to
+  [`set_var_levels()`](https://jprybylski.github.io/xpose.xtras/reference/set_var_levels.md)
 
 ## Value
 

@@ -25,6 +25,7 @@ Grob or list of grobs
 ## Examples
 
 ``` r
+
 single_plot <- xpdb_x %>%
 eta_vs_catcov(etavar = ETA1) %>%
 grab_xpose_plot()

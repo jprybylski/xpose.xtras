@@ -16,6 +16,7 @@ set_var_levels(
   .problem = NULL,
   ...,
   .missing = "Other",
+  .ordered = character(),
   .handle_missing = c("quiet", "warn", "error")
 )
 ```
@@ -39,6 +40,17 @@ set_var_levels(
 
   \<`character`\> Value to use for missing levels
 
+- .ordered:
+
+  \<`character`\> Names of columns whose levels should be treated as an
+  ordered factor (see
+  [`base::factor`](https://rdrr.io/r/base/factor.html)), even when
+  supplied as a plain formula list rather than via
+  [`lvl_inord()`](https://jprybylski.github.io/xpose.xtras/reference/levelers.md).
+  Columns leveled with
+  [`lvl_inord()`](https://jprybylski.github.io/xpose.xtras/reference/levelers.md)
+  are already ordered by default and do not need to be listed here.
+
 - .handle_missing:
 
   \<`character`\> How to handle missing levels: "quiet", "warn", or
@@ -51,6 +63,7 @@ set_var_levels(
 ## Examples
 
 ``` r
+
 set_var_levels(xpdb_x,
   SEX = lvl_sex(),
   MED1 = lvl_bin(),

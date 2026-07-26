@@ -19,3 +19,8 @@ Useful links:
 
 **Maintainer**: John Prybylski <jprybylski@gmail.com>
 ([ORCID](https://orcid.org/0000-0001-5802-0539)) \[copyright holder\]
+
+Authors:
+
+- John Prybylski <jprybylski@gmail.com>
+  ([ORCID](https://orcid.org/0000-0001-5802-0539)) \[copyright holder\]

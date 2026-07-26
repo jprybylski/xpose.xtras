@@ -113,15 +113,13 @@ more accurate `autose` result. If a call (`the1~exp(the)`) or a value
 ## Examples
 
 ``` r
+
 vismo_pomod %>%
   # Function
   mutate_prm(THETA11~exp) %>%
   # Value (se will not be scaled); plogis = inverse logit
   mutate_prm(THETA12~plogis(THETA12)) %>%
   get_prm()
-#> Warning: Since a function was not provided, `autose` will be scaled to maintain the same
-#> RSE.
-#> Returning parameter estimates from $prob no.1, subprob no.1, method lce
 #> Warning: [$prob no.1, subprob no.1, lce] $SIGMA labels did not match the number of SIGMAs in the `.ext` file.
 #> Warning: Shrinkage missing for sigma estimates, if any are modeled. Using NA in this
 #> table.

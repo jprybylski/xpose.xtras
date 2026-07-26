@@ -29,6 +29,7 @@ The top-level information for a set requested.
 ## Examples
 
 ``` r
+
 xpdb_set %>%
   pull(xpdb)
 #> $mod1

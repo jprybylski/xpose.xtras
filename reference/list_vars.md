@@ -37,6 +37,7 @@ list_vars(xpdb, .problem = NULL, ...)
 ## Examples
 
 ``` r
+
 list_vars(xpose::xpdb_ex_pk)
 #> 
 #> List of available variables for problem no. 1 

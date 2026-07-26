@@ -7,7 +7,7 @@ grouping. `summarize()` reduces multiple values down to a single value.
 **Note:** this function uses
 [`xpose.xtras::edit_xpose_data`](https://jprybylski.github.io/xpose.xtras/reference/edit_xpose_data.md),
 but is otherwise the same as
-\<[`xpose::group_by`](https://uupharmacometrics.github.io/xpose/reference/reexports.html)\>.
+\<[`xpose::group_by`](https://dplyr.tidyverse.org/reference/group_by.html)\>.
 
 ## Usage
 

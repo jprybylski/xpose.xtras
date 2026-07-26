@@ -18,7 +18,9 @@ list_dv_probs(xpdb, .problem = NULL, .dv_var = NULL)
 
 - .problem:
 
-  \<`numeric`\> Problem number to use. Uses the all problems if `NULL`
+  \<`numeric`\> Problem number to use. Uses all problems if `NULL` (the
+  default). May be omitted entirely and left to default, even when
+  formulas are supplied positionally in `...`.
 
 - .dv_var:
 
@@ -32,6 +34,7 @@ list_dv_probs(xpdb, .problem = NULL, .dv_var = NULL)
 ## Examples
 
 ``` r
+
 pkpd_m3 %>%
   set_dv_probs(1, 1~LIKE, .dv_var = BLQ) %>%
   list_dv_probs(.dv_var=BLQ)

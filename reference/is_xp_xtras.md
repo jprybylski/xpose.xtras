@@ -21,6 +21,7 @@ is_xp_xtras(x)
 ## Examples
 
 ``` r
+
 is_xp_xtras(xpose::xpdb_ex_pk)
 #> [1] FALSE
 

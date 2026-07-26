@@ -44,6 +44,7 @@ When used internally, workarounds to this semi-limitation are used.
 ## Examples
 
 ``` r
+
 set_prop(xpose::xpdb_ex_pk, descr = "New model description") %>%
   xpose::get_summary()
 #> # A tibble: 48 × 5
