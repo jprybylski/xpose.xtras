@@ -188,7 +188,13 @@ basename(saved_path)
 That's a real file on disk. Here's what actually got written:
 
 ```{r ggsave_xp_basic_preview, echo = FALSE, out.width = "80%"}
-knitr::include_graphics(saved_path)
+# knitr/pkgdown can only reliably embed images under knitr's own fig.path,
+# not an arbitrary absolute path like the tempdir() used above to
+# demonstrate an arbitrary save location
+preview_path <- knitr::fig_path("png")
+dir.create(dirname(preview_path), recursive = TRUE, showWarnings = FALSE)
+file.copy(saved_path, preview_path, overwrite = TRUE)
+knitr::include_graphics(preview_path)
 ```
 
 `filename`/`path` can also use `@keyword` placeholders, expanded the same way `xpose::xpose_save()` does it:
@@ -273,7 +279,10 @@ basename(saved_together)
 ```
 
 ```{r tied_together_preview, echo = FALSE, out.width = "80%"}
-knitr::include_graphics(saved_together)
+preview_path <- knitr::fig_path("png")
+dir.create(dirname(preview_path), recursive = TRUE, showWarnings = FALSE)
+file.copy(saved_together, preview_path, overwrite = TRUE)
+knitr::include_graphics(preview_path)
 ```
 
 The same family also covers a session-wide default theme, `gg_theme`/`xp_theme`, picked up automatically the first time an `xpose_data` object is converted with `as_xpdb_x()`. A project look can be set once instead of calling `xpose::update_themes()` on every model:
