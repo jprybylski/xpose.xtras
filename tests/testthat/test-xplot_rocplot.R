@@ -33,6 +33,7 @@ test_that("xplot_rocplot adds expected geoms", {
 })
 
 test_that("xplot_rocplot defaults/theming/error branches are covered", {
+  skip_on_cran() # slow: renders many ROC plot variants
   opt <- xpose::data_opt(post_processing = function(df) {
     df %>%
       dplyr::group_by(ID) %>%
@@ -127,6 +128,7 @@ test_that("xplot_rocplot errors when requirements not met", {
 # New tests for wrapper functions
 
 test_that("roc_plot adds expected geoms", {
+  skip_on_cran() # slow: renders several ROC plot variants
   xpdb <- pkpd_m3 %>%
     set_var_types(catdv = BLQ, dvprobs = LIKE) %>%
     set_dv_probs(1, 1 ~ LIKE, .dv_var = BLQ) %>%

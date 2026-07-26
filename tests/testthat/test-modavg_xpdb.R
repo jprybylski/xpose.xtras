@@ -1,4 +1,5 @@
 test_that("model averaging xpdb (modavg_xpdb) works", {
+  skip_on_cran() # slow: computes model averaging across a full multi-model set
 
   #selection
   expect_no_error(

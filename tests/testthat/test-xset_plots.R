@@ -217,6 +217,7 @@ test_that("franken_prop reasonably combines properties", {
 })
 
 test_that("model averaged plots are consistent with manually-implemented", {
+  skip_on_cran() # slow: builds several model-averaged plots across a full set
   # model averaging function is assessed in a separate test script
   # this just ensures plot objects are as expected if manually coded
 
@@ -486,6 +487,7 @@ test_that("waterfall plots produce expected errors", {
 })
 
 test_that("iofv trends can be shown in a boxplot", {
+  skip_on_cran() # slow: renders boxplots across a full multi-model set
   expect_error(
     pheno_set %>%
       iofv_vs_mod(),

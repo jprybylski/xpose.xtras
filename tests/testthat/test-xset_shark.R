@@ -1,4 +1,5 @@
 test_that("shark_plot works as expected", {
+  skip_on_cran() # slow: renders shark plots across a full multi-model set
   expect_error( # no ofv
     pheno_set %>%
       shark_plot(run6,run11),

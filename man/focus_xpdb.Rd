@@ -70,6 +70,7 @@ xpdb_set \%>\% focus_xpdb(mod2,fix1) \%>\% focus_xpdb(mod1, .add=TRUE)
 # Remove focus
 xpdb_set \%>\% focus_xpdb(mod2,fix1) \%>\% focus_xpdb()
 
+\dontrun{
 # Focus function and tidyselect
 pheno_set \%>\%
   focus_xpdb(everything()) \%>\%
@@ -87,6 +88,7 @@ pheno_set \%>\%
   select(run6) \%>\%
   {.[[1]]$xpdb} \%>\%
   list_vars()
+}
 
 # Output-generating function applied to a single focused element:
 # returns the plot itself, not an xpose_set

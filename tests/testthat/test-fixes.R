@@ -494,6 +494,7 @@ test_that("print.xpose_plot() falls back to the ggplot2 <= 3.5.2 label-assignmen
 })
 
 test_that("print.xpose_plot() pagination: multi-page facets are printed", {
+  skip_on_cran() # slow: prints a multi-page paginated plot several times
   data("xpdb_ex_pk", package = "xpose", envir = environment())
   # Restrict to a handful of subjects so a 2x2 grid still spans 2 pages,
   # keeping the (otherwise slow, once-per-page) print() calls below fast.
