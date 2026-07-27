@@ -1,10 +1,3 @@
-depends_on_ggplot2_lt_400 <- function(cond) {
-  # For some reason some checks are negated with updated ggplot2
-  if (utils::packageVersion("ggplot2") > "3.5.2")
-    return(!cond)
-  cond
-}
-
 test_that("xp_xtra class can be set", {
 
   data("xpdb_ex_pk", package = "xpose", envir = environment())
@@ -53,9 +46,14 @@ test_that("xp_xtra class can be set", {
 
   # other trivial checks
   expect_false(check_xpdb_x(c()))
+  # `$<-` on an xp_xtras object must preserve the class (issue #74): ggplot2
+  # (< 4.0) registers `$<-.uneval` for its own aes() mappings, and every
+  # xp_xtras/xpose_data object carries "uneval" as its last class, so without
+  # `$<-.xp_xtras` taking priority this assignment used to silently strip the
+  # xp_xtras/xpose_data classes on affected ggplot2 versions.
   xpose_themed <- as_xpdb_x(xpdb_ex_pk)
   xpose_themed$xp_theme <- xpose::theme_xp_default()
-  expect_false(depends_on_ggplot2_lt_400(is_xp_xtras(xpose_themed))) # invalid test_coverage
+  expect_true(is_xp_xtras(xpose_themed))
 
 })
 
@@ -277,10 +275,12 @@ test_that("print methods are working", {
     "xp_xtras"
   ))
 
-  # expect to recognize xp_xtras affected by cross-compatibility
+  # xpose::set_var_labels() edits the xpdb via `$<-`/`[[<-`; with the
+  # `$<-.xp_xtras` fix (issue #74) the xp_xtras class now survives a
+  # round-trip through an upstream xpose function unchanged.
   hidden_xp_xtras <- xpose::set_var_labels(xpdb_x, AGE="Age")
-  expect_false(
-    depends_on_ggplot2_lt_400(is_xp_xtras(hidden_xp_xtras))
+  expect_true(
+    is_xp_xtras(hidden_xp_xtras)
   )
   # This behavior, while nice, creates an annoying warning to user
   # on package load like when GGally is loaded.
@@ -325,8 +325,10 @@ test_that("list_vars extension behaves as expected", {
 
 
   # above would fail if below test would fail, but just to verify
-  expect_false(
-    depends_on_ggplot2_lt_400(is_xp_xtras(lbl_x))
+  # (see the `$<-.xp_xtras` fix for issue #74: the class now survives
+  # xpose::set_var_labels()'s internal `$<-` edit)
+  expect_true(
+    is_xp_xtras(lbl_x)
   )
   expect_true(
     check_xpdb_x(lbl_x)

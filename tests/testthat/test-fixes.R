@@ -411,6 +411,43 @@ test_that("patch_condn corrects the condition number for multi-method runs (issu
     patch_condn(xpose::xpdb_ex_pk) %>% xpose::get_summary(),
     xpose::get_summary(xpose::xpdb_ex_pk)
   )
+
+  # patch_condn()'s `xpdb$summary <- ...` must not strip the xp_xtras/xpose_data
+  # classes (issue #74); patch_condn() only rewrites $summary when it finds a
+  # multi-method run, so this exercises that branch specifically
+  expect_identical(class(patched), class(corrupted))
+  expect_identical(class(reconverted), c("xp_xtras", "xpose_data", "uneval"))
+  expect_true(check_xpdb_x(reconverted))
+})
+
+test_that("`$<-`/`[[<-` on xpose_data and xp_xtras objects preserve their class (issue #74)", {
+  # xpose_data (and, by extension, xp_xtras) objects always carry "uneval" as
+  # their last class -- the same class ggplot2 (< 4.0) uses internally for
+  # unevaluated aes() mappings, with `[[<-.uneval`/`$<-.uneval` methods that
+  # collapse the class attribute down to bare "uneval". Without a
+  # higher-priority method registered for "xpose_data"/"xp_xtras" themselves,
+  # any `xpdb$foo <- value`/`xpdb[["foo"]] <- value` would dispatch to
+  # ggplot2's method instead, so this exercises the fix methods directly
+  # rather than relying on a particular ggplot2 version being installed.
+  plain <- xpose::xpdb_ex_pk
+  plain$options$quiet <- TRUE
+  expect_identical(class(plain), c("xpose_data", "uneval"))
+  expect_true(plain$options$quiet)
+
+  plain2 <- xpose::xpdb_ex_pk
+  plain2[["options"]]$quiet <- TRUE
+  expect_identical(class(plain2), c("xpose_data", "uneval"))
+  expect_true(plain2$options$quiet)
+
+  xtras <- as_xpdb_x(xpose::xpdb_ex_pk)
+  before <- class(xtras)
+  xtras$options$quiet <- TRUE
+  expect_identical(class(xtras), before)
+  expect_true(xtras$options$quiet)
+
+  xtras[["options"]]$quiet <- FALSE
+  expect_identical(class(xtras), before)
+  expect_false(xtras$options$quiet)
 })
 
 test_that("patch_condn ignores non-consecutive false-positive matches after the eigenvalue block", {

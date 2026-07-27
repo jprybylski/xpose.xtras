@@ -152,6 +152,55 @@ irep <- function(x, quiet = FALSE) {
 
 
 
+#' Allow assignment into an xpose_data object without conversion to class uneval
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
+#' Bugfix for \code{xpose_data}, based on a PR from Bill Denney to `xpose`
+#' ([see here](https://github.com/UUPharmacometrics/xpose/pull/153)), not yet merged upstream.
+#'
+#' Every \code{xpose_data} object (with or without the \code{xp_xtras}
+#' extension) carries \code{"uneval"} as its last class -- the same class
+#' \code{ggplot2} uses internally for unevaluated \code{aes()} mappings.
+#' `ggplot2` (< 4.0) registers \code{`[[<-.uneval`}/\code{`$<-.uneval`}
+#' methods that collapse the class attribute down to bare \code{"uneval"}.
+#' Without a higher-priority method for \code{"xpose_data"} itself, any
+#' \code{xpdb$foo <- value}/\code{xpdb[["foo"]] <- value} would dispatch to
+#' `ggplot2`'s method instead, silently stripping the \code{"xpose_data"}
+#' class (and, if present, \code{"xp_xtras"}) off the return value (issue
+#' #74). Defining these methods here -- ahead of \code{"uneval"} in the class
+#' vector -- intercepts the assignment first and preserves the full class.
+#'
+#' `xp_xtras` objects are handled by their own, higher-priority
+#' \code{`[[<-.xp_xtras`}/\code{`$<-.xp_xtras`} methods (see \code{R/xp_xtras.R}),
+#' so these only take effect for plain \code{xpose_data} objects.
+#'
+#' @param x object from which to extract element(s) or in which to replace element(s).
+#' @param i index specifying element to replace.
+#' @param value typically an array-like R object of a similar class as x.
+#' @return The object with the value replaced.
+#'
+#' @method `[[<-` xpose_data
+#' @export
+#'
+#' @noRd
+`[[<-.xpose_data` <- function(x, i, value) {
+  cls <- oldClass(x)
+  x <- unclass(x)
+  x[[i]] <- value
+  class(x) <- cls
+  x
+}
+
+#' @method `$<-` xpose_data
+#' @export
+#'
+#' @noRd
+`$<-.xpose_data` <- `[[<-.xpose_data`
+
+
+
 #' Patch condition number extraction
 #'
 #' @description

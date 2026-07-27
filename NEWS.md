@@ -1,5 +1,15 @@
 # xpose.xtras
 
+# xpose.xtras (development version)
+
+## Bug fixes
+
+* Fixed a critical bug where any `xpdb$foo <- value`/`xpdb[["foo"]] <- value`
+  (including inside `patch_condn()`, run automatically by `as_xpdb_x()`)
+  could silently strip the `xp_xtras`/`xpose_data` classes on `ggplot2`
+  versions before 4.0, due to a class-name collision with `ggplot2`'s
+  internal `aes()` mapping class. (#74)
+
 # xpose.xtras 0.2.0
 
 ## New features

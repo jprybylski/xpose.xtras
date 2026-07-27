@@ -184,6 +184,18 @@ print.xp_xtras <- function(x, ...) {
 #' @description
 #' Based on a PR from Bill Denney to `xpose` ([see here](https://github.com/UUPharmacometrics/xpose/pull/153)).
 #'
+#' `xp_xtras` objects always carry `"uneval"` as their last class (inherited
+#' from `xpose_data`, see the equivalent `xpose_data` fix in `R/fixes.R`).
+#' `ggplot2` (< 4.0) registers
+#' \code{`[[<-.uneval`}/\code{`$<-.uneval`} methods for its own (unrelated)
+#' \code{aes()} mappings that collapse the class attribute down to bare
+#' `"uneval"`. Since `"xp_xtras"` is not otherwise handled, any
+#' `xpdb$foo <- value`/`xpdb[["foo"]] <- value` on an `xp_xtras` object would
+#' dispatch to `ggplot2`'s method instead, silently stripping the
+#' `"xp_xtras"`/`"xpose_data"` classes off the return value (issue #74).
+#' Defining these methods here -- ahead of `"uneval"` in the class vector --
+#' intercepts the assignment first and preserves the full class.
+#'
 #' @param x object from which to extract element(s) or in which to replace element(s).
 #' @param i index specifying element to replace.
 #' @param value typically an array-like R object of a similar class as x.
@@ -193,17 +205,19 @@ print.xp_xtras <- function(x, ...) {
 #' @export
 #'
 #' @noRd
-NULL
-# `[[<-.xp_xtras` <- function(x, i, value) {
-#   x <- unclass(x)
-#   x[[i]] <- value
-#   as_xp_xtras(x)
-# }
+`[[<-.xp_xtras` <- function(x, i, value) {
+  cls <- oldClass(x)
+  x <- unclass(x)
+  x[[i]] <- value
+  class(x) <- cls
+  x
+}
 
 #' @method `$<-` xp_xtras
 #' @export
-NULL
-# `$<-.xp_xtras` <- `[[<-.xp_xtras`
+#'
+#' @noRd
+`$<-.xp_xtras` <- `[[<-.xp_xtras`
 
 # New functions
 
