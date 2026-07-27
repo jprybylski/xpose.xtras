@@ -106,14 +106,13 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
 #' Bugfix for \code{\link[xpose]{irep}}.
 #'
 #' @description
-#' For `xpose` version > 0.5.0  `r lifecycle::badge("deprecated")`
-#'
-#' Because this has been fixed in the parent package, the fix will be removed
-#' in an upcoming release.
-#'
-#'
 #' Add a column containing a simulation counter (irep). A new simulation is counted every time
 #' a value in x is different than its previous value and is a duplicate.
+#'
+#' `xpose` fixed this upstream around version 0.5.0, then later reverted that
+#' fix, so this is treated as a standing bugfix rather than a temporary one
+#' pending removal (previously this deferred to \code{xpose::irep()} for
+#' `xpose` >= 0.5.0; that's no longer safe to assume).
 #'
 #' This version of the function does not require IDs be ascending, but does not work for
 #' datasets where IDs are repeated (not in sequence). Both cases are read as separate
@@ -134,11 +133,6 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
 #'
 #' @export
 irep <- function(x, quiet = FALSE) {
-  if (utils::packageVersion("xpose") >= "0.5.0") {
-    lifecycle::deprecate_soft("0.1.0", "irep()", "xpose::irep()")
-    # Forward to corrected base version
-    return(xpose::irep(x,quiet = quiet))
-  }
   if (missing(x)) stop('argument "x" is missing, with no default', call. = FALSE)
   if (is.factor(x)) x <- as.numeric(as.character(x))
   lagcheck <- dplyr::lag(x, default = x[1]) != x
@@ -616,8 +610,18 @@ join_backfill <- function(x, y, by = NULL, copy = FALSE, suffix = c(".x", ".y"),
 #' # Or simply by writing the plot object name
 #' my_plot
 #'
-#' @exportS3Method print xpose_plot
-print.xpose_plot <- function(x, page, ...) {
+#' @usage \method{print}{xpose_plot}(x, page, ...)
+#' @name print.xpose_plot
+NULL
+
+## Not named `print.xpose_plot` (which would make roxygen2 auto-declare it as
+## an exported S3 method, causing xpose and xpose.xtras to each register a
+## NAMESPACE-level S3method(print, xpose_plot) -- R prints a "Registered S3
+## method overwritten" startup message whenever two packages both do that for
+## the same generic/class, regardless of load order (#72). Registered
+## manually instead, in .onLoad() (see R/zzz.R), which updates the same
+## underlying dispatch table without ever tripping that message.
+print_xpose_plot_impl <- function(x, page, ...) {
 
   # Parse template titles
   if (xpose::is.xpose.plot(x)) {

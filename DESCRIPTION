@@ -17,7 +17,6 @@ Imports:
     checkmate,
     cli,
     colorspace,
-    conflicted,
     dplyr (>= 1.1.2),
     forcats (>= 1.0.0),
     GGally,
@@ -42,6 +41,7 @@ Imports:
 Suggests:
     bbr,
     callr,
+    conflicted,
     DiagrammeR,
     knitr,
     nlmixr2,

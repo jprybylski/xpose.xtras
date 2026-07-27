@@ -9,6 +9,14 @@
   could silently strip the `xp_xtras`/`xpose_data` classes on `ggplot2`
   versions before 4.0, due to a class-name collision with `ggplot2`'s
   internal `aes()` mapping class. (#74)
+* `conflicted` is now an optional (Suggests) dependency instead of a hard
+  requirement, and is only consulted if the user has loaded it themselves.
+  Package startup no longer prints a "Registered S3 method overwritten"
+  notice for `print.xpose_plot`, and the reminder to attach `xpose` now
+  also names any load-order-sensitive bugfix at stake. (#72)
+* `irep()` is no longer deprecated in favor of `xpose::irep()` for
+  `xpose` >= 0.5.0: `xpose` reverted that upstream fix, so this package's
+  version is needed again regardless of the installed `xpose` version.
 
 # xpose.xtras 0.2.0
 

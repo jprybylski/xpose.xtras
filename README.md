@@ -31,9 +31,15 @@ and if at any point in the future these are added (perhaps in a better
 state) to the parent package, they will be deprecated if this package is
 in active use.
 
-For those wondering, [`conflicted`](https://conflicted.r-lib.org/) is
-used to manage bugfix conflicts, so users should be comfortable loading
-packages in any order.
+Load `library(xpose)` before `library(xpose.xtras)` so these bugfixes
+take effect via normal masking. If you use
+[`conflicted`](https://conflicted.r-lib.org/) to manage namespace
+conflicts, load order stops mattering for them: `xpose.xtras`
+automatically registers its preferred side of these specific
+`xpose`/`stats` overrides. Conflicts against other, unrelated packages
+(e.g. another package’s own `dplyr` verb) aren’t affected by this and
+are still yours to resolve as usual
+(e.g. `conflicted::conflicts_prefer()`).
 
 ## Installation
 

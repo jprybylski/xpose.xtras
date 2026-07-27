@@ -93,27 +93,6 @@ test_that('irep works properly', {
 
 })
 
-test_that("irep() forwards to xpose::irep() once xpose >= 0.5.0 (deprecated fix path)", {
-  # The installed xpose is < 0.5.0, so this branch can't be reached through
-  # normal use; mock utils::packageVersion() (namespaced calls can only be
-  # mocked via `.package`, see ?testthat::local_mocked_bindings) to pretend
-  # otherwise and confirm the fix defers to xpose's own (now-fixed) irep().
-  real_pv <- utils::packageVersion
-  local_mocked_bindings(
-    packageVersion = function(pkg, ...) {
-      if (identical(pkg, "xpose")) return(package_version("0.5.0"))
-      real_pv(pkg, ...)
-    },
-    .package = "utils"
-  )
-
-  x <- rep(1:5, time = 3)
-  suppressWarnings(suppressMessages(
-    expect_identical(irep(x, quiet = TRUE), xpose::irep(x, quiet = TRUE))
-  ))
-})
-
-
 test_that("edit_xpose_data is essentially the same as in xpose, with some improvement", {
   ## Some basic behavior tests and trivial error checking, to cover all bases and get desired coverage
 
