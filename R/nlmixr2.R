@@ -471,7 +471,10 @@ mutate_mask <- function(
     upsert_df,
     by = "name"
   )
-  as_xp_xtras(xpdb)
+  # xpose.xtras :: `xpdb` is required to already be xp_xtras (see @param),
+  # and `$<-` preserves that class natively (issue #74), so no reconversion
+  # is needed here.
+  xpdb
 }
 
 #' Based on associations baked into nlmixr2, automatically add to xpose data

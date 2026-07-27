@@ -420,6 +420,18 @@ test_that("patch_condn corrects the condition number for multi-method runs (issu
   expect_true(check_xpdb_x(reconverted))
 })
 
+test_that("patch_condn skips code-scanning entirely for single-method problems", {
+  # No problem in xpdb_ex_pk has more than one 'method' row in $summary, so
+  # patch_condn() should return early without ever touching $code -- corrupt
+  # it to prove that (this would error on xpose::check_xpdb(check='code')
+  # or the eigenvalue regex if the scan ran).
+  single_method <- xpose::xpdb_ex_pk
+  single_method$code <- NULL
+
+  expect_no_error(patched <- patch_condn(single_method))
+  expect_identical(patched, single_method)
+})
+
 test_that("`$<-`/`[[<-` on xpose_data and xp_xtras objects preserve their class (issue #74)", {
   # xpose_data (and, by extension, xp_xtras) objects always carry "uneval" as
   # their last class -- the same class ggplot2 (< 4.0) uses internally for

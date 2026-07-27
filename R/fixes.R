@@ -232,6 +232,15 @@ patch_condn <- function(xpdb) {
 
   if (xpose::software(xpdb) != 'nonmem') return(xpdb)
 
+  # xpose.xtras :: issue #60 only affects problems with more than one
+  # estimation method (each gets its own 'method' row in xpdb$summary, per
+  # subprob); xpose's condn is already correct for single-method problems,
+  # so skip the code-scanning fix below entirely when none apply.
+  method_rows <- xpdb$summary[xpdb$summary$label == 'method', 'problem', drop = TRUE]
+  method_counts <- table(method_rows)
+  multi_method_problems <- as.numeric(names(method_counts)[method_counts > 1])
+  if (length(multi_method_problems) == 0) return(xpdb)
+
   xpose::check_xpdb(xpdb, check = 'code')
   rounding <- xpdb$xp_theme$rounding
 
@@ -239,6 +248,7 @@ patch_condn <- function(xpdb) {
   # multi-estimation-method runs: use the last (rather than the first)
   # 'EIGENVALUES OF COR MATRIX OF ESTIMATE' block found in the .lst file.
   new_condn <- xpdb$code %>%
+    dplyr::filter(.data$problem %in% multi_method_problems) %>%
     dplyr::group_by_at(.vars = 'problem') %>%
     tidyr::nest() %>%
     dplyr::ungroup() %>%
@@ -422,8 +432,9 @@ edit_xpose_data <- function(.fun, .fname, .data, ..., .problem, .source, .where,
     xpdb[['files']] <- xpdb[['files']] %>%
       dplyr::mutate(modified = dplyr::if_else(.$problem %in% .problem & .$extension %in% .source, TRUE, .$modified))
   }
-  xpdb <- xpose::as.xpdb(xpdb)
-  if (check_xpdb_x(xpdb, .warn = FALSE)) return(as_xp_xtras(xpdb))
+  # xpose.xtras :: `[[<-`/`$<-` above already preserve the xp_xtras/xpose_data
+  # class natively (see `$<-.xp_xtras`/`$<-.xpose_data`, issue #74), so no
+  # reconversion is needed here.
   xpdb
 }
 

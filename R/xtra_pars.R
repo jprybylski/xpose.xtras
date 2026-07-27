@@ -202,7 +202,9 @@ add_prm_association <- function(
       assoc_proc,
       by = c("param","problem","subprob","method")
     )
-  as_xpdb_x(xpdb)
+  # xpose.xtras :: `xpdb` was already xp_xtras (checked above), and `$<-`
+  # preserves that class natively (issue #74), so no reconversion is needed.
+  xpdb
 }
 
 
@@ -262,7 +264,9 @@ drop_prm_association <- function(
 
       )
     )
-  as_xpdb_x(new_xpdb)
+  # xpose.xtras :: `xpdb` was already xp_xtras (checked above), and `$<-`
+  # preserves that class natively (issue #74), so no reconversion is needed.
+  new_xpdb
 }
 
 builtin_asscs <- c("log","logexp","logit","arcsin","nmboxcox")
@@ -668,7 +672,9 @@ add_cov_association <- function(
       cov_proc,
       by = c("param","covariate","problem","subprob","method")
     )
-  as_xpdb_x(xpdb)
+  # xpose.xtras :: `xpdb` was already xp_xtras (checked above), and `$<-`
+  # preserves that class natively (issue #74), so no reconversion is needed.
+  xpdb
 }
 
 
@@ -727,7 +733,9 @@ drop_cov_association <- function(
     xpdb$covs %>% dplyr::filter(!(problem==.problem & subprob==.subprob & method==.method)),
     current[keep, ]
   )
-  as_xpdb_x(new_xpdb)
+  # xpose.xtras :: `xpdb` was already xp_xtras (checked above), and `$<-`
+  # preserves that class natively (issue #74), so no reconversion is needed.
+  new_xpdb
 }
 
 builtin_cov_asscs <- c("linear","power","exponential","hockey","additive","catshift")
@@ -1788,7 +1796,8 @@ mutate_prm <- function(
         } else {
           cli::cli_abort("This functionality is not yet implemented for {.strong {xpose::software(xpdb)}}")
         }
-        new_xpdb <- as_xp_xtras(new_xpdb)
+        # xpose.xtras :: `$<-`/`[[<-` above preserve the xp_xtras class
+        # natively (issue #74), so no reconversion is needed here.
         # Update base_df in calls_env
         refresh_calls_prms(new_xpdb)
       }
@@ -1846,7 +1855,8 @@ mutate_prm <- function(
           # Since other software would have files processed differently, make SE correction here
           return(new_xpdb)
         }
-        new_xpdb <- as_xp_xtras(new_xpdb)
+        # xpose.xtras :: `$<-`/`[[<-` above preserve the xp_xtras class
+        # natively (issue #74), so no reconversion is needed here.
         # If Iteration -1...1 exists, there should be cor/cov, but just in case...
         if (xpose::software(xpdb)=="nonmem" &&
             "cov" %in% new_xpdb$files$extension &&
@@ -1865,7 +1875,6 @@ mutate_prm <- function(
           # Change value in cov
           new_variance <- change_to^2
           orig_variance <- exisiting_se^2
-          new_xpdb <- as_xp_xtras(new_xpdb)
           # Change values in cov off-diagonal + diagonal
           cur_off_diag <- xpose::get_file(new_xpdb, ext="cov", .problem=.problem, .subprob = .subprob,
                                           .method = .method, quiet=TRUE) %>%
@@ -1882,7 +1891,6 @@ mutate_prm <- function(
             subprob = .subprob,
             method = .method
           )
-          new_xpdb <- as_xp_xtras(new_xpdb)
           new_xpdb$files <- mutate_in_file( # change off-diag row
             xpdb = new_xpdb,
             # This is clunky but seems to work
@@ -1901,7 +1909,8 @@ mutate_prm <- function(
             subprob = .subprob,
             method = .method
           )
-          new_xpdb <- as_xp_xtras(new_xpdb)
+          # xpose.xtras :: `$<-`/`[[<-` above preserve the xp_xtras class
+          # natively (issue #74), so no reconversion is needed here.
         }
         # Update base_df in calls_env
         refresh_calls_prms(new_xpdb)
