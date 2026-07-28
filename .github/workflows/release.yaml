@@ -33,6 +33,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      # master is protected (requires a PR); the default GITHUB_TOKEN can't
+      # push to it directly, so the metadata commit and tag moves below go
+      # over SSH using a deploy key that's on the ruleset's bypass list.
+      - name: Load deploy key
+        if: env.DRY_RUN != 'true'
+        uses: webfactory/ssh-agent@v0.10.0
+        with:
+          ssh-private-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
+
+      - name: Push over SSH via the deploy key
+        if: env.DRY_RUN != 'true'
+        run: |
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+          git remote set-url origin "git@github.com:${{ github.repository }}.git"
+
       - name: Configure git identity
         run: |
           git config user.name "github-actions[bot]"
