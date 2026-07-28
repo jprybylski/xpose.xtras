@@ -25,3 +25,4 @@
 ^dev-notes$
 ^renv$
 ^renv\.lock$
+^VERSION$

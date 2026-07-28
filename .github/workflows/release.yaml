@@ -1,0 +1,102 @@
+# Release-on-merge automation, driven by the VERSION file (see
+# .github/scripts/sync-release-metadata.R). Never touches CRAN - only
+# creates/refreshes a GitHub release and tag, and syncs DESCRIPTION/NEWS.md
+# to match VERSION.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview version detection/changelog without writing, tagging, or publishing anything"
+        type: boolean
+        default: true
+
+name: release.yaml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-master
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Add Additional_repositories from DESCRIPTION (off-CRAN Suggests, e.g. bbr via MPN)
+        run: |
+          raw <- read.dcf("DESCRIPTION", fields = "Additional_repositories")[1, 1]
+          if (!is.na(raw) && nzchar(raw)) {
+            repos <- trimws(strsplit(raw, ",")[[1]])
+            cat(sprintf("options(repos = c(getOption('repos'), %s))\n", deparse(repos)),
+                file = path.expand("~/.Rprofile"), append = TRUE)
+          }
+        shell: Rscript {0}
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          needs: check
+
+      - name: Sync release metadata (DESCRIPTION/NEWS.md) to VERSION
+        id: sync
+        run: Rscript .github/scripts/sync-release-metadata.R
+
+      - name: Commit release metadata changes
+        if: steps.sync.outputs.changed == 'true' && env.DRY_RUN != 'true'
+        run: |
+          git commit -am "chore: sync release metadata for ${{ steps.sync.outputs.version }}"
+          git push origin HEAD:master
+
+      - name: Check whether this commit is already released
+        id: check
+        if: env.DRY_RUN != 'true'
+        run: |
+          already_tagged="$(git rev-parse -q --verify "refs/tags/${{ steps.sync.outputs.tag }}" || true)"
+          if [ "${{ steps.sync.outputs.changed }}" = "false" ] && [ "$already_tagged" = "$(git rev-parse HEAD)" ]; then
+            echo "This commit's metadata already matches VERSION and the tag already points here - nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build package tarball
+        if: env.DRY_RUN != 'true' && steps.check.outputs.skip != 'true'
+        run: R CMD build . --compact-vignettes=gs+qpdf
+
+      - name: Create release
+        if: env.DRY_RUN != 'true' && steps.check.outputs.skip != 'true' && steps.sync.outputs.action == 'new'
+        run: |
+          gh release create "${{ steps.sync.outputs.tag }}" \
+            "${{ steps.sync.outputs.tarball }}" \
+            --target "$(git rev-parse HEAD)" \
+            --title "${{ steps.sync.outputs.tag }}" \
+            --notes-file changelog.md
+
+      - name: Refresh existing release
+        if: env.DRY_RUN != 'true' && steps.check.outputs.skip != 'true' && steps.sync.outputs.action == 'refresh'
+        run: |
+          git tag -f "${{ steps.sync.outputs.tag }}" "$(git rev-parse HEAD)"
+          git push origin "${{ steps.sync.outputs.tag }}" --force
+          gh release edit "${{ steps.sync.outputs.tag }}" --notes-file changelog.md
+          gh release upload "${{ steps.sync.outputs.tag }}" "${{ steps.sync.outputs.tarball }}" --clobber
