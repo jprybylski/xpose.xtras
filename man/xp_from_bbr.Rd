@@ -57,7 +57,8 @@ if (requireNamespace("bbr", quietly = TRUE)) {
   writeLines("{}", file.path(out_dir, "bbi_config.json"))
 
   mod <- bbr::new_model(file.path(mod_dir, "18"), .description = "Phenobarbital SAEM model")
-  xp_from_bbr(mod)
+  print(xp_from_bbr(mod))
+  unlink(mod_dir, recursive = TRUE)
 }
 }
 \seealso{

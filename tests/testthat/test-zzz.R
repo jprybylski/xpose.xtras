@@ -12,6 +12,16 @@
 
 attach_order_is_safe <- function(order) {
   pkg_dir <- find.package("xpose.xtras")
+  # Nest the subprocess's own tempdir() under this session's rather than
+  # letting it inherit TMPDIR as-is (callr's default `rcmd_safe_env()`
+  # doesn't touch TMPDIR). If the subprocess is ever killed abnormally
+  # (e.g. a check-farm timeout) instead of exiting normally, its leftover
+  # Rtmp* dir rides along with this session's own tempdir() cleanup at
+  # normal exit, rather than leaking as an orphaned sibling directly under
+  # a shared TMPDIR -- which is what CRAN's "detritus in temp directory"
+  # check flags (seen on r-devel-linux-x86_64-debian-gcc).
+  child_tmp <- file.path(tempdir(), "callr-subtest")
+  dir.create(child_tmp, showWarnings = FALSE)
   callr::r(
     function(pkg_dir, order) {
       attach_xtras <- function() {
@@ -30,7 +40,8 @@ attach_order_is_safe <- function(order) {
       invisible(TRUE)
     },
     args = list(pkg_dir = pkg_dir, order = order),
-    libpath = .libPaths()
+    libpath = .libPaths(),
+    env = c(callr::rcmd_safe_env(), TMPDIR = child_tmp)
   )
 }
 

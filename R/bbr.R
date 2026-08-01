@@ -50,7 +50,8 @@
 #'   writeLines("{}", file.path(out_dir, "bbi_config.json"))
 #'
 #'   mod <- bbr::new_model(file.path(mod_dir, "18"), .description = "Phenobarbital SAEM model")
-#'   xp_from_bbr(mod)
+#'   print(xp_from_bbr(mod))
+#'   unlink(mod_dir, recursive = TRUE)
 #' }
 xp_from_bbr <- function(.mod, ..., .use_bbr_descr = TRUE) {
   rlang::check_installed("bbr", reason = "to ingest a bbr model object with `xp_from_bbr()`.")

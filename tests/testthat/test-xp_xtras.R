@@ -596,6 +596,7 @@ test_that("xtras_data still surfaces warnings that indicate a real read failure"
   src_dir <- system.file("pheno_saemimp", package = "xpose.xtras")
   tmp_dir <- tempfile("xtras_data_missing_table")
   dir.create(tmp_dir)
+  on.exit(unlink(tmp_dir, recursive = TRUE), add = TRUE)
   # copy everything except the table data file itself, so the $TAB record's
   # FILE=run16tab can't be resolved and xpose downgrades that read failure
   # to a warning instead of an error (see read_nm_tables())

@@ -25,5 +25,12 @@ make_bbr_fixture <- function(id = "18", description = "test model", finished = T
     writeLines("{}", file.path(out_dir, "bbi_config.json"))
   }
 
-  bbr::new_model(file.path(mod_dir, id), .description = description)
+  # Callers are responsible for `on.exit(unlink(attr(mod, "fixture_dir"),
+  # recursive = TRUE), add = TRUE)` -- this dir lives under tempfile()'s own
+  # tempdir() base, so it's nested under the test session's tempdir() and
+  # would be swept up on normal exit regardless, but cleaning it up per-test
+  # keeps it from accumulating for the whole run.
+  mod <- bbr::new_model(file.path(mod_dir, id), .description = description)
+  attr(mod, "fixture_dir") <- mod_dir
+  mod
 }
