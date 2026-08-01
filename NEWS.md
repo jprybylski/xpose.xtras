@@ -17,6 +17,9 @@
 * `irep()` is no longer deprecated in favor of `xpose::irep()` for
   `xpose` >= 0.5.0: `xpose` reverted that upstream fix, so this package's
   version is needed again regardless of the installed `xpose` version.
+* `catdv_vs_ipred()` no longer triggers a spurious `ggplot2` lifecycle
+  warning (incorrectly blaming `xpose`) by mapping `size` to its line
+  layer, where it's deprecated in favor of `linewidth`. (#75)
 
 # xpose.xtras 0.2.0
 
