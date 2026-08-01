@@ -76,13 +76,19 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
   )
 
   # Get column type names for each type from .positions
+  # xpose.xtras :: tidyselect::eval_select() disambiguates multiple columns
+  # selected under one name (e.g. eta = matches("ETA\\d")) by appending an
+  # integer suffix (eta1, eta2, ...); anchor the match so a type name that
+  # happens to be a prefix of another (e.g. "id" of "idv", "a" of "amt")
+  # can't also swallow that other type's columns (#76).
   .coltypes <- purrr::map(.types, ~ {
+    pat <- paste0("^", .x, "\\d*$")
     cols <- c()
     for (i in seq_along(.positions)) {
       pos <- .positions[[i]]
       pnames <- names(pos)
       dnames <- names(dat$data[[i]])
-      cols <- c(cols, dnames[pos[startsWith(pnames, .x)]])
+      cols <- c(cols, dnames[pos[grepl(pat, pnames)]])
     }
     unique(cols)
   })
@@ -91,10 +97,23 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
   .coltypes <- .coltypes[purrr::map_lgl(.coltypes, function(.x) length(.x)>0)]
   if (length(.coltypes)==0) return(xpdb)
 
+  # xpose.xtras :: xpose::set_var_types() recovers the type from `...`'s
+  # names via `c(...)` + stripping a *single* trailing digit (to undo the
+  # integer suffix R adds when one named argument holds a multi-element
+  # vector, e.g. c(eta = c("ETA1", "ETA2")) -> names "eta1", "eta2"). That
+  # only round-trips for up to 9 columns per type: a 10th+ column like
+  # "eta10" strips to "eta1", silently corrupting the type (#76). Passing
+  # each column as its own same-named argument instead sidesteps this,
+  # since c(eta = "ETA1", eta = "ETA2", ...) keeps every name as plain
+  # "eta" with no numbering, however many columns there are.
+  .coltypes_flat <- purrr::flatten(purrr::imap(.coltypes, function(cols, type) {
+    stats::setNames(as.list(cols), rep(type, length(cols)))
+  }))
+
   out <- rlang::exec(xpose::set_var_types,
                xpdb = xpdb,
                .problem = .problem,
-               !!!.coltypes,
+               !!!.coltypes_flat,
                auto_factor = auto_factor,
                quiet = quiet)
   as_xpdb_x(out)

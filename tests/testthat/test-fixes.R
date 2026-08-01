@@ -45,6 +45,44 @@ test_that("set_var_types with tidyselect", {
 
 })
 
+test_that("set_var_types_x doesn't let one type's columns overflow into another type (issue #76)", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  # "id" is a prefix of "idv": a naive startsWith() match on tidyselect's
+  # disambiguated names would let idv's column also be claimed by id.
+  xpdb_2 <- set_var_types_x(xpdb_ex_pk, .problem = 1, idv = TAD, id = ID)
+
+  xpose::xp_var(xpdb_2, .problem = 1, type = "idv") %>%
+    dplyr::pull(col) %>%
+    expect_setequal("TAD")
+
+  xpose::xp_var(xpdb_2, .problem = 1, type = "id") %>%
+    dplyr::pull(col) %>%
+    expect_setequal("ID")
+
+  # A single type selecting 10+ columns: xpose::set_var_types() recovers a
+  # column's type by stripping a single trailing digit off names like
+  # "eta10" (added by base R's c(name = <multi-element vector>) to
+  # disambiguate), which mangles "eta10"/"eta11"/... into "eta1" instead of
+  # "eta". Add extra ETA-like columns so matches() selects more than 9.
+  extra_etas <- paste0("ETA", 4:12)
+  xpdb_many <- xpdb_ex_pk
+  xpdb_many$data$data[[1]] <- dplyr::bind_cols(
+    xpdb_many$data$data[[1]],
+    stats::setNames(as.list(rep(1, length(extra_etas))), extra_etas)
+  )
+  xpdb_many$data$index[[1]] <- dplyr::bind_rows(
+    xpdb_many$data$index[[1]],
+    tibble::tibble(table = "patab001", col = extra_etas, type = "na", label = NA, units = NA)
+  )
+
+  xpdb_many_2 <- set_var_types_x(xpdb_many, .problem = 1, eta = matches("^ETA\\d+$"))
+
+  xpose::xp_var(xpdb_many_2, .problem = 1, type = "eta") %>%
+    dplyr::pull(col) %>%
+    expect_setequal(paste0("ETA", 1:12))
+})
+
 test_that("set_var_types_x falls back to a non-strict selection (with a warning) when a column is missing from some problems", {
   data("xpdb_ex_pk", package = "xpose", envir = environment())
 

@@ -20,6 +20,9 @@
 * `catdv_vs_ipred()` no longer triggers a spurious `ggplot2` lifecycle
   warning (incorrectly blaming `xpose`) by mapping `size` to its line
   layer, where it's deprecated in favor of `linewidth`. (#75)
+* `set_var_types_x()` no longer mistypes columns when a `tidyselect`
+  expression matches 10+ columns for one type (e.g. `eta = matches(...)`),
+  or when one type name is a prefix of another (e.g. `id`/`idv`). (#76)
 
 # xpose.xtras 0.2.0
 
