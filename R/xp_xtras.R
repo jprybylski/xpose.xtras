@@ -86,6 +86,51 @@ as_xpdb_x <- function(x) {
 #' @export
 as_xp_xtras <- function(x) as_xpdb_x(x)
 
+#' Read model outputs directly into an `xp_xtras` object
+#'
+#' @description
+#' Convenience wrapper equivalent to
+#' `xpose::xpose_data(...) %>% as_xp_xtras()`. `xpose::xpose_data()`'s
+#' `quiet` argument already controls its own informative messages, but not
+#' warnings raised while parsing NONMEM tables -- e.g. `readr` surfacing
+#' every oddly formatted or `NaN`/`Inf` value it had to coerce, one
+#' warning per table, which can drown out a warning that actually
+#' matters. `dplyr` (>= 1.1.2, already required by this package) batches
+#' any warnings raised inside a single `dplyr::mutate()` call -- which is
+#' how `xpose` reads each table -- into one `rlang_warning` per call
+#' rather than letting each one through individually.
+#'
+#' By default, `xtras_data()` silences those (and only those) warnings;
+#' pass `warn = TRUE` to see them as `xpose::xpose_data()` would raise
+#' them. Warnings `xpose::xpose_data()` raises directly -- e.g. a table or
+#' output file it couldn't find at all -- are unaffected either way, since
+#' those indicate an actual problem rather than value-level noise.
+#'
+#' @param ... Passed to [xpose::xpose_data()]
+#' @param warn <`logical`> If `FALSE` (default), `rlang_warning`-class
+#' warnings raised while reading are silenced. If `TRUE`, all warnings
+#' are passed through unmodified.
+#'
+#' @return An <`xp_xtras`> object
+#' @export
+#'
+#' @seealso [xpose::xpose_data()], [as_xpdb_x()]
+#'
+#' @examples
+#' xtras_data(file = file.path(
+#'   system.file("pheno_saemimp", package = "xpose.xtras"), "run18.lst"
+#' ))
+xtras_data <- function(..., warn = FALSE) {
+  read_and_convert <- function() xpose::xpose_data(...) %>% as_xp_xtras()
+
+  if (isTRUE(warn)) return(read_and_convert())
+
+  withCallingHandlers(
+    read_and_convert(),
+    rlang_warning = function(w) invokeRestart("muffleWarning")
+  )
+}
+
 #'
 #' @rdname xp_xtras
 #' @order 3
