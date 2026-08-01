@@ -578,3 +578,50 @@ test_that("as_xpdb_x applies session-wide default gg_theme/xp_theme options", {
   expect_identical(x_already$xp_theme$point_color, baseline$xp_theme$point_color)
   options(xpose.xtras.xp_theme = NULL)
 })
+
+test_that("xtras_data silences warnings raised while reading by default", {
+  lst_file <- file.path(system.file("pheno_saemimp", package = "xpose.xtras"), "run18.lst")
+
+  # sanity check: the bundled fixture is known to trigger a warning while
+  # reading (an unrelated `eigen_header` quirk in xpose's own summary code),
+  # so this is a real, not hypothetical, source of warning chatter
+  expect_warning(xpose::xpose_data(file = lst_file, quiet = TRUE))
+
+  expect_no_warning(xpdb <- xtras_data(file = lst_file, quiet = TRUE))
+  expect_true(is_xp_xtras(xpdb))
+  expect_true(check_xpdb_x(xpdb))
+})
+
+test_that("xtras_data still surfaces warnings that indicate a real read failure", {
+  src_dir <- system.file("pheno_saemimp", package = "xpose.xtras")
+  tmp_dir <- tempfile("xtras_data_missing_table")
+  dir.create(tmp_dir)
+  # copy everything except the table data file itself, so the $TAB record's
+  # FILE=run16tab can't be resolved and xpose downgrades that read failure
+  # to a warning instead of an error (see read_nm_tables())
+  files <- setdiff(list.files(src_dir), "run16tab")
+  file.copy(file.path(src_dir, files), tmp_dir)
+
+  expect_warning(
+    xpdb <- xtras_data(file = file.path(tmp_dir, "run18.lst"), quiet = TRUE),
+    regexp = "No table files could be found"
+  )
+  expect_true(is_xp_xtras(xpdb))
+  expect_null(xpdb$data)
+})
+
+test_that("xtras_data(warn = TRUE) passes warnings through unmodified", {
+  lst_file <- file.path(system.file("pheno_saemimp", package = "xpose.xtras"), "run18.lst")
+
+  expect_warning(
+    xpdb <- xtras_data(file = lst_file, quiet = TRUE, warn = TRUE),
+    regexp = "eigen_header"
+  )
+  expect_true(is_xp_xtras(xpdb))
+})
+
+test_that("xtras_data still lets informative messages through", {
+  lst_file <- file.path(system.file("pheno_saemimp", package = "xpose.xtras"), "run18.lst")
+
+  expect_message(xtras_data(file = lst_file, quiet = FALSE))
+})

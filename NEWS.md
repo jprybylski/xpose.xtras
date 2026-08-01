@@ -2,6 +2,14 @@
 
 # xpose.xtras (development version)
 
+## New features
+
+* Added `xtras_data()`, a wrapper around `xpose::xpose_data() %>%
+  as_xp_xtras()` that silences the `rlang_warning`-batched chatter
+  `readr`/`dplyr` can raise while parsing tables with `NaN`/`Inf` or
+  otherwise oddly formatted values, without hiding warnings that indicate
+  an actual read failure. `xp_from_bbr()` now uses it internally. (#77)
+
 ## Bug fixes
 
 * Fixed a critical bug where any `xpdb$foo <- value`/`xpdb[["foo"]] <- value`

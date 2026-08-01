@@ -17,6 +17,10 @@ make_bbr_fixture <- function(id = "18", description = "test model", finished = T
       file.path(out_dir, paste0(id, ".", sub("^run18\\.", "", f)))
     )
   }
+  # run18.mod's $TAB record hardcodes FILE=run16tab (a leftover from the
+  # original run this example was copied from), so xpose looks for that
+  # literal name regardless of `id` -- copy it in unrenamed.
+  file.copy(file.path(src_dir, "run16tab"), file.path(out_dir, "run16tab"))
   if (finished) {
     writeLines("{}", file.path(out_dir, "bbi_config.json"))
   }
