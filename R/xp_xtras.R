@@ -754,7 +754,7 @@ list_vars.xp_xtras <- function(xpdb, .problem = NULL, ...) {
   order <- c(
     "id", "dv", "catdv", "dvprobs", "expdv", "idv", "tad",
     "dvid", "occ", "amt", "evid", "mdv", "pred", "ipred",
-    "param", "eta", "iofv", "res", "catcov", "contcov",
+    "param", "eta", "shk", "iofv", "res", "catcov", "contcov",
     "a", "bin", "na"
   )
   cli::cli({
@@ -841,6 +841,7 @@ list_vars.xp_xtras <- function(xpdb, .problem = NULL, ...) {
                 type == "contcov" ~ "Continuous covariates",
                 type == "param" ~ "Model parameter",
                 type == "eta" ~ "Eta",
+                type == "shk" ~ "Shrinkage contribution",
                 type == "iofv" ~ "Individual OFV",
                 type == "bin" ~ "Binned IDV",
                 type == "a" ~ "Compartment amounts",

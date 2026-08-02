@@ -196,25 +196,25 @@ test_that("individual eta-cov plots", {
 test_that("errors and special plot circumstances are correctly caught", {
   expect_error(
     vismo_pomod %>% eta_grid(etavar = P1, quiet = TRUE),
-    "should only include etas.*P1"
+    "should only include eta.*P1"
   )
   expect_error(
     vismo_pomod %>%
       set_var_types(catcov=COHORT,contcov=AGE) %>%
       eta_vs_cov_grid(etavar = P1, quiet = TRUE, drop_fixed = FALSE),
-    "should only include etas.*P1"
+    "should only include eta.*P1"
   )
   expect_error(
     vismo_pomod %>%
       set_var_types(catcov=COHORT,contcov=AGE) %>%
       eta_vs_contcov(etavar = P1, quiet = TRUE, drop_fixed = FALSE),
-    "should only include etas.*P1"
+    "should only include eta.*P1"
   )
   expect_error(
     vismo_pomod %>%
       set_var_types(catcov=COHORT,contcov=AGE) %>%
       eta_vs_catcov(etavar = P1, quiet = TRUE, drop_fixed = FALSE),
-    "should only include etas.*P1"
+    "should only include eta.*P1"
   )
   expect_error(
     pheno_base %>% cov_grid(covtypes = "bbb", quiet=TRUE),
@@ -264,19 +264,19 @@ test_that("no cov and no eta cases", {
   expect_error(
     xpdb_x_nocov %>%
       eta_vs_cov_grid(),
-    "No contcov or catcov"
+    "No.*cont.*cat.*covariate column found"
   )
   expect_error(
     xpdb_x_nocov %>%
       set_var_types(catcov=SEX) %>%
       eta_vs_cov_grid(covtypes ="cont"),
-    "No contcov col"
+    "No.*cont.*covariate column found"
   )
   expect_error(
     xpdb_x_nocov %>%
       set_var_types(contcov=AGE) %>%
       eta_vs_cov_grid(covtypes ="cat"),
-    "No catcov col"
+    "No.*cat.*covariate column found"
   )
   suppressMessages(expect_no_error(
     xpdb_x_nocov %>%
@@ -489,4 +489,132 @@ test_that("cov_forest errors informatively when show_ref = FALSE removes every r
     cov_forest(x, show_ref = FALSE, quiet = TRUE),
     "No rows left to plot after.*show_ref = FALSE"
   )
+})
+
+test_that("shk grid plots appear as expected", {
+  xpdb_shk <- xpdb_x %>% set_option(quiet = TRUE) %>% backfill_shk(quiet = TRUE)
+  shk_cols <- xp_var(xpdb_shk, type = "shk")$col
+
+  shk1_grid <- shk_grid(xpdb_shk, shkvar = ETA1_SHK)
+  expect_setequal(names(shk1_grid$data), "ETA1_SHK")
+  shk12_grid <- shk_grid(xpdb_shk, shkvar = c(ETA1_SHK, ETA2_SHK))
+  expect_setequal(names(shk12_grid$data), c("ETA1_SHK", "ETA2_SHK"))
+
+  cont_p <- shk_vs_cov_grid(xpdb_shk, covtypes = "cont")
+  expect_setequal(
+    names(cont_p$data),
+    c(shk_cols, xp_var(xpdb_shk, type = "contcov")$col)
+  )
+  cat_p <- shk_vs_cov_grid(xpdb_shk, covtypes = "cat")
+  expect_setequal(
+    names(cat_p$data),
+    c(shk_cols, xp_var(xpdb_shk, type = "catcov")$col)
+  )
+
+  onecol_p <- shk_vs_cov_grid(xpdb_shk, cols = CLCR, shkvar = ETA1_SHK)
+  expect_identical(names(onecol_p$data), c("CLCR", "ETA1_SHK"))
+  onecol_p_rev <- shk_vs_cov_grid(xpdb_shk, cols = CLCR, shkvar = ETA1_SHK, shkcov = FALSE)
+  expect_identical(names(onecol_p_rev$data), c("ETA1_SHK", "CLCR"))
+})
+
+test_that("individual shk-cov plots", {
+  xpdb_shk <- xpdb_x %>% set_option(quiet = TRUE) %>% backfill_shk(quiet = TRUE)
+  shk_cols <- xp_var(xpdb_shk, type = "shk")$col
+
+  expect_s3_class(
+    shk_vs_contcov(xpdb_shk, shkvar = ETA1_SHK),
+    "xpose_plot"
+  )
+  expect_length(shk_vs_contcov(xpdb_shk), length(shk_cols))
+
+  expect_s3_class(
+    shk_vs_catcov(xpdb_shk, shkvar = ETA1_SHK),
+    "xpose_plot"
+  )
+  expect_length(shk_vs_catcov(xpdb_shk), length(shk_cols))
+
+  expect_true(
+    any(grepl("N\\s*=\\s*\\d", shk_vs_catcov(xpdb_shk, shkvar = ETA1_SHK)$data$value))
+  )
+  expect_false(
+    any(grepl("N\\w*=\\w*\\d", shk_vs_catcov(xpdb_shk, shkvar = ETA1_SHK, show_n = FALSE)$data$value))
+  )
+
+  expect_failure(expect_identical(
+    shk_vs_catcov(xpdb_shk, shkvar = ETA1_SHK),
+    shk_vs_catcov(xpdb_shk, shkvar = ETA1_SHK, orientation = "y")
+  ))
+})
+
+test_that("shk plot errors are correctly caught", {
+  # No shk columns backfilled yet
+  expect_error(
+    shk_grid(xpdb_x, quiet = TRUE),
+    "No shrinkage contribution column"
+  )
+  expect_error(
+    shk_vs_cov_grid(xpdb_x, quiet = TRUE),
+    "No shrinkage contribution column"
+  )
+  expect_error(
+    shk_vs_contcov(xpdb_x, quiet = TRUE),
+    "No shrinkage contribution column"
+  )
+  expect_error(
+    shk_vs_catcov(xpdb_x, quiet = TRUE),
+    "No shrinkage contribution column"
+  )
+
+  xpdb_shk <- xpdb_x %>% set_option(quiet = TRUE) %>% backfill_shk(quiet = TRUE)
+
+  expect_error(
+    shk_grid(xpdb_shk, shkvar = ID, quiet = TRUE),
+    "should only include shrinkage contribution.*ID"
+  )
+  expect_error(
+    shk_vs_cov_grid(xpdb_shk, shkvar = ID, quiet = TRUE),
+    "should only include shrinkage contribution.*ID"
+  )
+  expect_error(
+    shk_vs_contcov(xpdb_shk, shkvar = ID, quiet = TRUE),
+    "should only include shrinkage contribution.*ID"
+  )
+  expect_error(
+    shk_vs_catcov(xpdb_shk, shkvar = ID, quiet = TRUE),
+    "should only include shrinkage contribution.*ID"
+  )
+
+  expect_error(
+    shk_vs_cov_grid(xpdb_shk, covtypes = "bbb", quiet = TRUE),
+    "Invalid.*bbb"
+  )
+  expect_error(
+    shk_vs_cov_grid(xpdb_shk, cols = WT, covtypes = "cat", quiet = TRUE),
+    "should only include.*cat.*WT"
+  )
+})
+
+test_that("pairs_opts named entries are forwarded to xplot_pairs (shk grid plots)", {
+  xpdb_shk <- xpdb_x %>% set_option(quiet = TRUE) %>% backfill_shk(quiet = TRUE)
+
+  expect_no_error(
+    shk_grid(xpdb_shk, shkvar = c(ETA1_SHK, ETA2_SHK),
+             pairs_opts = list(contcont_opts = list(stars = TRUE)), quiet = TRUE)
+  )
+  expect_no_error(
+    shk_vs_cov_grid(xpdb_shk, covtypes = "cont",
+                    pairs_opts = list(catcont_opts = list()), quiet = TRUE)
+  )
+})
+
+test_that("shk_vs_contcov linsm=TRUE uses an lm smooth method", {
+  xpdb_shk <- xpdb_x %>% set_option(quiet = TRUE) %>% backfill_shk(quiet = TRUE)
+
+  p_lm <- shk_vs_contcov(xpdb_shk, shkvar = ETA1_SHK, linsm = TRUE, quiet = TRUE)
+  smooth_layer <- p_lm$layers[[which(purrr::map_chr(p_lm$layers, ~class(.x$geom)[1]) == "GeomSmooth")]]
+  expect_equal(smooth_layer$stat_params$method, "lm")
+
+  p_theme <- shk_vs_contcov(xpdb_shk, shkvar = ETA1_SHK, linsm = FALSE, quiet = TRUE)
+  smooth_layer_theme <- p_theme$layers[[which(purrr::map_chr(p_theme$layers, ~class(.x$geom)[1]) == "GeomSmooth")]]
+  expect_false(identical(smooth_layer_theme$stat_params$method, "lm"))
 })
