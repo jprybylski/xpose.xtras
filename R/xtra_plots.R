@@ -308,6 +308,72 @@ apply_lul_wide <- function(xpdb, cols=NULL, lvl_cols=NULL, .problem=NULL, show_n
 }
 
 #########
+# Column resolution/grid-plot option helpers
+#########
+
+# Resolve a tidyselect (or, if `varsel` is a null quosure, every column of
+# the given var type(s)) against xpdb's data, drop fixed columns, and
+# validate the result actually belongs to those type(s). This is the
+# column-resolution block shared by the eta_*/cov_*/shk_* plot family
+# (see covariates.R).
+#
+# Callers must build `varsel` as its own statement (`q <- rlang::enquo(x);
+# resolve_var_cols(..., varsel = q)`), not inline (`varsel =
+# rlang::enquo(x)`) -- enquo() has to run in the frame that owns `x`'s
+# promise, and an inline call is instead forced lazily from inside this
+# function's frame, silently capturing the wrong (and useless) quosure.
+# Callers must also reassign their own tidyselect argument (eg `etavar <-
+# eta_col`) to the resolved result afterwards: aes()/ggplot() captures the
+# caller's whole frame as `.Environment`, and `x`'s original promise (eg
+# the bare symbol `ETA1`) is not valid outside a data-mask context --
+# forced later (eg by waldo::compare()/expect_identical() walking that
+# environment), it errors with "object 'ETA1' not found". Overwriting the
+# binding with the already-resolved character vector avoids that.
+resolve_var_cols <- function(xpdb, .problem, type, varsel, drop_fixed, quiet,
+                              arg_name, label) {
+  all_cols <- c()
+  for (t in type) {
+    all_cols <- c(all_cols, xpose::xp_var(xpdb, .problem, type = t, silent = TRUE)$col)
+  }
+  if (length(all_cols) == 0) {
+    cli::cli_abort("No {label} column found in the xpdb data index.")
+  }
+  if (rlang::quo_is_null(varsel)) {
+    sel_cols <- all_cols
+  } else {
+    sel_cols <- dplyr::select(
+      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
+      !!varsel
+    ) %>%
+      names() %>%
+      unique()
+  }
+  if (drop_fixed) {
+    sel_cols <- xpose::drop_fixed_cols(xpdb, .problem, cols = sel_cols, quiet = quiet)
+  }
+  if (is.null(sel_cols) || length(sel_cols) == 0) {
+    cli::cli_abort("No usable {label} column found in the xpdb data index.")
+  }
+  if (any(!sel_cols %in% all_cols)) {
+    cli::cli_abort("`{arg_name}` should only include {label} columns, which does not seem to apply to: {setdiff(sel_cols, all_cols)}")
+  }
+  sel_cols
+}
+
+# Build xplot_pairs()'s `*_opts` arguments from a user-supplied override
+# list, keeping the package default for anything not overridden. Shared by
+# eta_grid()/cov_grid()/eta_vs_cov_grid()/shk_grid()/shk_vs_cov_grid().
+pairs_opts_defaults <- function(pairs_opts) {
+  formals(xplot_pairs) %>%
+    names() %>%
+    stringr::str_subset("_opts$") %>%
+    rlang::set_names(., .) %>%
+    purrr::map(~ {
+      if (.x %in% names(pairs_opts)) pairs_opts[[.x]] else list()
+    })
+}
+
+#########
 # Utility functions
 #########
 

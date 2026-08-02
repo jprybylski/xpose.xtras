@@ -18,6 +18,9 @@
 * Added a new `shk` variable type, plus `derive_shk()`/`backfill_shk()` to
   populate it: a per-individual eta shrinkage contribution diagnostic
   (`log((eta - mean(eta))^2)`). (#78)
+* Added `shk_grid()`/`shk_vs_cov_grid()`/`shk_vs_contcov()`/
+  `shk_vs_catcov()`, mirroring `eta_grid()`/`eta_vs_cov_grid()`/
+  `eta_vs_contcov()`/`eta_vs_catcov()` for the new `shk` diagnostic. (#78)
 
 ## Bug fixes
 

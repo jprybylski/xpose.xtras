@@ -70,26 +70,13 @@ eta_grid <- function(xpdb,
   if (missing(quiet)) quiet <- xpdb$options$quiet
 
   # Get eta col(s)
-  all_eta_cols <- xpose::xp_var(xpdb, .problem, type = 'eta')$col
-  if (rlang::quo_is_null(rlang::enquo(etavar))) {
-    etavar <- all_eta_cols
-  } else {
-    etavar <- dplyr::select(
-      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
-      {{etavar}}
-    ) %>% names() %>% unique()
-  }
-
-  eta_col <- etavar
-  if (drop_fixed) {
-    eta_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = eta_col, quiet = quiet)
-  }
-  if (is.null(eta_col)) {
-    rlang::abort('No usable eta column found in the xpdb data index.')
-  }
-  if (any(!eta_col %in% all_eta_cols)) {
-    cli::cli_abort("`etavar` should only include etas, which does not seem to apply to: {setdiff(eta_col, xpose::xp_var(xpdb, .problem, type = 'eta')$col)}")
-  }
+  .etavar_quo <- rlang::enquo(etavar)
+  eta_col <- resolve_var_cols(
+    xpdb, .problem, type = 'eta', varsel = .etavar_quo,
+    drop_fixed = drop_fixed, quiet = quiet,
+    arg_name = 'etavar', label = 'eta'
+  )
+  etavar <- eta_col # overwrite the raw promise -- see resolve_var_cols() note
 
   # Eta label consistency
   if (xpose::software(xpdb) == 'nonmem') {
@@ -113,11 +100,7 @@ eta_grid <- function(xpdb,
                          post_processing = post_processing)
 
   if (missing(pairs_opts)) pairs_opts <- list()
-  pairs_opts_ <- formals(xplot_pairs) %>%
-    names() %>%
-    stringr::str_subset("_opts$") %>%
-    rlang::set_names(.,.) %>%
-    purrr::map(~{if (.x %in% names(pairs_opts)) pairs_opts[[.x]] else list()})
+  pairs_opts_ <- pairs_opts_defaults(pairs_opts)
 
   xplot_pairs(
     xpdb,
@@ -168,26 +151,13 @@ cov_grid <- function(xpdb,
     cli::cli_abort("Invalid `covtype`(s): {setdiff(covtypes, valid_covtypes)}")
   }
   get_govs <- paste0(covtypes, "cov")
-  all_cov_cols <- xp_var(xpdb, .problem, type = get_govs)$col
-  if (rlang::quo_is_null(rlang::enquo(cols))) {
-    covvar <- all_cov_cols
-  } else {
-    covvar <- dplyr::select(
-      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
-      {{cols}}
-    ) %>% names() %>% unique()
-  }
-
-  cov_col <- covvar
-  if (drop_fixed) {
-    cov_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = cov_col, quiet = quiet)
-  }
-  if (is.null(cov_col)) {
-    rlang::abort('No usable covariate column found in the xpdb data index.')
-  }
-  if (any(!cov_col %in% all_cov_cols)) {
-    cli::cli_abort("`cols` should only include ({covtypes}) covariates, which does not seem to apply to: {setdiff(cov_col, all_cov_cols)}")
-  }
+  .cols_quo <- rlang::enquo(cols)
+  cov_col <- resolve_var_cols(
+    xpdb, .problem, type = get_govs, varsel = .cols_quo,
+    drop_fixed = drop_fixed, quiet = quiet,
+    arg_name = 'cols', label = paste0("(", paste(covtypes, collapse = ", "), ") covariate")
+  )
+  cols <- cov_col # overwrite the raw promise -- see resolve_var_cols() note
 
   # Set cov factor to label and units, if relevant
   lvld_cov <- cov_col[cov_col %in% xp_var(xpdb, .problem, type = "catcov")$col]
@@ -213,11 +183,7 @@ cov_grid <- function(xpdb,
                          post_processing = post_processing)
 
   if (missing(pairs_opts)) pairs_opts <- list()
-  pairs_opts_ <- formals(xplot_pairs) %>%
-    names() %>%
-    stringr::str_subset("_opts$") %>%
-    rlang::set_names(.,.) %>%
-    purrr::map(~{if (.x %in% names(pairs_opts)) pairs_opts[[.x]] else list()})
+  pairs_opts_ <- pairs_opts_defaults(pairs_opts)
 
   xplot_pairs(
     xpdb,
@@ -264,18 +230,13 @@ eta_vs_cov_grid <- function(xpdb,
   if (missing(quiet)) quiet <- xpdb$options$quiet
 
   # Get eta col(s)
-  all_eta_cols <- xpose::xp_var(xpdb, .problem, type = 'eta', silent = TRUE)$col
-  if (is.null(all_eta_cols)) {
-    cli::cli_abort("No eta column found in the xpdb data index.")
-  }
-  if (rlang::quo_is_null(rlang::enquo(etavar))) {
-    etavar <- all_eta_cols
-  } else {
-    etavar <- dplyr::select(
-      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
-      {{etavar}}
-    ) %>% names() %>% unique()
-  }
+  .etavar_quo <- rlang::enquo(etavar)
+  eta_col <- resolve_var_cols(
+    xpdb, .problem, type = 'eta', varsel = .etavar_quo,
+    drop_fixed = drop_fixed, quiet = quiet,
+    arg_name = 'etavar', label = 'eta'
+  )
+  etavar <- eta_col # overwrite the raw promise -- see resolve_var_cols() note
 
   # Get cov col(s)
   valid_covtypes <- eval(formals()$covtypes)
@@ -283,36 +244,13 @@ eta_vs_cov_grid <- function(xpdb,
     cli::cli_abort("Invalid `covtype`(s): {setdiff(covtypes, valid_covtypes)}")
   }
   get_govs <- paste0(covtypes, "cov")
-  all_cov_cols <- c()
-  for (covvar in get_govs) # catch no-/low-covariate situations
-    all_cov_cols <- c(all_cov_cols,xp_var(xpdb, .problem, type = covvar, silent=TRUE)$col)
-  if (length(all_cov_cols)==0) {
-    cli::cli_abort("No {paste(get_govs, collapse=' or ')} column found in the xpdb data index.")
-  }
-  if (rlang::quo_is_null(rlang::enquo(cols))) {
-    covvar <- all_cov_cols
-  } else {
-    covvar <- dplyr::select(
-      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
-      {{cols}}
-    ) %>% names() %>% unique()
-  }
-
-  eta_col <- etavar
-  cov_col <- covvar
-  if (drop_fixed) {
-    eta_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = eta_col, quiet = quiet)
-    cov_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = cov_col, quiet = quiet)
-  }
-  if (is.null(eta_col) || is.null(cov_col)) {
-    rlang::abort('No usable eta or covariate column found in the xpdb data index.')
-  }
-  if (any(!cov_col %in% all_cov_cols)) {
-    cli::cli_abort("`cols` should only include ({covtypes}) covariates, which does not seem to apply to: {setdiff(cov_col, all_cov_cols)}")
-  }
-  if (any(!eta_col %in% all_eta_cols)) {
-    cli::cli_abort("`etavar` should only include etas, which does not seem to apply to: {setdiff(eta_col, xpose::xp_var(xpdb, .problem, type = 'eta', silent=TRUE)$col)}")
-  }
+  .cols_quo <- rlang::enquo(cols)
+  cov_col <- resolve_var_cols(
+    xpdb, .problem, type = get_govs, varsel = .cols_quo,
+    drop_fixed = drop_fixed, quiet = quiet,
+    arg_name = 'cols', label = paste0("(", paste(covtypes, collapse = ", "), ") covariate")
+  )
+  cols <- cov_col # overwrite the raw promise -- see resolve_var_cols() note
 
   # Eta label consistency
   if (xpose::software(xpdb) == 'nonmem') {
@@ -361,12 +299,7 @@ eta_vs_cov_grid <- function(xpdb,
                          post_processing = post_processing)
 
   if (missing(pairs_opts)) pairs_opts <- list()
-  pairs_opts_ <- formals(xplot_pairs) %>%
-    names() %>%
-    stringr::str_subset("_opts$") %>%
-    rlang::set_names(.,.) %>%
-    purrr::map(~{if (.x %in% names(pairs_opts)) pairs_opts[[.x]] else list()})
-
+  pairs_opts_ <- pairs_opts_defaults(pairs_opts)
 
   xplot_pairs(
     xpdb,
@@ -449,26 +382,19 @@ eta_vs_contcov <- function(xpdb,
                                                       variable = 'variable')
 
   # Get eta col(s)
-  if (rlang::quo_is_null(rlang::enquo(etavar))) {
-    etavar <- xpose::xp_var(xpdb, .problem, type = 'eta')$col
-  } else {
-    etavar <- dplyr::select(
-      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
-      {{etavar}}
-    ) %>% names() %>% unique()
-  }
-
-  eta_col <- etavar
+  .etavar_quo <- rlang::enquo(etavar)
+  eta_col <- resolve_var_cols(
+    xpdb, .problem, type = 'eta', varsel = .etavar_quo,
+    drop_fixed = drop_fixed, quiet = quiet,
+    arg_name = 'etavar', label = 'eta'
+  )
+  etavar <- eta_col # overwrite the raw promise -- see resolve_var_cols() note
   cov_col <- xpose::xp_var(xpdb, .problem, type = 'contcov')$col
   if (drop_fixed) {
-    eta_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = eta_col, quiet = quiet)
     cov_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = cov_col, quiet = quiet)
   }
-  if (is.null(eta_col) || is.null(cov_col)) {
-    rlang::abort('No usable eta or covariate column found in the xpdb data index.')
-  }
-  if (any(!eta_col %in% xpose::xp_var(xpdb, .problem, type = 'eta')$col)) {
-    cli::cli_abort("`etavar` should only include etas, which does not seem to apply to: {setdiff(eta_col, xpose::xp_var(xpdb, .problem, type = 'eta')$col)}")
+  if (is.null(cov_col)) {
+    rlang::abort('No usable continuous covariate column found in the xpdb data index.')
   }
 
   if (length(eta_col)>1) {
@@ -605,26 +531,19 @@ eta_vs_catcov <- function(xpdb,
                                                       variable = 'variable')
 
   # Get eta col(s)
-  if (rlang::quo_is_null(rlang::enquo(etavar))) {
-    etavar <- xpose::xp_var(xpdb, .problem, type = 'eta')$col
-  } else {
-    etavar <- dplyr::select(
-      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
-      {{etavar}}
-    ) %>% names() %>% unique()
-  }
-
-  eta_col <- etavar
+  .etavar_quo <- rlang::enquo(etavar)
+  eta_col <- resolve_var_cols(
+    xpdb, .problem, type = 'eta', varsel = .etavar_quo,
+    drop_fixed = drop_fixed, quiet = quiet,
+    arg_name = 'etavar', label = 'eta'
+  )
+  etavar <- eta_col # overwrite the raw promise -- see resolve_var_cols() note
   cov_col <- xpose::xp_var(xpdb, .problem, type = 'catcov')$col
   if (drop_fixed) {
-    eta_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = eta_col, quiet = quiet)
     cov_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = cov_col, quiet = quiet)
   }
-  if (is.null(eta_col) || is.null(cov_col)) {
-    rlang::abort('No usable eta or covariate column found in the xpdb data index.')
-  }
-  if (!any(eta_col %in% xpose::xp_var(xpdb, .problem, type = 'eta')$col)) {
-    cli::cli_abort("`etavar` should only include etas, which does not seem to apply to {setdiff(eta_col, xpose::xp_var(xpdb, .problem, type = 'eta')$col)}")
+  if (is.null(cov_col)) {
+    rlang::abort('No usable categorical covariate column found in the xpdb data index.')
   }
 
   if (length(eta_col)>1) {
@@ -681,6 +600,468 @@ eta_vs_catcov <- function(xpdb,
     vars <- xpose::aes_c(aes(
       y = .data[["value"]],
       x = .data[[eta_col]]), mapping)
+    yscale = "discrete"
+    xscale = xpose::check_scales('x', NULL)
+  }
+
+  really_quiet <- function(x) x
+  if (quiet) really_quiet <- function(x) suppressWarnings(x) # <- trivial reshape warning silenced
+
+  really_quiet(xplot_boxplot(
+    xpdb = xpdb,
+    quiet = quiet,
+    opt = opt,
+    mapping = vars,
+    type = type,
+    facets = facets,
+    xscale = xscale,
+    yscale = yscale,
+    orientation = orientation,
+    title = title,
+    subtitle = subtitle, caption = caption,
+    tag = tag,
+    plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
+    ...))
+}
+
+######
+# Shrinkage contribution plots
+######
+
+#' Shrinkage contribution grid plots
+#'
+#' @description
+#' These mirror [`eta_grid()`]/[`eta_vs_cov_grid()`], but for the
+#' per-individual shrinkage contribution diagnostic (`shk` type columns,
+#' see [`derive_shk()`]/[`backfill_shk()`]) instead of the etas
+#' themselves.
+#'
+#' @rdname shk_grid_plots
+#'
+#' @param xpdb <`xp_xtras`> or <`xpose_data`> object
+#' @param mapping `ggplot2` style mapping
+#' @param shkvar `tidyselect` for `shk` variables
+#' @param cols `tidyselect` for covariates variables
+#' @param covtypes Subset to specific covariate type?
+#' @param show_n Count the number of `ID`s in each category
+#' @param drop_fixed As in `xpose`
+#' @param title Plot title
+#' @param subtitle Plot subtitle
+#' @param caption Plot caption
+#' @param tag Plot tag
+#' @param shkcov For `shk_vs_cov_grid`, `shk` are sorted after covariates
+#' to give an `x` orientation to covariate relationships.
+#' @param pairs_opts List of arguments to pass to `_opts`. See <[`xplot_pairs`]>
+#' @param .problem Problem number
+#' @param quiet Silence extra debugging output
+#' @param ... Passed to `xplot_pairs`
+#'
+#' @return `xp_tras_plot` object
+#' @export
+#'
+#' @examples
+#' \donttest{
+#'
+#' xpdb_shk <- backfill_shk(xpdb_x)
+#' shk_grid(xpdb_shk)
+#' shk_vs_cov_grid(xpdb_shk)
+#' }
+shk_grid <- function(xpdb,
+                     mapping  = NULL,
+                     shkvar = NULL,
+                     drop_fixed = TRUE,
+                     title    = 'Shrinkage contribution correlations | @run',
+                     subtitle = 'Based on @nind individuals',
+                     caption  = '@dir',
+                     tag      = NULL,
+                     pairs_opts,
+                     .problem,
+                     quiet,
+                     ...) {
+  # Check input
+  xpose::check_xpdb(xpdb, check = 'data')
+  if (missing(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+
+  .shkvar_quo <- rlang::enquo(shkvar)
+  shk_col <- resolve_var_cols(
+    xpdb, .problem, type = 'shk', varsel = .shkvar_quo,
+    drop_fixed = drop_fixed, quiet = quiet,
+    arg_name = 'shkvar', label = 'shrinkage contribution'
+  )
+  shkvar <- shk_col # overwrite the raw promise -- see resolve_var_cols() note
+
+  opt <- xpose::data_opt(.problem = .problem,
+                         filter = xpose::only_distinct(xpdb, .problem, NULL, quiet),
+                         post_processing = function(x) dplyr::select(x, !!shk_col))
+
+  if (missing(pairs_opts)) pairs_opts <- list()
+  pairs_opts_ <- pairs_opts_defaults(pairs_opts)
+
+  xplot_pairs(
+    xpdb,
+    mapping   = mapping,
+    cont_opts = pairs_opts_$cont_opts,
+    dist_opts = pairs_opts_$dist_opts,
+    cat_opts = pairs_opts_$cat_opts,
+    contcont_opts = pairs_opts_$contcont_opts,
+    catcont_opts = pairs_opts_$catcont_opts,
+    catcat_opts = pairs_opts_$catcat_opts,
+    title     = title,
+    subtitle  = subtitle,
+    caption   = caption,
+    tag       = tag,
+    plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
+    opt=opt,
+    quiet=quiet,
+    ...
+  )
+}
+
+#' @rdname shk_grid_plots
+#' @export
+shk_vs_cov_grid <- function(xpdb,
+                            mapping  = NULL,
+                            shkvar = NULL,
+                            cols = NULL,
+                            covtypes = c("cont","cat"),
+                            show_n = TRUE,
+                            drop_fixed = TRUE,
+                            title    = 'Shrinkage contribution covariate correlations | @run',
+                            subtitle = 'Based on @nind individuals',
+                            caption  = '@dir',
+                            tag      = NULL,
+                            shkcov = TRUE,
+                            pairs_opts,
+                            .problem,
+                            quiet,
+                            ...) {
+  # Check input
+  xpose::check_xpdb(xpdb, check = 'data')
+  if (missing(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+
+  .shkvar_quo <- rlang::enquo(shkvar)
+  shk_col <- resolve_var_cols(
+    xpdb, .problem, type = 'shk', varsel = .shkvar_quo,
+    drop_fixed = drop_fixed, quiet = quiet,
+    arg_name = 'shkvar', label = 'shrinkage contribution'
+  )
+  shkvar <- shk_col # overwrite the raw promise -- see resolve_var_cols() note
+
+  valid_covtypes <- eval(formals()$covtypes)
+  if (is.null(covtypes) || any(!covtypes %in% valid_covtypes)) {
+    cli::cli_abort("Invalid `covtype`(s): {setdiff(covtypes, valid_covtypes)}")
+  }
+  get_govs <- paste0(covtypes, "cov")
+  .cols_quo <- rlang::enquo(cols)
+  cov_col <- resolve_var_cols(
+    xpdb, .problem, type = get_govs, varsel = .cols_quo,
+    drop_fixed = drop_fixed, quiet = quiet,
+    arg_name = 'cols', label = paste0("(", paste(covtypes, collapse = ", "), ") covariate")
+  )
+  cols <- cov_col # overwrite the raw promise -- see resolve_var_cols() note
+
+  # Set cov factor to label and units, if relevant
+  lvld_cov <- cov_col[cov_col %in% xp_var(xpdb, .problem, type = "catcov", silent = TRUE)$col]
+  if (!check_xpdb_x(xpdb, .warn=FALSE)) {
+    post_processing_cov <- apply_lul_wide(xpdb = xpdb, cols=cov_col, lvl_cols=lvld_cov, .problem = .problem)
+    if (show_n && !quiet) cli::cli_inform("Cannot show N unless xpdb is converted to a cross-compatible xp_xtras object. `as_xpdb_x()` should do this.")
+  } else {
+    post_processing_cov <- apply_lul_wide(xpdb = xpdb, cols=cov_col, lvl_cols=lvld_cov, .problem = .problem, show_n = show_n)
+  }
+
+  post_processing <- function(x) {
+    orig_names <- names(x)
+    proc_df <- post_processing_cov(x)
+    new_names <- names(proc_df)
+    # only return processed data
+    return_names <- new_names[match(cov_col, orig_names)]
+
+    if (shkcov) {
+      list_first <- return_names
+      list_second <- shk_col
+    } else {
+      list_first <- shk_col
+      list_second <- return_names
+    }
+
+    dplyr::select(proc_df, !!list_first, !!list_second)
+  }
+
+  opt <- xpose::data_opt(.problem = .problem,
+                         filter = xpose::only_distinct(xpdb, .problem, NULL, quiet),
+                         post_processing = post_processing)
+
+  if (missing(pairs_opts)) pairs_opts <- list()
+  pairs_opts_ <- pairs_opts_defaults(pairs_opts)
+
+  xplot_pairs(
+    xpdb,
+    mapping   = mapping,
+    cont_opts = pairs_opts_$cont_opts,
+    dist_opts = pairs_opts_$dist_opts,
+    cat_opts = pairs_opts_$cat_opts,
+    contcont_opts = pairs_opts_$contcont_opts,
+    catcont_opts = pairs_opts_$catcont_opts,
+    catcat_opts = pairs_opts_$catcat_opts,
+    title     = title,
+    subtitle  = subtitle,
+    caption   = caption,
+    tag       = tag,
+    plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
+    opt=opt,
+    quiet=quiet,
+    ...
+  )
+}
+
+#' Shrinkage contribution versus continuous covariates
+#'
+#' @description
+#' Mirrors [`eta_vs_contcov()`], but for the per-individual shrinkage
+#' contribution diagnostic (`shk` type columns, see
+#' [`derive_shk()`]/[`backfill_shk()`]) instead of the etas themselves.
+#'
+#' @param xpdb <`xp_xtras`> or <`xpose_data`> object
+#' @param mapping `ggplot2` style mapping
+#' @param shkvar `tidyselect` for `shk` variables
+#' @param drop_fixed As in `xpose`
+#' @param linsm If `type` contains "s" should the smooth method by `lm`?
+#' @param type Passed to `xplot_scatter`
+#' @param title Plot title
+#' @param subtitle Plot subtitle
+#' @param caption Plot caption
+#' @param tag Plot tag
+#' @param log Log scale covariate value?
+#' @param guide Add guide line?
+#' @param facets Additional facets
+#' @param .problem Problem number
+#' @param quiet Silence output
+#' @param ... Any additional aesthetics.
+#'
+#' @export
+#' @returns The desired plot
+#'
+#' @examples
+#' \donttest{
+#'
+#' xpdb_x %>%
+#'   backfill_shk() %>%
+#'   shk_vs_contcov()
+#' }
+shk_vs_contcov <- function(xpdb,
+                           mapping  = NULL,
+                           shkvar = NULL,
+                           drop_fixed = TRUE,
+                           linsm = FALSE,
+                           type     = 'ps',
+                           title    = 'Shrinkage contribution versus continuous covariates | @run',
+                           subtitle = 'Based on @nind individuals',
+                           caption  = '@dir',
+                           tag      = NULL,
+                           log      = NULL,
+                           guide    = TRUE,
+                           facets,
+                           .problem,
+                           quiet,
+                           ...) {
+  # Check input
+  xpose::check_xpdb(xpdb, check = 'data')
+  if (missing(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+
+  if (missing(facets)) facets <- xpose::add_facet_var(facets = xpdb$xp_theme$facets,
+                                                      variable = 'variable')
+
+  .shkvar_quo <- rlang::enquo(shkvar)
+  shk_col <- resolve_var_cols(
+    xpdb, .problem, type = 'shk', varsel = .shkvar_quo,
+    drop_fixed = drop_fixed, quiet = quiet,
+    arg_name = 'shkvar', label = 'shrinkage contribution'
+  )
+  shkvar <- shk_col # overwrite the raw promise -- see resolve_var_cols() note
+  cov_col <- xpose::xp_var(xpdb, .problem, type = 'contcov')$col
+  if (drop_fixed) {
+    cov_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = cov_col, quiet = quiet)
+  }
+  if (is.null(cov_col)) {
+    rlang::abort('No usable continuous covariate column found in the xpdb data index.')
+  }
+
+  if (length(shk_col)>1) {
+    return(purrr::map(shk_col, function(x) shk_vs_contcov(xpdb = xpdb,
+                                                          mapping  = mapping,
+                                                          shkvar = {{x}},
+                                                          drop_fixed = drop_fixed,
+                                                          linsm = linsm,
+                                                          type     = type,
+                                                          title    = title,
+                                                          subtitle = subtitle,
+                                                          caption  = caption,
+                                                          tag      = tag,
+                                                          log      = log,
+                                                          guide    = guide,
+                                                          facets=facets,
+                                                          .problem=.problem,
+                                                          quiet=quiet,
+                                                          ...)
+    ))
+  }
+
+  if (linsm) {
+    smooth_method <- "lm"
+  } else {
+    smooth_method <- xpdb$xp_theme$smooth_method
+  }
+
+  # Set cov factor to label and units, if relevant
+  post_processing <- apply_labels_units(xpdb = xpdb, .problem = .problem)
+
+  opt <- xpose::data_opt(.problem = .problem,
+                         filter = xpose::only_distinct(xpdb, .problem, facets, quiet),
+                         tidy = TRUE, value_col = cov_col, post_processing = post_processing)
+  vars <- xpose::aes_c(aes(
+    x = .data[["value"]],
+    y = .data[[shk_col]]), mapping)
+
+  xpose::xplot_scatter(
+    xpdb = xpdb,
+    quiet = quiet,
+    opt = opt,
+    mapping = vars,
+    type = type,
+    guide = guide,
+    facets = facets,
+    xscale = xpose::check_scales('x', log),
+    yscale = xpose::check_scales('y', NULL),
+    title = title,
+    subtitle = subtitle,
+    caption = caption,
+    tag = tag,
+    plot_name = stringr::str_remove(deparse(match.call()[[1]]), "(\\w+\\.*)+::"),
+    smooth_method = smooth_method,
+    guide_slope=0,
+    ...)
+}
+
+#' Shrinkage contribution versus categorical covariates
+#'
+#' @description
+#' Mirrors [`eta_vs_catcov()`], but for the per-individual shrinkage
+#' contribution diagnostic (`shk` type columns, see
+#' [`derive_shk()`]/[`backfill_shk()`]) instead of the etas themselves.
+#'
+#' @param xpdb <`xp_xtras`> or <`xpose_data`> object
+#' @param mapping `ggplot2` style mapping
+#' @param shkvar `tidyselect` for `shk` variables
+#' @param drop_fixed As in `xpose`
+#' @param orientation Passed to `xplot_boxplot`
+#' @param show_n Add "N=" to plot
+#' @param type Passed to `xplot_boxplot`
+#' @param title Plot title
+#' @param subtitle Plot subtitle
+#' @param caption Plot caption
+#' @param tag Plot tag
+#' @param facets Additional facets
+#' @param .problem Problem number
+#' @param quiet Silence output
+#' @param ... Any additional aesthetics.
+#'
+#' @export
+#'
+#' @returns The desired plot
+#'
+#' @examples
+#' \donttest{
+#'
+#' xpdb_x %>%
+#'   backfill_shk() %>%
+#'   shk_vs_catcov()
+#' }
+shk_vs_catcov <- function(xpdb,
+                          mapping  = NULL,
+                          shkvar = NULL,
+                          drop_fixed = TRUE,
+                          orientation = "x",
+                          show_n = check_xpdb_x(xpdb, .warn=FALSE),
+                          type     = 'bol',
+                          title    = 'Shrinkage contribution versus categorical covariates | @run',
+                          subtitle = 'Based on @nind individuals',
+                          caption  = '@dir',
+                          tag      = NULL,
+                          facets,
+                          .problem,
+                          quiet,
+                          ...) {
+  # Check input
+  xpose::check_xpdb(xpdb, check = 'data')
+  if (missing(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+  xpose::check_problem(.problem, .subprob = NULL, .method = NULL)
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+
+  if (missing(facets)) facets <- xpose::add_facet_var(facets = xpdb$xp_theme$facets,
+                                                      variable = 'variable')
+
+  .shkvar_quo <- rlang::enquo(shkvar)
+  shk_col <- resolve_var_cols(
+    xpdb, .problem, type = 'shk', varsel = .shkvar_quo,
+    drop_fixed = drop_fixed, quiet = quiet,
+    arg_name = 'shkvar', label = 'shrinkage contribution'
+  )
+  shkvar <- shk_col # overwrite the raw promise -- see resolve_var_cols() note
+  cov_col <- xpose::xp_var(xpdb, .problem, type = 'catcov')$col
+  if (drop_fixed) {
+    cov_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = cov_col, quiet = quiet)
+  }
+  if (is.null(cov_col)) {
+    rlang::abort('No usable categorical covariate column found in the xpdb data index.')
+  }
+
+  if (length(shk_col)>1) {
+    return(purrr::map(shk_col, function(x) shk_vs_catcov(xpdb=xpdb,
+                                                         mapping  = mapping,
+                                                         shkvar = {{x}},
+                                                         drop_fixed = drop_fixed,
+                                                         orientation = orientation,
+                                                         show_n = show_n,
+                                                         type     = type,
+                                                         title    = title,
+                                                         subtitle = subtitle,
+                                                         caption  = caption,
+                                                         tag      = tag,
+                                                         facets=facets,
+                                                         .problem=.problem,
+                                                         quiet=quiet,
+                                                         ...)
+    ))
+  }
+
+  # Set cov factor to label and units, if relevant
+  if (!check_xpdb_x(xpdb, .warn=FALSE)) {
+    post_processing <- apply_labels_units(xpdb = xpdb, .problem = .problem)
+    if (show_n && !quiet) cli::cli_inform("Cannot show N unless xpdb is converted to a cross-compatible xp_xtras object. `as_xpdb_x()` should do this.")
+  } else {
+    post_processing <- apply_labels_units_levels(xpdb = xpdb, .problem = .problem, show_n = show_n)
+  }
+
+  opt <- xpose::data_opt(.problem = .problem,
+                         filter = xpose::only_distinct(xpdb, .problem, facets, quiet),
+                         tidy = TRUE, value_col = cov_col, post_processing = post_processing)
+
+  if (orientation=="x") {
+    vars <- xpose::aes_c(aes(
+      x = .data[["value"]],
+      y = .data[[shk_col]]), mapping)
+    xscale = "discrete"
+    yscale = xpose::check_scales('y', NULL)
+  } else {
+    vars <- xpose::aes_c(aes(
+      y = .data[["value"]],
+      x = .data[[shk_col]]), mapping)
     yscale = "discrete"
     xscale = xpose::check_scales('x', NULL)
   }
