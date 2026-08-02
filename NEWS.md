@@ -9,6 +9,10 @@
   `readr`/`dplyr` can raise while parsing tables with `NaN`/`Inf` or
   otherwise oddly formatted values, without hiding warnings that indicate
   an actual read failure. `xp_from_bbr()` now uses it internally. (#77)
+* Added `recalc_shk()`, which recalculates eta shrinkage directly from
+  individual estimates rather than parsing NONMEM's own reported value,
+  with a `.etastype` argument to exclude "true zero" (as opposed to
+  merely near-zero) etas from the calculation. (#79)
 
 ## Bug fixes
 

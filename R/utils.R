@@ -38,6 +38,135 @@ get_shk <- function(xpdb, wh = "eta", .problem = NULL, .subprob = NULL, .method=
     purrr::discard(is.na)
 }
 
+#' Recalculate eta shrinkage from individual estimates
+#'
+#' @description
+#'
+#' Unlike [`get_shk()`], which parses the eta shrinkage NONMEM itself
+#' reported in the output file, this recalculates shrinkage directly from
+#' the individual (empirical Bayes) eta estimates found in the data, using
+#' the standard \eqn{100 \times (1 - SD(\eta)/\omega)} formula, where
+#' \eqn{\omega} is the standard deviation implied by the associated
+#' diagonal omega estimate.
+#'
+#' @param xpdb <`xpose_data`[xpose::xpose_data]> or `xp_xtras` object
+#' @param ... <`tidyselect`> Which eta column(s) to recalculate shrinkage
+#' for. Defaults to every `eta` column for `.problem`.
+#' @param .etastype <`numeric(1)`> `1` (the default) excludes, for each eta,
+#' individuals whose estimate is a "true zero" (exactly `0`, as opposed to
+#' merely shrunk near it) from the calculation; `0` keeps them. See Details.
+#' @param .problem <`numeric`> Problem number to use. Uses the xpose default if not provided.
+#' @param .subprob <`numeric`> Subproblem number to use. Uses the xpose default if not provided.
+#' @param .method <`character`> Method to use. Uses the xpose default if not provided.
+#' @param drop_fixed <`logical`> Drop fixed etas (which have no meaningful
+#' shrinkage to recalculate), as in [`xpose::drop_fixed_cols`].
+#' @param quiet <`logical`> Silence extra debugging output
+#'
+#' @details
+#' An eta is a "true zero" for an individual when NONMEM never had grounds
+#' to move it away from its prior mean of `0`, eg an individual with no
+#' observations contributing to the objective function. That is different
+#' from an eta that is merely shrunk close to `0` through legitimate
+#' estimation, and including "true zero" individuals in the shrinkage
+#' calculation biases it, since they carry no information about the actual
+#' empirical distribution of etas. `.etastype = 1` (the default) excludes
+#' them from the calculation; `.etastype = 0` reproduces the traditional,
+#' unadjusted calculation.
+#'
+#' @return A tibble with one row per eta, reporting the omega used, the
+#' number of individuals excluded (if any), and the recalculated
+#' shrinkage (as a percentage, to stay consistent with [`get_shk()`]).
+#' @export
+#'
+#' @examples
+#' recalc_shk(xpdb_x)
+#'
+#' # Just a subset of etas...
+#' recalc_shk(xpdb_x, ETA1)
+#'
+#' # Including "true zero" etas in the calculation
+#' recalc_shk(xpdb_x, .etastype = 0)
+#'
+recalc_shk <- function(xpdb, ..., .etastype = 1, .problem = NULL, .subprob = NULL,
+                        .method = NULL, drop_fixed = TRUE, quiet) {
+  xpose::check_xpdb(xpdb, check = "data")
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+  checkmate::assert_choice(.etastype, choices = c(0, 1))
+
+  fill_prob_subprob_method(xpdb, .problem = .problem, .subprob = .subprob, .method = .method)
+
+  all_eta_cols <- xpose::xp_var(xpdb, .problem, type = "eta")$col
+  if (length(all_eta_cols) == 0) {
+    cli::cli_abort("No {.field eta} columns found for problem {.problem}.")
+  }
+
+  dots <- rlang::enquos(...)
+  if (length(dots) == 0) {
+    eta_col <- all_eta_cols
+  } else {
+    eta_col <- dplyr::select(
+      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
+      !!!dots
+    ) %>%
+      names() %>%
+      unique()
+  }
+  if (drop_fixed) {
+    eta_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = eta_col, quiet = quiet)
+  }
+  if (is.null(eta_col) || length(eta_col) == 0) {
+    cli::cli_abort("No usable {.field eta} column found in the xpdb data index.")
+  }
+  if (any(!eta_col %in% all_eta_cols)) {
+    cli::cli_abort("`...` should only select {.field eta} columns, which does not seem to apply to: {setdiff(eta_col, all_eta_cols)}")
+  }
+
+  # Match each eta to its diagonal omega by NONMEM numbering
+  # (eg `ETA1`/`ETA(1)` <-> `OMEGA(1,1)`)
+  eta_num <- eta_col %>%
+    stringr::str_extract("\\d+") %>%
+    as.integer()
+  if (anyNA(eta_num)) {
+    cli::cli_abort("Could not determine the eta numbering for column(s): {eta_col[is.na(eta_num)]}")
+  }
+
+  om_diag <- xpose::get_prm(xpdb, .problem = .problem, .subprob = .subprob, .method = .method, quiet = TRUE) %>%
+    dplyr::filter(type == "ome", diagonal == TRUE)
+  missing_om <- setdiff(eta_num, om_diag$m)
+  if (length(missing_om) > 0) {
+    cli::cli_abort("No diagonal omega found matching eta number(s): {missing_om}")
+  }
+  om_val <- purrr::map_dbl(eta_num, function(k) as.numeric(om_diag$value[om_diag$m == k][1]))
+
+  id_col <- xpose::xp_var(xpdb, .problem, type = "id")$col[1]
+  ind_data <- xpose::get_data(xpdb, .problem = .problem, quiet = TRUE) %>%
+    dplyr::distinct(.data[[id_col]], .keep_all = TRUE) %>%
+    dplyr::select(dplyr::all_of(eta_col))
+
+  purrr::pmap_dfr(
+    list(eta_col, eta_num, om_val),
+    function(col, num, om) {
+      eta_vals <- ind_data[[col]]
+      n_total <- length(eta_vals)
+      if (.etastype == 1) eta_vals <- eta_vals[eta_vals != 0]
+      n_used <- length(eta_vals)
+      if (n_used < 2) {
+        cli::cli_abort("Not enough non-excluded individuals ({n_used}) to recalculate shrinkage for {.field {col}}.")
+      }
+      tibble::tibble(
+        problem = .problem,
+        subprob = .subprob,
+        method = .method,
+        eta = col,
+        omega = om,
+        n = n_total,
+        n_excluded = n_total - n_used,
+        shrinkage = 100 * (1 - stats::sd(eta_vals) / sqrt(om))
+      )
+    }
+  )
+}
+
 
 #' Generic function to extract a property from a model summary
 #'

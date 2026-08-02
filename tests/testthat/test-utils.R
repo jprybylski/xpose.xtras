@@ -417,3 +417,45 @@ test_that("files df can be mutated", {
   )
 })
 
+test_that("recalc_shk recalculates shrinkage from individual etas", {
+
+  all_etas <- recalc_shk(xpdb_x, quiet = TRUE)
+  expect_equal(all_etas$eta, c("ETA1", "ETA2", "ETA3"))
+  expect_equal(all_etas$n, rep(74L, 3))
+  expect_equal(all_etas$n_excluded, rep(0L, 3))
+  # hand-computed via the standard 100*(1-SD(eta)/omega) formula
+  expect_equal(
+    all_etas$shrinkage,
+    c(52.9, 68.5, 10.3),
+    tolerance = 0.05
+  )
+
+  # tidyselect subsets the etas used
+  expect_identical(
+    recalc_shk(xpdb_x, ETA1, quiet = TRUE)$eta,
+    "ETA1"
+  )
+  expect_error(
+    recalc_shk(xpdb_x, ID, quiet = TRUE),
+    regexp = "should only select"
+  )
+
+  expect_error(
+    recalc_shk(xpdb_x, .etastype = 2, quiet = TRUE),
+    regexp = "etastype"
+  )
+
+  # .etastype governs whether "true zero" etas are excluded
+  xpdb_zeroes <- xpdb_x
+  raw_data <- xpdb_zeroes$data$data[[1]]
+  zero_ids <- unique(raw_data$ID)[1:5]
+  raw_data$ETA1[raw_data$ID %in% zero_ids] <- 0
+  xpdb_zeroes$data$data[[1]] <- raw_data
+
+  excl <- recalc_shk(xpdb_zeroes, ETA1, .etastype = 1, quiet = TRUE)
+  incl <- recalc_shk(xpdb_zeroes, ETA1, .etastype = 0, quiet = TRUE)
+  expect_equal(excl$n_excluded, 5L)
+  expect_equal(incl$n_excluded, 0L)
+  expect_false(isTRUE(all.equal(excl$shrinkage, incl$shrinkage)))
+})
+
