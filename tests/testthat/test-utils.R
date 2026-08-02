@@ -457,5 +457,74 @@ test_that("recalc_shk recalculates shrinkage from individual etas", {
   expect_equal(excl$n_excluded, 5L)
   expect_equal(incl$n_excluded, 0L)
   expect_false(isTRUE(all.equal(excl$shrinkage, incl$shrinkage)))
+
+  # eta columns with no embedded number, and no direct name match, error
+  # informatively rather than guessing
+  no_num_xpdb <- xpdb_x
+  no_num_xpdb$data$data[[1]]$WEIRDETA <- no_num_xpdb$data$data[[1]]$ETA1
+  no_num_xpdb$data <- xpose::xpdb_index_update(xpdb = no_num_xpdb, .problem = 1)
+  no_num_xpdb <- set_var_types_x(no_num_xpdb, .problem = 1, eta = WEIRDETA)
+  expect_error(
+    recalc_shk(no_num_xpdb, WEIRDETA, quiet = TRUE),
+    regexp = "Could not associate"
+  )
+})
+
+test_that("recalc_shk matches etas to omegas by name for nlmixr2 models", {
+  skip_if_not_installed("rxode2")
+  skip_if(utils::packageVersion("rxode2") < "5.0",
+          "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
+  skip_if_not_installed("nlmixr2est")
+
+  # nlmixr2 eta columns (eg `eta.cl`) aren't numbered, and don't relate to
+  # `m`/`n` matrix position at all -- recalc_shk() has to fall back to
+  # matching by name against get_prm()'s `name` column for these
+  xp1 <- cached_nlmixr_example("xpdb_nlmixr2")
+  eta_cols <- xp_var(xp1, .problem = 1, type = "eta")$col
+  expect_false(any(grepl("\\d", eta_cols)))
+
+  shk <- recalc_shk(xp1, quiet = TRUE)
+  expect_setequal(shk$eta, eta_cols)
+  expect_true(all(shk$omega > 0))
+  expect_true(all(is.finite(shk$shrinkage)))
+})
+
+test_that("derive_shk/backfill_shk compute per-individual shrinkage contribution", {
+
+  orig <- xpose::get_data(xpdb_x, .problem = 1, quiet = TRUE)
+  derived <- derive_shk(xpdb_x, quiet = TRUE)
+  expect_setequal(
+    setdiff(names(derived), names(orig)),
+    c("ETA1_SHK", "ETA2_SHK", "ETA3_SHK")
+  )
+  # hand-computed via log((eta - mean(eta))^2)
+  expect_equal(
+    derived$ETA1_SHK,
+    log((orig$ETA1 - mean(unique(orig$ETA1)))^2)
+  )
+
+  # tidyselect subsets which etas get a `_SHK` column
+  expect_identical(
+    setdiff(names(derive_shk(xpdb_x, ETA1, quiet = TRUE)), names(orig)),
+    "ETA1_SHK"
+  )
+  expect_error(
+    derive_shk(xpdb_x, ID, quiet = TRUE),
+    regexp = "should only select"
+  )
+
+  # backfill_shk joins the column(s) in and tags them with the `shk` type
+  xp2 <- backfill_shk(xpdb_x, ETA1, quiet = TRUE)
+  expect_identical(
+    xp_var(xp2, .problem = 1, type = "shk")$col,
+    "ETA1_SHK"
+  )
+  expect_true("ETA1_SHK" %in% names(xpose::get_data(xp2, .problem = 1, quiet = TRUE)))
+
+  # refuses to silently overwrite an existing `_SHK` column
+  expect_error(
+    backfill_shk(xp2, ETA1, quiet = TRUE),
+    regexp = "already present"
+  )
 })
 

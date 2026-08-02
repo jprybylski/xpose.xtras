@@ -12,7 +12,12 @@
 * Added `recalc_shk()`, which recalculates eta shrinkage directly from
   individual estimates rather than parsing NONMEM's own reported value,
   with a `.etastype` argument to exclude "true zero" (as opposed to
-  merely near-zero) etas from the calculation. (#79)
+  merely near-zero) etas from the calculation. Etas are matched to their
+  omega by column name where possible (eg `nlmixr2` models), falling back
+  to NONMEM's `ETA<k>`/`OMEGA(k,k)` numbering convention. (#79)
+* Added a new `shk` variable type, plus `derive_shk()`/`backfill_shk()` to
+  populate it: a per-individual eta shrinkage contribution diagnostic
+  (`log((eta - mean(eta))^2)`). (#78)
 
 ## Bug fixes
 
