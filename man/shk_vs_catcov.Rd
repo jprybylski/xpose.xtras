@@ -8,10 +8,12 @@ shk_vs_catcov(
   xpdb,
   mapping = NULL,
   shkvar = NULL,
+  covvar = NULL,
   drop_fixed = TRUE,
   orientation = "x",
   show_n = check_xpdb_x(xpdb, .warn = FALSE),
   type = "bol",
+  list = TRUE,
   title = "Shrinkage contribution versus categorical covariates | @run",
   subtitle = "Based on @nind individuals",
   caption = "@dir",
@@ -29,6 +31,9 @@ shk_vs_catcov(
 
 \item{shkvar}{\code{tidyselect} for \code{shk} variables}
 
+\item{covvar}{\code{tidyselect} for categorical covariate variables; \code{NULL}
+(default) selects every categorical covariate in the \code{xpdb} data index.}
+
 \item{drop_fixed}{As in \code{xpose}}
 
 \item{orientation}{Passed to \code{xplot_boxplot}}
@@ -36,6 +41,16 @@ shk_vs_catcov(
 \item{show_n}{Add "N=" to plot}
 
 \item{type}{Passed to \code{xplot_boxplot}}
+
+\item{list}{<\code{logical}> Only relevant when \code{shkvar} resolves to more
+than one \code{shk} column. If \code{TRUE} (default, for backwards compatibility),
+returns a plain list of one plot per \code{shk} column. If \code{FALSE}, they are
+instead combined onto one shared plot -- faceted by \code{shk} column, in
+addition to the existing per-covariate facet -- automatically
+paginating (at most 9 panels per page, i.e. \code{ncol}/\code{nrow} of 3) via
+\code{xpose}'s own \code{facet_wrap_paginate} mechanism. Printing the returned
+plot renders every page; pass \code{page} to \code{print()} to select a specific
+one.}
 
 \item{title}{Plot title}
 
@@ -54,7 +69,8 @@ shk_vs_catcov(
 \item{...}{Any additional aesthetics.}
 }
 \value{
-The desired plot
+The desired plot, or (when \code{shkvar} resolves to more than one
+\code{shk} column and \code{list = TRUE}) a plain list of one plot per column.
 }
 \description{
 Mirrors \code{\link[=eta_vs_catcov]{eta_vs_catcov()}}, but for the per-individual shrinkage
@@ -67,5 +83,10 @@ contribution diagnostic (\code{shk} type columns, see
 xpdb_x \%>\%
   backfill_shk() \%>\%
   shk_vs_catcov()
+
+# Combine all shk columns onto one shared, faceted plot instead of a list
+xpdb_x \%>\%
+  backfill_shk() \%>\%
+  shk_vs_catcov(list = FALSE)
 }
 }

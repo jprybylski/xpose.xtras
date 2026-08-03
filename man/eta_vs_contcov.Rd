@@ -8,9 +8,11 @@ eta_vs_contcov(
   xpdb,
   mapping = NULL,
   etavar = NULL,
+  covvar = NULL,
   drop_fixed = TRUE,
   linsm = FALSE,
   type = "ps",
+  list = TRUE,
   title = "Eta versus continuous covariates | @run",
   subtitle = "Based on @nind individuals, Eta shrink: @etashk",
   caption = "@dir",
@@ -30,11 +32,23 @@ eta_vs_contcov(
 
 \item{etavar}{\code{tidyselect} for \code{eta} variables}
 
+\item{covvar}{\code{tidyselect} for continuous covariate variables; \code{NULL}
+(default) selects every continuous covariate in the \code{xpdb} data index.}
+
 \item{drop_fixed}{As in \code{xpose}}
 
 \item{linsm}{If \code{type} contains "s" should the smooth method by \code{lm}?}
 
 \item{type}{Passed to \code{xplot_scatter}}
+
+\item{list}{<\code{logical}> Only relevant when \code{etavar} resolves to more
+than one eta. If \code{TRUE} (default, for backwards compatibility), returns
+a plain list of one plot per eta. If \code{FALSE}, all etas are instead
+combined onto one shared plot -- faceted by eta, in addition to the
+existing per-covariate facet -- automatically paginating (at most 9
+panels per page, i.e. \code{ncol}/\code{nrow} of 3) via \code{xpose}'s own
+\code{facet_wrap_paginate} mechanism. Printing the returned plot renders
+every page; pass \code{page} to \code{print()} to select a specific one.}
 
 \item{title}{Plot title}
 
@@ -57,7 +71,8 @@ eta_vs_contcov(
 \item{...}{Any additional aesthetics.}
 }
 \value{
-The desired plot
+The desired plot, or (when \code{etavar} resolves to more than one
+eta and \code{list = TRUE}) a plain list of one plot per eta.
 }
 \description{
 Eta continuous covariate plots (typical)
@@ -73,5 +88,11 @@ xpdb_x \%>\%
   xpose::set_var_units(AGE="yrs") \%>\%
   set_var_levels(SEX=lvl_sex(), MED1 = lvl_bin()) \%>\%
   eta_vs_contcov()
+
+# Combine all etas onto one shared, faceted plot instead of a list
+eta_vs_contcov(xpdb_x, list = FALSE)
+
+# Restrict to specific covariates with covvar, just like etavar
+eta_vs_contcov(xpdb_x, covvar = AGE)
 }
 }

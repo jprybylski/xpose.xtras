@@ -193,6 +193,63 @@ test_that("individual eta-cov plots", {
 
 })
 
+test_that("eta_vs_contcov/eta_vs_catcov list=FALSE combines onto one shared, faceted plot", {
+  xpdb_x <- set_option(xpdb_x, quiet = TRUE)
+  n_eta <- nrow(xp_var(xpdb_x, type = "eta"))
+
+  combined_cont <- eta_vs_contcov(xpdb_x, list = FALSE)
+  expect_s3_class(combined_cont, "xpose_plot")
+  expect_s3_class(combined_cont$facet, "FacetWrapPaginate")
+  expect_length(unique(combined_cont$data$eta_name), n_eta)
+  expect_setequal(unique(combined_cont$data$eta_name), c("ETA(1)", "ETA(2)", "ETA(3)"))
+
+  combined_cat <- eta_vs_catcov(xpdb_x, list = FALSE)
+  expect_s3_class(combined_cat, "xpose_plot")
+  expect_s3_class(combined_cat$facet, "FacetWrapPaginate")
+  expect_length(unique(combined_cat$data$eta_name), n_eta)
+
+  # N= counts (per covariate level) stay correct regardless of how many
+  # etas end up sharing the plot -- see the ordering note in eta_vs_catcov()
+  single_n <- eta_vs_catcov(xpdb_x, etavar = ETA1, covvar = SEX)$data$value %>%
+    as.character() %>%
+    table()
+  combined_n <- eta_vs_catcov(xpdb_x, covvar = SEX, list = FALSE)$data %>%
+    dplyr::filter(eta_name == "ETA(1)") %>%
+    dplyr::pull(value) %>%
+    as.character() %>%
+    table()
+  expect_equal(unclass(single_n), unclass(combined_n))
+
+  # A single eta short-circuits the combine path regardless of `list` --
+  # compared on $data/class rather than the whole object, since aes()'s
+  # captured `.Environment` differs (a fresh call frame) between any two
+  # separate calls regardless of `list`, same as elsewhere in this file
+  # (see the orientation `expect_failure(expect_identical(...))` above).
+  p_single_combine <- eta_vs_contcov(xpdb_x, etavar = ETA1, list = FALSE)
+  p_single_list <- eta_vs_contcov(xpdb_x, etavar = ETA1, list = TRUE)
+  expect_identical(class(p_single_combine), class(p_single_list))
+  expect_equal(p_single_combine$data, p_single_list$data)
+})
+
+test_that("eta_vs_contcov/eta_vs_catcov covvar restricts to selected covariates", {
+  xpdb_x <- set_option(xpdb_x, quiet = TRUE)
+
+  p_cont <- eta_vs_contcov(xpdb_x, etavar = ETA1, covvar = AGE)
+  expect_setequal(levels(p_cont$data$variable), "AGE")
+
+  p_cat <- eta_vs_catcov(xpdb_x, etavar = ETA1, covvar = SEX)
+  expect_setequal(levels(p_cat$data$variable), "SEX")
+
+  expect_error(
+    eta_vs_contcov(xpdb_x, etavar = ETA1, covvar = SEX, quiet = TRUE),
+    "should only include continuous covariate.*SEX"
+  )
+  expect_error(
+    eta_vs_catcov(xpdb_x, etavar = ETA1, covvar = AGE, quiet = TRUE),
+    "should only include categorical covariate.*AGE"
+  )
+})
+
 test_that("errors and special plot circumstances are correctly caught", {
   expect_error(
     vismo_pomod %>% eta_grid(etavar = P1, quiet = TRUE),
@@ -544,6 +601,83 @@ test_that("individual shk-cov plots", {
     shk_vs_catcov(xpdb_shk, shkvar = ETA1_SHK),
     shk_vs_catcov(xpdb_shk, shkvar = ETA1_SHK, orientation = "y")
   ))
+})
+
+test_that("shk_vs_contcov/shk_vs_catcov list=FALSE combines onto one shared, faceted plot", {
+  xpdb_shk <- xpdb_x %>% set_option(quiet = TRUE) %>% backfill_shk(quiet = TRUE)
+  n_shk <- nrow(xp_var(xpdb_shk, type = "shk"))
+
+  combined_cont <- shk_vs_contcov(xpdb_shk, list = FALSE)
+  expect_s3_class(combined_cont, "xpose_plot")
+  expect_s3_class(combined_cont$facet, "FacetWrapPaginate")
+  expect_length(unique(combined_cont$data$shk_name), n_shk)
+  expect_setequal(unique(combined_cont$data$shk_name), c("ETA1_SHK", "ETA2_SHK", "ETA3_SHK"))
+
+  combined_cat <- shk_vs_catcov(xpdb_shk, list = FALSE)
+  expect_s3_class(combined_cat, "xpose_plot")
+  expect_s3_class(combined_cat$facet, "FacetWrapPaginate")
+  expect_length(unique(combined_cat$data$shk_name), n_shk)
+
+  # N= counts (per covariate level) stay correct regardless of how many
+  # shk columns end up sharing the plot
+  single_n <- shk_vs_catcov(xpdb_shk, shkvar = ETA1_SHK, covvar = SEX)$data$value %>%
+    as.character() %>%
+    table()
+  combined_n <- shk_vs_catcov(xpdb_shk, covvar = SEX, list = FALSE)$data %>%
+    dplyr::filter(shk_name == "ETA1_SHK") %>%
+    dplyr::pull(value) %>%
+    as.character() %>%
+    table()
+  expect_equal(unclass(single_n), unclass(combined_n))
+
+  # A single shk column short-circuits the combine path regardless of
+  # `list` -- compared on $data/class rather than the whole object, since
+  # aes()'s captured `.Environment` differs (a fresh call frame) between
+  # any two separate calls regardless of `list` (see the analogous eta
+  # test above).
+  p_single_combine <- shk_vs_contcov(xpdb_shk, shkvar = ETA1_SHK, list = FALSE)
+  p_single_list <- shk_vs_contcov(xpdb_shk, shkvar = ETA1_SHK, list = TRUE)
+  expect_identical(class(p_single_combine), class(p_single_list))
+  expect_equal(p_single_combine$data, p_single_list$data)
+})
+
+test_that("shk_vs_contcov/shk_vs_catcov covvar restricts to selected covariates", {
+  xpdb_shk <- xpdb_x %>% set_option(quiet = TRUE) %>% backfill_shk(quiet = TRUE)
+
+  p_cont <- shk_vs_contcov(xpdb_shk, shkvar = ETA1_SHK, covvar = AGE)
+  expect_setequal(levels(p_cont$data$variable), "AGE")
+
+  p_cat <- shk_vs_catcov(xpdb_shk, shkvar = ETA1_SHK, covvar = SEX)
+  expect_setequal(levels(p_cat$data$variable), "SEX")
+
+  expect_error(
+    shk_vs_contcov(xpdb_shk, shkvar = ETA1_SHK, covvar = SEX, quiet = TRUE),
+    "should only include continuous covariate.*SEX"
+  )
+  expect_error(
+    shk_vs_catcov(xpdb_shk, shkvar = ETA1_SHK, covvar = AGE, quiet = TRUE),
+    "should only include categorical covariate.*AGE"
+  )
+})
+
+test_that("covvar is an alias for cols on eta_vs_cov_grid/shk_vs_cov_grid", {
+  xpdb_x <- set_option(xpdb_x, quiet = TRUE)
+  xpdb_shk <- xpdb_x %>% backfill_shk(quiet = TRUE)
+
+  expect_identical(
+    eta_vs_cov_grid(xpdb_x, cols = c(AGE, SEX), etavar = ETA1)$data,
+    eta_vs_cov_grid(xpdb_x, covvar = c(AGE, SEX), etavar = ETA1)$data
+  )
+  # covvar takes precedence when both are supplied
+  expect_identical(
+    eta_vs_cov_grid(xpdb_x, cols = SEX, covvar = AGE, etavar = ETA1)$data,
+    eta_vs_cov_grid(xpdb_x, covvar = AGE, etavar = ETA1)$data
+  )
+
+  expect_identical(
+    shk_vs_cov_grid(xpdb_shk, cols = c(AGE, SEX), shkvar = ETA1_SHK)$data,
+    shk_vs_cov_grid(xpdb_shk, covvar = c(AGE, SEX), shkvar = ETA1_SHK)$data
+  )
 })
 
 test_that("shk plot errors are correctly caught", {
