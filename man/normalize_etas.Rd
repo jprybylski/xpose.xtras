@@ -45,18 +45,19 @@ omega-implied one; see Details. Defaults to \code{FALSE}.}
 \item{quiet}{<\code{logical}> Silence extra debugging output}
 }
 \value{
-\code{xp_xtras} object, with \code{normalize_etas} set under \verb{$options}
+\code{xp_xtras} object, with the computed factors set under
+\verb{$normalize_etas} (not \verb{$options} -- see Details)
 }
 \description{
-Sets an \code{xpdb}-level option (\code{normalize_etas}, see \code{\link[=set_option]{set_option()}})
-consumed by \code{\link[=eta_grid]{eta_grid()}}/\code{\link[=eta_vs_cov_grid]{eta_vs_cov_grid()}}/\code{\link[=eta_vs_contcov]{eta_vs_contcov()}}/
-\code{\link[=eta_vs_catcov]{eta_vs_catcov()}}: each selected eta is divided by its typical scale
--- by default the standard deviation implied by its associated
-diagonal omega estimate (\code{sqrt(omega)}), same as \code{\link[=recalc_shk]{recalc_shk()}} uses
--- before being plotted, so etas modeled on very different scales
-(eg a normally-distributed eta next to a log-normal one with a much
-larger omega) can be compared on one shared plot without the
-larger-scale eta dominating.
+Sets \code{xpdb$normalize_etas}, a top-level slot (alongside eg \verb{$covs}, see
+\code{\link[=add_cov_association]{add_cov_association()}}) consumed by \code{\link[=eta_grid]{eta_grid()}}/
+\code{\link[=eta_vs_cov_grid]{eta_vs_cov_grid()}}/\code{\link[=eta_vs_contcov]{eta_vs_contcov()}}/\code{\link[=eta_vs_catcov]{eta_vs_catcov()}}: each
+selected eta is divided by its typical scale -- by default the standard
+deviation implied by its associated diagonal omega estimate
+(\code{sqrt(omega)}), same as \code{\link[=recalc_shk]{recalc_shk()}} uses -- before being plotted,
+so etas modeled on very different scales (eg a normally-distributed eta
+next to a log-normal one with a much larger omega) can be compared on
+one shared plot without the larger-scale eta dominating.
 
 \code{normalise_etas()} is an alias, for the British/rest-of-world spelling.
 }
@@ -65,6 +66,13 @@ This only ever affects how those four plotting functions \emph{display}
 etas -- it never modifies \code{xpdb$data}, so \code{\link[xpose:get_data]{get_data()}}
 and every other consumer of the eta columns keep seeing the raw
 (unnormalized) values.
+
+\verb{$normalize_etas} is a plain top-level slot rather than an \code{xpdb$options}
+entry -- unlike most options, its value is one number per eta rather
+than a single setting, and folding a handful of high-precision numbers
+per eta into \code{print.xpose_data()}'s single-line \verb{Options:} summary
+made that summary unreadable for models with more than a couple of
+etas.
 
 The default (omega-based) scale relies on the same internal
 name/numbering match between eta columns and diagonal omega estimates
@@ -80,10 +88,10 @@ deflated) rather than reflecting the model's estimated random-effect
 variance.
 
 Calling \code{normalize_etas()} again merges into (rather than replacing)
-any previously-set factors -- via \code{\link[=set_option]{set_option()}}'s
-\code{\link[utils:modifyList]{utils::modifyList()}} merge -- so \code{...} can be used to (re)compute
-just a subset of etas, eg after refitting. To turn normalization off
-again, either for specific etas (\code{set_option(xpdb, normalize_etas = list(ETA1 = NULL))}) or entirely (\code{set_option(xpdb, normalize_etas = NULL)}), call \code{\link[=set_option]{set_option()}} directly.
+any previously-set factors, via \code{\link[utils:modifyList]{utils::modifyList()}} -- so \code{...} can
+be used to (re)compute just a subset of etas, eg after refitting. To
+turn normalization off again, assign directly: \code{xpdb$normalize_etas$ETA1 <- NULL} for a single eta, or \code{xpdb$normalize_etas <- NULL} for all of
+them.
 }
 \examples{
 xpdb_norm <- normalize_etas(xpdb_x)

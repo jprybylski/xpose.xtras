@@ -516,34 +516,43 @@ test_that("print.xpose_data()/print.xp_xtras() handle multi-element list-valued 
   # xpose:::print.xpose_data()'s `Options:` line pairs names(x$options)
   # with unlist(x$options), assuming they come out the same length -- true
   # only as long as every option is a single value. Any option that's
-  # itself a multi-element list (eg normalize_etas() with more than one
-  # eta, or default_labs/default_watermark with more than one key set)
-  # breaks that assumption and previously errored outright instead of
-  # printing.
+  # itself a multi-element list (eg default_labs/default_watermark with
+  # more than one key set) breaks that assumption and previously errored
+  # outright instead of printing. Using a synthetic option name here
+  # rather than a real one, since this is a generic property of
+  # print.xpose_data() -- normalize_etas() deliberately avoids ever
+  # putting a multi-element value under $options at all (see below).
+  #
   # print.xp_xtras() re-emits via cli::cli_verbatim(), which signals R's
   # message condition rather than writing straight to stdout -- so these
   # need expect_message(), not expect_output().
-  xpdb_multi <- set_option(xpdb_x, quiet = TRUE, normalize_etas = list(ETA1 = 1, ETA2 = 2))
-  expect_message(print(xpdb_multi), "normalize_etas = 1, 2")
+  xpdb_multi <- set_option(xpdb_x, quiet = TRUE, some_list_opt = list(a = 1, b = 2))
+  expect_message(print(xpdb_multi), "some_list_opt = 1, 2")
 
   # Exercised via a plain (non-xp_xtras) xpose_data object too, since
   # print.xp_xtras() delegates to this fix via NextMethod() -- this one
   # goes through the fixed function's own plain cat(), straight to stdout.
   plain <- xpose::xpdb_ex_pk
-  plain$options$normalize_etas <- list(ETA1 = 1, ETA2 = 2)
-  expect_output(print(plain), "normalize_etas = 1, 2")
+  plain$options$some_list_opt <- list(a = 1, b = 2)
+  expect_output(print(plain), "some_list_opt = 1, 2")
 
   # default_labs/default_watermark with more than one key hit the same bug
   xpdb_labs <- set_default_labs(xpdb_x, title = "t", caption = "c")
   expect_message(print(xpdb_labs), "default_labs = t, c")
 })
 
-test_that("normalize_etas() output doesn't trip the print.xpose_data bug (issue #81)", {
-  # Regression guard tying the two fixes together: normalize_etas() with
-  # its default (every eta) selection naturally produces a multi-element
-  # `normalize_etas` option, which is exactly what used to crash printing.
+test_that("normalize_etas() output never clutters print.xpose_data() (issue #81 follow-up)", {
+  # normalize_etas() stores its per-eta factors in the top-level
+  # $normalize_etas slot (like $covs, see add_cov_association()), not
+  # under $options -- so, unlike the scenarios above, its output should
+  # never show up in the Options: summary at all, regardless of how many
+  # etas are set.
   xpdb_norm <- normalize_etas(xpdb_x, quiet = TRUE)
-  expect_message(print(xpdb_norm), "normalize_etas")
+  expect_length(xpdb_norm$normalize_etas, 3L)
+
+  out <- testthat::evaluate_promise(print(xpdb_norm))
+  expect_false(grepl("normalize_etas", out$output))
+  expect_false(grepl("normalize_etas", out$messages))
 })
 
 test_that("print.xpose_plot() auto-applies configured defaults via auto_apply_defaults()", {

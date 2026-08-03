@@ -253,7 +253,7 @@ test_that("eta_vs_contcov/eta_vs_catcov covvar restricts to selected covariates"
 test_that("normalize_etas() divides etas by their factor in eta_grid/eta_vs_cov_grid/eta_vs_contcov/eta_vs_catcov", {
   xpdb_x <- set_option(xpdb_x, quiet = TRUE)
   xpdb_n <- normalize_etas(xpdb_x, quiet = TRUE)
-  factor1 <- xpdb_n$options$normalize_etas$ETA1
+  factor1 <- xpdb_n$normalize_etas$ETA1
   raw_eta1 <- xpose::get_data(xpdb_x, .problem = 1, quiet = TRUE)$ETA1
 
   # unnormalized xpdb: unaffected (regression guard)

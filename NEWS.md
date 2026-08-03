@@ -29,10 +29,11 @@
   `shk_vs_contcov()`/`shk_vs_catcov()` to select specific covariates,
   mirroring `etavar`/`shkvar`; also added as a `cols` alias on
   `eta_vs_cov_grid()`/`shk_vs_cov_grid()`. (#82)
-* Added `normalize_etas()`/`normalise_etas()`, which set an `xpdb` option
-  (`$options$normalize_etas`, also settable via `set_option()`) dividing
-  each eta by its omega-implied SD (or, with `.use_sd = TRUE`, the
-  empirical SD of its individual estimates) in `eta_grid()`/
+* Added `normalize_etas()`/`normalise_etas()`, which set a top-level
+  `xpdb$normalize_etas` slot (like `$covs`, see `add_cov_association()`
+  -- not an `xpdb$options` entry, and not settable via `set_option()`)
+  dividing each eta by its omega-implied SD (or, with `.use_sd = TRUE`,
+  the empirical SD of its individual estimates) in `eta_grid()`/
   `eta_vs_cov_grid()`/`eta_vs_contcov()`/`eta_vs_catcov()` only -- the
   underlying data is never modified. (#81)
 
@@ -40,8 +41,7 @@
 
 * Fixed `print.xpose_data()`/`print.xp_xtras()` erroring instead of
   printing whenever any `xpdb$options` entry is a multi-element list (eg
-  `normalize_etas()` with more than one eta, or `default_labs`/
-  `default_watermark` with more than one key set). (#81)
+  `default_labs`/`default_watermark` with more than one key set). (#81)
 * Fixed a critical bug where any `xpdb$foo <- value`/`xpdb[["foo"]] <- value`
   (including inside `patch_condn()`, run automatically by `as_xpdb_x()`)
   could silently strip the `xp_xtras`/`xpose_data` classes on `ggplot2`

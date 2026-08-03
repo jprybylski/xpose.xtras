@@ -186,15 +186,15 @@ recalc_shk <- function(xpdb, ..., .etastype = 1, .problem = NULL, .subprob = NUL
 #' Normalize etas by their omega- or empirical-SD-implied scale
 #'
 #' @description
-#' Sets an `xpdb`-level option (`normalize_etas`, see [`set_option()`])
-#' consumed by [`eta_grid()`]/[`eta_vs_cov_grid()`]/[`eta_vs_contcov()`]/
-#' [`eta_vs_catcov()`]: each selected eta is divided by its typical scale
-#' -- by default the standard deviation implied by its associated
-#' diagonal omega estimate (`sqrt(omega)`), same as [`recalc_shk()`] uses
-#' -- before being plotted, so etas modeled on very different scales
-#' (eg a normally-distributed eta next to a log-normal one with a much
-#' larger omega) can be compared on one shared plot without the
-#' larger-scale eta dominating.
+#' Sets `xpdb$normalize_etas`, a top-level slot (alongside eg `$covs`, see
+#' [`add_cov_association()`]) consumed by [`eta_grid()`]/
+#' [`eta_vs_cov_grid()`]/[`eta_vs_contcov()`]/[`eta_vs_catcov()`]: each
+#' selected eta is divided by its typical scale -- by default the standard
+#' deviation implied by its associated diagonal omega estimate
+#' (`sqrt(omega)`), same as [`recalc_shk()`] uses -- before being plotted,
+#' so etas modeled on very different scales (eg a normally-distributed eta
+#' next to a log-normal one with a much larger omega) can be compared on
+#' one shared plot without the larger-scale eta dominating.
 #'
 #' `normalise_etas()` is an alias, for the British/rest-of-world spelling.
 #'
@@ -203,6 +203,13 @@ recalc_shk <- function(xpdb, ..., .etastype = 1, .problem = NULL, .subprob = NUL
 #' etas -- it never modifies `xpdb$data`, so [`get_data()`][xpose::get_data]
 #' and every other consumer of the eta columns keep seeing the raw
 #' (unnormalized) values.
+#'
+#' `$normalize_etas` is a plain top-level slot rather than an `xpdb$options`
+#' entry -- unlike most options, its value is one number per eta rather
+#' than a single setting, and folding a handful of high-precision numbers
+#' per eta into `print.xpose_data()`'s single-line `Options:` summary
+#' made that summary unreadable for models with more than a couple of
+#' etas.
 #'
 #' The default (omega-based) scale relies on the same internal
 #' name/numbering match between eta columns and diagonal omega estimates
@@ -218,12 +225,11 @@ recalc_shk <- function(xpdb, ..., .etastype = 1, .problem = NULL, .subprob = NUL
 #' variance.
 #'
 #' Calling `normalize_etas()` again merges into (rather than replacing)
-#' any previously-set factors -- via [`set_option()`]'s
-#' [`utils::modifyList()`] merge -- so `...` can be used to (re)compute
-#' just a subset of etas, eg after refitting. To turn normalization off
-#' again, either for specific etas (`set_option(xpdb, normalize_etas =
-#' list(ETA1 = NULL))`) or entirely (`set_option(xpdb, normalize_etas =
-#' NULL)`), call [`set_option()`] directly.
+#' any previously-set factors, via [`utils::modifyList()`] -- so `...` can
+#' be used to (re)compute just a subset of etas, eg after refitting. To
+#' turn normalization off again, assign directly: `xpdb$normalize_etas$ETA1
+#' <- NULL` for a single eta, or `xpdb$normalize_etas <- NULL` for all of
+#' them.
 #'
 #' @param xpdb <`xpose_data`[xpose::xpose_data]> or `xp_xtras` object
 #' @param ... <`tidyselect`> Which eta column(s) to (re)compute a
@@ -237,7 +243,8 @@ recalc_shk <- function(xpdb, ..., .etastype = 1, .problem = NULL, .subprob = NUL
 #' @param .method <`character`> Method to use. Uses the xpose default if not provided.
 #' @param quiet <`logical`> Silence extra debugging output
 #'
-#' @return `xp_xtras` object, with `normalize_etas` set under `$options`
+#' @return `xp_xtras` object, with the computed factors set under
+#' `$normalize_etas` (not `$options` -- see Details)
 #' @export
 #' @rdname normalize_etas
 #'
@@ -301,7 +308,12 @@ normalize_etas <- function(xpdb, ..., .use_sd = FALSE, .problem = NULL, .subprob
   }
 
   new_factors <- stats::setNames(as.list(scale_val), eta_col)
-  set_option(xpdb, normalize_etas = new_factors)
+  existing_factors <- xpdb$normalize_etas
+  xpdb$normalize_etas <- utils::modifyList(
+    if (is.null(existing_factors)) list() else existing_factors,
+    new_factors
+  )
+  as_xpdb_x(xpdb)
 }
 
 #' @rdname normalize_etas
