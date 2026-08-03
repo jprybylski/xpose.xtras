@@ -25,6 +25,7 @@ shk_vs_cov_grid(
   mapping = NULL,
   shkvar = NULL,
   cols = NULL,
+  covvar = NULL,
   covtypes = c("cont", "cat"),
   show_n = TRUE,
   drop_fixed = TRUE,
@@ -65,6 +66,10 @@ shk_vs_cov_grid(
 \item{...}{Passed to \code{xplot_pairs}}
 
 \item{cols}{\code{tidyselect} for covariates variables}
+
+\item{covvar}{For \code{shk_vs_cov_grid} only: an alias for \code{cols} (matching
+the \code{covvar} argument of \code{\link[=shk_vs_contcov]{shk_vs_contcov()}}/\code{\link[=shk_vs_catcov]{shk_vs_catcov()}}). If
+supplied (non-\code{NULL}), takes precedence over \code{cols}.}
 
 \item{covtypes}{Subset to specific covariate type?}
 

@@ -21,6 +21,14 @@
 * Added `shk_grid()`/`shk_vs_cov_grid()`/`shk_vs_contcov()`/
   `shk_vs_catcov()`, mirroring `eta_grid()`/`eta_vs_cov_grid()`/
   `eta_vs_contcov()`/`eta_vs_catcov()` for the new `shk` diagnostic. (#78)
+* Added `list = FALSE` to `eta_vs_contcov()`/`eta_vs_catcov()`/
+  `shk_vs_contcov()`/`shk_vs_catcov()`, combining the per-variable plots
+  onto one shared, faceted plot instead of a list, paginating at 9 panels
+  per page. (#82)
+* Added `covvar` to `eta_vs_contcov()`/`eta_vs_catcov()`/
+  `shk_vs_contcov()`/`shk_vs_catcov()` to select specific covariates,
+  mirroring `etavar`/`shkvar`; also added as a `cols` alias on
+  `eta_vs_cov_grid()`/`shk_vs_cov_grid()`. (#82)
 
 ## Bug fixes
 

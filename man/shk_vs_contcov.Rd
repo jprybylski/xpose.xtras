@@ -8,9 +8,11 @@ shk_vs_contcov(
   xpdb,
   mapping = NULL,
   shkvar = NULL,
+  covvar = NULL,
   drop_fixed = TRUE,
   linsm = FALSE,
   type = "ps",
+  list = TRUE,
   title = "Shrinkage contribution versus continuous covariates | @run",
   subtitle = "Based on @nind individuals",
   caption = "@dir",
@@ -30,11 +32,24 @@ shk_vs_contcov(
 
 \item{shkvar}{\code{tidyselect} for \code{shk} variables}
 
+\item{covvar}{\code{tidyselect} for continuous covariate variables; \code{NULL}
+(default) selects every continuous covariate in the \code{xpdb} data index.}
+
 \item{drop_fixed}{As in \code{xpose}}
 
 \item{linsm}{If \code{type} contains "s" should the smooth method by \code{lm}?}
 
 \item{type}{Passed to \code{xplot_scatter}}
+
+\item{list}{<\code{logical}> Only relevant when \code{shkvar} resolves to more
+than one \code{shk} column. If \code{TRUE} (default, for backwards compatibility),
+returns a plain list of one plot per \code{shk} column. If \code{FALSE}, they are
+instead combined onto one shared plot -- faceted by \code{shk} column, in
+addition to the existing per-covariate facet -- automatically
+paginating (at most 9 panels per page, i.e. \code{ncol}/\code{nrow} of 3) via
+\code{xpose}'s own \code{facet_wrap_paginate} mechanism. Printing the returned
+plot renders every page; pass \code{page} to \code{print()} to select a specific
+one.}
 
 \item{title}{Plot title}
 
@@ -57,7 +72,8 @@ shk_vs_contcov(
 \item{...}{Any additional aesthetics.}
 }
 \value{
-The desired plot
+The desired plot, or (when \code{shkvar} resolves to more than one
+\code{shk} column and \code{list = TRUE}) a plain list of one plot per column.
 }
 \description{
 Mirrors \code{\link[=eta_vs_contcov]{eta_vs_contcov()}}, but for the per-individual shrinkage
@@ -70,5 +86,10 @@ contribution diagnostic (\code{shk} type columns, see
 xpdb_x \%>\%
   backfill_shk() \%>\%
   shk_vs_contcov()
+
+# Combine all shk columns onto one shared, faceted plot instead of a list
+xpdb_x \%>\%
+  backfill_shk() \%>\%
+  shk_vs_contcov(list = FALSE)
 }
 }
