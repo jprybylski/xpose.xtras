@@ -308,6 +308,55 @@ apply_lul_wide <- function(xpdb, cols=NULL, lvl_cols=NULL, .problem=NULL, show_n
 }
 
 #########
+# Eta normalization (issue #81)
+#########
+
+# Divides each of `eta_col` present in `xpdb$options$normalize_etas` (set
+# by normalize_etas()/normalise_etas(), R/utils.R) by its stored factor --
+# a no-op (identity function) for any eta not covered by that option, or
+# when it's unset entirely. Purely a plotting-time transform on the data
+# handed to ggplot() -- it never touches xpdb$data itself, so callers
+# elsewhere always see the raw eta values.
+normalize_eta_cols <- function(xpdb, eta_col) {
+  factors <- xpdb$options$normalize_etas
+  norm_cols <- intersect(eta_col, names(factors))
+  if (length(norm_cols) == 0) return(function(x) x)
+
+  function(x) {
+    dplyr::mutate(x, dplyr::across(
+      dplyr::all_of(norm_cols),
+      function(v) v / factors[[dplyr::cur_column()]]
+    ))
+  }
+}
+
+# Shared by eta_grid()/eta_vs_cov_grid()/eta_vs_contcov()/eta_vs_catcov():
+# composes normalize_eta_cols() (applied first, by the *original* eta
+# column name) with the NONMEM ETA<k> -> ETA(k) label rename these four
+# already do. Returns the composed post-processing closure plus the
+# (possibly renamed) eta_col vector the caller should use from here on --
+# callers are expected to do `eta_lbl <- eta_post_processing(xpdb, eta_col);
+# post_processing_eta <- eta_lbl$fn; eta_col <- eta_lbl$eta_col`.
+eta_post_processing <- function(xpdb, eta_col) {
+  post_processing_norm <- normalize_eta_cols(xpdb, eta_col)
+
+  if (xpose::software(xpdb) == 'nonmem') {
+    eta_col_old <- eta_col
+    eta_col_new <- stringr::str_replace(eta_col_old, "^ET(A?)(\\d+)$", "ETA(\\2)")
+    fn <- function(x) {
+      x %>%
+        post_processing_norm() %>%
+        dplyr::rename(!!!rlang::set_names(eta_col_old, eta_col_new))
+    }
+    eta_col <- eta_col_new
+  } else {
+    fn <- post_processing_norm
+  }
+
+  list(fn = fn, eta_col = eta_col)
+}
+
+#########
 # Column resolution/grid-plot option helpers
 #########
 

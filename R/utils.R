@@ -38,6 +38,37 @@ get_shk <- function(xpdb, wh = "eta", .problem = NULL, .subprob = NULL, .method=
     purrr::discard(is.na)
 }
 
+# Match each eta to its diagonal omega. Etas aren't always numbered, and
+# even when they are, the number isn't always meaningful (eg `nlmixr2`
+# eta columns are named after their parameter, like `eta.cl`, and don't
+# relate to `m`/`n` matrix position at all). Try a direct name match
+# first -- this is what makes `nlmixr2` models work, since `get_prm()`
+# reports the eta's own column name in `name` for those -- then fall
+# back to NONMEM's `ETA<k>`/`ETA(k)` <-> `OMEGA(k,k)` numbering
+# convention, which is meaningful there even though `name`/`label`
+# don't otherwise match the eta column name. Shared by recalc_shk() and
+# normalize_etas() (#81) -- this matching is inherently fragile for
+# unconventional eta naming, which is exactly why normalize_etas() offers
+# `.use_sd = TRUE` as a way to sidestep it entirely.
+match_eta_omega <- function(xpdb, eta_col, .problem, .subprob, .method) {
+  om_diag <- get_prm(xpdb, .problem = .problem, .subprob = .subprob, .method = .method, quiet = TRUE) %>%
+    dplyr::filter(type == "ome", diagonal == TRUE)
+
+  om_idx <- match(eta_col, om_diag$name)
+  need_num <- is.na(om_idx)
+  if (any(need_num)) {
+    eta_num <- suppressWarnings(as.integer(stringr::str_extract(eta_col[need_num], "\\d+")))
+    om_idx[need_num] <- match(eta_num, om_diag$m)
+  }
+  if (anyNA(om_idx)) {
+    cli::cli_abort(c(
+      "Could not associate the following eta column(s) with a diagonal omega: {eta_col[is.na(om_idx)]}",
+      "i" = "Matching is tried by column name (eg for {.field nlmixr2} models), then by NONMEM's {.field ETA<k>}/{.field ETA(k)} numbering convention; neither applied here."
+    ))
+  }
+  as.numeric(om_diag$value[om_idx])
+}
+
 #' Recalculate eta shrinkage from individual estimates
 #'
 #' @description
@@ -121,31 +152,7 @@ recalc_shk <- function(xpdb, ..., .etastype = 1, .problem = NULL, .subprob = NUL
     cli::cli_abort("`...` should only select {.field eta} columns, which does not seem to apply to: {setdiff(eta_col, all_eta_cols)}")
   }
 
-  # Match each eta to its diagonal omega. Etas aren't always numbered, and
-  # even when they are, the number isn't always meaningful (eg `nlmixr2`
-  # eta columns are named after their parameter, like `eta.cl`, and don't
-  # relate to `m`/`n` matrix position at all). Try a direct name match
-  # first -- this is what makes `nlmixr2` models work, since `get_prm()`
-  # reports the eta's own column name in `name` for those -- then fall
-  # back to NONMEM's `ETA<k>`/`ETA(k)` <-> `OMEGA(k,k)` numbering
-  # convention, which is meaningful there even though `name`/`label`
-  # don't otherwise match the eta column name.
-  om_diag <- get_prm(xpdb, .problem = .problem, .subprob = .subprob, .method = .method, quiet = TRUE) %>%
-    dplyr::filter(type == "ome", diagonal == TRUE)
-
-  om_idx <- match(eta_col, om_diag$name)
-  need_num <- is.na(om_idx)
-  if (any(need_num)) {
-    eta_num <- suppressWarnings(as.integer(stringr::str_extract(eta_col[need_num], "\\d+")))
-    om_idx[need_num] <- match(eta_num, om_diag$m)
-  }
-  if (anyNA(om_idx)) {
-    cli::cli_abort(c(
-      "Could not associate the following eta column(s) with a diagonal omega: {eta_col[is.na(om_idx)]}",
-      "i" = "Matching is tried by column name (eg for {.field nlmixr2} models), then by NONMEM's {.field ETA<k>}/{.field ETA(k)} numbering convention; neither applied here."
-    ))
-  }
-  om_val <- as.numeric(om_diag$value[om_idx])
+  om_val <- match_eta_omega(xpdb, eta_col, .problem = .problem, .subprob = .subprob, .method = .method)
 
   id_col <- xpose::xp_var(xpdb, .problem, type = "id")$col[1]
   ind_data <- xpose::get_data(xpdb, .problem = .problem, quiet = TRUE) %>%
@@ -175,6 +182,131 @@ recalc_shk <- function(xpdb, ..., .etastype = 1, .problem = NULL, .subprob = NUL
     }
   )
 }
+
+#' Normalize etas by their omega- or empirical-SD-implied scale
+#'
+#' @description
+#' Sets an `xpdb`-level option (`normalize_etas`, see [`set_option()`])
+#' consumed by [`eta_grid()`]/[`eta_vs_cov_grid()`]/[`eta_vs_contcov()`]/
+#' [`eta_vs_catcov()`]: each selected eta is divided by its typical scale
+#' -- by default the standard deviation implied by its associated
+#' diagonal omega estimate (`sqrt(omega)`), same as [`recalc_shk()`] uses
+#' -- before being plotted, so etas modeled on very different scales
+#' (eg a normally-distributed eta next to a log-normal one with a much
+#' larger omega) can be compared on one shared plot without the
+#' larger-scale eta dominating.
+#'
+#' `normalise_etas()` is an alias, for the British/rest-of-world spelling.
+#'
+#' @details
+#' This only ever affects how those four plotting functions *display*
+#' etas -- it never modifies `xpdb$data`, so [`get_data()`][xpose::get_data]
+#' and every other consumer of the eta columns keep seeing the raw
+#' (unnormalized) values.
+#'
+#' The default (omega-based) scale relies on the same internal
+#' name/numbering match between eta columns and diagonal omega estimates
+#' (see [`recalc_shk()`]'s Details for when that can fail, eg unconventional
+#' eta naming that isn't a `nlmixr2`-style direct match to a parameter
+#' table `name` and also doesn't follow NONMEM's `ETA<k>`/`ETA(k)`
+#' numbering). When that match fails, or there simply is no reliable
+#' omega for these etas (eg a hand-built or simulated `xpdb`),
+#' `.use_sd = TRUE` sidesteps it entirely, scaling by the empirical
+#' standard deviation of each eta's own individual estimates instead --
+#' at the cost of that scale itself being sample-dependent (and shrinkage-
+#' deflated) rather than reflecting the model's estimated random-effect
+#' variance.
+#'
+#' Calling `normalize_etas()` again merges into (rather than replacing)
+#' any previously-set factors -- via [`set_option()`]'s
+#' [`utils::modifyList()`] merge -- so `...` can be used to (re)compute
+#' just a subset of etas, eg after refitting. To turn normalization off
+#' again, either for specific etas (`set_option(xpdb, normalize_etas =
+#' list(ETA1 = NULL))`) or entirely (`set_option(xpdb, normalize_etas =
+#' NULL)`), call [`set_option()`] directly.
+#'
+#' @param xpdb <`xpose_data`[xpose::xpose_data]> or `xp_xtras` object
+#' @param ... <`tidyselect`> Which eta column(s) to (re)compute a
+#' normalization factor for. Defaults to every `eta` column for
+#' `.problem`.
+#' @param .use_sd <`logical`> If `TRUE`, normalize by the empirical
+#' standard deviation of each eta's individual estimates instead of the
+#' omega-implied one; see Details. Defaults to `FALSE`.
+#' @param .problem <`numeric`> Problem number to use. Uses the xpose default if not provided.
+#' @param .subprob <`numeric`> Subproblem number to use. Uses the xpose default if not provided.
+#' @param .method <`character`> Method to use. Uses the xpose default if not provided.
+#' @param quiet <`logical`> Silence extra debugging output
+#'
+#' @return `xp_xtras` object, with `normalize_etas` set under `$options`
+#' @export
+#' @rdname normalize_etas
+#'
+#' @seealso [`recalc_shk()`], which uses the same omega-matching logic
+#'
+#' @examples
+#' xpdb_norm <- normalize_etas(xpdb_x)
+#' eta_grid(xpdb_norm)
+#'
+#' # Just a subset of etas...
+#' normalize_etas(xpdb_x, ETA1)
+#'
+#' # By empirical SD instead, eg if the omega match fails or is unreliable
+#' normalize_etas(xpdb_x, .use_sd = TRUE)
+#'
+normalize_etas <- function(xpdb, ..., .use_sd = FALSE, .problem = NULL, .subprob = NULL,
+                            .method = NULL, quiet) {
+  xpose::check_xpdb(xpdb, check = "data")
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+  checkmate::assert_flag(.use_sd)
+
+  fill_prob_subprob_method(xpdb, .problem = .problem, .subprob = .subprob, .method = .method)
+
+  all_eta_cols <- xpose::xp_var(xpdb, .problem, type = "eta")$col
+  if (length(all_eta_cols) == 0) {
+    cli::cli_abort("No {.field eta} columns found for problem {.problem}.")
+  }
+
+  dots <- rlang::enquos(...)
+  eta_col <- if (length(dots) == 0) {
+    all_eta_cols
+  } else {
+    dplyr::select(
+      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
+      !!!dots
+    ) %>%
+      names() %>%
+      unique()
+  }
+  if (any(!eta_col %in% all_eta_cols)) {
+    cli::cli_abort("`...` should only select {.field eta} columns, which does not seem to apply to: {setdiff(eta_col, all_eta_cols)}")
+  }
+
+  if (.use_sd) {
+    id_col <- xpose::xp_var(xpdb, .problem, type = "id")$col[1]
+    ind_data <- xpose::get_data(xpdb, .problem = .problem, quiet = TRUE) %>%
+      dplyr::distinct(.data[[id_col]], .keep_all = TRUE) %>%
+      dplyr::select(dplyr::all_of(eta_col))
+    scale_val <- purrr::map_dbl(eta_col, function(col) stats::sd(ind_data[[col]]))
+  } else {
+    om_val <- rlang::try_fetch(
+      match_eta_omega(xpdb, eta_col, .problem = .problem, .subprob = .subprob, .method = .method),
+      error = function(e) {
+        cli::cli_abort(
+          c("i" = "Set `.use_sd = TRUE` to normalize by the empirical SD of each eta's individual estimates instead, which doesn't need an omega match."),
+          parent = e
+        )
+      }
+    )
+    scale_val <- sqrt(om_val)
+  }
+
+  new_factors <- stats::setNames(as.list(scale_val), eta_col)
+  set_option(xpdb, normalize_etas = new_factors)
+}
+
+#' @rdname normalize_etas
+#' @export
+normalise_etas <- normalize_etas
 
 #' Derive per-individual contribution to eta shrinkage
 #'

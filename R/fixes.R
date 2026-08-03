@@ -608,6 +608,122 @@ join_backfill <- function(x, y, by = NULL, copy = FALSE, suffix = c(".x", ".y"),
 }
 
 
+#' Print an xpose_data object
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
+#' Bugfix for \code{xpose:::print.xpose_data}. That function's `Options:`
+#' summary line builds `names(x$options)` and `unlist(x$options)`
+#' separately and assumes they come out the same length -- true only as
+#' long as every entry of \code{xpdb$options} is itself a single value.
+#' Any entry that's a multi-element list (eg this package's
+#' \code{normalize_etas} (#81) once more than one eta is set, or
+#' \code{default_labs}/\code{default_watermark} once more than one key is
+#' set) unlists into more elements than there are names, and
+#' \code{stringr::str_c()}'s vectorized recycling then errors -- so
+#' printing (or auto-printing) the `xpdb` fails outright rather than just
+#' rendering oddly. This collapses each option's value to a single string
+#' first, so the name/value pairing always stays 1:1.
+#'
+#' Everything else is an unmodified duplicate of the upstream function.
+#'
+#' @param x An \code{xpose_data} object.
+#' @param ... Passed on to further methods (currently unused upstream too).
+#' @keywords internal
+#' @examples
+#' xpdb_x %>%
+#'   set_option(normalize_etas = list(ETA1 = 1, ETA2 = 2)) %>%
+#'   print()
+#'
+#' @usage \method{print}{xpose_data}(x, ...)
+#' @name print.xpose_data
+NULL
+
+# Duplicated from xpose:::summarize_table_names(), a small formatting
+# helper print_xpose_data_impl() below needs; kept private since it isn't
+# a fix in its own right, just a dependency of one.
+summarize_table_names <- function(dat) {
+  purrr::map(dat$index, ~.$table) %>%
+    purrr::flatten_chr() %>%
+    sort() %>%
+    unique() %>%
+    stringr::str_c(collapse = ", ") %>%
+    {
+      stringr::str_c("$prob no.", dat$problem, ifelse(dat$modified, " (modified)", ""), ": ", .)
+    }
+}
+
+## Not named `print.xpose_data` (see the comment above print_xpose_plot_impl()
+## for why -- the same "Registered S3 method overwritten" concern applies
+## here). Registered manually instead, in .onLoad() (see R/zzz.R).
+print_xpose_data_impl <- function(x, ...) {
+  if (!is.null(x$data) && any(!x$data$simtab)) {
+    tab_names <- x$data %>%
+      dplyr::filter(.$simtab == FALSE) %>%
+      dplyr::mutate(grouping = 1:dplyr::n()) %>%
+      dplyr::group_by_at(.vars = "grouping") %>%
+      tidyr::nest() %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(string = purrr::map_chr(.$data, summarize_table_names)) %>%
+      {
+        stringr::str_c(.$string, collapse = "\n               ")
+      }
+  } else {
+    tab_names <- "<none>"
+  }
+  if (!is.null(x$data) && any(x$data$simtab)) {
+    sim_names <- x$data %>%
+      dplyr::filter(.$simtab == TRUE) %>%
+      dplyr::mutate(grouping = 1:dplyr::n()) %>%
+      dplyr::group_by_at(.vars = "grouping") %>%
+      tidyr::nest() %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(string = purrr::map_chr(.$data, summarize_table_names)) %>%
+      {
+        stringr::str_c(.$string, collapse = "\n               ")
+      }
+  } else {
+    sim_names <- "<none>"
+  }
+  if (!is.null(x$files)) {
+    out_names <- x$files %>%
+      dplyr::distinct(!!rlang::sym("name"), .keep_all = TRUE) %>%
+      dplyr::arrange_at(.vars = "name") %>%
+      {
+        stringr::str_c(.$name, ifelse(.$modified, " (modified)", ""), collapse = ", ")
+      }
+  } else {
+    out_names <- "<none>"
+  }
+  if (!is.null(x$special)) {
+    special_names <- stringr::str_c(x$special$method, " ",
+      x$special$type, " (#", x$special$problem, ifelse(x$special$modified, ", modified", ""), ")",
+      collapse = ", ")
+  } else {
+    special_names <- "<none>"
+  }
+  # xpose.xtras :: collapse each option's value to one string *before*
+  # pairing with names(.), instead of unlist()-ing the whole named list at
+  # once -- see the Description above for why the original goes wrong.
+  opt_names <- x$options %>%
+    purrr::map_if(.p = is.null, .f = function(x) "NULL") %>%
+    purrr::map_chr(function(v) stringr::str_c(unlist(v), collapse = ", ")) %>%
+    {
+      stringr::str_c(names(.), ., sep = " = ", collapse = ", ")
+    }
+  cat(x$summary$value[x$summary$label == "file"], "overview:",
+    "\n - Software:", x$summary$value[x$summary$label %in%
+      c("software", "version") & x$summary$value != "na"],
+    stringr::str_c("\n - Attached files (memory usage ",
+      format(utils::object.size(x), units = "auto"), "):"),
+    "\n   + obs tabs:", tab_names, "\n   + sim tabs:", sim_names,
+    "\n   + output files:", out_names, "\n   + special:",
+    special_names, "\n - gg_theme:", attr(x$gg_theme, "theme"),
+    "\n - xp_theme:", attr(x$xp_theme, "theme"), "\n - Options:",
+    opt_names)
+}
+
 ##### Fix for ggplot2 from xpose@cc0e4b2
 ##### With backwards compatibility considered
 #' Draw an xpose_plot object

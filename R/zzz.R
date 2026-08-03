@@ -2,25 +2,36 @@ register_print_xpose_plot <- function(...) {
   registerS3method("print", "xpose_plot", print_xpose_plot_impl, envir = asNamespace("xpose.xtras"))
 }
 
+register_print_xpose_data <- function(...) {
+  registerS3method("print", "xpose_data", print_xpose_data_impl, envir = asNamespace("xpose.xtras"))
+}
+
 .onLoad <- function(...) {
-  ## print.xpose_plot is deliberately *not* declared as an exported S3
-  ## method in our own NAMESPACE (see the comment above
-  ## print_xpose_plot_impl() in R/fixes.R for why): both xpose and
-  ## xpose.xtras provide a print.xpose_plot, and if both declare it via
+  ## print.xpose_plot/print.xpose_data are deliberately *not* declared as
+  ## exported S3 methods in our own NAMESPACE (see the comments above
+  ## print_xpose_plot_impl()/print_xpose_data_impl() in R/fixes.R for why):
+  ## both xpose and xpose.xtras provide these, and if both declare them via
   ## NAMESPACE (S3method()), R prints a "Registered S3 method overwritten"
   ## startup message the moment the second one loads, regardless of load
-  ## order (#72). Registering it here with registerS3method() updates the
+  ## order (#72). Registering them here with registerS3method() updates the
   ## same underlying dispatch table silently.
   ##
   ## Imports are *usually* resolved before a package's own .onLoad() runs,
   ## so xpose's namespace (and its own, harmless, first-to-register
-  ## print.xpose_plot) is normally already loaded by this point -- but that
+  ## methods) is normally already loaded by this point -- but that
   ## ordering isn't guaranteed (e.g. it can flip when 'conflicted' is loaded
   ## first), so also re-assert on xpose's own onLoad/attach events, same as
   ## the conflicted-preference hooks below, to be sure we always win.
   register_print_xpose_plot()
-  setHook(packageEvent("xpose", "onLoad"), function(...) register_print_xpose_plot())
-  setHook(packageEvent("xpose", "attach"), function(...) register_print_xpose_plot())
+  register_print_xpose_data()
+  setHook(packageEvent("xpose", "onLoad"), function(...) {
+    register_print_xpose_plot()
+    register_print_xpose_data()
+  })
+  setHook(packageEvent("xpose", "attach"), function(...) {
+    register_print_xpose_plot()
+    register_print_xpose_data()
+  })
 }
 
 .onAttach <- function(...) {
