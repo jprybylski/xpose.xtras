@@ -489,6 +489,79 @@ test_that("recalc_shk matches etas to omegas by name for nlmixr2 models", {
   expect_true(all(is.finite(shk$shrinkage)))
 })
 
+test_that("normalize_etas sets a per-eta normalization factor from sqrt(omega)", {
+  xpdb_n <- normalize_etas(xpdb_x, quiet = TRUE)
+  factors <- xpdb_n$options$normalize_etas
+  expect_setequal(names(factors), c("ETA1", "ETA2", "ETA3"))
+  # hand-computed against the same omegas recalc_shk() reports
+  om <- recalc_shk(xpdb_x, quiet = TRUE)
+  expect_equal(
+    unlist(factors)[om$eta],
+    sqrt(om$omega),
+    ignore_attr = TRUE
+  )
+
+  # tidyselect subsets which etas get (re)computed
+  xpdb_n1 <- normalize_etas(xpdb_x, ETA1, quiet = TRUE)
+  expect_named(xpdb_n1$options$normalize_etas, "ETA1")
+
+  expect_error(
+    normalize_etas(xpdb_x, ID, quiet = TRUE),
+    regexp = "should only select"
+  )
+
+  # normalize_etas() never touches the underlying data
+  expect_identical(
+    xpose::get_data(xpdb_n, .problem = 1, quiet = TRUE),
+    xpose::get_data(xpdb_x, .problem = 1, quiet = TRUE)
+  )
+
+  # calling again merges (via set_option()) rather than replacing
+  xpdb_merged <- normalize_etas(xpdb_n, ETA1, .use_sd = TRUE, quiet = TRUE)
+  expect_setequal(names(xpdb_merged$options$normalize_etas), c("ETA1", "ETA2", "ETA3"))
+  expect_false(isTRUE(all.equal(
+    xpdb_merged$options$normalize_etas$ETA1,
+    xpdb_n$options$normalize_etas$ETA1
+  )))
+  expect_equal(
+    xpdb_merged$options$normalize_etas$ETA2,
+    xpdb_n$options$normalize_etas$ETA2
+  )
+
+  # normalise_etas() is a plain alias
+  expect_identical(
+    normalise_etas(xpdb_x, quiet = TRUE)$options$normalize_etas,
+    normalize_etas(xpdb_x, quiet = TRUE)$options$normalize_etas
+  )
+})
+
+test_that("normalize_etas .use_sd normalizes by empirical SD instead of omega", {
+  xpdb_sd <- normalize_etas(xpdb_x, ETA1, .use_sd = TRUE, quiet = TRUE)
+  eta1_vals <- xpose::get_data(xpdb_x, .problem = 1, quiet = TRUE) %>%
+    dplyr::distinct(ID, .keep_all = TRUE) %>%
+    dplyr::pull(ETA1)
+  expect_equal(xpdb_sd$options$normalize_etas$ETA1, stats::sd(eta1_vals))
+
+  # .use_sd sidesteps the eta-omega matching entirely, so it works even
+  # when that match would fail (see the "Could not associate" test above)
+  no_num_xpdb <- xpdb_x
+  no_num_xpdb$data$data[[1]]$WEIRDETA <- no_num_xpdb$data$data[[1]]$ETA1
+  no_num_xpdb$data <- xpose::xpdb_index_update(xpdb = no_num_xpdb, .problem = 1)
+  no_num_xpdb <- set_var_types_x(no_num_xpdb, .problem = 1, eta = WEIRDETA)
+
+  expect_error(
+    normalize_etas(no_num_xpdb, WEIRDETA, quiet = TRUE),
+    regexp = "Could not associate"
+  )
+  expect_error(
+    normalize_etas(no_num_xpdb, WEIRDETA, quiet = TRUE),
+    regexp = "\\.use_sd"
+  )
+  expect_no_error(
+    normalize_etas(no_num_xpdb, WEIRDETA, .use_sd = TRUE, quiet = TRUE)
+  )
+})
+
 test_that("derive_shk/backfill_shk compute per-individual shrinkage contribution", {
 
   orig <- xpose::get_data(xpdb_x, .problem = 1, quiet = TRUE)

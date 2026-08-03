@@ -250,6 +250,52 @@ test_that("eta_vs_contcov/eta_vs_catcov covvar restricts to selected covariates"
   )
 })
 
+test_that("normalize_etas() divides etas by their factor in eta_grid/eta_vs_cov_grid/eta_vs_contcov/eta_vs_catcov", {
+  xpdb_x <- set_option(xpdb_x, quiet = TRUE)
+  xpdb_n <- normalize_etas(xpdb_x, quiet = TRUE)
+  factor1 <- xpdb_n$options$normalize_etas$ETA1
+  raw_eta1 <- xpose::get_data(xpdb_x, .problem = 1, quiet = TRUE)$ETA1
+
+  # unnormalized xpdb: unaffected (regression guard)
+  expect_equal(
+    sort(unique(eta_grid(xpdb_x, etavar = ETA1)$data[["ETA(1)"]])),
+    sort(unique(raw_eta1))
+  )
+
+  # normalized xpdb: each of the four plotting functions divides by factor1
+  expect_equal(
+    sort(unique(eta_grid(xpdb_n, etavar = ETA1)$data[["ETA(1)"]])),
+    sort(unique(raw_eta1 / factor1))
+  )
+  expect_equal(
+    sort(unique(eta_vs_cov_grid(xpdb_n, etavar = ETA1, covvar = AGE)$data[["ETA(1)"]])),
+    sort(unique(raw_eta1 / factor1))
+  )
+  expect_equal(
+    sort(unique(eta_vs_contcov(xpdb_n, etavar = ETA1, covvar = AGE, quiet = TRUE)$data[["ETA(1)"]])),
+    sort(unique(raw_eta1 / factor1))
+  )
+  expect_equal(
+    sort(unique(eta_vs_catcov(xpdb_n, etavar = ETA1, covvar = SEX, quiet = TRUE)$data[["ETA(1)"]])),
+    sort(unique(raw_eta1 / factor1))
+  )
+
+  # still applies correctly under list=FALSE combining (#82)
+  combined <- eta_vs_contcov(xpdb_n, covvar = AGE, list = FALSE, quiet = TRUE)
+  combined_eta1 <- combined$data %>%
+    dplyr::filter(eta_name == "ETA(1)") %>%
+    dplyr::pull(eta_value) %>%
+    unique() %>%
+    sort()
+  expect_equal(combined_eta1, sort(unique(raw_eta1 / factor1)))
+
+  # never touches xpdb$data
+  expect_identical(
+    xpose::get_data(xpdb_n, .problem = 1, quiet = TRUE),
+    xpose::get_data(xpdb_x, .problem = 1, quiet = TRUE)
+  )
+})
+
 test_that("errors and special plot circumstances are correctly caught", {
   expect_error(
     vismo_pomod %>% eta_grid(etavar = P1, quiet = TRUE),

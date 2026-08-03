@@ -81,18 +81,10 @@ eta_grid <- function(xpdb,
   )
   etavar <- eta_col # overwrite the raw promise -- see resolve_var_cols() note
 
-  # Eta label consistency
-  if (xpose::software(xpdb) == 'nonmem') {
-    eta_col_old <- eta_col
-    eta_col_new <- stringr::str_replace(eta_col_old, "^ET(A?)(\\d+)$", "ETA(\\2)")
-    post_processing_eta <-  function(x) {
-      x %>%
-        dplyr::rename(!!!rlang::set_names(eta_col_old, eta_col_new))
-    }
-    eta_col <- eta_col_new
-  } else {
-    post_processing_eta <- function(x) x
-  }
+  # Eta label consistency + normalize_etas() (issue #81)
+  eta_lbl <- eta_post_processing(xpdb, eta_col)
+  post_processing_eta <- eta_lbl$fn
+  eta_col <- eta_lbl$eta_col
   post_processing <- function(x) {
     post_processing_eta(x) %>%
       dplyr::select(!!eta_col)
@@ -264,19 +256,10 @@ eta_vs_cov_grid <- function(xpdb,
   cols <- cov_col # overwrite the raw promise -- see resolve_var_cols() note
   covvar <- cov_col # overwrite the raw promise -- see resolve_var_cols() note
 
-  # Eta label consistency
-  if (xpose::software(xpdb) == 'nonmem') {
-    eta_col_old <- eta_col
-    eta_col_new <- stringr::str_replace(eta_col_old, "^ET(A?)(\\d+)$", "ETA(\\2)")
-    post_processing_eta <-  function(x) {
-      x %>%
-        dplyr::rename(!!!rlang::set_names(eta_col_old, eta_col_new))
-    }
-    eta_col <- eta_col_new
-  } else {
-    post_processing_eta <- function(x) x
-  }
-
+  # Eta label consistency + normalize_etas() (issue #81)
+  eta_lbl <- eta_post_processing(xpdb, eta_col)
+  post_processing_eta <- eta_lbl$fn
+  eta_col <- eta_lbl$eta_col
 
   # Set cov factor to label and units, if relevant
   lvld_cov <- cov_col[cov_col %in% xp_var(xpdb, .problem, type = "catcov", silent = TRUE)$col] # silent=TRUE or else this throws error
@@ -465,18 +448,10 @@ eta_vs_contcov <- function(xpdb,
   # Set cov factor to label and units, if relevant
   post_processing_cov <- apply_labels_units(xpdb = xpdb, .problem = .problem)
 
-  # Eta label consistency
-  if (xpose::software(xpdb) == 'nonmem') {
-    eta_col_old <- eta_col
-    eta_col_new <- stringr::str_replace(eta_col_old, "^ET(A?)(\\d+)$", "ETA(\\2)")
-    post_processing_eta <-  function(x) {
-      x %>%
-        dplyr::rename(!!!rlang::set_names(eta_col_old, eta_col_new))
-    }
-    eta_col <- eta_col_new
-  } else {
-    post_processing_eta <- function(x) x
-  }
+  # Eta label consistency + normalize_etas() (issue #81)
+  eta_lbl <- eta_post_processing(xpdb, eta_col)
+  post_processing_eta <- eta_lbl$fn
+  eta_col <- eta_lbl$eta_col
 
   # For `combine`, the eta column(s) are pivoted long *after*
   # post_processing_cov()/post_processing_eta() run on the (still
@@ -667,18 +642,10 @@ eta_vs_catcov <- function(xpdb,
     post_processing_cov <- apply_labels_units_levels(xpdb = xpdb, .problem = .problem, show_n = show_n)
   }
 
-  # Eta label consistency
-  if (xpose::software(xpdb) == 'nonmem') {
-    eta_col_old <- eta_col
-    eta_col_new <- stringr::str_replace(eta_col_old, "^ET(A?)(\\d+)$", "ETA(\\2)")
-    post_processing_eta <-  function(x) {
-      x %>%
-        dplyr::rename(!!!rlang::set_names(eta_col_old, eta_col_new))
-    }
-    eta_col <- eta_col_new
-  } else {
-    post_processing_eta <- function(x) x
-  }
+  # Eta label consistency + normalize_etas() (issue #81)
+  eta_lbl <- eta_post_processing(xpdb, eta_col)
+  post_processing_eta <- eta_lbl$fn
+  eta_col <- eta_lbl$eta_col
 
   if (combine) {
     post_processing <- function(x) {

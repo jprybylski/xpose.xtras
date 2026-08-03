@@ -512,6 +512,40 @@ test_that("patch_condn ignores non-consecutive false-positive matches after the 
   )
 })
 
+test_that("print.xpose_data()/print.xp_xtras() handle multi-element list-valued options (issue #81)", {
+  # xpose:::print.xpose_data()'s `Options:` line pairs names(x$options)
+  # with unlist(x$options), assuming they come out the same length -- true
+  # only as long as every option is a single value. Any option that's
+  # itself a multi-element list (eg normalize_etas() with more than one
+  # eta, or default_labs/default_watermark with more than one key set)
+  # breaks that assumption and previously errored outright instead of
+  # printing.
+  # print.xp_xtras() re-emits via cli::cli_verbatim(), which signals R's
+  # message condition rather than writing straight to stdout -- so these
+  # need expect_message(), not expect_output().
+  xpdb_multi <- set_option(xpdb_x, quiet = TRUE, normalize_etas = list(ETA1 = 1, ETA2 = 2))
+  expect_message(print(xpdb_multi), "normalize_etas = 1, 2")
+
+  # Exercised via a plain (non-xp_xtras) xpose_data object too, since
+  # print.xp_xtras() delegates to this fix via NextMethod() -- this one
+  # goes through the fixed function's own plain cat(), straight to stdout.
+  plain <- xpose::xpdb_ex_pk
+  plain$options$normalize_etas <- list(ETA1 = 1, ETA2 = 2)
+  expect_output(print(plain), "normalize_etas = 1, 2")
+
+  # default_labs/default_watermark with more than one key hit the same bug
+  xpdb_labs <- set_default_labs(xpdb_x, title = "t", caption = "c")
+  expect_message(print(xpdb_labs), "default_labs = t, c")
+})
+
+test_that("normalize_etas() output doesn't trip the print.xpose_data bug (issue #81)", {
+  # Regression guard tying the two fixes together: normalize_etas() with
+  # its default (every eta) selection naturally produces a multi-element
+  # `normalize_etas` option, which is exactly what used to crash printing.
+  xpdb_norm <- normalize_etas(xpdb_x, quiet = TRUE)
+  expect_message(print(xpdb_norm), "normalize_etas")
+})
+
 test_that("print.xpose_plot() auto-applies configured defaults via auto_apply_defaults()", {
   data("xpdb_ex_pk", package = "xpose", envir = environment())
   p <- xpose::dv_vs_ipred(xpdb_ex_pk, quiet = TRUE)
