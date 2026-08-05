@@ -39,6 +39,8 @@
 
 ## Bug fixes
 
+* `backfill_iofv()` now gives a clear error when called without `xpdb`
+  instead of a cryptic `cli` formatting failure. (#84)
 * Fixed `print.xpose_data()`/`print.xp_xtras()` erroring instead of
   printing whenever any `xpdb$options` entry is a multi-element list (eg
   `default_labs`/`default_watermark` with more than one key set). (#81)

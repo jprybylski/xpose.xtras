@@ -616,18 +616,22 @@ lvl_inord <- function(x, .start_index = 1, .ordered = TRUE) {
 #'   list_vars()
 #'
 backfill_iofv <- function(xpdb, .problem=NULL, .subprob=NULL, .label = "iOFV") {
+  if (missing(xpdb)) {
+    cli::cli_abort("Need `xpdb` for this function.")
+  }
+  xpose::check_xpdb(xpdb, "data")
+
   allowed_software <- c("nonmem","nlmixr2")
+  cur_software <- xpose::software(xpdb)
   rlang::try_fetch(
-    checkmate::assert_choice(xpose::software(xpdb), allowed_software),
+    checkmate::assert_choice(cur_software, allowed_software),
     error = function(s)
-      cli::cli_abort("This backfill function only works for {allowed_software} model objects, not those from {.strong {cli::col_yellow(xpose::software(xpdb))}}", parent = s)
+      cli::cli_abort("This backfill function only works for {allowed_software} model objects, not those from {.strong {cli::col_yellow(cur_software)}}", parent = s)
   )
 
-
-  xpose::check_xpdb(xpdb, "data")
   fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob) # fills in .problem and .subprob if missing
   new_xpdb <- as_xp_xtras(xpdb)
-  if (xpose::software(xpdb)=="nonmem") {
+  if (cur_software=="nonmem") {
     # Get from nonmem phi file
     if (!"phi" %in% xpdb$files$extension) rlang::abort("phi table not found in files.")
 
@@ -643,7 +647,7 @@ backfill_iofv <- function(xpdb, .problem=NULL, .subprob=NULL, .label = "iOFV") {
     match_obj <- function(id) {
       phi_df$OBJ[match(id,phi_df$ID)]
     }
-  } else if (xpose::software(xpdb)=="nlmixr2") {
+  } else if (cur_software=="nlmixr2") {
     assert_nlmixr2fit(xpdb)
     xpa("data_frame", xpdb$fit$etaObf,
         custom_msg = paste("This nlmixr2 fit does not have individual",

@@ -428,6 +428,10 @@ test_that("xp_var methods work", {
 test_that("iofv can be backfilled", {
   # Error checks
   expect_error(
+    backfill_iofv(),
+    "Need .xpdb. for this function"
+  )
+  expect_error(
     set_prop(pheno_base, software="fakesoftware") %>%
       backfill_iofv(),
     "only works for nonmem.*fakesoftware"
