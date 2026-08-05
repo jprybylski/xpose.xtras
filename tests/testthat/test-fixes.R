@@ -437,6 +437,27 @@ test_that("patch_condn corrects the condition number for multi-method runs (issu
   expect_true(check_xpdb_x(reconverted))
 })
 
+test_that("xpose::xpose_data() raises xpose's own eigen_header warning on fresh multi-method import, corrected downstream by patch_condn()", {
+  # xpose:::sum_condn() (not patch_condn()) is what computes $summary's
+  # initial 'condn' during xpose::xpose_data() itself, and lacks the
+  # length(eigen_header) > 1 guard patch_condn() adds for issue #60 -- so a
+  # fresh import of a multi-method run is expected to warn here, before
+  # patch_condn()/as_xpdb_x() ever run. This is upstream `xpose` behavior we
+  # can't suppress (see patch_condn()'s docs), just confirming it's still
+  # the specific, known warning and not something new.
+  expect_warning(
+    fresh <- xpose::xpose_data(runno = 18, dir = system.file("pheno_saemimp", package = "xpose.xtras")),
+    regexp = "eigen_header"
+  )
+
+  expected <- as.character(round(1.77 / 0.21, fresh$xp_theme$rounding))
+  reconverted <- as_xpdb_x(fresh)
+  expect_equal(
+    reconverted$summary$value[reconverted$summary$label == "condn"],
+    expected
+  )
+})
+
 test_that("patch_condn skips code-scanning entirely for single-method problems", {
   # No problem in xpdb_ex_pk has more than one 'method' row in $summary, so
   # patch_condn() should return early without ever touching $code -- corrupt

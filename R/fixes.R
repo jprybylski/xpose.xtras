@@ -230,6 +230,13 @@ irep <- function(x, quiet = FALSE) {
 #' uses the *last* block, matching the value reported by NONMEM-adjacent
 #' tools such as PsN's `sumo`.
 #'
+#' `xpose:::sum_condn()` itself (not this function) is also where a multi-
+#' method run with more than one `EIGENVALUES OF COR` block raises "numerical
+#' expression has ... elements: only the first used" -- it runs automatically
+#' inside \code{xpose::xpose_data()}, before `patch_condn()` gets a chance to
+#' run, so that warning is expected and cannot be suppressed from here; this
+#' function only fixes the resulting `'condn'` value afterward.
+#'
 #' @param xpdb An \code{xpose_data} or \code{xp_xtras} object.
 #'
 #' @return The \code{xpdb} object, with a corrected `'condn'` entry in
