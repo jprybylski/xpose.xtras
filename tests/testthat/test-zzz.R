@@ -117,6 +117,10 @@ test_that(".onAttach() reminds the user xpose isn't attached whenever it isn't, 
   testthat::local_mocked_bindings(is_attached = function(x) FALSE, has_conflicted = function() FALSE)
   expect_message(xpose.xtras:::.onAttach(), "isn't attached", class = "packageStartupMessage")
 
+  # mocking has_conflicted() to TRUE routes set_conflict_prefs() through a
+  # real conflicted::conflict_prefer_all() call, so this branch needs the
+  # (Suggests-only) package actually installed, unlike the FALSE branch above
+  skip_if_not_installed("conflicted")
   testthat::local_mocked_bindings(is_attached = function(x) FALSE, has_conflicted = function() TRUE)
   expect_message(xpose.xtras:::.onAttach(), "isn't attached", class = "packageStartupMessage")
 })
@@ -136,6 +140,9 @@ test_that(".onAttach() names the affected bugfix only when one is active and con
   testthat::local_mocked_bindings(active_bugfixes = function() character(0), has_conflicted = function() FALSE)
   expect_false(any(grepl("irep", testthat::capture_messages(xpose.xtras:::.onAttach()))))
 
+  # as above, has_conflicted() = TRUE routes through a real conflicted::
+  # call, requiring the (Suggests-only) package to actually be installed
+  skip_if_not_installed("conflicted")
   testthat::local_mocked_bindings(active_bugfixes = function() "irep", has_conflicted = function() TRUE)
   expect_false(any(grepl("irep", testthat::capture_messages(xpose.xtras:::.onAttach()))))
 })

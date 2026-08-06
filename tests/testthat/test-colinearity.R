@@ -90,10 +90,15 @@ test_that("get_cov_matrix works for nlmixr2 models", {
   cov_mat <- get_cov_matrix(xpdb_nlmixr2, type = "covariance", quiet = TRUE)
   expect_equal(dim(cov_mat), dim(cor_mat))
 
-  # nlmixr2 only reports uncertainty for fixed effects with an estimated SE;
-  # random effects (omega/sigma) are never part of the matrix
+  # nlmixr2 always reports uncertainty for fixed effects; newer nlmixr2est
+  # versions may also report it for omega diagonal (variance) elements,
+  # named "om.<eta name>" -- anything beyond the theta names must be one
+  # of those, not something unexpected
   prm <- get_prm(xpdb_nlmixr2, show_all = TRUE, quiet = TRUE)
-  expect_true(all(rownames(cor_mat) %in% prm$name[prm$type == "the"]))
+  theta_names <- prm$name[prm$type == "the"]
+  expect_true(all(theta_names %in% rownames(cor_mat)))
+  extra_names <- setdiff(rownames(cor_mat), theta_names)
+  expect_true(all(extra_names %in% paste0("om.", prm$name[prm$type == "ome"])))
 
   # drop_fixed has no effect for nlmixr2 (nothing to drop)
   expect_equal(

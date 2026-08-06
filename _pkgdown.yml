@@ -55,6 +55,9 @@ reference:
       - starts_with("roc_")
       - starts_with("plotfun_")
       - starts_with("shark_")
+      - starts_with("shk_")
+      - normalize_etas
+      - normalise_etas
       - ind_roc
       - ind_plots_sample
       - xset_waterfall
@@ -110,12 +113,15 @@ reference:
       - irep
       - patch_condn
       - derive_prm
+      - derive_shk
+      - recalc_shk
       - diagnose_constants
       - get_prm
       - get_shk
       - get_cov_matrix
       - list_vars
       - xp_from_bbr
+      - xtras_data
       - logLik.xpose_data
       - add_process_preset
       - persist_process_presets

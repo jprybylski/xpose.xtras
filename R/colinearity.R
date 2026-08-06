@@ -27,11 +27,14 @@
 #' parameters in these tables as placeholder zeros (since no uncertainty is
 #' estimated for them); `drop_fixed` (the default) removes them.
 #'
-#' For `nlmixr2` models, uncertainty is only calculated for fixed-effect
-#' (`theta`) parameters; `nlmixr2` does not report standard errors, and
-#' therefore no covariance/correlation, for random-effect (`omega`)
-#' elements. `drop_fixed` has no effect here, since parameters without a
-#' standard error are already excluded from the fit's covariance matrix.
+#' For `nlmixr2` models, uncertainty is always calculated for fixed-effect
+#' (`theta`) parameters; whether it's also calculated for random-effect
+#' (`omega`) diagonal (variance) elements depends on the `nlmixr2est`
+#' version and fit settings -- when present, those rows/columns are named
+#' `"om.<eta name>"` to distinguish them from the point estimates
+#' returned by [`get_prm()`]. `drop_fixed` has no effect here, since
+#' parameters without a standard error are already excluded from the
+#' fit's covariance matrix rather than represented as placeholder zeros.
 #'
 #' In both cases, if the covariance step was not run, or did not complete
 #' successfully, an informative error is raised rather than returning
