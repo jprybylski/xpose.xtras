@@ -92,5 +92,5 @@ if (requireNamespace("bbr", quietly = TRUE)) {
 #>    + special: <none> 
 #>  - gg_theme: theme_readable 
 #>  - xp_theme: xp_xtra_theme new_x$xp_theme 
-#>  - Options: dir = /tmp/Rtmp9mG6BR/xp_from_bbr_ex1be851b3a2bd/18, quiet = TRUE, manual_import = NULL, cvtype = exact
+#>  - Options: dir = /tmp/RtmpemXxkR/xp_from_bbr_ex1b9558d1f3f3/18, quiet = TRUE, manual_import = NULL, cvtype = exact
 ```
