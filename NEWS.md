@@ -1,6 +1,6 @@
 # xpose.xtras
 
-# xpose.xtras (development version)
+# xpose.xtras 0.2.2
 
 ## New features
 
