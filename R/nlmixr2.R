@@ -90,8 +90,24 @@ nlmixr2_as_xtra <- function(
   rlang::check_installed("xpose.nlmixr2")
   rlang::check_installed("nlmixr2")
 
-  nlm_xpd <- xpose.nlmixr2::xpose_data_nlmixr2(
-    obj = obj, ...
+  nlm_xpd <- rlang::try_fetch(
+    xpose.nlmixr2::xpose_data_nlmixr2(obj = obj, ...),
+    error = function(cnd) {
+      # xpose.nlmixr2's own error here ("Input object needs to be an
+      # nlmixr2 fit.") doesn't say what it actually got instead, which
+      # matters when `obj` came from a fit that ran to completion without
+      # raising any warning but still wasn't promoted to the expected
+      # class (observed on resource-constrained CI runners) -- surface
+      # that context rather than just the bare upstream message.
+      cli::cli_abort(
+        c(
+          "!" = "{.fun xpose.nlmixr2::xpose_data_nlmixr2} rejected {.arg obj}.",
+          "i" = "{.code class(obj)}: {.cls {class(obj)}}",
+          "i" = if (is.list(obj)) "{.code names(obj)}: {names(obj)}"
+        ),
+        parent = cnd
+      )
+    }
   ) %>%
     attach_nlmixr2(obj) %>%
     as_xp_xtras() %>%
