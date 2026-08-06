@@ -1,13 +1,14 @@
 # Add simulation counter
 
-For `xpose` version \> 0.5.0 **\[deprecated\]**
-
-Because this has been fixed in the parent package, the fix will be
-removed in an upcoming release.
-
 Add a column containing a simulation counter (irep). A new simulation is
 counted every time a value in x is different than its previous value and
 is a duplicate.
+
+`xpose` fixed this upstream around version 0.5.0, then later reverted
+that fix, so this is treated as a standing bugfix rather than a
+temporary one pending removal (previously this deferred to
+[`xpose::irep()`](https://uupharmacometrics.github.io/xpose/reference/irep.html)
+for `xpose` \>= 0.5.0; that's no longer safe to assume).
 
 This version of the function does not require IDs be ascending, but does
 not work for datasets where IDs are repeated (not in sequence). Both

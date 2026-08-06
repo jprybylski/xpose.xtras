@@ -507,22 +507,22 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] xpose.xtras_0.2.0 xpose_0.4.23      ggplot2_4.0.3     dplyr_1.2.1      
+#> [1] xpose.xtras_0.2.2 xpose_0.4.23      ggplot2_4.0.3     dplyr_1.2.1      
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] utf8_1.2.6         sass_0.4.10        generics_0.1.4     tidyr_1.3.2       
-#>  [5] stringi_1.8.7      hms_1.1.4          digest_0.6.39      magrittr_2.0.5    
+#>  [5] stringi_1.8.9      hms_1.1.4          digest_0.6.39      magrittr_2.0.5    
 #>  [9] evaluate_1.0.5     grid_4.6.1         RColorBrewer_1.1-3 fastmap_1.2.0     
-#> [13] jsonlite_2.0.0     backports_1.5.1    conflicted_1.2.0   purrr_1.2.2       
-#> [17] scales_1.4.0       tweenr_2.0.3       textshaping_1.0.5  jquerylib_0.1.4   
-#> [21] cli_3.6.6          rlang_1.3.0        polyclip_1.10-7    withr_3.0.3       
-#> [25] cachem_1.1.0       yaml_2.3.12        otel_0.2.0         tools_4.6.1       
-#> [29] tzdb_0.5.0         memoise_2.0.1      checkmate_2.3.4    forcats_1.0.1     
-#> [33] vctrs_0.7.3        R6_2.6.1           lifecycle_1.0.5    stringr_1.6.0     
-#> [37] fs_2.1.0           htmlwidgets_1.6.4  MASS_7.3-65        ragg_1.5.2        
-#> [41] pkgconfig_2.0.3    desc_1.4.3         pkgdown_2.2.1      pillar_1.11.1     
-#> [45] bslib_0.11.0       gtable_0.3.6       pmxcv_0.0.2        glue_1.8.1        
-#> [49] ggforce_0.5.0      systemfonts_1.3.2  xfun_0.60          tibble_3.3.1      
-#> [53] tidyselect_1.2.1   knitr_1.51         farver_2.1.2       htmltools_0.5.9   
-#> [57] rmarkdown_2.31     readr_2.2.0        compiler_4.6.1     S7_0.2.2
+#> [13] jsonlite_2.0.0     backports_1.5.1    purrr_1.2.2        scales_1.4.0      
+#> [17] tweenr_2.0.3       textshaping_1.0.5  jquerylib_0.1.4    cli_3.6.6         
+#> [21] rlang_1.3.0        polyclip_1.10-7    withr_3.0.3        cachem_1.1.0      
+#> [25] yaml_2.3.12        otel_0.2.0         tools_4.6.1        tzdb_0.5.0        
+#> [29] checkmate_2.3.4    forcats_1.0.1      vctrs_0.7.3        R6_2.6.1          
+#> [33] lifecycle_1.0.5    stringr_1.6.0      fs_2.1.0           htmlwidgets_1.6.4 
+#> [37] MASS_7.3-65        ragg_1.5.2         pkgconfig_2.0.3    desc_1.4.3        
+#> [41] pkgdown_2.2.1      pillar_1.11.1      bslib_0.12.0       gtable_0.3.6      
+#> [45] glue_1.8.1         pmxcv_0.0.2        ggforce_0.5.0      systemfonts_1.3.2 
+#> [49] xfun_0.60          tibble_3.3.1       tidyselect_1.2.1   knitr_1.51        
+#> [53] farver_2.1.2       htmltools_0.5.9    rmarkdown_2.31     readr_2.2.0       
+#> [57] compiler_4.6.1     S7_0.2.2
 ```

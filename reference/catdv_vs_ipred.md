@@ -122,11 +122,6 @@ pkpd_m3 %>%
   set_var_levels(1, BLQ = lvl_bin()) %>%
   # Plot with 5 bins
   catdv_vs_ipred(bins = 5)
-#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-#> ℹ Please use `linewidth` instead.
-#> ℹ The deprecated feature was likely used in the xpose package.
-#>   Please report the issue at
-#>   <https://github.com/UUPharmacometrics/xpose/issues/>.
 
 
 # Test categorical model

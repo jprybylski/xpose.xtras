@@ -8,16 +8,16 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/jprybylski/xpose.xtras/blob/v0.2.0/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/jprybylski/xpose.xtras/blob/master/DESCRIPTION)
 
 Prybylski J (2026). *xpose.xtras: Extra Functionality for the 'xpose'
-Package*. R package version 0.2.0,
+Package*. R package version 0.2.2,
 <https://jprybylski.github.io/xpose.xtras/>.
 
     @Manual{,
       title = {xpose.xtras: Extra Functionality for the 'xpose' Package},
       author = {John Prybylski},
       year = {2026},
-      note = {R package version 0.2.0},
+      note = {R package version 0.2.2},
       url = {https://jprybylski.github.io/xpose.xtras/},
     }

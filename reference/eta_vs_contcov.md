@@ -9,9 +9,11 @@ eta_vs_contcov(
   xpdb,
   mapping = NULL,
   etavar = NULL,
+  covvar = NULL,
   drop_fixed = TRUE,
   linsm = FALSE,
   type = "ps",
+  list = TRUE,
   title = "Eta versus continuous covariates | @run",
   subtitle = "Based on @nind individuals, Eta shrink: @etashk",
   caption = "@dir",
@@ -39,6 +41,11 @@ eta_vs_contcov(
 
   `tidyselect` for `eta` variables
 
+- covvar:
+
+  `tidyselect` for continuous covariate variables; `NULL` (default)
+  selects every continuous covariate in the `xpdb` data index.
+
 - drop_fixed:
 
   As in `xpose`
@@ -50,6 +57,18 @@ eta_vs_contcov(
 - type:
 
   Passed to `xplot_scatter`
+
+- list:
+
+  \<`logical`\> Only relevant when `etavar` resolves to more than one
+  eta. If `TRUE` (default, for backwards compatibility), returns a plain
+  list of one plot per eta. If `FALSE`, all etas are instead combined
+  onto one shared plot – faceted by eta, in addition to the existing
+  per-covariate facet – automatically paginating (at most 9 panels per
+  page, i.e. `ncol`/`nrow` of 3) via `xpose`'s own `facet_wrap_paginate`
+  mechanism. Printing the returned plot renders every page; pass `page`
+  to [`print()`](https://rdrr.io/r/base/print.html) to select a specific
+  one.
 
 - title:
 
@@ -93,7 +112,8 @@ eta_vs_contcov(
 
 ## Value
 
-The desired plot
+The desired plot, or (when `etavar` resolves to more than one eta and
+`list = TRUE`) a plain list of one plot per eta.
 
 ## Examples
 
@@ -142,6 +162,38 @@ xpdb_x %>%
 #> Using data from $prob no.1
 #> Removing duplicated rows based on: ID
 #> Tidying data by ID, SEX, MED1, MED2, DOSE ... and 23 more variables
+#> [[1]]
+#> `geom_smooth()` using formula = 'y ~ x'
+
+#> 
+#> [[2]]
+#> `geom_smooth()` using formula = 'y ~ x'
+
+#> 
+#> [[3]]
+#> `geom_smooth()` using formula = 'y ~ x'
+
+#> 
+
+# Combine all etas onto one shared, faceted plot instead of a list
+eta_vs_contcov(xpdb_x, list = FALSE)
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
+#> Tidying data by ID, SEX, MED1, MED2, DOSE ... and 23 more variables
+#> `geom_smooth()` using formula = 'y ~ x'
+
+
+# Restrict to specific covariates with covvar, just like etavar
+eta_vs_contcov(xpdb_x, covvar = AGE)
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
+#> Tidying data by ID, SEX, MED1, MED2, DOSE ... and 25 more variables
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
+#> Tidying data by ID, SEX, MED1, MED2, DOSE ... and 25 more variables
+#> Using data from $prob no.1
+#> Removing duplicated rows based on: ID
+#> Tidying data by ID, SEX, MED1, MED2, DOSE ... and 25 more variables
 #> [[1]]
 #> `geom_smooth()` using formula = 'y ~ x'
 

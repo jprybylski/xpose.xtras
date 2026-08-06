@@ -47,6 +47,7 @@ eta_vs_cov_grid(
   mapping = NULL,
   etavar = NULL,
   cols = NULL,
+  covvar = NULL,
   covtypes = c("cont", "cat"),
   show_n = TRUE,
   drop_fixed = TRUE,
@@ -124,6 +125,13 @@ eta_vs_cov_grid(
 - show_n:
 
   Count the number of `ID`s in each category
+
+- covvar:
+
+  For `eta_vs_cov_grid` only: an alias for `cols` (matching the `covvar`
+  argument of
+  [`eta_vs_contcov()`](https://jprybylski.github.io/xpose.xtras/reference/eta_vs_contcov.md)/[`eta_vs_catcov()`](https://jprybylski.github.io/xpose.xtras/reference/eta_vs_catcov.md)).
+  If supplied (non-`NULL`), takes precedence over `cols`.
 
 - etacov:
 

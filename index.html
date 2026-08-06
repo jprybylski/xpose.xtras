@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Extra Functionality for the xpose Package • xpose.xtras</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" sizes="any" href="favicon.ico">
+<link rel="manifest" href="site.webmanifest">
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -23,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">xpose.xtras</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,7 +75,7 @@
 </h2>
 <p>This package adds some extra functionality and plots to the <a href="https://uupharmacometrics.github.io/xpose/" class="external-link"><code>xpose</code></a> framework. This includes some plots that have been missing in translation from <a href="https://uupharmacometrics.github.io/xpose4/" class="external-link"><code>xpose4</code></a>, but also some useful features that truly extend the capabilities of what can be done with <code>xpose</code>.</p>
 <p>There are a few bugfixes here and functionality which could easily be suggested as pull requests to the parent package. Given the size and broad use of <code>xpose</code>, it appears even minor pull requests take some time to implement. As such, this package implements those features directly and if at any point in the future these are added (perhaps in a better state) to the parent package, they will be deprecated if this package is in active use.</p>
-<p>For those wondering, <a href="https://conflicted.r-lib.org/" class="external-link"><code>conflicted</code></a> is used to manage bugfix conflicts, so users should be comfortable loading packages in any order.</p>
+<p>Load <code><a href="https://uupharmacometrics.github.io/xpose/" class="external-link">library(xpose)</a></code> before <code><a href="https://jprybylski.github.io/xpose.xtras/">library(xpose.xtras)</a></code> so these bugfixes take effect via normal masking. If you use <a href="https://conflicted.r-lib.org/" class="external-link"><code>conflicted</code></a> to manage namespace conflicts, load order stops mattering for them: <code>xpose.xtras</code> automatically registers its preferred side of these specific <code>xpose</code>/<code>stats</code> overrides. Conflicts against other, unrelated packages (e.g. another package’s own <code>dplyr</code> verb) aren’t affected by this and are still yours to resolve as usual (e.g. <code><a href="https://conflicted.r-lib.org/reference/conflicts_prefer.html" class="external-link">conflicted::conflicts_prefer()</a></code>).</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>

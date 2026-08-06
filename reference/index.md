@@ -199,6 +199,20 @@ Additional plotting functions and themes extending xpose.
 - [`shark_colors()`](https://jprybylski.github.io/xpose.xtras/reference/shark_colors.md)
   : Change colors of shark plots
 
+- [`shk_grid()`](https://jprybylski.github.io/xpose.xtras/reference/shk_grid_plots.md)
+  [`shk_vs_cov_grid()`](https://jprybylski.github.io/xpose.xtras/reference/shk_grid_plots.md)
+  : Shrinkage contribution grid plots
+
+- [`shk_vs_catcov()`](https://jprybylski.github.io/xpose.xtras/reference/shk_vs_catcov.md)
+  : Shrinkage contribution versus categorical covariates
+
+- [`shk_vs_contcov()`](https://jprybylski.github.io/xpose.xtras/reference/shk_vs_contcov.md)
+  : Shrinkage contribution versus continuous covariates
+
+- [`normalize_etas()`](https://jprybylski.github.io/xpose.xtras/reference/normalize_etas.md)
+  [`normalise_etas()`](https://jprybylski.github.io/xpose.xtras/reference/normalize_etas.md)
+  : Normalize etas by their omega- or empirical-SD-implied scale
+
 - [`ind_roc()`](https://jprybylski.github.io/xpose.xtras/reference/ind_roc.md)
   : Individual ROC plots
 
@@ -373,7 +387,7 @@ Miscellaneous helpers and integrations.
   : Logical instead of exception for xpose data check
 
 - [`irep()`](https://jprybylski.github.io/xpose.xtras/reference/irep.md)
-  **\[deprecated\]** : Add simulation counter
+  : Add simulation counter
 
 - [`patch_condn()`](https://jprybylski.github.io/xpose.xtras/reference/patch_condn.md)
   **\[experimental\]** : Patch condition number extraction
@@ -381,6 +395,13 @@ Miscellaneous helpers and integrations.
 - [`derive_prm()`](https://jprybylski.github.io/xpose.xtras/reference/derive_prm.md)
   [`backfill_derived()`](https://jprybylski.github.io/xpose.xtras/reference/derive_prm.md)
   : Derive full parameter set for mammillary PK model
+
+- [`derive_shk()`](https://jprybylski.github.io/xpose.xtras/reference/derive_shk.md)
+  [`backfill_shk()`](https://jprybylski.github.io/xpose.xtras/reference/derive_shk.md)
+  : Derive per-individual contribution to eta shrinkage
+
+- [`recalc_shk()`](https://jprybylski.github.io/xpose.xtras/reference/recalc_shk.md)
+  : Recalculate eta shrinkage from individual estimates
 
 - [`diagnose_constants()`](https://jprybylski.github.io/xpose.xtras/reference/diagnose_constants.md)
   : Check for potential parameterization issues
@@ -402,6 +423,11 @@ Miscellaneous helpers and integrations.
 - [`xp_from_bbr()`](https://jprybylski.github.io/xpose.xtras/reference/xp_from_bbr.md)
   : Convenience function for ingesting a bbr model into xpose and
   xpose.xtras
+
+- [`xtras_data()`](https://jprybylski.github.io/xpose.xtras/reference/xtras_data.md)
+  :
+
+  Read model outputs directly into an `xp_xtras` object
 
 - [`logLik(`*`<xpose_data>`*`)`](https://jprybylski.github.io/xpose.xtras/reference/logLik.xpose_data.md)
   **\[experimental\]** :

@@ -10,9 +10,9 @@ requires manually reconstructing the output file path from the model
 object, e.g.
 
 
-    xpose::xpose_data(
+    xtras_data(
       file = file.path(bbr::get_output_dir(mod), paste0(bbr::get_model_id(mod), ".lst"))
-    ) |> as_xp_xtras()
+    )
 
 `xp_from_bbr()` wraps that pipeline.
 
@@ -33,7 +33,9 @@ xp_from_bbr(.mod, ..., .use_bbr_descr = TRUE)
 - ...:
 
   Passed to
-  [`xpose::xpose_data()`](https://uupharmacometrics.github.io/xpose/reference/xpose_data.html).
+  [`xtras_data()`](https://jprybylski.github.io/xpose.xtras/reference/xtras_data.md)
+  (and, in turn,
+  [`xpose::xpose_data()`](https://uupharmacometrics.github.io/xpose/reference/xpose_data.html)).
 
 - .use_bbr_descr:
 
@@ -49,7 +51,8 @@ An \<`xp_xtras`\> object
 
 ## See also
 
-[`bbr::read_model()`](https://metrumresearchgroup.github.io/bbr/reference/read_model.html)
+[`bbr::read_model()`](https://metrumresearchgroup.github.io/bbr/reference/read_model.html),
+[`xtras_data()`](https://jprybylski.github.io/xpose.xtras/reference/xtras_data.md)
 
 ## Examples
 
@@ -73,15 +76,10 @@ if (requireNamespace("bbr", quietly = TRUE)) {
   writeLines("{}", file.path(out_dir, "bbi_config.json"))
 
   mod <- bbr::new_model(file.path(mod_dir, "18"), .description = "Phenobarbital SAEM model")
-  xp_from_bbr(mod)
+  print(xp_from_bbr(mod))
+  unlink(mod_dir, recursive = TRUE)
 }
 #> Warning: No table files could be found.
-#> Warning: There were 3 warnings in `mutate()`.
-#> The first warning was:
-#> ℹ In argument: `value = purrr::map_chr(...)`.
-#> Caused by warning in `eigen_header:length(.x$code)`:
-#> ! numerical expression has 2 elements: only the first used
-#> ℹ Run `dplyr::last_dplyr_warnings()` to see the 2 remaining warnings.
 #> 
 #> ── ~ xp_xtras object 
 #> Model description: Phenobarbital SAEM model
@@ -94,5 +92,5 @@ if (requireNamespace("bbr", quietly = TRUE)) {
 #>    + special: <none> 
 #>  - gg_theme: theme_readable 
 #>  - xp_theme: xp_xtra_theme new_x$xp_theme 
-#>  - Options: dir = /tmp/RtmpY3nIy0/xp_from_bbr_ex1a9628455a9/18, quiet = TRUE, manual_import = NULL, cvtype = exact
+#>  - Options: dir = /tmp/Rtmp1d6t3i/xp_from_bbr_ex1a7469200a74/18, quiet = TRUE, manual_import = NULL, cvtype = exact
 ```
