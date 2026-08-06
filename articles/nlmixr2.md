@@ -107,7 +107,7 @@ fit.TOS <- nlmixr2(pk.turnover.emax3, warfarin, "focei", control=list(print=0),
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> calculating covariance matrix
-#> [====|====|====|====|====|====|====|====|====|====] 0:00:22 
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:30 
 #> done
 ```
 
@@ -125,7 +125,7 @@ xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
 #> Model description: not implemented
 #> fit.TOS overview: 
 #>  - Software: nlmixr2 7.0.2 
-#>  - Attached files (memory usage 585.9 Kb): 
+#>  - Attached files (memory usage 586.3 Kb): 
 #>    + obs tabs: $prob no.1: nlmixr2 
 #>    + sim tabs: <none> 
 #>    + output files: obj 
@@ -149,7 +149,7 @@ xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
 #> Model description: not implemented
 #> fit.TOS overview: 
 #>  - Software: nlmixr2 7.0.2 
-#>  - Attached files (memory usage 757.9 Kb): 
+#>  - Attached files (memory usage 758.2 Kb): 
 #>    + obs tabs: $prob no.1: nlmixr2 
 #>    + sim tabs: <none> 
 #>    + output files: obj 
@@ -173,7 +173,7 @@ xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
   backfill_nlmixr2_props() %>%
   {print(get_prop(., "condn")); .} %>%
   get_prop("nsig")
-#> [1] "977.642642713977"
+#> [1] "728.285162099916"
 #> [1] "3"
 ```
 
@@ -210,26 +210,26 @@ xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
 #> # A tibble: 20 × 9
 #>    type  name         value        se       rse     m     n      cv     shk
 #>    <chr> <chr>      <num:3>   <num:3>   <num:3> <int> <int> <num:3> <num:3>
-#>  1 the   tktr        0.0246  0.000615  0.0250       1    NA    NA      NA  
-#>  2 the   tka         0.0245  0.000821  0.0335       2    NA    NA      NA  
-#>  3 the   tcl        -2.24    0.000973  0.000434     3    NA    NA      NA  
-#>  4 the   tv          2.22    0.000607  0.000274     4    NA    NA      NA  
-#>  5 the   prop.err    0.123   0.000376  0.00305      5    NA    NA      NA  
-#>  6 the   pkadd.err   0.168   0.000744  0.00442      6    NA    NA      NA  
-#>  7 the   temax       1.98    0.00111   0.000560     7    NA    NA      NA  
-#>  8 the   tec50      -0.676   0.000677  0.00100      8    NA    NA      NA  
-#>  9 the   tkout      -2.79    0.00112   0.000402     9    NA    NA      NA  
-#> 10 the   te0         4.57    0.00125   0.000273    10    NA    NA      NA  
-#> 11 the   pdadd.err   6.07    0.00248   0.000407    11    NA    NA      NA  
-#> 12 ome   eta.ktr     0.945  NA        NA            1     1   120.     64  
-#> 13 ome   eta.ka      0.945  NA        NA            2     2   120.     64  
-#> 14 ome   eta.cl      0.567  NA        NA            3     3    61.6    50.1
-#> 15 ome   eta.v       0.487  NA        NA            4     4    51.7    50.1
-#> 16 ome   eta.emax    0.606  NA        NA            5     5    66.7    68.3
-#> 17 ome   eta.ec50    0.632  NA        NA            6     6    70.1    25.7
-#> 18 ome   eta.kout    0.513  NA        NA            7     7    54.9    71.4
-#> 19 ome   eta.e0      0.384  NA        NA            8     8    39.9    81.6
-#> 20 sig   sigma(1,1)  1      NA        NA            1     1    NA      11.8
+#>  1 the   tktr        0.0229  0.000232  0.0102       1    NA    NA      NA  
+#>  2 the   tka         0.0236  0.000984  0.0417       2    NA    NA      NA  
+#>  3 the   tcl        -2.24    0.00127   0.000568     3    NA    NA      NA  
+#>  4 the   tv          2.22    0.000868  0.000391     4    NA    NA      NA  
+#>  5 the   prop.err    0.123   0.000418  0.00339      5    NA    NA      NA  
+#>  6 the   pkadd.err   0.168   0.000713  0.00424      6    NA    NA      NA  
+#>  7 the   temax       1.98    0.000909  0.000459     7    NA    NA      NA  
+#>  8 the   tec50      -0.676   0.000424  0.000627     8    NA    NA      NA  
+#>  9 the   tkout      -2.79    0.00106   0.000380     9    NA    NA      NA  
+#> 10 the   te0         4.57    0.00261   0.000570    10    NA    NA      NA  
+#> 11 the   pdadd.err   6.09    0.00115   0.000188    11    NA    NA      NA  
+#> 12 ome   eta.ktr     0.946  NA        NA            1     1   120.     60  
+#> 13 ome   eta.ka      0.949  NA        NA            2     2   121.     59.3
+#> 14 ome   eta.cl      0.562  NA        NA            3     3    60.9    50  
+#> 15 ome   eta.v       0.481  NA        NA            4     4    51.1    49.6
+#> 16 ome   eta.emax    0.603  NA        NA            5     5    66.2    58.8
+#> 17 ome   eta.ec50    0.631  NA        NA            6     6    69.9    25.5
+#> 18 ome   eta.kout    0.513  NA        NA            7     7    54.9    62.9
+#> 19 ome   eta.e0      0.385  NA        NA            8     8    39.9    81.6
+#> 20 sig   sigma(1,1)  1      NA        NA            1     1    NA     -95.5
 ```
 
 To build on this, because `nlmixr2` coerces users to use mu-referencing
@@ -253,28 +253,28 @@ xpose.nlmixr2::xpose_data_nlmixr2(fit.TOS) %>%
   # Remove some columns for readability
   dplyr::select(-c(fixed,diagonal,label))
 #> # A tibble: 20 × 9
-#>    type  name         value        se       rse     m     n      cv     shk
-#>    <chr> <chr>      <num:3>   <num:3>   <num:3> <int> <int> <num:3> <num:3>
-#>  1 the   tktr        0.0246  0.000615  0.0250       1    NA   NA       NA  
-#>  2 the   tka         0.0245  0.000821  0.0335       2    NA   NA       NA  
-#>  3 the   tcl        -2.24    0.000973  0.000434     3    NA   NA       NA  
-#>  4 the   tv          2.22    0.000607  0.000274     4    NA   NA       NA  
-#>  5 the   prop.err    0.123   0.000376  0.00305      5    NA   NA       NA  
-#>  6 the   pkadd.err   0.168   0.000744  0.00442      6    NA   NA       NA  
-#>  7 the   temax       0.879   0.000118  0.000134     7    NA   NA       NA  
-#>  8 the   tec50      -0.676   0.000677  0.00100      8    NA   NA       NA  
-#>  9 the   tkout      -2.79    0.00112   0.000402     9    NA   NA       NA  
-#> 10 the   te0         4.57    0.00125   0.000273    10    NA   NA       NA  
-#> 11 the   pdadd.err   6.07    0.00248   0.000407    11    NA   NA       NA  
-#> 12 ome   eta.ktr     0.945  NA        NA            1     1  120.      64  
-#> 13 ome   eta.ka      0.945  NA        NA            2     2  120.      64  
-#> 14 ome   eta.cl      0.567  NA        NA            3     3   61.6     50.1
-#> 15 ome   eta.v       0.487  NA        NA            4     4   51.7     50.1
-#> 16 ome   eta.emax    0.606  NA        NA            5     5    8.20    68.3
-#> 17 ome   eta.ec50    0.632  NA        NA            6     6   70.1     25.7
-#> 18 ome   eta.kout    0.513  NA        NA            7     7   54.9     71.4
-#> 19 ome   eta.e0      0.384  NA        NA            8     8   39.9     81.6
-#> 20 sig   sigma(1,1)  1      NA        NA            1     1   NA       11.8
+#>    type  name         value         se       rse     m     n      cv     shk
+#>    <chr> <chr>      <num:3>    <num:3>   <num:3> <int> <int> <num:3> <num:3>
+#>  1 the   tktr        0.0229  0.000232   0.0102       1    NA   NA       NA  
+#>  2 the   tka         0.0236  0.000984   0.0417       2    NA   NA       NA  
+#>  3 the   tcl        -2.24    0.00127    0.000568     3    NA   NA       NA  
+#>  4 the   tv          2.22    0.000868   0.000391     4    NA   NA       NA  
+#>  5 the   prop.err    0.123   0.000418   0.00339      5    NA   NA       NA  
+#>  6 the   pkadd.err   0.168   0.000713   0.00424      6    NA   NA       NA  
+#>  7 the   temax       0.879   0.0000967  0.000110     7    NA   NA       NA  
+#>  8 the   tec50      -0.676   0.000424   0.000627     8    NA   NA       NA  
+#>  9 the   tkout      -2.79    0.00106    0.000380     9    NA   NA       NA  
+#> 10 the   te0         4.57    0.00261    0.000570    10    NA   NA       NA  
+#> 11 the   pdadd.err   6.09    0.00115    0.000188    11    NA   NA       NA  
+#> 12 ome   eta.ktr     0.946  NA         NA            1     1  120.      60  
+#> 13 ome   eta.ka      0.949  NA         NA            2     2  121.      59.3
+#> 14 ome   eta.cl      0.562  NA         NA            3     3   60.9     50  
+#> 15 ome   eta.v       0.481  NA         NA            4     4   51.1     49.6
+#> 16 ome   eta.emax    0.603  NA         NA            5     5    8.16    58.8
+#> 17 ome   eta.ec50    0.631  NA         NA            6     6   69.9     25.5
+#> 18 ome   eta.kout    0.513  NA         NA            7     7   54.9     62.9
+#> 19 ome   eta.e0      0.385  NA         NA            8     8   39.9     81.6
+#> 20 sig   sigma(1,1)  1      NA         NA            1     1   NA      -95.5
 #> # Parameter table includes the following associations: tktr~log(eta.ktr),
 #> tka~log(eta.ka), tcl~log(eta.cl), tv~log(eta.v), temax~logit(eta.emax),
 #> tec50~log(eta.ec50), tkout~log(eta.kout), and te0~log(eta.e0)
@@ -416,7 +416,7 @@ fit.TOS.kaktr <- fit.TOS %>%
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> calculating covariance matrix
-#> [====|====|====|====|====|====|====|====|====|====] 0:00:21 
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:28 
 #> done
 
 fit.TOS.emax1 <- fit.TOS %>%
@@ -456,7 +456,7 @@ fit.TOS.emax1 <- fit.TOS %>%
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> calculating covariance matrix
-#> [====|====|====|====|====|====|====|====|====|====] 0:00:25 
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:30 
 #> done
 
 fit.TOS.simple <- fit.TOS %>%
@@ -492,7 +492,7 @@ fit.TOS.simple <- fit.TOS %>%
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> [====|====|====|====|====|====|====|====|====|====] 0:00:00
 #> calculating covariance matrix
-#> [====|====|====|====|====|====|====|====|====|====] 0:00:15 
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:18 
 #> done
 ```
 
@@ -562,7 +562,7 @@ warfarin_set$warf_simple
 #> Model description: not implemented
 #> fit.TOS.simple overview: 
 #>  - Software: nlmixr2 7.0.2 
-#>  - Attached files (memory usage 750.6 Kb): 
+#>  - Attached files (memory usage 765.9 Kb): 
 #>    + obs tabs: $prob no.1 (modified): na, nlmixr2 
 #>    + sim tabs: <none> 
 #>    + output files: fit.TOS.simple 
@@ -581,20 +581,22 @@ warfarin_set %>%
 #> # A tibble: 4 × 4
 #>   xpdb         label            ..ofv ..condn
 #>   <named list> <chr>            <dbl>   <dbl>
-#> 1 <xp_xtras>   nlmixr2_warfarin 1876.    978.
-#> 2 <xp_xtras>   warf_ka          1328  102123.
-#> 3 <xp_xtras>   warf_emax        1329.   3686.
-#> 4 <xp_xtras>   warf_simple      1331.   1497.
+#> 1 <xp_xtras>   nlmixr2_warfarin 2072.    728.
+#> 2 <xp_xtras>   warf_ka          1328. 647728.
+#> 3 <xp_xtras>   warf_emax        1333.   2051.
+#> 4 <xp_xtras>   warf_simple      1328.   1829.
 
 warfarin_set %>%
   dofv_vs_id(nlmixr2_warfarin, warf_simple, .inorder = TRUE, df=1)
 #> Warning: Removed 32 rows containing missing values or values outside the scale range
 #> (`geom_hline()`).
-#> Warning: Removed 29 rows containing missing values or values outside the scale range
+#> Warning: Removed 27 rows containing missing values or values outside the scale range
 #> (`geom_point()`).
-#> Warning: Removed 1 row containing missing values or values outside the scale range
+#> Warning: Removed 2 rows containing missing values or values outside the scale range
 #> (`geom_point()`).
 #> Warning: Removed 6 rows containing missing values or values outside the scale range
+#> (`geom_text()`).
+#> Warning: Removed 1 row containing missing values or values outside the scale range
 #> (`geom_text()`).
 ```
 
@@ -673,6 +675,7 @@ nlmixr2_m3 <- nlmixr_example("nlmixr2_m3")
 #> → compiling events FD model...
 #> ✔ done
 #> calculating covariance matrix
+#> [====|====|====|====|====|====|====|====|====|====] 0:00:00 
 #> done
 #> → Calculating residuals/tables
 #> ✔ done
@@ -701,12 +704,12 @@ derive_prm(nlmixr2_m3) %>%
   dplyr::select(ID,KA,CL,VSS:(dplyr::last_col())) %>%
   head()
 #>   ID        KA       CL      VSS  T12ALPHA      ALPHA          A FRACA
-#> 1  1 1.7302305 1.721599 29.02450 11.685795 0.05931537 0.03445365     1
-#> 2 10 0.7760401 1.873474 27.00237  9.990327 0.06938183 0.03703379     1
-#> 3 11 3.2090732 3.800005 35.61656  6.496706 0.10669209 0.02807683     1
-#> 4 12 0.9613681 2.416604 26.26258  7.532813 0.09201704 0.03807700     1
-#> 5  2 1.8915689 3.265349 31.51171  6.689101 0.10362336 0.03173424     1
-#> 6  3 2.2150171 2.936924 32.90564  7.766103 0.08925290 0.03038993     1
+#> 1  1 1.7302186 1.721621 29.02434 11.685577 0.05931647 0.03445385     1
+#> 2 10 0.7760224 1.873504 27.00201  9.990035 0.06938386 0.03703428     1
+#> 3 11 3.2091215 3.799997 35.61661  6.496728 0.10669173 0.02807679     1
+#> 4 12 0.9613508 2.416631 26.26226  7.532639 0.09201917 0.03807745     1
+#> 5  2 1.8915522 3.265369 31.51152  6.689021 0.10362461 0.03173443     1
+#> 6  3 2.2150227 2.936936 32.90556  7.766050 0.08925350 0.03039000     1
 
 
 # If param has no vars, .prm should be set
