@@ -45,6 +45,44 @@ test_that("set_var_types with tidyselect", {
 
 })
 
+test_that("set_var_types_x doesn't let one type's columns overflow into another type (issue #76)", {
+  data("xpdb_ex_pk", package = "xpose", envir = environment())
+
+  # "id" is a prefix of "idv": a naive startsWith() match on tidyselect's
+  # disambiguated names would let idv's column also be claimed by id.
+  xpdb_2 <- set_var_types_x(xpdb_ex_pk, .problem = 1, idv = TAD, id = ID)
+
+  xpose::xp_var(xpdb_2, .problem = 1, type = "idv") %>%
+    dplyr::pull(col) %>%
+    expect_setequal("TAD")
+
+  xpose::xp_var(xpdb_2, .problem = 1, type = "id") %>%
+    dplyr::pull(col) %>%
+    expect_setequal("ID")
+
+  # A single type selecting 10+ columns: xpose::set_var_types() recovers a
+  # column's type by stripping a single trailing digit off names like
+  # "eta10" (added by base R's c(name = <multi-element vector>) to
+  # disambiguate), which mangles "eta10"/"eta11"/... into "eta1" instead of
+  # "eta". Add extra ETA-like columns so matches() selects more than 9.
+  extra_etas <- paste0("ETA", 4:12)
+  xpdb_many <- xpdb_ex_pk
+  xpdb_many$data$data[[1]] <- dplyr::bind_cols(
+    xpdb_many$data$data[[1]],
+    stats::setNames(as.list(rep(1, length(extra_etas))), extra_etas)
+  )
+  xpdb_many$data$index[[1]] <- dplyr::bind_rows(
+    xpdb_many$data$index[[1]],
+    tibble::tibble(table = "patab001", col = extra_etas, type = "na", label = NA, units = NA)
+  )
+
+  xpdb_many_2 <- set_var_types_x(xpdb_many, .problem = 1, eta = matches("^ETA\\d+$"))
+
+  xpose::xp_var(xpdb_many_2, .problem = 1, type = "eta") %>%
+    dplyr::pull(col) %>%
+    expect_setequal(paste0("ETA", 1:12))
+})
+
 test_that("set_var_types_x falls back to a non-strict selection (with a warning) when a column is missing from some problems", {
   data("xpdb_ex_pk", package = "xpose", envir = environment())
 
@@ -92,27 +130,6 @@ test_that('irep works properly', {
   )
 
 })
-
-test_that("irep() forwards to xpose::irep() once xpose >= 0.5.0 (deprecated fix path)", {
-  # The installed xpose is < 0.5.0, so this branch can't be reached through
-  # normal use; mock utils::packageVersion() (namespaced calls can only be
-  # mocked via `.package`, see ?testthat::local_mocked_bindings) to pretend
-  # otherwise and confirm the fix defers to xpose's own (now-fixed) irep().
-  real_pv <- utils::packageVersion
-  local_mocked_bindings(
-    packageVersion = function(pkg, ...) {
-      if (identical(pkg, "xpose")) return(package_version("0.5.0"))
-      real_pv(pkg, ...)
-    },
-    .package = "utils"
-  )
-
-  x <- rep(1:5, time = 3)
-  suppressWarnings(suppressMessages(
-    expect_identical(irep(x, quiet = TRUE), xpose::irep(x, quiet = TRUE))
-  ))
-})
-
 
 test_that("edit_xpose_data is essentially the same as in xpose, with some improvement", {
   ## Some basic behavior tests and trivial error checking, to cover all bases and get desired coverage
@@ -411,6 +428,76 @@ test_that("patch_condn corrects the condition number for multi-method runs (issu
     patch_condn(xpose::xpdb_ex_pk) %>% xpose::get_summary(),
     xpose::get_summary(xpose::xpdb_ex_pk)
   )
+
+  # patch_condn()'s `xpdb$summary <- ...` must not strip the xp_xtras/xpose_data
+  # classes (issue #74); patch_condn() only rewrites $summary when it finds a
+  # multi-method run, so this exercises that branch specifically
+  expect_identical(class(patched), class(corrupted))
+  expect_identical(class(reconverted), c("xp_xtras", "xpose_data", "uneval"))
+  expect_true(check_xpdb_x(reconverted))
+})
+
+test_that("xpose::xpose_data() raises xpose's own eigen_header warning on fresh multi-method import, corrected downstream by patch_condn()", {
+  # xpose:::sum_condn() (not patch_condn()) is what computes $summary's
+  # initial 'condn' during xpose::xpose_data() itself, and lacks the
+  # length(eigen_header) > 1 guard patch_condn() adds for issue #60 -- so a
+  # fresh import of a multi-method run is expected to warn here, before
+  # patch_condn()/as_xpdb_x() ever run. This is upstream `xpose` behavior we
+  # can't suppress (see patch_condn()'s docs), just confirming it's still
+  # the specific, known warning and not something new.
+  expect_warning(
+    fresh <- xpose::xpose_data(runno = 18, dir = system.file("pheno_saemimp", package = "xpose.xtras")),
+    regexp = "eigen_header"
+  )
+
+  expected <- as.character(round(1.77 / 0.21, fresh$xp_theme$rounding))
+  reconverted <- as_xpdb_x(fresh)
+  expect_equal(
+    reconverted$summary$value[reconverted$summary$label == "condn"],
+    expected
+  )
+})
+
+test_that("patch_condn skips code-scanning entirely for single-method problems", {
+  # No problem in xpdb_ex_pk has more than one 'method' row in $summary, so
+  # patch_condn() should return early without ever touching $code -- corrupt
+  # it to prove that (this would error on xpose::check_xpdb(check='code')
+  # or the eigenvalue regex if the scan ran).
+  single_method <- xpose::xpdb_ex_pk
+  single_method$code <- NULL
+
+  expect_no_error(patched <- patch_condn(single_method))
+  expect_identical(patched, single_method)
+})
+
+test_that("`$<-`/`[[<-` on xpose_data and xp_xtras objects preserve their class (issue #74)", {
+  # xpose_data (and, by extension, xp_xtras) objects always carry "uneval" as
+  # their last class -- the same class ggplot2 (< 4.0) uses internally for
+  # unevaluated aes() mappings, with `[[<-.uneval`/`$<-.uneval` methods that
+  # collapse the class attribute down to bare "uneval". Without a
+  # higher-priority method registered for "xpose_data"/"xp_xtras" themselves,
+  # any `xpdb$foo <- value`/`xpdb[["foo"]] <- value` would dispatch to
+  # ggplot2's method instead, so this exercises the fix methods directly
+  # rather than relying on a particular ggplot2 version being installed.
+  plain <- xpose::xpdb_ex_pk
+  plain$options$quiet <- TRUE
+  expect_identical(class(plain), c("xpose_data", "uneval"))
+  expect_true(plain$options$quiet)
+
+  plain2 <- xpose::xpdb_ex_pk
+  plain2[["options"]]$quiet <- TRUE
+  expect_identical(class(plain2), c("xpose_data", "uneval"))
+  expect_true(plain2$options$quiet)
+
+  xtras <- as_xpdb_x(xpose::xpdb_ex_pk)
+  before <- class(xtras)
+  xtras$options$quiet <- TRUE
+  expect_identical(class(xtras), before)
+  expect_true(xtras$options$quiet)
+
+  xtras[["options"]]$quiet <- FALSE
+  expect_identical(class(xtras), before)
+  expect_false(xtras$options$quiet)
 })
 
 test_that("patch_condn ignores non-consecutive false-positive matches after the eigenvalue block", {
@@ -444,6 +531,49 @@ test_that("patch_condn ignores non-consecutive false-positive matches after the 
     patched$summary$value[patched$summary$label == "condn" & patched$summary$problem == 1],
     expected
   )
+})
+
+test_that("print.xpose_data()/print.xp_xtras() handle multi-element list-valued options (issue #81)", {
+  # xpose:::print.xpose_data()'s `Options:` line pairs names(x$options)
+  # with unlist(x$options), assuming they come out the same length -- true
+  # only as long as every option is a single value. Any option that's
+  # itself a multi-element list (eg default_labs/default_watermark with
+  # more than one key set) breaks that assumption and previously errored
+  # outright instead of printing. Using a synthetic option name here
+  # rather than a real one, since this is a generic property of
+  # print.xpose_data() -- normalize_etas() deliberately avoids ever
+  # putting a multi-element value under $options at all (see below).
+  #
+  # print.xp_xtras() re-emits via cli::cli_verbatim(), which signals R's
+  # message condition rather than writing straight to stdout -- so these
+  # need expect_message(), not expect_output().
+  xpdb_multi <- set_option(xpdb_x, quiet = TRUE, some_list_opt = list(a = 1, b = 2))
+  expect_message(print(xpdb_multi), "some_list_opt = 1, 2")
+
+  # Exercised via a plain (non-xp_xtras) xpose_data object too, since
+  # print.xp_xtras() delegates to this fix via NextMethod() -- this one
+  # goes through the fixed function's own plain cat(), straight to stdout.
+  plain <- xpose::xpdb_ex_pk
+  plain$options$some_list_opt <- list(a = 1, b = 2)
+  expect_output(print(plain), "some_list_opt = 1, 2")
+
+  # default_labs/default_watermark with more than one key hit the same bug
+  xpdb_labs <- set_default_labs(xpdb_x, title = "t", caption = "c")
+  expect_message(print(xpdb_labs), "default_labs = t, c")
+})
+
+test_that("normalize_etas() output never clutters print.xpose_data() (issue #81 follow-up)", {
+  # normalize_etas() stores its per-eta factors in the top-level
+  # $normalize_etas slot (like $covs, see add_cov_association()), not
+  # under $options -- so, unlike the scenarios above, its output should
+  # never show up in the Options: summary at all, regardless of how many
+  # etas are set.
+  xpdb_norm <- normalize_etas(xpdb_x, quiet = TRUE)
+  expect_length(xpdb_norm$normalize_etas, 3L)
+
+  out <- testthat::evaluate_promise(print(xpdb_norm))
+  expect_false(grepl("normalize_etas", out$output))
+  expect_false(grepl("normalize_etas", out$messages))
 })
 
 test_that("print.xpose_plot() auto-applies configured defaults via auto_apply_defaults()", {

@@ -10,16 +10,16 @@
 #' manually reconstructing the output file path from the model object, e.g.
 #'
 #' \preformatted{
-#' xpose::xpose_data(
+#' xtras_data(
 #'   file = file.path(bbr::get_output_dir(mod), paste0(bbr::get_model_id(mod), ".lst"))
-#' ) |> as_xp_xtras()
+#' )
 #' }
 #'
 #' `xp_from_bbr()` wraps that pipeline.
 #'
 #' @param .mod <`bbi_nonmem_model`> A `bbr` NONMEM model object, e.g. as
 #' returned by [bbr::read_model()].
-#' @param ... Passed to [xpose::xpose_data()].
+#' @param ... Passed to [xtras_data()] (and, in turn, [xpose::xpose_data()]).
 #' @param .use_bbr_descr <`logical`> If `TRUE` (default) and `.mod` carries a
 #' `bbr` description, use it to set the `descr` property of the result (see
 #' [set_prop()]), taking precedence over any description parsed from the
@@ -28,7 +28,7 @@
 #' @return An <`xp_xtras`> object
 #' @export
 #'
-#' @seealso [bbr::read_model()]
+#' @seealso [bbr::read_model()], [xtras_data()]
 #'
 #' @examples
 #' if (requireNamespace("bbr", quietly = TRUE)) {
@@ -50,7 +50,8 @@
 #'   writeLines("{}", file.path(out_dir, "bbi_config.json"))
 #'
 #'   mod <- bbr::new_model(file.path(mod_dir, "18"), .description = "Phenobarbital SAEM model")
-#'   xp_from_bbr(mod)
+#'   print(xp_from_bbr(mod))
+#'   unlink(mod_dir, recursive = TRUE)
 #' }
 xp_from_bbr <- function(.mod, ..., .use_bbr_descr = TRUE) {
   rlang::check_installed("bbr", reason = "to ingest a bbr model object with `xp_from_bbr()`.")
@@ -83,8 +84,7 @@ xp_from_bbr <- function(.mod, ..., .use_bbr_descr = TRUE) {
     )
   }
 
-  xpdb <- xpose::xpose_data(file = lst_file, ...) %>%
-    as_xp_xtras()
+  xpdb <- xtras_data(file = lst_file, ...)
 
   descr <- .mod$description
   if (isTRUE(.use_bbr_descr) && !is.null(descr) && test_xpdb(xpdb, "summary")) {

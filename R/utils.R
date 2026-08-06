@@ -38,6 +38,386 @@ get_shk <- function(xpdb, wh = "eta", .problem = NULL, .subprob = NULL, .method=
     purrr::discard(is.na)
 }
 
+# Match each eta to its diagonal omega. Etas aren't always numbered, and
+# even when they are, the number isn't always meaningful (eg `nlmixr2`
+# eta columns are named after their parameter, like `eta.cl`, and don't
+# relate to `m`/`n` matrix position at all). Try a direct name match
+# first -- this is what makes `nlmixr2` models work, since `get_prm()`
+# reports the eta's own column name in `name` for those -- then fall
+# back to NONMEM's `ETA<k>`/`ETA(k)` <-> `OMEGA(k,k)` numbering
+# convention, which is meaningful there even though `name`/`label`
+# don't otherwise match the eta column name. Shared by recalc_shk() and
+# normalize_etas() (#81) -- this matching is inherently fragile for
+# unconventional eta naming, which is exactly why normalize_etas() offers
+# `.use_sd = TRUE` as a way to sidestep it entirely.
+match_eta_omega <- function(xpdb, eta_col, .problem, .subprob, .method) {
+  om_diag <- get_prm(xpdb, .problem = .problem, .subprob = .subprob, .method = .method, quiet = TRUE) %>%
+    dplyr::filter(type == "ome", diagonal == TRUE)
+
+  om_idx <- match(eta_col, om_diag$name)
+  need_num <- is.na(om_idx)
+  if (any(need_num)) {
+    eta_num <- suppressWarnings(as.integer(stringr::str_extract(eta_col[need_num], "\\d+")))
+    om_idx[need_num] <- match(eta_num, om_diag$m)
+  }
+  if (anyNA(om_idx)) {
+    cli::cli_abort(c(
+      "Could not associate the following eta column(s) with a diagonal omega: {eta_col[is.na(om_idx)]}",
+      "i" = "Matching is tried by column name (eg for {.field nlmixr2} models), then by NONMEM's {.field ETA<k>}/{.field ETA(k)} numbering convention; neither applied here."
+    ))
+  }
+  as.numeric(om_diag$value[om_idx])
+}
+
+#' Recalculate eta shrinkage from individual estimates
+#'
+#' @description
+#'
+#' Unlike [`get_shk()`], which parses the eta shrinkage NONMEM itself
+#' reported in the output file, this recalculates shrinkage directly from
+#' the individual (empirical Bayes) eta estimates found in the data, using
+#' the standard \eqn{100 \times (1 - SD(\eta)/\omega)} formula, where
+#' \eqn{\omega} is the standard deviation implied by the associated
+#' diagonal omega estimate.
+#'
+#' @param xpdb <`xpose_data`[xpose::xpose_data]> or `xp_xtras` object
+#' @param ... <`tidyselect`> Which eta column(s) to recalculate shrinkage
+#' for. Defaults to every `eta` column for `.problem`.
+#' @param .etastype <`numeric(1)`> `1` (the default) excludes, for each eta,
+#' individuals whose estimate is a "true zero" (exactly `0`, as opposed to
+#' merely shrunk near it) from the calculation; `0` keeps them. See Details.
+#' @param .problem <`numeric`> Problem number to use. Uses the xpose default if not provided.
+#' @param .subprob <`numeric`> Subproblem number to use. Uses the xpose default if not provided.
+#' @param .method <`character`> Method to use. Uses the xpose default if not provided.
+#' @param drop_fixed <`logical`> Drop fixed etas (which have no meaningful
+#' shrinkage to recalculate), as in [`xpose::drop_fixed_cols`].
+#' @param quiet <`logical`> Silence extra debugging output
+#'
+#' @details
+#' An eta is a "true zero" for an individual when NONMEM never had grounds
+#' to move it away from its prior mean of `0`, eg an individual with no
+#' observations contributing to the objective function. That is different
+#' from an eta that is merely shrunk close to `0` through legitimate
+#' estimation, and including "true zero" individuals in the shrinkage
+#' calculation biases it, since they carry no information about the actual
+#' empirical distribution of etas. `.etastype = 1` (the default) excludes
+#' them from the calculation; `.etastype = 0` reproduces the traditional,
+#' unadjusted calculation.
+#'
+#' @return A tibble with one row per eta, reporting the omega used, the
+#' number of individuals excluded (if any), and the recalculated
+#' shrinkage (as a percentage, to stay consistent with [`get_shk()`]).
+#' @export
+#'
+#' @examples
+#' recalc_shk(xpdb_x)
+#'
+#' # Just a subset of etas...
+#' recalc_shk(xpdb_x, ETA1)
+#'
+#' # Including "true zero" etas in the calculation
+#' recalc_shk(xpdb_x, .etastype = 0)
+#'
+recalc_shk <- function(xpdb, ..., .etastype = 1, .problem = NULL, .subprob = NULL,
+                        .method = NULL, drop_fixed = TRUE, quiet) {
+  xpose::check_xpdb(xpdb, check = "data")
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+  checkmate::assert_choice(.etastype, choices = c(0, 1))
+
+  fill_prob_subprob_method(xpdb, .problem = .problem, .subprob = .subprob, .method = .method)
+
+  all_eta_cols <- xpose::xp_var(xpdb, .problem, type = "eta")$col
+  if (length(all_eta_cols) == 0) {
+    cli::cli_abort("No {.field eta} columns found for problem {.problem}.")
+  }
+
+  dots <- rlang::enquos(...)
+  if (length(dots) == 0) {
+    eta_col <- all_eta_cols
+  } else {
+    eta_col <- dplyr::select(
+      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
+      !!!dots
+    ) %>%
+      names() %>%
+      unique()
+  }
+  if (drop_fixed) {
+    eta_col <- xpose::drop_fixed_cols(xpdb, .problem, cols = eta_col, quiet = quiet)
+  }
+  if (is.null(eta_col) || length(eta_col) == 0) {
+    cli::cli_abort("No usable {.field eta} column found in the xpdb data index.")
+  }
+  if (any(!eta_col %in% all_eta_cols)) {
+    cli::cli_abort("`...` should only select {.field eta} columns, which does not seem to apply to: {setdiff(eta_col, all_eta_cols)}")
+  }
+
+  om_val <- match_eta_omega(xpdb, eta_col, .problem = .problem, .subprob = .subprob, .method = .method)
+
+  id_col <- xpose::xp_var(xpdb, .problem, type = "id")$col[1]
+  ind_data <- xpose::get_data(xpdb, .problem = .problem, quiet = TRUE) %>%
+    dplyr::distinct(.data[[id_col]], .keep_all = TRUE) %>%
+    dplyr::select(dplyr::all_of(eta_col))
+
+  purrr::pmap_dfr(
+    list(eta_col, om_val),
+    function(col, om) {
+      eta_vals <- ind_data[[col]]
+      n_total <- length(eta_vals)
+      if (.etastype == 1) eta_vals <- eta_vals[eta_vals != 0]
+      n_used <- length(eta_vals)
+      if (n_used < 2) {
+        cli::cli_abort("Not enough non-excluded individuals ({n_used}) to recalculate shrinkage for {.field {col}}.")
+      }
+      tibble::tibble(
+        problem = .problem,
+        subprob = .subprob,
+        method = .method,
+        eta = col,
+        omega = om,
+        n = n_total,
+        n_excluded = n_total - n_used,
+        shrinkage = 100 * (1 - stats::sd(eta_vals) / sqrt(om))
+      )
+    }
+  )
+}
+
+#' Normalize etas by their omega- or empirical-SD-implied scale
+#'
+#' @description
+#' Sets `xpdb$normalize_etas`, a top-level slot (alongside eg `$covs`, see
+#' [`add_cov_association()`]) consumed by [`eta_grid()`]/
+#' [`eta_vs_cov_grid()`]/[`eta_vs_contcov()`]/[`eta_vs_catcov()`]: each
+#' selected eta is divided by its typical scale -- by default the standard
+#' deviation implied by its associated diagonal omega estimate
+#' (`sqrt(omega)`), same as [`recalc_shk()`] uses -- before being plotted,
+#' so etas modeled on very different scales (eg a normally-distributed eta
+#' next to a log-normal one with a much larger omega) can be compared on
+#' one shared plot without the larger-scale eta dominating.
+#'
+#' `normalise_etas()` is an alias, for the British/rest-of-world spelling.
+#'
+#' @details
+#' This only ever affects how those four plotting functions *display*
+#' etas -- it never modifies `xpdb$data`, so [`get_data()`][xpose::get_data]
+#' and every other consumer of the eta columns keep seeing the raw
+#' (unnormalized) values.
+#'
+#' `$normalize_etas` is a plain top-level slot rather than an `xpdb$options`
+#' entry -- unlike most options, its value is one number per eta rather
+#' than a single setting, and folding a handful of high-precision numbers
+#' per eta into `print.xpose_data()`'s single-line `Options:` summary
+#' made that summary unreadable for models with more than a couple of
+#' etas.
+#'
+#' The default (omega-based) scale relies on the same internal
+#' name/numbering match between eta columns and diagonal omega estimates
+#' (see [`recalc_shk()`]'s Details for when that can fail, eg unconventional
+#' eta naming that isn't a `nlmixr2`-style direct match to a parameter
+#' table `name` and also doesn't follow NONMEM's `ETA<k>`/`ETA(k)`
+#' numbering). When that match fails, or there simply is no reliable
+#' omega for these etas (eg a hand-built or simulated `xpdb`),
+#' `.use_sd = TRUE` sidesteps it entirely, scaling by the empirical
+#' standard deviation of each eta's own individual estimates instead --
+#' at the cost of that scale itself being sample-dependent (and shrinkage-
+#' deflated) rather than reflecting the model's estimated random-effect
+#' variance.
+#'
+#' Calling `normalize_etas()` again merges into (rather than replacing)
+#' any previously-set factors, via [`utils::modifyList()`] -- so `...` can
+#' be used to (re)compute just a subset of etas, eg after refitting. To
+#' turn normalization off again, assign directly: `xpdb$normalize_etas$ETA1
+#' <- NULL` for a single eta, or `xpdb$normalize_etas <- NULL` for all of
+#' them.
+#'
+#' @param xpdb <`xpose_data`[xpose::xpose_data]> or `xp_xtras` object
+#' @param ... <`tidyselect`> Which eta column(s) to (re)compute a
+#' normalization factor for. Defaults to every `eta` column for
+#' `.problem`.
+#' @param .use_sd <`logical`> If `TRUE`, normalize by the empirical
+#' standard deviation of each eta's individual estimates instead of the
+#' omega-implied one; see Details. Defaults to `FALSE`.
+#' @param .problem <`numeric`> Problem number to use. Uses the xpose default if not provided.
+#' @param .subprob <`numeric`> Subproblem number to use. Uses the xpose default if not provided.
+#' @param .method <`character`> Method to use. Uses the xpose default if not provided.
+#' @param quiet <`logical`> Silence extra debugging output
+#'
+#' @return `xp_xtras` object, with the computed factors set under
+#' `$normalize_etas` (not `$options` -- see Details)
+#' @export
+#' @rdname normalize_etas
+#'
+#' @seealso [`recalc_shk()`], which uses the same omega-matching logic
+#'
+#' @examples
+#' xpdb_norm <- normalize_etas(xpdb_x)
+#' eta_grid(xpdb_norm)
+#'
+#' # Just a subset of etas...
+#' normalize_etas(xpdb_x, ETA1)
+#'
+#' # By empirical SD instead, eg if the omega match fails or is unreliable
+#' normalize_etas(xpdb_x, .use_sd = TRUE)
+#'
+normalize_etas <- function(xpdb, ..., .use_sd = FALSE, .problem = NULL, .subprob = NULL,
+                            .method = NULL, quiet) {
+  xpose::check_xpdb(xpdb, check = "data")
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+  checkmate::assert_flag(.use_sd)
+
+  fill_prob_subprob_method(xpdb, .problem = .problem, .subprob = .subprob, .method = .method)
+
+  all_eta_cols <- xpose::xp_var(xpdb, .problem, type = "eta")$col
+  if (length(all_eta_cols) == 0) {
+    cli::cli_abort("No {.field eta} columns found for problem {.problem}.")
+  }
+
+  dots <- rlang::enquos(...)
+  eta_col <- if (length(dots) == 0) {
+    all_eta_cols
+  } else {
+    dplyr::select(
+      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
+      !!!dots
+    ) %>%
+      names() %>%
+      unique()
+  }
+  if (any(!eta_col %in% all_eta_cols)) {
+    cli::cli_abort("`...` should only select {.field eta} columns, which does not seem to apply to: {setdiff(eta_col, all_eta_cols)}")
+  }
+
+  if (.use_sd) {
+    id_col <- xpose::xp_var(xpdb, .problem, type = "id")$col[1]
+    ind_data <- xpose::get_data(xpdb, .problem = .problem, quiet = TRUE) %>%
+      dplyr::distinct(.data[[id_col]], .keep_all = TRUE) %>%
+      dplyr::select(dplyr::all_of(eta_col))
+    scale_val <- purrr::map_dbl(eta_col, function(col) stats::sd(ind_data[[col]]))
+  } else {
+    om_val <- rlang::try_fetch(
+      match_eta_omega(xpdb, eta_col, .problem = .problem, .subprob = .subprob, .method = .method),
+      error = function(e) {
+        cli::cli_abort(
+          c("i" = "Set `.use_sd = TRUE` to normalize by the empirical SD of each eta's individual estimates instead, which doesn't need an omega match."),
+          parent = e
+        )
+      }
+    )
+    scale_val <- sqrt(om_val)
+  }
+
+  new_factors <- stats::setNames(as.list(scale_val), eta_col)
+  existing_factors <- xpdb$normalize_etas
+  xpdb$normalize_etas <- utils::modifyList(
+    if (is.null(existing_factors)) list() else existing_factors,
+    new_factors
+  )
+  as_xpdb_x(xpdb)
+}
+
+#' @rdname normalize_etas
+#' @export
+normalise_etas <- normalize_etas
+
+#' Derive per-individual contribution to eta shrinkage
+#'
+#' @description
+#'
+#' Computes, for each selected eta, a diagnostic column highlighting each
+#' individual's contribution to shrinkage: \eqn{\log((\eta_i -
+#' \bar\eta)^2)}, ie the log of the squared deviation from the population
+#' mean eta. Since shrinkage itself is `100 * (1 - SD(eta)/omega)` (see
+#' [`recalc_shk()`]), and `SD(eta)^2` is the mean of these per-individual
+#' squared deviations, this highlights which individuals are pulling
+#' shrinkage down. The `log` spreads out values close to `0`, ie
+#' individuals contributing the least (the most heavily shrunk).
+#'
+#' `derive_shk()` returns the augmented data as a plain data frame, like
+#' [`xpose::get_data()`]'s output. `backfill_shk()` joins the new
+#' column(s) back into `xpdb` and tags them with the `shk` variable type.
+#' This has to be backfilled rather than parsed, since it isn't something
+#' NONMEM (or any other supported software) reports directly.
+#'
+#' @param xpdb <`xpose_data`[xpose::xpose_data]> or `xp_xtras` object
+#' @param ... <`tidyselect`> Which eta column(s) to derive a shrinkage
+#' contribution for. Defaults to every `eta` column for `.problem`.
+#' @param .problem <`numeric`> Problem number to use. Uses the xpose default if not provided.
+#' @param quiet <`logical`> Silence extra debugging output
+#'
+#' @return For `derive_shk()`, a data frame with one new column per
+#' selected eta, named `<eta>_SHK`. For `backfill_shk()`, the updated
+#' `xp_xtras` object, with those columns joined in and typed `shk`.
+#' @export
+#' @rdname derive_shk
+#'
+#' @examples
+#' derive_shk(xpdb_x) %>%
+#'   dplyr::select(ID, dplyr::ends_with("_SHK")) %>%
+#'   head()
+#'
+#' xpdb_x %>%
+#'   backfill_shk() %>%
+#'   list_vars()
+#'
+derive_shk <- function(xpdb, ..., .problem = NULL, quiet) {
+  xpose::check_xpdb(xpdb, check = "data")
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+  if (is.null(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+
+  all_eta_cols <- xpose::xp_var(xpdb, .problem, type = "eta")$col
+  if (length(all_eta_cols) == 0) {
+    cli::cli_abort("No {.field eta} columns found for problem {.problem}.")
+  }
+
+  dots <- rlang::enquos(...)
+  eta_col <- if (length(dots) == 0) {
+    all_eta_cols
+  } else {
+    dplyr::select(
+      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
+      !!!dots
+    ) %>%
+      names() %>%
+      unique()
+  }
+  if (any(!eta_col %in% all_eta_cols)) {
+    cli::cli_abort("`...` should only select {.field eta} columns, which does not seem to apply to: {setdiff(eta_col, all_eta_cols)}")
+  }
+
+  id_col <- xpose::xp_var(xpdb, .problem, type = "id")$col[1]
+  dat <- xpose::get_data(xpdb, .problem = .problem, quiet = TRUE)
+
+  shk_col <- stringr::str_c(eta_col, "_SHK")
+  dupe <- intersect(shk_col, names(dat))
+  if (length(dupe) > 0) {
+    cli::cli_abort("Column(s) already present in the data, refusing to overwrite: {dupe}")
+  }
+
+  for (i in seq_along(eta_col)) {
+    ind_vals <- dplyr::distinct(dat, .data[[id_col]], .data[[eta_col[i]]])[[eta_col[i]]]
+    dat[[shk_col[i]]] <- log((dat[[eta_col[i]]] - mean(ind_vals))^2)
+  }
+  dat
+}
+
+#' @rdname derive_shk
+#' @export
+backfill_shk <- function(xpdb, ..., .problem = NULL, quiet) {
+  xpose::check_xpdb(xpdb, check = "data")
+  if (missing(quiet)) quiet <- xpdb$options$quiet
+  if (is.null(.problem)) .problem <- xpose::default_plot_problem(xpdb)
+
+  derived <- derive_shk(xpdb, ..., .problem = .problem, quiet = quiet)
+  shk_col <- setdiff(names(derived), names(xpdb$data$data[[.problem]]))
+
+  xpdb$data$data[[.problem]] <- derived
+  xpdb$data <- xpose::xpdb_index_update(xpdb = xpdb, .problem = .problem)
+  xpdb %>%
+    as_xpdb_x() %>%
+    set_var_types_x(.problem = .problem, shk = dplyr::all_of(shk_col))
+}
+
 
 #' Generic function to extract a property from a model summary
 #'

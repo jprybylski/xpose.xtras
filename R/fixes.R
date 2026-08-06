@@ -76,13 +76,19 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
   )
 
   # Get column type names for each type from .positions
+  # xpose.xtras :: tidyselect::eval_select() disambiguates multiple columns
+  # selected under one name (e.g. eta = matches("ETA\\d")) by appending an
+  # integer suffix (eta1, eta2, ...); anchor the match so a type name that
+  # happens to be a prefix of another (e.g. "id" of "idv", "a" of "amt")
+  # can't also swallow that other type's columns (#76).
   .coltypes <- purrr::map(.types, ~ {
+    pat <- paste0("^", .x, "\\d*$")
     cols <- c()
     for (i in seq_along(.positions)) {
       pos <- .positions[[i]]
       pnames <- names(pos)
       dnames <- names(dat$data[[i]])
-      cols <- c(cols, dnames[pos[startsWith(pnames, .x)]])
+      cols <- c(cols, dnames[pos[grepl(pat, pnames)]])
     }
     unique(cols)
   })
@@ -91,10 +97,23 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
   .coltypes <- .coltypes[purrr::map_lgl(.coltypes, function(.x) length(.x)>0)]
   if (length(.coltypes)==0) return(xpdb)
 
+  # xpose.xtras :: xpose::set_var_types() recovers the type from `...`'s
+  # names via `c(...)` + stripping a *single* trailing digit (to undo the
+  # integer suffix R adds when one named argument holds a multi-element
+  # vector, e.g. c(eta = c("ETA1", "ETA2")) -> names "eta1", "eta2"). That
+  # only round-trips for up to 9 columns per type: a 10th+ column like
+  # "eta10" strips to "eta1", silently corrupting the type (#76). Passing
+  # each column as its own same-named argument instead sidesteps this,
+  # since c(eta = "ETA1", eta = "ETA2", ...) keeps every name as plain
+  # "eta" with no numbering, however many columns there are.
+  .coltypes_flat <- purrr::flatten(purrr::imap(.coltypes, function(cols, type) {
+    stats::setNames(as.list(cols), rep(type, length(cols)))
+  }))
+
   out <- rlang::exec(xpose::set_var_types,
                xpdb = xpdb,
                .problem = .problem,
-               !!!.coltypes,
+               !!!.coltypes_flat,
                auto_factor = auto_factor,
                quiet = quiet)
   as_xpdb_x(out)
@@ -106,14 +125,13 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
 #' Bugfix for \code{\link[xpose]{irep}}.
 #'
 #' @description
-#' For `xpose` version > 0.5.0  `r lifecycle::badge("deprecated")`
-#'
-#' Because this has been fixed in the parent package, the fix will be removed
-#' in an upcoming release.
-#'
-#'
 #' Add a column containing a simulation counter (irep). A new simulation is counted every time
 #' a value in x is different than its previous value and is a duplicate.
+#'
+#' `xpose` fixed this upstream around version 0.5.0, then later reverted that
+#' fix, so this is treated as a standing bugfix rather than a temporary one
+#' pending removal (previously this deferred to \code{xpose::irep()} for
+#' `xpose` >= 0.5.0; that's no longer safe to assume).
 #'
 #' This version of the function does not require IDs be ascending, but does not work for
 #' datasets where IDs are repeated (not in sequence). Both cases are read as separate
@@ -134,11 +152,6 @@ set_var_types_x <- function(xpdb, .problem = NULL, ..., auto_factor = TRUE, quie
 #'
 #' @export
 irep <- function(x, quiet = FALSE) {
-  if (utils::packageVersion("xpose") >= "0.5.0") {
-    lifecycle::deprecate_soft("0.1.0", "irep()", "xpose::irep()")
-    # Forward to corrected base version
-    return(xpose::irep(x,quiet = quiet))
-  }
   if (missing(x)) stop('argument "x" is missing, with no default', call. = FALSE)
   if (is.factor(x)) x <- as.numeric(as.character(x))
   lagcheck <- dplyr::lag(x, default = x[1]) != x
@@ -149,6 +162,55 @@ irep <- function(x, quiet = FALSE) {
   xpose::msg(c('irep: ', max(x), ' simulations found.'), quiet)
   x
 }
+
+
+
+#' Allow assignment into an xpose_data object without conversion to class uneval
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
+#' Bugfix for \code{xpose_data}, based on a PR from Bill Denney to `xpose`
+#' ([see here](https://github.com/UUPharmacometrics/xpose/pull/153)), not yet merged upstream.
+#'
+#' Every \code{xpose_data} object (with or without the \code{xp_xtras}
+#' extension) carries \code{"uneval"} as its last class -- the same class
+#' \code{ggplot2} uses internally for unevaluated \code{aes()} mappings.
+#' `ggplot2` (< 4.0) registers \code{`[[<-.uneval`}/\code{`$<-.uneval`}
+#' methods that collapse the class attribute down to bare \code{"uneval"}.
+#' Without a higher-priority method for \code{"xpose_data"} itself, any
+#' \code{xpdb$foo <- value}/\code{xpdb[["foo"]] <- value} would dispatch to
+#' `ggplot2`'s method instead, silently stripping the \code{"xpose_data"}
+#' class (and, if present, \code{"xp_xtras"}) off the return value (issue
+#' #74). Defining these methods here -- ahead of \code{"uneval"} in the class
+#' vector -- intercepts the assignment first and preserves the full class.
+#'
+#' `xp_xtras` objects are handled by their own, higher-priority
+#' \code{`[[<-.xp_xtras`}/\code{`$<-.xp_xtras`} methods (see \code{R/xp_xtras.R}),
+#' so these only take effect for plain \code{xpose_data} objects.
+#'
+#' @param x object from which to extract element(s) or in which to replace element(s).
+#' @param i index specifying element to replace.
+#' @param value typically an array-like R object of a similar class as x.
+#' @return The object with the value replaced.
+#'
+#' @method `[[<-` xpose_data
+#' @export
+#'
+#' @noRd
+`[[<-.xpose_data` <- function(x, i, value) {
+  cls <- oldClass(x)
+  x <- unclass(x)
+  x[[i]] <- value
+  class(x) <- cls
+  x
+}
+
+#' @method `$<-` xpose_data
+#' @export
+#'
+#' @noRd
+`$<-.xpose_data` <- `[[<-.xpose_data`
 
 
 
@@ -168,6 +230,13 @@ irep <- function(x, quiet = FALSE) {
 #' uses the *last* block, matching the value reported by NONMEM-adjacent
 #' tools such as PsN's `sumo`.
 #'
+#' `xpose:::sum_condn()` itself (not this function) is also where a multi-
+#' method run with more than one `EIGENVALUES OF COR` block raises "numerical
+#' expression has ... elements: only the first used" -- it runs automatically
+#' inside \code{xpose::xpose_data()}, before `patch_condn()` gets a chance to
+#' run, so that warning is expected and cannot be suppressed from here; this
+#' function only fixes the resulting `'condn'` value afterward.
+#'
 #' @param xpdb An \code{xpose_data} or \code{xp_xtras} object.
 #'
 #' @return The \code{xpdb} object, with a corrected `'condn'` entry in
@@ -183,6 +252,15 @@ patch_condn <- function(xpdb) {
 
   if (xpose::software(xpdb) != 'nonmem') return(xpdb)
 
+  # xpose.xtras :: issue #60 only affects problems with more than one
+  # estimation method (each gets its own 'method' row in xpdb$summary, per
+  # subprob); xpose's condn is already correct for single-method problems,
+  # so skip the code-scanning fix below entirely when none apply.
+  method_rows <- xpdb$summary[xpdb$summary$label == 'method', 'problem', drop = TRUE]
+  method_counts <- table(method_rows)
+  multi_method_problems <- as.numeric(names(method_counts)[method_counts > 1])
+  if (length(multi_method_problems) == 0) return(xpdb)
+
   xpose::check_xpdb(xpdb, check = 'code')
   rounding <- xpdb$xp_theme$rounding
 
@@ -190,6 +268,7 @@ patch_condn <- function(xpdb) {
   # multi-estimation-method runs: use the last (rather than the first)
   # 'EIGENVALUES OF COR MATRIX OF ESTIMATE' block found in the .lst file.
   new_condn <- xpdb$code %>%
+    dplyr::filter(.data$problem %in% multi_method_problems) %>%
     dplyr::group_by_at(.vars = 'problem') %>%
     tidyr::nest() %>%
     dplyr::ungroup() %>%
@@ -373,8 +452,9 @@ edit_xpose_data <- function(.fun, .fname, .data, ..., .problem, .source, .where,
     xpdb[['files']] <- xpdb[['files']] %>%
       dplyr::mutate(modified = dplyr::if_else(.$problem %in% .problem & .$extension %in% .source, TRUE, .$modified))
   }
-  xpdb <- xpose::as.xpdb(xpdb)
-  if (check_xpdb_x(xpdb, .warn = FALSE)) return(as_xp_xtras(xpdb))
+  # xpose.xtras :: `[[<-`/`$<-` above already preserve the xp_xtras/xpose_data
+  # class natively (see `$<-.xp_xtras`/`$<-.xpose_data`, issue #74), so no
+  # reconversion is needed here.
   xpdb
 }
 
@@ -535,6 +615,121 @@ join_backfill <- function(x, y, by = NULL, copy = FALSE, suffix = c(".x", ".y"),
 }
 
 
+#' Print an xpose_data object
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
+#' Bugfix for \code{xpose:::print.xpose_data}. That function's `Options:`
+#' summary line builds `names(x$options)` and `unlist(x$options)`
+#' separately and assumes they come out the same length -- true only as
+#' long as every entry of \code{xpdb$options} is itself a single value.
+#' Any entry that's a multi-element list (eg \code{default_labs}/
+#' \code{default_watermark} once more than one key is set) unlists into
+#' more elements than there are names, and \code{stringr::str_c()}'s
+#' vectorized recycling then errors -- so printing (or auto-printing) the
+#' `xpdb` fails outright rather than just rendering oddly. This collapses
+#' each option's value to a single string first, so the name/value
+#' pairing always stays 1:1.
+#'
+#' Everything else is an unmodified duplicate of the upstream function.
+#'
+#' @param x An \code{xpose_data} object.
+#' @param ... Passed on to further methods (currently unused upstream too).
+#' @keywords internal
+#' @examples
+#' xpdb_x %>%
+#'   set_default_labs(title = "t", caption = "c") %>%
+#'   print()
+#'
+#' @usage \method{print}{xpose_data}(x, ...)
+#' @name print.xpose_data
+NULL
+
+# Duplicated from xpose:::summarize_table_names(), a small formatting
+# helper print_xpose_data_impl() below needs; kept private since it isn't
+# a fix in its own right, just a dependency of one.
+summarize_table_names <- function(dat) {
+  purrr::map(dat$index, ~.$table) %>%
+    purrr::flatten_chr() %>%
+    sort() %>%
+    unique() %>%
+    stringr::str_c(collapse = ", ") %>%
+    {
+      stringr::str_c("$prob no.", dat$problem, ifelse(dat$modified, " (modified)", ""), ": ", .)
+    }
+}
+
+## Not named `print.xpose_data` (see the comment above print_xpose_plot_impl()
+## for why -- the same "Registered S3 method overwritten" concern applies
+## here). Registered manually instead, in .onLoad() (see R/zzz.R).
+print_xpose_data_impl <- function(x, ...) {
+  if (!is.null(x$data) && any(!x$data$simtab)) {
+    tab_names <- x$data %>%
+      dplyr::filter(.$simtab == FALSE) %>%
+      dplyr::mutate(grouping = 1:dplyr::n()) %>%
+      dplyr::group_by_at(.vars = "grouping") %>%
+      tidyr::nest() %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(string = purrr::map_chr(.$data, summarize_table_names)) %>%
+      {
+        stringr::str_c(.$string, collapse = "\n               ")
+      }
+  } else {
+    tab_names <- "<none>"
+  }
+  if (!is.null(x$data) && any(x$data$simtab)) {
+    sim_names <- x$data %>%
+      dplyr::filter(.$simtab == TRUE) %>%
+      dplyr::mutate(grouping = 1:dplyr::n()) %>%
+      dplyr::group_by_at(.vars = "grouping") %>%
+      tidyr::nest() %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(string = purrr::map_chr(.$data, summarize_table_names)) %>%
+      {
+        stringr::str_c(.$string, collapse = "\n               ")
+      }
+  } else {
+    sim_names <- "<none>"
+  }
+  if (!is.null(x$files)) {
+    out_names <- x$files %>%
+      dplyr::distinct(!!rlang::sym("name"), .keep_all = TRUE) %>%
+      dplyr::arrange_at(.vars = "name") %>%
+      {
+        stringr::str_c(.$name, ifelse(.$modified, " (modified)", ""), collapse = ", ")
+      }
+  } else {
+    out_names <- "<none>"
+  }
+  if (!is.null(x$special)) {
+    special_names <- stringr::str_c(x$special$method, " ",
+      x$special$type, " (#", x$special$problem, ifelse(x$special$modified, ", modified", ""), ")",
+      collapse = ", ")
+  } else {
+    special_names <- "<none>"
+  }
+  # xpose.xtras :: collapse each option's value to one string *before*
+  # pairing with names(.), instead of unlist()-ing the whole named list at
+  # once -- see the Description above for why the original goes wrong.
+  opt_names <- x$options %>%
+    purrr::map_if(.p = is.null, .f = function(x) "NULL") %>%
+    purrr::map_chr(function(v) stringr::str_c(unlist(v), collapse = ", ")) %>%
+    {
+      stringr::str_c(names(.), ., sep = " = ", collapse = ", ")
+    }
+  cat(x$summary$value[x$summary$label == "file"], "overview:",
+    "\n - Software:", x$summary$value[x$summary$label %in%
+      c("software", "version") & x$summary$value != "na"],
+    stringr::str_c("\n - Attached files (memory usage ",
+      format(utils::object.size(x), units = "auto"), "):"),
+    "\n   + obs tabs:", tab_names, "\n   + sim tabs:", sim_names,
+    "\n   + output files:", out_names, "\n   + special:",
+    special_names, "\n - gg_theme:", attr(x$gg_theme, "theme"),
+    "\n - xp_theme:", attr(x$xp_theme, "theme"), "\n - Options:",
+    opt_names)
+}
+
 ##### Fix for ggplot2 from xpose@cc0e4b2
 ##### With backwards compatibility considered
 #' Draw an xpose_plot object
@@ -556,8 +751,18 @@ join_backfill <- function(x, y, by = NULL, copy = FALSE, suffix = c(".x", ".y"),
 #' # Or simply by writing the plot object name
 #' my_plot
 #'
-#' @exportS3Method print xpose_plot
-print.xpose_plot <- function(x, page, ...) {
+#' @usage \method{print}{xpose_plot}(x, page, ...)
+#' @name print.xpose_plot
+NULL
+
+## Not named `print.xpose_plot` (which would make roxygen2 auto-declare it as
+## an exported S3 method, causing xpose and xpose.xtras to each register a
+## NAMESPACE-level S3method(print, xpose_plot) -- R prints a "Registered S3
+## method overwritten" startup message whenever two packages both do that for
+## the same generic/class, regardless of load order (#72). Registered
+## manually instead, in .onLoad() (see R/zzz.R), which updates the same
+## underlying dispatch table without ever tripping that message.
+print_xpose_plot_impl <- function(x, page, ...) {
 
   # Parse template titles
   if (xpose::is.xpose.plot(x)) {

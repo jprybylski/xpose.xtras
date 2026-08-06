@@ -1,5 +1,72 @@
 # xpose.xtras
 
+# xpose.xtras (development version)
+
+## New features
+
+* Added `xtras_data()`, a wrapper around `xpose::xpose_data() %>%
+  as_xp_xtras()` that silences the `rlang_warning`-batched chatter
+  `readr`/`dplyr` can raise while parsing tables with `NaN`/`Inf` or
+  otherwise oddly formatted values, without hiding warnings that indicate
+  an actual read failure. `xp_from_bbr()` now uses it internally. (#77)
+* Added `recalc_shk()`, which recalculates eta shrinkage directly from
+  individual estimates rather than parsing NONMEM's own reported value,
+  with a `.etastype` argument to exclude "true zero" (as opposed to
+  merely near-zero) etas from the calculation. Etas are matched to their
+  omega by column name where possible (eg `nlmixr2` models), falling back
+  to NONMEM's `ETA<k>`/`OMEGA(k,k)` numbering convention. (#79)
+* Added a new `shk` variable type, plus `derive_shk()`/`backfill_shk()` to
+  populate it: a per-individual eta shrinkage contribution diagnostic
+  (`log((eta - mean(eta))^2)`). (#78)
+* Added `shk_grid()`/`shk_vs_cov_grid()`/`shk_vs_contcov()`/
+  `shk_vs_catcov()`, mirroring `eta_grid()`/`eta_vs_cov_grid()`/
+  `eta_vs_contcov()`/`eta_vs_catcov()` for the new `shk` diagnostic. (#78)
+* Added `list = FALSE` to `eta_vs_contcov()`/`eta_vs_catcov()`/
+  `shk_vs_contcov()`/`shk_vs_catcov()`, combining the per-variable plots
+  onto one shared, faceted plot instead of a list, paginating at 9 panels
+  per page. (#82)
+* Added `covvar` to `eta_vs_contcov()`/`eta_vs_catcov()`/
+  `shk_vs_contcov()`/`shk_vs_catcov()` to select specific covariates,
+  mirroring `etavar`/`shkvar`; also added as a `cols` alias on
+  `eta_vs_cov_grid()`/`shk_vs_cov_grid()`. (#82)
+* Added `normalize_etas()`/`normalise_etas()`, which set a top-level
+  `xpdb$normalize_etas` slot (like `$covs`, see `add_cov_association()`
+  -- not an `xpdb$options` entry, and not settable via `set_option()`)
+  dividing each eta by its omega-implied SD (or, with `.use_sd = TRUE`,
+  the empirical SD of its individual estimates) in `eta_grid()`/
+  `eta_vs_cov_grid()`/`eta_vs_contcov()`/`eta_vs_catcov()` only -- the
+  underlying data is never modified. (#81)
+
+## Bug fixes
+
+* `nlmixr2_as_xtra()` now reports the rejected object's class when
+  `xpose.nlmixr2::xpose_data_nlmixr2()` doesn't recognize it as an
+  `nlmixr2` fit, instead of only the generic upstream message.
+* `backfill_iofv()` now gives a clear error when called without `xpdb`
+  instead of a cryptic `cli` formatting failure. (#84)
+* Fixed `print.xpose_data()`/`print.xp_xtras()` erroring instead of
+  printing whenever any `xpdb$options` entry is a multi-element list (eg
+  `default_labs`/`default_watermark` with more than one key set). (#81)
+* Fixed a critical bug where any `xpdb$foo <- value`/`xpdb[["foo"]] <- value`
+  (including inside `patch_condn()`, run automatically by `as_xpdb_x()`)
+  could silently strip the `xp_xtras`/`xpose_data` classes on `ggplot2`
+  versions before 4.0, due to a class-name collision with `ggplot2`'s
+  internal `aes()` mapping class. (#74)
+* `conflicted` is now an optional (Suggests) dependency instead of a hard
+  requirement, and is only consulted if the user has loaded it themselves.
+  Package startup no longer prints a "Registered S3 method overwritten"
+  notice for `print.xpose_plot`, and the reminder to attach `xpose` now
+  also names any load-order-sensitive bugfix at stake. (#72)
+* `irep()` is no longer deprecated in favor of `xpose::irep()` for
+  `xpose` >= 0.5.0: `xpose` reverted that upstream fix, so this package's
+  version is needed again regardless of the installed `xpose` version.
+* `catdv_vs_ipred()` no longer triggers a spurious `ggplot2` lifecycle
+  warning (incorrectly blaming `xpose`) by mapping `size` to its line
+  layer, where it's deprecated in favor of `linewidth`. (#75)
+* `set_var_types_x()` no longer mistypes columns when a `tidyselect`
+  expression matches 10+ columns for one type (e.g. `eta = matches(...)`),
+  or when one type name is a prefix of another (e.g. `id`/`idv`). (#76)
+
 # xpose.xtras 0.2.0
 
 ## New features

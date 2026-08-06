@@ -10,7 +10,7 @@ xp_from_bbr(.mod, ..., .use_bbr_descr = TRUE)
 \item{.mod}{<\code{bbi_nonmem_model}> A \code{bbr} NONMEM model object, e.g. as
 returned by \code{\link[bbr:read_model]{bbr::read_model()}}.}
 
-\item{...}{Passed to \code{\link[xpose:xpose_data]{xpose::xpose_data()}}.}
+\item{...}{Passed to \code{\link[=xtras_data]{xtras_data()}} (and, in turn, \code{\link[xpose:xpose_data]{xpose::xpose_data()}}).}
 
 \item{.use_bbr_descr}{<\code{logical}> If \code{TRUE} (default) and \code{.mod} carries a
 \code{bbr} description, use it to set the \code{descr} property of the result (see
@@ -30,9 +30,9 @@ Reading a \code{bbr}-managed model into \code{xpose}/\code{xpose.xtras} normally
 manually reconstructing the output file path from the model object, e.g.
 
 \preformatted{
-xpose::xpose_data(
+xtras_data(
   file = file.path(bbr::get_output_dir(mod), paste0(bbr::get_model_id(mod), ".lst"))
-) |> as_xp_xtras()
+)
 }
 
 \code{xp_from_bbr()} wraps that pipeline.
@@ -57,9 +57,10 @@ if (requireNamespace("bbr", quietly = TRUE)) {
   writeLines("{}", file.path(out_dir, "bbi_config.json"))
 
   mod <- bbr::new_model(file.path(mod_dir, "18"), .description = "Phenobarbital SAEM model")
-  xp_from_bbr(mod)
+  print(xp_from_bbr(mod))
+  unlink(mod_dir, recursive = TRUE)
 }
 }
 \seealso{
-\code{\link[bbr:read_model]{bbr::read_model()}}
+\code{\link[bbr:read_model]{bbr::read_model()}}, \code{\link[=xtras_data]{xtras_data()}}
 }

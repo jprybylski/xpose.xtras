@@ -1,6 +1,6 @@
 Package: xpose.xtras
 Title: Extra Functionality for the 'xpose' Package
-Version: 0.2.0
+Version: 0.2.0.9000
 Authors@R: 
     person("John", "Prybylski", , "jprybylski@gmail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-5802-0539"))
@@ -17,7 +17,6 @@ Imports:
     checkmate,
     cli,
     colorspace,
-    conflicted,
     dplyr (>= 1.1.2),
     forcats (>= 1.0.0),
     GGally,
@@ -42,6 +41,7 @@ Imports:
 Suggests:
     bbr,
     callr,
+    conflicted,
     DiagrammeR,
     knitr,
     nlmixr2,

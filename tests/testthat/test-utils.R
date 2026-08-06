@@ -417,3 +417,187 @@ test_that("files df can be mutated", {
   )
 })
 
+test_that("recalc_shk recalculates shrinkage from individual etas", {
+
+  all_etas <- recalc_shk(xpdb_x, quiet = TRUE)
+  expect_equal(all_etas$eta, c("ETA1", "ETA2", "ETA3"))
+  expect_equal(all_etas$n, rep(74L, 3))
+  expect_equal(all_etas$n_excluded, rep(0L, 3))
+  # hand-computed via the standard 100*(1-SD(eta)/omega) formula
+  expect_equal(
+    all_etas$shrinkage,
+    c(52.9, 68.5, 10.3),
+    tolerance = 0.05
+  )
+
+  # tidyselect subsets the etas used
+  expect_identical(
+    recalc_shk(xpdb_x, ETA1, quiet = TRUE)$eta,
+    "ETA1"
+  )
+  expect_error(
+    recalc_shk(xpdb_x, ID, quiet = TRUE),
+    regexp = "should only select"
+  )
+
+  expect_error(
+    recalc_shk(xpdb_x, .etastype = 2, quiet = TRUE),
+    regexp = "etastype"
+  )
+
+  # .etastype governs whether "true zero" etas are excluded
+  xpdb_zeroes <- xpdb_x
+  raw_data <- xpdb_zeroes$data$data[[1]]
+  zero_ids <- unique(raw_data$ID)[1:5]
+  raw_data$ETA1[raw_data$ID %in% zero_ids] <- 0
+  xpdb_zeroes$data$data[[1]] <- raw_data
+
+  excl <- recalc_shk(xpdb_zeroes, ETA1, .etastype = 1, quiet = TRUE)
+  incl <- recalc_shk(xpdb_zeroes, ETA1, .etastype = 0, quiet = TRUE)
+  expect_equal(excl$n_excluded, 5L)
+  expect_equal(incl$n_excluded, 0L)
+  expect_false(isTRUE(all.equal(excl$shrinkage, incl$shrinkage)))
+
+  # eta columns with no embedded number, and no direct name match, error
+  # informatively rather than guessing
+  no_num_xpdb <- xpdb_x
+  no_num_xpdb$data$data[[1]]$WEIRDETA <- no_num_xpdb$data$data[[1]]$ETA1
+  no_num_xpdb$data <- xpose::xpdb_index_update(xpdb = no_num_xpdb, .problem = 1)
+  no_num_xpdb <- set_var_types_x(no_num_xpdb, .problem = 1, eta = WEIRDETA)
+  expect_error(
+    recalc_shk(no_num_xpdb, WEIRDETA, quiet = TRUE),
+    regexp = "Could not associate"
+  )
+})
+
+test_that("recalc_shk matches etas to omegas by name for nlmixr2 models", {
+  skip_if_not_installed("rxode2")
+  skip_if(utils::packageVersion("rxode2") < "5.0",
+          "nlmixr2 tests require rxode2 >= 5.0 (incompatible serialization in older versions)")
+  skip_if_not_installed("nlmixr2est")
+
+  # nlmixr2 eta columns (eg `eta.cl`) aren't numbered, and don't relate to
+  # `m`/`n` matrix position at all -- recalc_shk() has to fall back to
+  # matching by name against get_prm()'s `name` column for these
+  xp1 <- cached_nlmixr_example("xpdb_nlmixr2")
+  eta_cols <- xp_var(xp1, .problem = 1, type = "eta")$col
+  expect_false(any(grepl("\\d", eta_cols)))
+
+  shk <- recalc_shk(xp1, quiet = TRUE)
+  expect_setequal(shk$eta, eta_cols)
+  expect_true(all(shk$omega > 0))
+  expect_true(all(is.finite(shk$shrinkage)))
+})
+
+test_that("normalize_etas sets a per-eta normalization factor from sqrt(omega)", {
+  xpdb_n <- normalize_etas(xpdb_x, quiet = TRUE)
+  factors <- xpdb_n$normalize_etas
+  expect_setequal(names(factors), c("ETA1", "ETA2", "ETA3"))
+  # hand-computed against the same omegas recalc_shk() reports
+  om <- recalc_shk(xpdb_x, quiet = TRUE)
+  expect_equal(
+    unlist(factors)[om$eta],
+    sqrt(om$omega),
+    ignore_attr = TRUE
+  )
+
+  # tidyselect subsets which etas get (re)computed
+  xpdb_n1 <- normalize_etas(xpdb_x, ETA1, quiet = TRUE)
+  expect_named(xpdb_n1$normalize_etas, "ETA1")
+
+  expect_error(
+    normalize_etas(xpdb_x, ID, quiet = TRUE),
+    regexp = "should only select"
+  )
+
+  # normalize_etas() never touches the underlying data
+  expect_identical(
+    xpose::get_data(xpdb_n, .problem = 1, quiet = TRUE),
+    xpose::get_data(xpdb_x, .problem = 1, quiet = TRUE)
+  )
+
+  # calling again merges (via set_option()) rather than replacing
+  xpdb_merged <- normalize_etas(xpdb_n, ETA1, .use_sd = TRUE, quiet = TRUE)
+  expect_setequal(names(xpdb_merged$normalize_etas), c("ETA1", "ETA2", "ETA3"))
+  expect_false(isTRUE(all.equal(
+    xpdb_merged$normalize_etas$ETA1,
+    xpdb_n$normalize_etas$ETA1
+  )))
+  expect_equal(
+    xpdb_merged$normalize_etas$ETA2,
+    xpdb_n$normalize_etas$ETA2
+  )
+
+  # normalise_etas() is a plain alias
+  expect_identical(
+    normalise_etas(xpdb_x, quiet = TRUE)$normalize_etas,
+    normalize_etas(xpdb_x, quiet = TRUE)$normalize_etas
+  )
+})
+
+test_that("normalize_etas .use_sd normalizes by empirical SD instead of omega", {
+  xpdb_sd <- normalize_etas(xpdb_x, ETA1, .use_sd = TRUE, quiet = TRUE)
+  eta1_vals <- xpose::get_data(xpdb_x, .problem = 1, quiet = TRUE) %>%
+    dplyr::distinct(ID, .keep_all = TRUE) %>%
+    dplyr::pull(ETA1)
+  expect_equal(xpdb_sd$normalize_etas$ETA1, stats::sd(eta1_vals))
+
+  # .use_sd sidesteps the eta-omega matching entirely, so it works even
+  # when that match would fail (see the "Could not associate" test above)
+  no_num_xpdb <- xpdb_x
+  no_num_xpdb$data$data[[1]]$WEIRDETA <- no_num_xpdb$data$data[[1]]$ETA1
+  no_num_xpdb$data <- xpose::xpdb_index_update(xpdb = no_num_xpdb, .problem = 1)
+  no_num_xpdb <- set_var_types_x(no_num_xpdb, .problem = 1, eta = WEIRDETA)
+
+  expect_error(
+    normalize_etas(no_num_xpdb, WEIRDETA, quiet = TRUE),
+    regexp = "Could not associate"
+  )
+  expect_error(
+    normalize_etas(no_num_xpdb, WEIRDETA, quiet = TRUE),
+    regexp = "\\.use_sd"
+  )
+  expect_no_error(
+    normalize_etas(no_num_xpdb, WEIRDETA, .use_sd = TRUE, quiet = TRUE)
+  )
+})
+
+test_that("derive_shk/backfill_shk compute per-individual shrinkage contribution", {
+
+  orig <- xpose::get_data(xpdb_x, .problem = 1, quiet = TRUE)
+  derived <- derive_shk(xpdb_x, quiet = TRUE)
+  expect_setequal(
+    setdiff(names(derived), names(orig)),
+    c("ETA1_SHK", "ETA2_SHK", "ETA3_SHK")
+  )
+  # hand-computed via log((eta - mean(eta))^2)
+  expect_equal(
+    derived$ETA1_SHK,
+    log((orig$ETA1 - mean(unique(orig$ETA1)))^2)
+  )
+
+  # tidyselect subsets which etas get a `_SHK` column
+  expect_identical(
+    setdiff(names(derive_shk(xpdb_x, ETA1, quiet = TRUE)), names(orig)),
+    "ETA1_SHK"
+  )
+  expect_error(
+    derive_shk(xpdb_x, ID, quiet = TRUE),
+    regexp = "should only select"
+  )
+
+  # backfill_shk joins the column(s) in and tags them with the `shk` type
+  xp2 <- backfill_shk(xpdb_x, ETA1, quiet = TRUE)
+  expect_identical(
+    xp_var(xp2, .problem = 1, type = "shk")$col,
+    "ETA1_SHK"
+  )
+  expect_true("ETA1_SHK" %in% names(xpose::get_data(xp2, .problem = 1, quiet = TRUE)))
+
+  # refuses to silently overwrite an existing `_SHK` column
+  expect_error(
+    backfill_shk(xp2, ETA1, quiet = TRUE),
+    regexp = "already present"
+  )
+})
+

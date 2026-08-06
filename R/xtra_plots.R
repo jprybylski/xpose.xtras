@@ -308,6 +308,125 @@ apply_lul_wide <- function(xpdb, cols=NULL, lvl_cols=NULL, .problem=NULL, show_n
 }
 
 #########
+# Eta normalization (issue #81)
+#########
+
+# Divides each of `eta_col` present in `xpdb$normalize_etas` (set by
+# normalize_etas()/normalise_etas(), R/utils.R) by its stored factor -- a
+# no-op (identity function) for any eta not covered there, or when it's
+# unset entirely. Purely a plotting-time transform on the data handed to
+# ggplot() -- it never touches xpdb$data itself, so callers elsewhere
+# always see the raw eta values. Deliberately a top-level xpdb slot
+# rather than an xpdb$options entry (see normalize_etas()'s Details) --
+# folding several high-precision numbers per eta into print.xpose_data()'s
+# single-line Options: summary made it unreadable for more than a couple
+# of etas.
+normalize_eta_cols <- function(xpdb, eta_col) {
+  factors <- xpdb$normalize_etas
+  norm_cols <- intersect(eta_col, names(factors))
+  if (length(norm_cols) == 0) return(function(x) x)
+
+  function(x) {
+    dplyr::mutate(x, dplyr::across(
+      dplyr::all_of(norm_cols),
+      function(v) v / factors[[dplyr::cur_column()]]
+    ))
+  }
+}
+
+# Shared by eta_grid()/eta_vs_cov_grid()/eta_vs_contcov()/eta_vs_catcov():
+# composes normalize_eta_cols() (applied first, by the *original* eta
+# column name) with the NONMEM ETA<k> -> ETA(k) label rename these four
+# already do. Returns the composed post-processing closure plus the
+# (possibly renamed) eta_col vector the caller should use from here on --
+# callers are expected to do `eta_lbl <- eta_post_processing(xpdb, eta_col);
+# post_processing_eta <- eta_lbl$fn; eta_col <- eta_lbl$eta_col`.
+eta_post_processing <- function(xpdb, eta_col) {
+  post_processing_norm <- normalize_eta_cols(xpdb, eta_col)
+
+  if (xpose::software(xpdb) == 'nonmem') {
+    eta_col_old <- eta_col
+    eta_col_new <- stringr::str_replace(eta_col_old, "^ET(A?)(\\d+)$", "ETA(\\2)")
+    fn <- function(x) {
+      x %>%
+        post_processing_norm() %>%
+        dplyr::rename(!!!rlang::set_names(eta_col_old, eta_col_new))
+    }
+    eta_col <- eta_col_new
+  } else {
+    fn <- post_processing_norm
+  }
+
+  list(fn = fn, eta_col = eta_col)
+}
+
+#########
+# Column resolution/grid-plot option helpers
+#########
+
+# Resolve a tidyselect (or, if `varsel` is a null quosure, every column of
+# the given var type(s)) against xpdb's data, drop fixed columns, and
+# validate the result actually belongs to those type(s). This is the
+# column-resolution block shared by the eta_*/cov_*/shk_* plot family
+# (see covariates.R).
+#
+# Callers must build `varsel` as its own statement (`q <- rlang::enquo(x);
+# resolve_var_cols(..., varsel = q)`), not inline (`varsel =
+# rlang::enquo(x)`) -- enquo() has to run in the frame that owns `x`'s
+# promise, and an inline call is instead forced lazily from inside this
+# function's frame, silently capturing the wrong (and useless) quosure.
+# Callers must also reassign their own tidyselect argument (eg `etavar <-
+# eta_col`) to the resolved result afterwards: aes()/ggplot() captures the
+# caller's whole frame as `.Environment`, and `x`'s original promise (eg
+# the bare symbol `ETA1`) is not valid outside a data-mask context --
+# forced later (eg by waldo::compare()/expect_identical() walking that
+# environment), it errors with "object 'ETA1' not found". Overwriting the
+# binding with the already-resolved character vector avoids that.
+resolve_var_cols <- function(xpdb, .problem, type, varsel, drop_fixed, quiet,
+                              arg_name, label) {
+  all_cols <- c()
+  for (t in type) {
+    all_cols <- c(all_cols, xpose::xp_var(xpdb, .problem, type = t, silent = TRUE)$col)
+  }
+  if (length(all_cols) == 0) {
+    cli::cli_abort("No {label} column found in the xpdb data index.")
+  }
+  if (rlang::quo_is_null(varsel)) {
+    sel_cols <- all_cols
+  } else {
+    sel_cols <- dplyr::select(
+      xpose::get_data(xpdb, .problem = .problem, quiet = TRUE),
+      !!varsel
+    ) %>%
+      names() %>%
+      unique()
+  }
+  if (drop_fixed) {
+    sel_cols <- xpose::drop_fixed_cols(xpdb, .problem, cols = sel_cols, quiet = quiet)
+  }
+  if (is.null(sel_cols) || length(sel_cols) == 0) {
+    cli::cli_abort("No usable {label} column found in the xpdb data index.")
+  }
+  if (any(!sel_cols %in% all_cols)) {
+    cli::cli_abort("`{arg_name}` should only include {label} columns, which does not seem to apply to: {setdiff(sel_cols, all_cols)}")
+  }
+  sel_cols
+}
+
+# Build xplot_pairs()'s `*_opts` arguments from a user-supplied override
+# list, keeping the package default for anything not overridden. Shared by
+# eta_grid()/cov_grid()/eta_vs_cov_grid()/shk_grid()/shk_vs_cov_grid().
+pairs_opts_defaults <- function(pairs_opts) {
+  formals(xplot_pairs) %>%
+    names() %>%
+    stringr::str_subset("_opts$") %>%
+    rlang::set_names(., .) %>%
+    purrr::map(~ {
+      if (.x %in% names(pairs_opts)) pairs_opts[[.x]] else list()
+    })
+}
+
+#########
 # Utility functions
 #########
 

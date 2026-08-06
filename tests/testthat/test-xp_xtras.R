@@ -1,10 +1,3 @@
-depends_on_ggplot2_lt_400 <- function(cond) {
-  # For some reason some checks are negated with updated ggplot2
-  if (utils::packageVersion("ggplot2") > "3.5.2")
-    return(!cond)
-  cond
-}
-
 test_that("xp_xtra class can be set", {
 
   data("xpdb_ex_pk", package = "xpose", envir = environment())
@@ -53,9 +46,14 @@ test_that("xp_xtra class can be set", {
 
   # other trivial checks
   expect_false(check_xpdb_x(c()))
+  # `$<-` on an xp_xtras object must preserve the class (issue #74): ggplot2
+  # (< 4.0) registers `$<-.uneval` for its own aes() mappings, and every
+  # xp_xtras/xpose_data object carries "uneval" as its last class, so without
+  # `$<-.xp_xtras` taking priority this assignment used to silently strip the
+  # xp_xtras/xpose_data classes on affected ggplot2 versions.
   xpose_themed <- as_xpdb_x(xpdb_ex_pk)
   xpose_themed$xp_theme <- xpose::theme_xp_default()
-  expect_false(depends_on_ggplot2_lt_400(is_xp_xtras(xpose_themed))) # invalid test_coverage
+  expect_true(is_xp_xtras(xpose_themed))
 
 })
 
@@ -277,10 +275,12 @@ test_that("print methods are working", {
     "xp_xtras"
   ))
 
-  # expect to recognize xp_xtras affected by cross-compatibility
+  # xpose::set_var_labels() edits the xpdb via `$<-`/`[[<-`; with the
+  # `$<-.xp_xtras` fix (issue #74) the xp_xtras class now survives a
+  # round-trip through an upstream xpose function unchanged.
   hidden_xp_xtras <- xpose::set_var_labels(xpdb_x, AGE="Age")
-  expect_false(
-    depends_on_ggplot2_lt_400(is_xp_xtras(hidden_xp_xtras))
+  expect_true(
+    is_xp_xtras(hidden_xp_xtras)
   )
   # This behavior, while nice, creates an annoying warning to user
   # on package load like when GGally is loaded.
@@ -325,8 +325,10 @@ test_that("list_vars extension behaves as expected", {
 
 
   # above would fail if below test would fail, but just to verify
-  expect_false(
-    depends_on_ggplot2_lt_400(is_xp_xtras(lbl_x))
+  # (see the `$<-.xp_xtras` fix for issue #74: the class now survives
+  # xpose::set_var_labels()'s internal `$<-` edit)
+  expect_true(
+    is_xp_xtras(lbl_x)
   )
   expect_true(
     check_xpdb_x(lbl_x)
@@ -425,6 +427,10 @@ test_that("xp_var methods work", {
 
 test_that("iofv can be backfilled", {
   # Error checks
+  expect_error(
+    backfill_iofv(),
+    "Need .xpdb. for this function"
+  )
   expect_error(
     set_prop(pheno_base, software="fakesoftware") %>%
       backfill_iofv(),
@@ -575,4 +581,52 @@ test_that("as_xpdb_x applies session-wide default gg_theme/xp_theme options", {
   x_already <- as_xpdb_x(baseline)
   expect_identical(x_already$xp_theme$point_color, baseline$xp_theme$point_color)
   options(xpose.xtras.xp_theme = NULL)
+})
+
+test_that("xtras_data silences warnings raised while reading by default", {
+  lst_file <- file.path(system.file("pheno_saemimp", package = "xpose.xtras"), "run18.lst")
+
+  # sanity check: the bundled fixture is known to trigger a warning while
+  # reading (an unrelated `eigen_header` quirk in xpose's own summary code),
+  # so this is a real, not hypothetical, source of warning chatter
+  expect_warning(xpose::xpose_data(file = lst_file, quiet = TRUE))
+
+  expect_no_warning(xpdb <- xtras_data(file = lst_file, quiet = TRUE))
+  expect_true(is_xp_xtras(xpdb))
+  expect_true(check_xpdb_x(xpdb))
+})
+
+test_that("xtras_data still surfaces warnings that indicate a real read failure", {
+  src_dir <- system.file("pheno_saemimp", package = "xpose.xtras")
+  tmp_dir <- tempfile("xtras_data_missing_table")
+  dir.create(tmp_dir)
+  on.exit(unlink(tmp_dir, recursive = TRUE), add = TRUE)
+  # copy everything except the table data file itself, so the $TAB record's
+  # FILE=run16tab can't be resolved and xpose downgrades that read failure
+  # to a warning instead of an error (see read_nm_tables())
+  files <- setdiff(list.files(src_dir), "run16tab")
+  file.copy(file.path(src_dir, files), tmp_dir)
+
+  expect_warning(
+    xpdb <- xtras_data(file = file.path(tmp_dir, "run18.lst"), quiet = TRUE),
+    regexp = "No table files could be found"
+  )
+  expect_true(is_xp_xtras(xpdb))
+  expect_null(xpdb$data)
+})
+
+test_that("xtras_data(warn = TRUE) passes warnings through unmodified", {
+  lst_file <- file.path(system.file("pheno_saemimp", package = "xpose.xtras"), "run18.lst")
+
+  expect_warning(
+    xpdb <- xtras_data(file = lst_file, quiet = TRUE, warn = TRUE),
+    regexp = "eigen_header"
+  )
+  expect_true(is_xp_xtras(xpdb))
+})
+
+test_that("xtras_data still lets informative messages through", {
+  lst_file <- file.path(system.file("pheno_saemimp", package = "xpose.xtras"), "run18.lst")
+
+  expect_message(xtras_data(file = lst_file, quiet = FALSE))
 })

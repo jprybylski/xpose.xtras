@@ -86,6 +86,51 @@ as_xpdb_x <- function(x) {
 #' @export
 as_xp_xtras <- function(x) as_xpdb_x(x)
 
+#' Read model outputs directly into an `xp_xtras` object
+#'
+#' @description
+#' Convenience wrapper equivalent to
+#' `xpose::xpose_data(...) %>% as_xp_xtras()`. `xpose::xpose_data()`'s
+#' `quiet` argument already controls its own informative messages, but not
+#' warnings raised while parsing NONMEM tables -- e.g. `readr` surfacing
+#' every oddly formatted or `NaN`/`Inf` value it had to coerce, one
+#' warning per table, which can drown out a warning that actually
+#' matters. `dplyr` (>= 1.1.2, already required by this package) batches
+#' any warnings raised inside a single `dplyr::mutate()` call -- which is
+#' how `xpose` reads each table -- into one `rlang_warning` per call
+#' rather than letting each one through individually.
+#'
+#' By default, `xtras_data()` silences those (and only those) warnings;
+#' pass `warn = TRUE` to see them as `xpose::xpose_data()` would raise
+#' them. Warnings `xpose::xpose_data()` raises directly -- e.g. a table or
+#' output file it couldn't find at all -- are unaffected either way, since
+#' those indicate an actual problem rather than value-level noise.
+#'
+#' @param ... Passed to [xpose::xpose_data()]
+#' @param warn <`logical`> If `FALSE` (default), `rlang_warning`-class
+#' warnings raised while reading are silenced. If `TRUE`, all warnings
+#' are passed through unmodified.
+#'
+#' @return An <`xp_xtras`> object
+#' @export
+#'
+#' @seealso [xpose::xpose_data()], [as_xpdb_x()]
+#'
+#' @examples
+#' xtras_data(file = file.path(
+#'   system.file("pheno_saemimp", package = "xpose.xtras"), "run18.lst"
+#' ))
+xtras_data <- function(..., warn = FALSE) {
+  read_and_convert <- function() xpose::xpose_data(...) %>% as_xp_xtras()
+
+  if (isTRUE(warn)) return(read_and_convert())
+
+  withCallingHandlers(
+    read_and_convert(),
+    rlang_warning = function(w) invokeRestart("muffleWarning")
+  )
+}
+
 #'
 #' @rdname xp_xtras
 #' @order 3
@@ -184,6 +229,18 @@ print.xp_xtras <- function(x, ...) {
 #' @description
 #' Based on a PR from Bill Denney to `xpose` ([see here](https://github.com/UUPharmacometrics/xpose/pull/153)).
 #'
+#' `xp_xtras` objects always carry `"uneval"` as their last class (inherited
+#' from `xpose_data`, see the equivalent `xpose_data` fix in `R/fixes.R`).
+#' `ggplot2` (< 4.0) registers
+#' \code{`[[<-.uneval`}/\code{`$<-.uneval`} methods for its own (unrelated)
+#' \code{aes()} mappings that collapse the class attribute down to bare
+#' `"uneval"`. Since `"xp_xtras"` is not otherwise handled, any
+#' `xpdb$foo <- value`/`xpdb[["foo"]] <- value` on an `xp_xtras` object would
+#' dispatch to `ggplot2`'s method instead, silently stripping the
+#' `"xp_xtras"`/`"xpose_data"` classes off the return value (issue #74).
+#' Defining these methods here -- ahead of `"uneval"` in the class vector --
+#' intercepts the assignment first and preserves the full class.
+#'
 #' @param x object from which to extract element(s) or in which to replace element(s).
 #' @param i index specifying element to replace.
 #' @param value typically an array-like R object of a similar class as x.
@@ -193,17 +250,19 @@ print.xp_xtras <- function(x, ...) {
 #' @export
 #'
 #' @noRd
-NULL
-# `[[<-.xp_xtras` <- function(x, i, value) {
-#   x <- unclass(x)
-#   x[[i]] <- value
-#   as_xp_xtras(x)
-# }
+`[[<-.xp_xtras` <- function(x, i, value) {
+  cls <- oldClass(x)
+  x <- unclass(x)
+  x[[i]] <- value
+  class(x) <- cls
+  x
+}
 
 #' @method `$<-` xp_xtras
 #' @export
-NULL
-# `$<-.xp_xtras` <- `[[<-.xp_xtras`
+#'
+#' @noRd
+`$<-.xp_xtras` <- `[[<-.xp_xtras`
 
 # New functions
 
@@ -557,18 +616,22 @@ lvl_inord <- function(x, .start_index = 1, .ordered = TRUE) {
 #'   list_vars()
 #'
 backfill_iofv <- function(xpdb, .problem=NULL, .subprob=NULL, .label = "iOFV") {
+  if (missing(xpdb)) {
+    cli::cli_abort("Need `xpdb` for this function.")
+  }
+  xpose::check_xpdb(xpdb, "data")
+
   allowed_software <- c("nonmem","nlmixr2")
+  cur_software <- xpose::software(xpdb)
   rlang::try_fetch(
-    checkmate::assert_choice(xpose::software(xpdb), allowed_software),
+    checkmate::assert_choice(cur_software, allowed_software),
     error = function(s)
-      cli::cli_abort("This backfill function only works for {allowed_software} model objects, not those from {.strong {cli::col_yellow(xpose::software(xpdb))}}", parent = s)
+      cli::cli_abort("This backfill function only works for {allowed_software} model objects, not those from {.strong {cli::col_yellow(cur_software)}}", parent = s)
   )
 
-
-  xpose::check_xpdb(xpdb, "data")
   fill_prob_subprob_method(xpdb, .problem=.problem, .subprob=.subprob) # fills in .problem and .subprob if missing
   new_xpdb <- as_xp_xtras(xpdb)
-  if (xpose::software(xpdb)=="nonmem") {
+  if (cur_software=="nonmem") {
     # Get from nonmem phi file
     if (!"phi" %in% xpdb$files$extension) rlang::abort("phi table not found in files.")
 
@@ -584,7 +647,7 @@ backfill_iofv <- function(xpdb, .problem=NULL, .subprob=NULL, .label = "iOFV") {
     match_obj <- function(id) {
       phi_df$OBJ[match(id,phi_df$ID)]
     }
-  } else if (xpose::software(xpdb)=="nlmixr2") {
+  } else if (cur_software=="nlmixr2") {
     assert_nlmixr2fit(xpdb)
     xpa("data_frame", xpdb$fit$etaObf,
         custom_msg = paste("This nlmixr2 fit does not have individual",
@@ -695,7 +758,7 @@ list_vars.xp_xtras <- function(xpdb, .problem = NULL, ...) {
   order <- c(
     "id", "dv", "catdv", "dvprobs", "expdv", "idv", "tad",
     "dvid", "occ", "amt", "evid", "mdv", "pred", "ipred",
-    "param", "eta", "iofv", "res", "catcov", "contcov",
+    "param", "eta", "shk", "iofv", "res", "catcov", "contcov",
     "a", "bin", "na"
   )
   cli::cli({
@@ -782,6 +845,7 @@ list_vars.xp_xtras <- function(xpdb, .problem = NULL, ...) {
                 type == "contcov" ~ "Continuous covariates",
                 type == "param" ~ "Model parameter",
                 type == "eta" ~ "Eta",
+                type == "shk" ~ "Shrinkage contribution",
                 type == "iofv" ~ "Individual OFV",
                 type == "bin" ~ "Binned IDV",
                 type == "a" ~ "Compartment amounts",

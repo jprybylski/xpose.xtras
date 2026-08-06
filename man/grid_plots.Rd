@@ -43,6 +43,7 @@ eta_vs_cov_grid(
   mapping = NULL,
   etavar = NULL,
   cols = NULL,
+  covvar = NULL,
   covtypes = c("cont", "cat"),
   show_n = TRUE,
   drop_fixed = TRUE,
@@ -87,6 +88,10 @@ eta_vs_cov_grid(
 \item{covtypes}{Subset to specific covariate type?}
 
 \item{show_n}{Count the number of \code{ID}s in each category}
+
+\item{covvar}{For \code{eta_vs_cov_grid} only: an alias for \code{cols} (matching
+the \code{covvar} argument of \code{\link[=eta_vs_contcov]{eta_vs_contcov()}}/\code{\link[=eta_vs_catcov]{eta_vs_catcov()}}). If
+supplied (non-\code{NULL}), takes precedence over \code{cols}.}
 
 \item{etacov}{For\code{eta_vs_cov_grid}, \code{eta} are sorted after covariates to
 give an \code{x} orientation to covariate relationships.}
