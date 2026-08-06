@@ -56,6 +56,22 @@ jobs:
           extra-packages: any::pkgdown, local::.
           needs: website
 
+      # vignettes/articles/nlmixr2.Rmd's expensive chunks are already
+      # marked cache=TRUE, but that only helps within a single knitr run -
+      # a fresh checkout every job otherwise throws the cache away and
+      # re-fits from scratch every time (observed to take ~8 of this job's
+      # ~13 total build minutes). Persist it across runs via actions/cache
+      # instead; restore-keys falls back to the last cache on any Rmd
+      # edit, since knitr's own per-chunk hash still decides what actually
+      # needs re-running, not just whether the directory exists.
+      - name: Cache knitr chunk cache for vignettes/articles
+        uses: actions/cache@v4
+        with:
+          path: vignettes/articles/*_cache
+          key: pkgdown-knitr-cache-${{ hashFiles('vignettes/articles/*.Rmd') }}
+          restore-keys: |
+            pkgdown-knitr-cache-
+
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
