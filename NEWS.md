@@ -39,6 +39,9 @@
 
 ## Bug fixes
 
+* `nlmixr2_as_xtra()` now reports the rejected object's class when
+  `xpose.nlmixr2::xpose_data_nlmixr2()` doesn't recognize it as an
+  `nlmixr2` fit, instead of only the generic upstream message.
 * `backfill_iofv()` now gives a clear error when called without `xpdb`
   instead of a cryptic `cli` formatting failure. (#84)
 * Fixed `print.xpose_data()`/`print.xp_xtras()` erroring instead of

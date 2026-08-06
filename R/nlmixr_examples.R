@@ -260,7 +260,13 @@ nlmixr2_example <- nlmixr_example
   fit.TOS <- nlmixr2est::nlmixr2(
     pk.turnover.emax3, nlmixr2data::warfarin, "focei",
     control = list(print = 0),
-    table = list(cwres = TRUE, npde = TRUE)
+    # npde requires Monte Carlo simulation on top of the fit itself, and
+    # nothing in this package uses it for this example -- on
+    # resource-constrained CI runners (observed on macOS) that extra step
+    # can silently fail to complete, leaving the fit as the parent
+    # nlmixr2FitCore class rather than promoted to nlmixr2FitData. cwres
+    # is comparatively cheap and kept.
+    table = list(cwres = TRUE, npde = FALSE)
   )
   nlmixr2_as_xtra(fit.TOS, .skip_assoc = TRUE) %>%
     set_option(dir = "~") %>%
