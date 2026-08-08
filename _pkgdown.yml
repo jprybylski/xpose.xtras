@@ -1,6 +1,7 @@
 url: https://jprybylski.github.io/xpose.xtras/
 template:
   bootstrap: 5
+  math-rendering: katex
 
 reference:
   - title: "xp_xtras objects"

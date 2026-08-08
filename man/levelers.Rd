@@ -31,10 +31,27 @@ ordered factor (see \code{\link[base:factor]{base::factor}}) wherever they're co
 Special character vector suitable to be used as leveler
 }
 \description{
-Level-defining helper functions
+\code{as_leveler()} is the generic constructor behind every leveler: it
+tags a character vector \code{x} so that \code{\link[=set_var_levels]{set_var_levels()}} recognizes it
+as a set of levels rather than a plain formula list. \code{x[1]} is mapped
+to the raw data value \code{.start_index}, \code{x[2]} to \code{.start_index + 1},
+and so on. \code{lvl_bin()}, \code{lvl_sex()}, and \code{lvl_inord()} are thin
+wrappers around \code{as_leveler()} for common cases (binary Yes/No,
+Male/Female sex, and pre-ordered factors, respectively); call
+\code{as_leveler()} directly when defining your own levels, eg more than
+two categories, a custom starting index, or an unordered custom
+label set that the built-in wrappers don't cover.
 }
 \examples{
 
+# Roll your own leveler for a case the convenience wrappers don't cover,
+# eg an unordered, 3-category custom covariate coded 0/1/2 in the data
+arm_levels <- as_leveler(c("Placebo", "Low dose", "High dose"), .start_index = 0)
+arm_levels
+is_leveler(arm_levels)
+
+# The convenience wrappers below are just as_leveler() under the hood, eg
+# lvl_bin() is equivalent to as_leveler(c("No", "Yes"), .start_index = 0)
 set_var_levels(xpdb_x,
   SEX = lvl_sex(),
   MED1 = lvl_bin(),

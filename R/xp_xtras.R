@@ -536,6 +536,19 @@ val2lvl <- function(vals, lvl_tbl = NULL) {
 }
 
 #' Level-defining helper functions
+#'
+#' @description
+#' `as_leveler()` is the generic constructor behind every leveler: it
+#' tags a character vector `x` so that [`set_var_levels()`] recognizes it
+#' as a set of levels rather than a plain formula list. `x[1]` is mapped
+#' to the raw data value `.start_index`, `x[2]` to `.start_index + 1`,
+#' and so on. `lvl_bin()`, `lvl_sex()`, and `lvl_inord()` are thin
+#' wrappers around `as_leveler()` for common cases (binary Yes/No,
+#' Male/Female sex, and pre-ordered factors, respectively); call
+#' `as_leveler()` directly when defining your own levels, eg more than
+#' two categories, a custom starting index, or an unordered custom
+#' label set that the built-in wrappers don't cover.
+#'
 #' @rdname levelers
 #' @order 1
 #'
@@ -550,6 +563,14 @@ val2lvl <- function(vals, lvl_tbl = NULL) {
 #'
 #' @examples
 #'
+#' # Roll your own leveler for a case the convenience wrappers don't cover,
+#' # eg an unordered, 3-category custom covariate coded 0/1/2 in the data
+#' arm_levels <- as_leveler(c("Placebo", "Low dose", "High dose"), .start_index = 0)
+#' arm_levels
+#' is_leveler(arm_levels)
+#'
+#' # The convenience wrappers below are just as_leveler() under the hood, eg
+#' # lvl_bin() is equivalent to as_leveler(c("No", "Yes"), .start_index = 0)
 #' set_var_levels(xpdb_x,
 #'   SEX = lvl_sex(),
 #'   MED1 = lvl_bin(),
