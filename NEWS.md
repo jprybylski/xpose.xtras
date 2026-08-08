@@ -1,6 +1,6 @@
 # xpose.xtras
 
-# xpose.xtras (development version)
+# xpose.xtras 0.2.2
 
 ## Documentation
 
@@ -8,8 +8,6 @@
   switching to katex math rendering. (#88)
 * Documented `as_leveler()` as the generic leveler constructor, with an
   example of defining custom levels directly. (#89)
-
-# xpose.xtras 0.2.2
 
 ## New features
 
