@@ -1,5 +1,14 @@
 # xpose.xtras
 
+# xpose.xtras (development version)
+
+## Documentation
+
+* Fixed `derive_shk()`'s equation not rendering on the pkgdown site by
+  switching to katex math rendering. (#88)
+* Documented `as_leveler()` as the generic leveler constructor, with an
+  example of defining custom levels directly. (#89)
+
 # xpose.xtras 0.2.2
 
 ## New features

@@ -27,6 +27,13 @@ by importance sampling), the \code{.lst} file contains more than one
 method, so the reported condition number can be wrong. This patch instead
 uses the \emph{last} block, matching the value reported by NONMEM-adjacent
 tools such as PsN's \code{sumo}.
+
+\code{xpose:::sum_condn()} itself (not this function) is also where a multi-
+method run with more than one \verb{EIGENVALUES OF COR} block raises "numerical
+expression has ... elements: only the first used" -- it runs automatically
+inside \code{xpose::xpose_data()}, before \code{patch_condn()} gets a chance to
+run, so that warning is expected and cannot be suppressed from here; this
+function only fixes the resulting \code{'condn'} value afterward.
 }
 \examples{
 xpdb_ex_pk <- patch_condn(xpose::xpdb_ex_pk)
