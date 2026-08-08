@@ -49,11 +49,14 @@ tables produced by the \verb{$COV} step. NONMEM includes fixed-effect
 parameters in these tables as placeholder zeros (since no uncertainty is
 estimated for them); \code{drop_fixed} (the default) removes them.
 
-For \code{nlmixr2} models, uncertainty is only calculated for fixed-effect
-(\code{theta}) parameters; \code{nlmixr2} does not report standard errors, and
-therefore no covariance/correlation, for random-effect (\code{omega})
-elements. \code{drop_fixed} has no effect here, since parameters without a
-standard error are already excluded from the fit's covariance matrix.
+For \code{nlmixr2} models, uncertainty is always calculated for fixed-effect
+(\code{theta}) parameters; whether it's also calculated for random-effect
+(\code{omega}) diagonal (variance) elements depends on the \code{nlmixr2est}
+version and fit settings -- when present, those rows/columns are named
+\code{"om.<eta name>"} to distinguish them from the point estimates
+returned by \code{\link[=get_prm]{get_prm()}}. \code{drop_fixed} has no effect here, since
+parameters without a standard error are already excluded from the
+fit's covariance matrix rather than represented as placeholder zeros.
 
 In both cases, if the covariance step was not run, or did not complete
 successfully, an informative error is raised rather than returning
