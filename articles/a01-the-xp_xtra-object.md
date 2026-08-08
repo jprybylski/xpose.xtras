@@ -195,7 +195,7 @@ the existing `xpose` framework. This option requires the use of an
 The
 [`get_prm()`](https://jprybylski.github.io/xpose.xtras/reference/get_prm.md)
 function in `xpose` has been extended to output coefficient of variation
-percent (CV%) for $`\omega^2`$ parameters and shrinkages where relevant.
+percent (CV%) for \omega^2 parameters and shrinkages where relevant.
 
 ``` r
 

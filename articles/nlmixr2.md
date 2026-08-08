@@ -805,26 +805,25 @@ sessionInfo()
 #> [10] nlmixr2data_2.0.10  lotri_1.0.4         nlmixr2_7.0.1      
 #> 
 #> loaded via a namespace (and not attached):
-#>  [1] tidyselect_1.2.1   dplyr_1.2.1        farver_2.1.2       S7_0.2.2          
-#>  [5] fastmap_1.2.0      GGally_2.4.0       tweenr_2.0.3       rex_1.2.2         
-#>  [9] digest_0.6.39      lifecycle_1.0.5    magrittr_2.0.5     dparser_1.3.1-13  
-#> [13] compiler_4.6.1     rlang_1.3.0        sass_0.4.10        tools_4.6.1       
-#> [17] utf8_1.2.6         yaml_2.3.12        data.table_1.18.4  symengine_0.2.13  
-#> [21] knitr_1.51         lbfgsb3c_2024-3.5  labeling_0.4.3     htmlwidgets_1.6.4 
-#> [25] pmxcv_0.0.2        RColorBrewer_1.1-3 withr_3.0.3        purrr_1.2.2       
-#> [29] sys_3.4.3          desc_1.4.3         grid_4.6.1         polyclip_1.10-7   
-#> [33] scales_1.4.0       MASS_7.3-65        cli_3.6.6          rmarkdown_2.31    
-#> [37] crayon_1.5.3       ragg_1.5.2         generics_0.1.4     otel_0.2.0        
-#> [41] RcppParallel_6.2.0 rstudioapi_0.19.0  tzdb_0.5.0         minqa_1.2.8       
-#> [45] cachem_1.1.0       ggforce_0.5.0      stringr_1.6.0      splines_4.6.1     
-#> [49] vctrs_0.7.3        Matrix_1.7-5       jsonlite_2.0.0     PreciseSums_0.7   
-#> [53] hms_1.1.4          systemfonts_1.3.2  tidyr_1.3.2        jquerylib_0.1.4   
-#> [57] rxode2ll_2.0.16    glue_1.8.1         pkgdown_2.2.1      ggstats_0.13.0    
-#> [61] codetools_0.2-20   stringi_1.8.9      gtable_0.3.6       tibble_3.3.1      
-#> [65] pillar_1.11.1      clisymbols_1.2.0   htmltools_0.5.9    R6_2.6.1          
-#> [69] textshaping_1.0.5  evaluate_1.0.5     lattice_0.22-9     readr_2.2.0       
-#> [73] backports_1.5.1    vpc_1.2.4          nanonext_1.10.2    memoise_2.0.1     
-#> [77] mirai_2.7.2        n1qn1_6.0.1-14     bslib_0.12.0       Rcpp_1.1.2        
-#> [81] nlme_3.1-169       checkmate_2.3.4    mgcv_1.9-4         xfun_0.60         
-#> [85] fs_2.1.0           forcats_1.0.1      pkgconfig_2.0.3
+#>  [1] gtable_0.3.6       n1qn1_6.0.1-14     xfun_0.60          bslib_0.12.0      
+#>  [5] htmlwidgets_1.6.4  GGally_2.4.0       lattice_0.22-9     tzdb_0.5.0        
+#>  [9] vctrs_0.7.3        tools_4.6.1        generics_0.1.4     tibble_3.3.1      
+#> [13] symengine_0.2.13   pkgconfig_2.0.3    Matrix_1.7-5       data.table_1.18.4 
+#> [17] checkmate_2.3.4    RColorBrewer_1.1-3 S7_0.2.2           desc_1.4.3        
+#> [21] RcppParallel_6.2.0 lifecycle_1.0.5    compiler_4.6.1     farver_2.1.2      
+#> [25] stringr_1.6.0      textshaping_1.0.5  ggforce_0.5.0      htmltools_0.5.9   
+#> [29] sys_3.4.3          vpc_1.2.4          sass_0.4.10        yaml_2.3.12       
+#> [33] crayon_1.5.3       pillar_1.11.1      pkgdown_2.2.1      jquerylib_0.1.4   
+#> [37] tidyr_1.3.2        MASS_7.3-65        cachem_1.1.0       nlme_3.1-169      
+#> [41] pmxcv_0.0.2        ggstats_0.13.0     tidyselect_1.2.1   digest_0.6.39     
+#> [45] stringi_1.8.9      dplyr_1.2.1        purrr_1.2.2        forcats_1.0.1     
+#> [49] labeling_0.4.3     splines_4.6.1      polyclip_1.10-7    fastmap_1.2.0     
+#> [53] grid_4.6.1         cli_3.6.6          dparser_1.3.1-13   magrittr_2.0.5    
+#> [57] utf8_1.2.6         readr_2.2.0        withr_3.0.3        scales_1.4.0      
+#> [61] backports_1.5.1    rmarkdown_2.31     otel_0.2.0         hms_1.1.4         
+#> [65] clisymbols_1.2.0   ragg_1.5.2         memoise_2.0.1      evaluate_1.0.5    
+#> [69] knitr_1.51         mgcv_1.9-4         PreciseSums_0.7    rlang_1.3.0       
+#> [73] Rcpp_1.1.2         glue_1.8.1         tweenr_2.0.3       lbfgsb3c_2024-3.5 
+#> [77] rstudioapi_0.19.0  jsonlite_2.0.0     R6_2.6.1           systemfonts_1.3.2 
+#> [81] fs_2.1.0
 ```

@@ -3,11 +3,11 @@
 A wrapper that executes the pipeline:
 
 
-    obj |>
-     xpose.nlmixr2::xpose_data_nlmixr2() |>
-     attach_nlmixr2() |>
-     as_xp_xtras() |>
-     backfill_nlmixr2_props() 
+    obj %>%
+     xpose.nlmixr2::xpose_data_nlmixr2() %>%
+     attach_nlmixr2() %>%
+     as_xp_xtras() %>%
+     backfill_nlmixr2_props() %>%
      `if`(.skip_assoc, ., nlmixr2_prm_associations(.))
 
 ## Usage

@@ -13,6 +13,15 @@ method, so the reported condition number can be wrong. This patch
 instead uses the *last* block, matching the value reported by
 NONMEM-adjacent tools such as PsN's `sumo`.
 
+`xpose:::sum_condn()` itself (not this function) is also where a multi-
+method run with more than one `EIGENVALUES OF COR` block raises
+"numerical expression has ... elements: only the first used" – it runs
+automatically inside
+[`xpose::xpose_data()`](https://uupharmacometrics.github.io/xpose/reference/xpose_data.html),
+before `patch_condn()` gets a chance to run, so that warning is expected
+and cannot be suppressed from here; this function only fixes the
+resulting `'condn'` value afterward.
+
 ## Usage
 
 ``` r
