@@ -157,9 +157,10 @@ test_that("xplot_boxplot", {
   # itself no longer accepts `outlier.shape` on GeomBoxplot (it now derives
   # visibility from `outliers`), so this only exercises xplot_boxplot's own
   # branch selection logic, not the resulting layer's outlier rendering.
+  real_packageVersion <- utils::packageVersion
   testthat::local_mocked_bindings(
     packageVersion = function(pkg) {
-      if (identical(pkg, "ggplot2")) package_version("3.5.0") else utils::packageVersion(pkg)
+      if (identical(pkg, "ggplot2")) package_version("3.5.0") else real_packageVersion(pkg)
     },
     .package = "utils"
   )
