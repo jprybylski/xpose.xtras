@@ -332,9 +332,10 @@ test_that("print.xp_xtra_plot exercises the legacy ggplot2 (<= 3.5.2) label bran
     title = "T", subtitle = "S", caption = "C", tag = "G"
   )
 
+  real_packageVersion <- utils::packageVersion
   testthat::local_mocked_bindings(
     packageVersion = function(pkg) {
-      if (identical(pkg, "ggplot2")) package_version("3.5.0") else utils::packageVersion(pkg)
+      if (identical(pkg, "ggplot2")) package_version("3.5.0") else real_packageVersion(pkg)
     },
     .package = "utils"
   )
